@@ -27,11 +27,7 @@ class LocalDbService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, _dbName);
 
-    return openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-    );
+    return openDatabase(path, version: _dbVersion, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -43,7 +39,7 @@ class LocalDbService {
         berat_kg REAL,
         tinggi_cm REAL,
         lingkar_kepala_cm REAL,
-        synced INTEGER DEFAULT 0
+        synced INTEGER DEFAULT 0  
       )
     ''');
   }
@@ -68,11 +64,7 @@ class LocalDbService {
   /// Mengambil semua record yang belum tersinkron (`synced = 0`).
   Future<List<Map<String, dynamic>>> getUnsyncedRecords() async {
     final db = await database;
-    return db.query(
-      tableGrowthCache,
-      where: 'synced = ?',
-      whereArgs: [0],
-    );
+    return db.query(tableGrowthCache, where: 'synced = ?', whereArgs: [0]);
   }
 
   /// Menandai record sebagai sudah tersinkron (`synced = 1`).
