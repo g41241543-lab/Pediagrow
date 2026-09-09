@@ -3,8 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Halaman Splash Screen 8 Tahap PediaGrow.
-///
 /// Memenuhi spesifikasi transisi yang disempurnakan:
 /// 1. Layar biru awal (#295EA3).
 /// 2. Lingkaran putih 100x100 (#FFFFFF) jatuh dari tengah atas ke tengah layar
