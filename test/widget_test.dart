@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pediagrow/features/auth/auth_choice_page.dart';
 import 'package:pediagrow/features/splash/splash_page.dart';
 import 'package:pediagrow/main.dart';
 
 void main() {
-  testWidgets('SplashPage smoke test - renders MyApp and reaches Stage 8', (
+  testWidgets('SplashPage smoke test - renders MyApp and reaches AuthChoicePage', (
     WidgetTester tester,
   ) async {
     // Set a typical compact Android phone viewport (360x640)
@@ -17,9 +18,10 @@ void main() {
     expect(find.byType(SplashPage), findsOneWidget);
 
     // Pump through the entire animation duration (3800ms)
-    await tester.pumpAndSettle(const Duration(milliseconds: 4000));
+    await tester.pumpAndSettle(const Duration(milliseconds: 4500));
 
-    // Verify stage 8 elements are present and visible
+    // Verify AuthChoicePage elements are present and visible
+    expect(find.byType(AuthChoicePage), findsOneWidget);
     expect(find.text('Masuk'), findsOneWidget);
     expect(find.text('Daftar Akun Baru'), findsOneWidget);
     expect(
@@ -29,7 +31,7 @@ void main() {
   });
 
   testWidgets(
-    'SplashPage buttons trigger onLoginPressed and onRegisterPressed',
+    'AuthChoicePage buttons trigger onLoginPressed and onRegisterPressed',
     (WidgetTester tester) async {
       bool loginPressed = false;
       bool registerPressed = false;
@@ -41,15 +43,12 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: SplashPage(
+          home: AuthChoicePage(
             onLoginPressed: () => loginPressed = true,
             onRegisterPressed: () => registerPressed = true,
           ),
         ),
       );
-
-      // Fast forward to end of animation
-      await tester.pumpAndSettle(const Duration(milliseconds: 4000));
 
       // Test Masuk button
       await tester.tap(find.text('Masuk'));
@@ -63,7 +62,7 @@ void main() {
     },
   );
 
-  testWidgets('SplashPage tap to skip immediately jumps to stage 8', (
+  testWidgets('SplashPage tap to skip immediately jumps to AuthChoicePage', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -80,7 +79,8 @@ void main() {
     await tester.tap(find.byType(SplashPage));
     await tester.pumpAndSettle();
 
-    // Verify Stage 8 elements are now available
+    // Verify AuthChoicePage elements are now available
+    expect(find.byType(AuthChoicePage), findsOneWidget);
     expect(find.text('Masuk'), findsOneWidget);
     expect(find.text('Daftar Akun Baru'), findsOneWidget);
   });
