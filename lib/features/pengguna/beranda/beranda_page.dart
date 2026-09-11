@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,11 +18,32 @@ import '../profil/menu_profil_page.dart';
 /// Ditampilkan setelah login berhasil, khusus untuk kondisi
 /// pengguna yang BELUM memiliki profil anak.
 ///
-/// Layout:
-/// - Header pinned 56dp (gradient biru): "Hai Susanti" + ikon notifikasi
-/// - Blue gradient card (≈290dp) dengan card profil anak di atasnya
-/// - Konten putih scrollable: 6 menu + card PediaGrow + ilustrasi footer
-/// - Navigation Bar fixed (55dp, #F2EDED)
+/// Ketentuan Desain & Layout:
+/// 1. Header Tetap (Pinned 56dp) di posisi Scaffold (tidak ikut scroll):
+///    - Latar gradien biru (#5BA4F5) menyatu dengan area atas blue card.
+///    - Teks "Hai Susanti" (Lato Bold 24, #FFFFFF).
+///    - Lingkaran lonceng notifikasi (31×31, #FFFFFF) di sebelah kanan (12dp dari tepi).
+/// 2. Konten Scrollable:
+///    - Seluruh konten berada 12dp dari sisi kanan dan kiri layar.
+///    - Card Biru Linear (Tinggi 290dp) dengan 2 elemen animasi elips dekoratif di kiri atas
+///      (elips 10% dan 5% blur).
+///    - Tulisan "Profil Anak" (Lato reguler 20, #FFFFFF).
+///    - Card putih "MomDad belum punya profil anak" (340×120, radius 15, #FFFFFF)
+///      overlapping di atas card biru (posisi bawah menjulur sekitar 340-360dp dari atas layar).
+///      Berisi ilustrasi bayi, teks "MomDad belum punya profil anak" (Lato reguler 17, #7F7F7F),
+///      dan tombol "+ Tambah Anak" (232×35, radius 10, #3985E7, Lato bold 16 #FFFFFF).
+///    - Sisa konten berwarna putih (#FFFFFF) hingga bawah.
+///    - 6 Card Menu (80×85, radius 10, #ECF6FF):
+///      Berisi logo menu dan judul dengan font Lato reguler #000000:
+///      (Cek stunting, Grafik pertumbuhan, Resep MPASI, Artikel Kesehatan, Lokasi fasyankes, Permainan).
+///    - Card PediaGrow (340×115, radius 10, #ECF6FF):
+///      Tulisan "Pedia" (#4B83D6) & "Grow" (#3CC3A6) Baloo 2 Bold 18,
+///      Tagline "Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan" Lato reguler 16 #000000.
+///    - Ilustrasi penutup footer (kumpulan pohon, rumput, dan tenda) menempel di bagian bawah
+///      konten sebelum Navigation Bar.
+/// 3. Navigation Bar Tetap (Fixed 55dp, #F2EDED) di posisi Scaffold:
+///    - Menu Beranda terpilih dengan bulatan putih dan ikon di dalamnya biru (#72A9F4).
+///    - Menu Konsultasi, Riwayat Konsultasi, dan Profil Ibu.
 class BerandaPage extends StatefulWidget {
   const BerandaPage({super.key});
 
@@ -37,9 +56,9 @@ class _BerandaPageState extends State<BerandaPage>
   // Indeks navigasi bar yang aktif (0 = Beranda)
   int _selectedNavIndex = 0;
 
-  // Animasi controller untuk dekorasi elips
+  // Animasi controller untuk 2 elips dekoratif
   late AnimationController _ellipseController;
-  late Animation<double> _ellipsePulse;
+  late Animation<double> _ellipseScale;
 
   @override
   void initState() {
@@ -49,7 +68,7 @@ class _BerandaPageState extends State<BerandaPage>
       duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
 
-    _ellipsePulse = Tween<double>(begin: 0.85, end: 1.0).animate(
+    _ellipseScale = Tween<double>(begin: 0.90, end: 1.05).animate(
       CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOut),
     );
   }
@@ -84,53 +103,119 @@ class _BerandaPageState extends State<BerandaPage>
     }
   }
 
-  // ------------------------------------------------------------------
-  // BUILD
-  // ------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
-      // Body: Stack agar Blue Card + konten white bisa overlap sedikit
       body: Column(
         children: [
+          // -----------------------------------------------------------------
+          // 1. HEADER TETAP DI POSISI SCAFFOLD (56dp)
+          // -----------------------------------------------------------------
+          _buildFixedHeader(context),
+
+          // -----------------------------------------------------------------
+          // 2. KONTEN YANG DAPAT DI-SCROLL
+          // -----------------------------------------------------------------
           Expanded(
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ------------------------------------------------
-                  // BLUE GRADIENT SECTION (header + card)
-                  // ------------------------------------------------
-                  _buildBlueSection(context),
+                  // Section Card Biru 1/3 Halaman (Height 290)
+                  _buildBlueCardSection(context),
 
-                  // ------------------------------------------------
-                  // WHITE CONTENT SECTION
-                  // ------------------------------------------------
-                  _buildWhiteSection(context),
+                  // Sisa Halaman Berwarna Putih (#FFFFFF)
+                  _buildWhiteContentSection(context),
                 ],
               ),
             ),
           ),
 
-          // ------------------------------------------------
-          // NAVIGATION BAR (fixed di bawah)
-          // ------------------------------------------------
-          _buildNavBar(),
+          // -----------------------------------------------------------------
+          // 3. NAVIGATION BAR TETAP DI POSISI SCAFFOLD (55dp)
+          // -----------------------------------------------------------------
+          _buildFixedNavBar(),
         ],
       ),
     );
   }
 
   // ------------------------------------------------------------------
-  // BLUE GRADIENT SECTION
+  // HEADER TETAP DI POSISI SCAFFOLD (56dp)
   // ------------------------------------------------------------------
-  Widget _buildBlueSection(BuildContext context) {
+  Widget _buildFixedHeader(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.topRight,
+          colors: [
+            Color(0xFF5BA4F5),
+            Color(0xFF4B8FE9),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 56,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Nama Pengguna: "Hai Susanti" (Lato Bold 24, #FFFFFF)
+                Text(
+                  'Hai Susanti',
+                  style: GoogleFonts.lato(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                // Lingkaran di belakang lonceng (31×31, #FFFFFF, 12dp dari tepi kanan)
+                GestureDetector(
+                  onTap: () => _navigateTo(const NotifikasiPage()),
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x1A000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.notifications_none_rounded,
+                      color: Color(0xFF3985E7),
+                      size: 19,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // CARD BIRU 1/3 HALAMAN (Height 290dp)
+  // ------------------------------------------------------------------
+  Widget _buildBlueCardSection(BuildContext context) {
     return Container(
       width: double.infinity,
-      // Total: header 56dp + padding + card profil anak yang "menjulur keluar"
       height: 290,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -146,15 +231,12 @@ class _BerandaPageState extends State<BerandaPage>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // --- Dekorasi Elips Animasi (kiri atas) ---
+          // 2 Elemen Elips Animasi (kiri atas)
           _buildAnimatedEllipses(),
 
-          // --- HEADER (56dp) ---
-          _buildHeader(context),
-
-          // --- Label "Profil Anak" ---
+          // Tulisan "Profil Anak" (Lato reguler 20, #FFFFFF)
           Positioned(
-            top: 56 + 12,
+            top: 20,
             left: 12,
             child: Text(
               'Profil Anak',
@@ -166,46 +248,51 @@ class _BerandaPageState extends State<BerandaPage>
             ),
           ),
 
-          // --- Card Putih "MomDad belum punya profil anak" ---
-          // Diposisikan menempel di bagian bawah blue section (overlap ke bawah)
+          // Card MomDad belum memiliki profil anak (340×120, radius 15, #FFFFFF)
+          // Menjulur ke bawah agar letak total mencapai sekitar 340-360 dp dari atas
           Positioned(
-            bottom: -60, // menjulur ke area putih di bawahnya
+            bottom: -55,
             left: 0,
             right: 0,
-            child: Center(child: _buildProfileCard(context)),
+            child: Center(
+              child: _buildProfileCard(context),
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Dua elips dekoratif di sudut kiri atas dengan animasi pulse.
+  /// 2 Elemen elips animasi di sudut kiri atas
+  /// - Elips 10% fill #FFFFFF dengan effect layer blur
+  /// - Elips 5% fill #FFFFFF dengan effect layer blur lebih besar
   Widget _buildAnimatedEllipses() {
     return AnimatedBuilder(
-      animation: _ellipsePulse,
+      animation: _ellipseScale,
       builder: (context, child) {
+        final scale = _ellipseScale.value;
         return Stack(
           children: [
-            // Elips besar (opacity 5%, blur)
+            // Elips 2 (Ukuran lebih besar, 5% opacity, blur)
             Positioned(
-              top: -70 * _ellipsePulse.value,
-              left: -60 * _ellipsePulse.value,
-              child: _Ellipse(
-                width: 200 * _ellipsePulse.value,
-                height: 200 * _ellipsePulse.value,
-                color: Colors.white.withOpacity(0.05),
-                blurSigma: 12,
+              top: -85 * scale,
+              left: -70 * scale,
+              child: _BlurredEllipse(
+                width: 220 * scale,
+                height: 220 * scale,
+                color: Colors.white.withValues(alpha: 0.05),
+                blurSigma: 16,
               ),
             ),
-            // Elips kecil (opacity 10%, blur)
+            // Elips 1 (Ukuran lebih kecil, 10% opacity, blur)
             Positioned(
-              top: -30,
-              left: -20,
-              child: _Ellipse(
-                width: 130 * _ellipsePulse.value,
-                height: 130 * _ellipsePulse.value,
-                color: Colors.white.withOpacity(0.10),
-                blurSigma: 8,
+              top: -30 * scale,
+              left: -25 * scale,
+              child: _BlurredEllipse(
+                width: 140 * scale,
+                height: 140 * scale,
+                color: Colors.white.withValues(alpha: 0.10),
+                blurSigma: 10,
               ),
             ),
           ],
@@ -214,57 +301,7 @@ class _BerandaPageState extends State<BerandaPage>
     );
   }
 
-  /// Header 56dp: nama pengguna + ikon notifikasi.
-  Widget _buildHeader(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 56,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Nama pengguna
-                Text(
-                  'Hai Susanti',
-                  style: GoogleFonts.lato(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const Spacer(),
-                // Lingkaran notifikasi (31x31, putih, 12dp dari kanan)
-                GestureDetector(
-                  onTap: () => _navigateTo(const NotifikasiPage()),
-                  child: Container(
-                    width: 31,
-                    height: 31,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: Color(0xFF3985E7),
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Card putih (340×120, radius 15) berisi teks + tombol tambah anak.
+  /// Card Putih "MomDad belum punya profil anak" (340×120, corner radius 15, #FFFFFF)
   Widget _buildProfileCard(BuildContext context) {
     return Container(
       width: 340,
@@ -274,36 +311,38 @@ class _BerandaPageState extends State<BerandaPage>
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.09),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(width: 12),
-          // Ilustrasi bayi
+          // Gambar Ilustrasi Bayi & Awan
           SizedBox(
-            width: 72,
-            height: 88,
+            width: 74,
+            height: 90,
             child: Image.asset(
               'assets/images/baby_cloud_illustration.jpg',
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.child_care,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.child_care_rounded,
                 size: 56,
                 color: Color(0xFF3985E7),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          // Teks + tombol
+          // Teks Informasi & Tombol Tambah Anak
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // "MomDad belum punya profil anak" (Lato reguler 17, #7F7F7F)
                 Text(
                   'MomDad belum punya profil anak',
                   style: GoogleFonts.lato(
@@ -313,7 +352,7 @@ class _BerandaPageState extends State<BerandaPage>
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Tombol + Tambah Anak (232×35, radius 10)
+                // Card / Tombol "+ Tambah Anak" (232×35, radius 10, #3985E7)
                 GestureDetector(
                   onTap: () => _navigateTo(const TambahAnakPage()),
                   child: Container(
@@ -322,6 +361,13 @@ class _BerandaPageState extends State<BerandaPage>
                     decoration: BoxDecoration(
                       color: const Color(0xFF3985E7),
                       borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF3985E7).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -344,76 +390,84 @@ class _BerandaPageState extends State<BerandaPage>
   }
 
   // ------------------------------------------------------------------
-  // WHITE CONTENT SECTION
+  // AREA KONTEN PUTIH (Scrollable)
   // ------------------------------------------------------------------
-  Widget _buildWhiteSection(BuildContext context) {
+  Widget _buildWhiteContentSection(BuildContext context) {
     return Container(
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Ruang untuk card profil yang menjulur (60dp overlap)
-          const SizedBox(height: 72),
+          // Ruang kompensasi untuk card profil anak yang menjulur (55dp + padding)
+          const SizedBox(height: 75),
 
-          // --- 6 Menu Cards (grid 3x2) ---
+          // -------------------------------------------------------------
+          // 6 Card Menu Layanan Utama
+          // -------------------------------------------------------------
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: _buildMenuGrid(context),
+            child: _build6MenuGrid(context),
+          ),
+
+          const SizedBox(height: 24),
+
+          // -------------------------------------------------------------
+          // Card PediaGrow (340×115, radius 10, #ECF6FF)
+          // -------------------------------------------------------------
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Center(child: _buildPediaGrowCard()),
           ),
 
           const SizedBox(height: 20),
 
-          // --- Card PediaGrow ---
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: _buildPediaGrowCard(),
-          ),
-
-          const SizedBox(height: 16),
-
-          // --- Ilustrasi Footer (pohon + tenda) ---
+          // -------------------------------------------------------------
+          // Ilustrasi Penutup Footer (Pohon, Rumput, Tenda)
+          // -------------------------------------------------------------
           _buildFooterIllustration(),
         ],
       ),
     );
   }
 
-  /// Grid 3 kolom × 2 baris untuk 6 menu utama.
-  Widget _buildMenuGrid(BuildContext context) {
-    final menus = [
-      _MenuItem(
-        icon: Icons.balance_outlined,
-        label: 'Cek\nStunting',
+  // ------------------------------------------------------------------
+  // 6 CARD MENU (Grid 3 Kolom × 2 Baris)
+  // ------------------------------------------------------------------
+  Widget _build6MenuGrid(BuildContext context) {
+    final menuItems = [
+      _MenuData(
+        title: 'Cek stunting',
+        icon: Icons.monitor_weight_outlined,
         iconColor: const Color(0xFF4B83D6),
         onTap: () => _navigateTo(const PilihAnakPage()),
       ),
-      _MenuItem(
+      _MenuData(
+        title: 'Grafik pertumbuhan',
         icon: Icons.bar_chart_rounded,
-        label: 'Grafik\nPertumbuhan',
         iconColor: const Color(0xFFEAA63C),
         onTap: () => _navigateTo(const PilihAnakGrafikPage()),
       ),
-      _MenuItem(
-        icon: Icons.local_dining_outlined,
-        label: 'Resep\nMPASI',
+      _MenuData(
+        title: 'Resep MPASI',
+        icon: Icons.restaurant_rounded,
         iconColor: const Color(0xFFE08040),
         onTap: () => _navigateTo(const DaftarResepPage()),
       ),
-      _MenuItem(
+      _MenuData(
+        title: 'Artikel Kesehatan',
         icon: Icons.article_outlined,
-        label: 'Artikel\nKesehatan',
         iconColor: const Color(0xFF4B83D6),
         onTap: () => _navigateTo(const DaftarArtikelPage()),
       ),
-      _MenuItem(
+      _MenuData(
+        title: 'Lokasi fasyankes',
         icon: Icons.location_on_outlined,
-        label: 'Lokasi\nFasyankes',
         iconColor: const Color(0xFF3CC3A6),
         onTap: () => _navigateTo(const LokasiFasyankesPage()),
       ),
-      _MenuItem(
+      _MenuData(
+        title: 'Permainan',
         icon: Icons.sports_esports_outlined,
-        label: 'Permainan',
         iconColor: const Color(0xFF7B61FF),
         onTap: () => _navigateTo(const GameMulaiPage()),
       ),
@@ -421,51 +475,76 @@ class _BerandaPageState extends State<BerandaPage>
 
     return Column(
       children: [
+        // Baris 1: 3 Menu Pertama
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: menus.sublist(0, 3).map(_buildMenuCard).toList(),
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: menuItems.sublist(0, 3).map(_buildMenuItem).toList(),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        // Baris 2: 3 Menu Berikutnya
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: menus.sublist(3, 6).map(_buildMenuCard).toList(),
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: menuItems.sublist(3, 6).map(_buildMenuItem).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildMenuCard(_MenuItem item) {
+  Widget _buildMenuItem(_MenuData item) {
     return GestureDetector(
       onTap: item.onTap,
-      child: Container(
-        width: 80,
-        height: 85,
-        decoration: BoxDecoration(
-          color: const Color(0xFFECF6FF),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(item.icon, size: 36, color: item.iconColor),
-            const SizedBox(height: 6),
-            Text(
-              item.label,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Card Menu (dimensi weight 80, height 85, corner radius 10, #ECF6FF)
+          Container(
+            width: 80,
+            height: 85,
+            decoration: BoxDecoration(
+              color: const Color(0xFFECF6FF),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            // Di dalam card diisikan logo dari menu
+            child: Icon(
+              item.icon,
+              size: 40,
+              color: item.iconColor,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Judul Menu (font Lato reguler 18 / auto fit proporsional, #000000)
+          SizedBox(
+            width: 96,
+            child: Text(
+              item.title,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: FontWeight.normal,
                 color: const Color(0xFF000000),
                 height: 1.2,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  /// Card promosi PediaGrow (340×115, #ECF6FF, radius 10).
+  // ------------------------------------------------------------------
+  // CARD PEDIAGROW (340×115, corner radius 10, #ECF6FF)
+  // ------------------------------------------------------------------
   Widget _buildPediaGrowCard() {
     return Container(
       width: 340,
@@ -473,18 +552,25 @@ class _BerandaPageState extends State<BerandaPage>
       decoration: BoxDecoration(
         color: const Color(0xFFECF6FF),
         borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          const SizedBox(width: 8),
-          // Ilustrasi karakter anak
+          const SizedBox(width: 10),
+          // Gambar Ilustrasi Anak/Keluarga
           SizedBox(
             width: 88,
             height: 96,
             child: Image.asset(
               'assets/images/register_family.png',
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.child_care_rounded,
                 size: 56,
                 color: Color(0xFF3985E7),
@@ -492,13 +578,13 @@ class _BerandaPageState extends State<BerandaPage>
             ),
           ),
           const SizedBox(width: 12),
-          // Teks
+          // Tulisan PediaGrow & Tagline
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // "PediaGrow" dengan dua warna
+                // Nama aplikasi PediaGrow (Baloo 2 Bold 18, #4B83D6 & #3CC3A6)
                 RichText(
                   text: TextSpan(
                     children: [
@@ -522,36 +608,43 @@ class _BerandaPageState extends State<BerandaPage>
                   ),
                 ),
                 const SizedBox(height: 4),
+                // Tagline: "Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan" (Lato reguler 16, #000000)
                 Text(
-                  'Pantau Pertumbuhan,\nCegah Stunting untuk Masa Depan',
+                  'Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan',
                   style: GoogleFonts.lato(
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: FontWeight.normal,
                     color: const Color(0xFF000000),
-                    height: 1.4,
+                    height: 1.3,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
         ],
       ),
     );
   }
 
-  /// Ilustrasi pohon/rumput/tenda sebagai penutup konten sebelum nav bar.
+  // ------------------------------------------------------------------
+  // ILUSTRASI FOOTER (Pohon, Rumput, Tenda)
+  // ------------------------------------------------------------------
   Widget _buildFooterIllustration() {
     return SizedBox(
       width: double.infinity,
       child: Image.asset(
         'assets/images/beranda_landscape_footer.jpg',
         fit: BoxFit.fitWidth,
-        errorBuilder: (_, __, ___) => Container(
-          height: 120,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: 110,
           color: const Color(0xFFD1FAE5),
           child: const Center(
-            child: Icon(Icons.park_outlined, size: 48, color: Color(0xFF3CC3A6)),
+            child: Icon(
+              Icons.park_outlined,
+              size: 48,
+              color: Color(0xFF3985E7),
+            ),
           ),
         ),
       ),
@@ -559,14 +652,14 @@ class _BerandaPageState extends State<BerandaPage>
   }
 
   // ------------------------------------------------------------------
-  // NAVIGATION BAR
+  // NAVIGATION BAR TETAP DI POSISI SCAFFOLD (55dp, #F2EDED)
   // ------------------------------------------------------------------
-  Widget _buildNavBar() {
-    final items = [
-      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Konsultasi'),
-      _NavItem(icon: Icons.history_rounded, label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
+  Widget _buildFixedNavBar() {
+    final navItems = [
+      _NavigationData(icon: Icons.home_rounded, label: 'Beranda'),
+      _NavigationData(icon: Icons.chat_bubble_outline_rounded, label: 'Konsultasi'),
+      _NavigationData(icon: Icons.history_rounded, label: 'Riwayat Konsultasi'),
+      _NavigationData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
     ];
 
     return Container(
@@ -584,7 +677,7 @@ class _BerandaPageState extends State<BerandaPage>
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (i) {
+        children: List.generate(navItems.length, (i) {
           final isSelected = i == _selectedNavIndex;
           return GestureDetector(
             onTap: () => _onNavTap(i),
@@ -596,30 +689,37 @@ class _BerandaPageState extends State<BerandaPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (isSelected)
-                    // Bulatan putih berisi ikon biru untuk item aktif
+                    // Menu Beranda aktif: bulatan putih dengan ikon biru di dalamnya (#72A9F4)
                     Container(
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x1A000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
                       ),
+                      alignment: Alignment.center,
                       child: Icon(
-                        items[i].icon,
-                        size: 22,
+                        navItems[i].icon,
+                        size: 24,
                         color: const Color(0xFF72A9F4),
                       ),
                     )
-                  else
+                  else ...[
                     Icon(
-                      items[i].icon,
+                      navItems[i].icon,
                       size: 22,
                       color: const Color(0xFF94A3B8),
                     ),
-                  if (!isSelected) ...[
                     const SizedBox(height: 2),
                     Text(
-                      items[i].label,
+                      navItems[i].label,
                       textAlign: TextAlign.center,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -640,38 +740,38 @@ class _BerandaPageState extends State<BerandaPage>
 }
 
 // ------------------------------------------------------------------
-// Helper classes & widgets
+// DATA MODELS & HELPER WIDGETS
 // ------------------------------------------------------------------
 
-class _MenuItem {
+class _MenuData {
+  final String title;
   final IconData icon;
-  final String label;
   final Color iconColor;
   final VoidCallback onTap;
 
-  const _MenuItem({
+  const _MenuData({
+    required this.title,
     required this.icon,
-    required this.label,
     required this.iconColor,
     required this.onTap,
   });
 }
 
-class _NavItem {
+class _NavigationData {
   final IconData icon;
   final String label;
 
-  const _NavItem({required this.icon, required this.label});
+  const _NavigationData({required this.icon, required this.label});
 }
 
-/// Widget elips dekoratif dengan efek blur.
-class _Ellipse extends StatelessWidget {
+/// Widget elips dekoratif dengan efek Gaussian blur
+class _BlurredEllipse extends StatelessWidget {
   final double width;
   final double height;
   final Color color;
   final double blurSigma;
 
-  const _Ellipse({
+  const _BlurredEllipse({
     required this.width,
     required this.height,
     required this.color,
@@ -680,26 +780,21 @@ class _Ellipse extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ImageFiltered(
-      imageFilter: ColorFilter.matrix(<double>[
-        1, 0, 0, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 0, 1, 0,
-      ]),
-      child: CustomPaint(
-        size: Size(width, height),
-        painter: _EllipsePainter(color: color, blurSigma: blurSigma),
-      ),
+    return CustomPaint(
+      size: Size(width, height),
+      painter: _BlurredEllipsePainter(color: color, blurSigma: blurSigma),
     );
   }
 }
 
-class _EllipsePainter extends CustomPainter {
+class _BlurredEllipsePainter extends CustomPainter {
   final Color color;
   final double blurSigma;
 
-  const _EllipsePainter({required this.color, required this.blurSigma});
+  const _BlurredEllipsePainter({
+    required this.color,
+    required this.blurSigma,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -713,6 +808,6 @@ class _EllipsePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _EllipsePainter oldDelegate) =>
+  bool shouldRepaint(covariant _BlurredEllipsePainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.blurSigma != blurSigma;
 }

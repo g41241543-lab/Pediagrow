@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'auth_choice_page.dart';
 import 'register_page.dart';
+import '../pengguna/beranda/beranda_page.dart';
 
 /// Halaman Masuk (Login Page) PediaGrow.
 ///
@@ -69,23 +70,21 @@ class _LoginPageState extends State<LoginPage> {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
-      // Validasi berhasil — navigasi ke beranda (placeholder snackbar dulu)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Berhasil masuk! Mengalihkan ke beranda...'),
           backgroundColor: Color(0xFF3985E7),
-          duration: Duration(seconds: 2),
+          duration: Duration(milliseconds: 1500),
         ),
       );
 
-      // TODO: ganti dengan navigasi ke BerandaPage setelah halaman tersebut dibuat
-      // Future.delayed(const Duration(milliseconds: 900), () {
-      //   if (!mounted) return;
-      //   Navigator.of(context).pushAndRemoveUntil(
-      //     MaterialPageRoute(builder: (_) => const BerandaPage()),
-      //     (route) => false,
-      //   );
-      // });
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const BerandaPage()),
+          (route) => false,
+        );
+      });
     } else {
       setState(() {
         _autoValidateMode = AutovalidateMode.onUserInteraction;
@@ -235,11 +234,17 @@ class _LoginPageState extends State<LoginPage> {
       SnackBar(
         content: Text('Berhasil masuk dengan Google: $account'),
         backgroundColor: const Color(0xFF3985E7),
-        duration: const Duration(seconds: 2),
+        duration: const Duration(milliseconds: 1500),
       ),
     );
 
-    // TODO: navigasi ke BerandaPage setelah halaman tersebut dibuat
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const BerandaPage()),
+        (route) => false,
+      );
+    });
   }
 
   @override
