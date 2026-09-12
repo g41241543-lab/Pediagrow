@@ -16,18 +16,18 @@ import 'terms_page.dart';
 ///    - Tombol kembali: 12dp dari pinggir kiri.
 ///    - Judul: 12dp setelah tombol kembali, Lato Bold 20 (#000000).
 /// 3. Ilustrasi keluarga (width: 247, height: 155).
-/// 4. 4 TextFormField dengan label Lato 18 (#7F7F7F) + bintang merah (#B13535):
+/// 4. 4 TextFormField dengan label Lato 16 (#7F7F7F) + bintang merah (#B13535):
 ///    - Nama Pengguna (huruf saja)
 ///    - Email (valid Gmail)
 ///    - Kata Sandi (min 6 karakter, kombinasi huruf, angka, simbol)
 ///    - Konfirmasi Kata Sandi (harus cocok)
 /// 5. Visual border: normal abu-abu, fokus biru (#3985E7), error merah (#B13535).
-/// 6. Tombol "Daftar" (350x52, #3985E7, Lato Bold 20 putih).
+/// 6. Tombol "Daftar" (350x46, #3985E7, Lato Bold 20 putih).
 /// 7. Pemisah "atau" (Lato 16, #C5C5C5).
-/// 8. Tombol "Daftar dengan Google" (350x52, border, Lato Bold 20 #000000)
+/// 8. Tombol "Daftar dengan Google" (350x46, border, Lato Bold 20 #000000)
 ///    dengan dialog/bottom sheet pemilihan akun Google.
 /// 9. Footer: Syarat & Ketentuan (menuju TermsPage) dan Masuk (menuju LoginPage).
-/// 10. Seluruh batas konten berada 12dp dari pinggir kiri dan kanan layar.
+/// 10. Seluruh batas konten berada 16dp dari pinggir kiri dan kanan layar.
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -284,7 +284,7 @@ class _RegisterPageState extends State<RegisterPage> {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Form(
                     key: _formKey,
                     autovalidateMode: _autoValidateMode,
@@ -322,7 +322,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyboardType: TextInputType.name,
                           textInputAction: TextInputAction.next,
                           style: GoogleFonts.lato(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
                             color: const Color(0xFF1E293B),
                           ),
                           decoration: _buildInputDecoration(
@@ -352,7 +353,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           style: GoogleFonts.lato(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
                             color: const Color(0xFF1E293B),
                           ),
                           decoration: _buildInputDecoration(
@@ -385,7 +387,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.next,
                           style: GoogleFonts.lato(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
                             color: const Color(0xFF1E293B),
                           ),
                           decoration: _buildInputDecoration(
@@ -428,7 +431,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 18),
 
                         // 5. Field: Konfirmasi Kata Sandi
-                        _buildFieldTitle('Konfirmasi kata Sandi'),
+                        _buildFieldTitle('Konfirmasi Kata Sandi'),
                         TextFormField(
                           key: const Key('confirm_password_field'),
                           controller: _confirmPasswordController,
@@ -437,7 +440,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _handleRegister(),
                           style: GoogleFonts.lato(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
                             color: const Color(0xFF1E293B),
                           ),
                           decoration: _buildInputDecoration(
@@ -471,11 +475,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         const SizedBox(height: 28),
 
-                        // 6. Tombol Daftar (weight/width 350, height 52)
+                        // 6. Tombol Daftar (weight/width 350, height 46)
                         Center(
                           child: SizedBox(
-                            width: math.min(350.0, MediaQuery.of(context).size.width - 24),
-                            height: 52.0,
+                            width: math.min(350.0, MediaQuery.of(context).size.width - 32),
+                            height: 46.0,
                             child: ElevatedButton(
                               key: const Key('register_button'),
                               onPressed: _handleRegister,
@@ -507,7 +511,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // 7. Garis Pemisah "atau"
                         Center(
                           child: SizedBox(
-                            width: math.min(350.0, MediaQuery.of(context).size.width - 24),
+                            width: math.min(350.0, MediaQuery.of(context).size.width - 32),
                             child: Row(
                               children: [
                                 const Expanded(
@@ -542,11 +546,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         const SizedBox(height: 16),
 
-                        // 8. Tombol Daftar dengan Google (weight/width 350, height 52)
+                        // 8. Tombol Daftar dengan Google (weight/width 350, height 46)
                         Center(
                           child: SizedBox(
-                            width: math.min(350.0, MediaQuery.of(context).size.width - 24),
-                            height: 52.0,
+                            width: math.min(350.0, MediaQuery.of(context).size.width - 32),
+                            height: 46.0,
                             child: OutlinedButton(
                               key: const Key('google_register_button'),
                               onPressed: _showGoogleAccountPicker,
@@ -597,6 +601,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 16,
                                   height: 1.4,
+                                  fontWeight: FontWeight.normal,
                                   color: const Color(0xFF000000),
                                 ),
                                 children: [
@@ -609,7 +614,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     style: GoogleFonts.lato(
                                       fontSize: 16,
                                       color: const Color(0xFF3985E7),
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.normal,
                                     ),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () {
@@ -638,6 +643,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             text: TextSpan(
                               style: GoogleFonts.lato(
                                 fontSize: 16,
+                                fontWeight: FontWeight.normal,
                                 color: const Color(0xFF000000),
                               ),
                               children: [
@@ -649,7 +655,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 16,
                                     color: const Color(0xFF3985E7),
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.normal,
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
@@ -721,7 +727,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  /// Judul setiap TextFormField (Lato reguler 18 #7F7F7F) + bintang merah (#B13535).
+  /// Judul setiap TextFormField (Lato reguler 16 #7F7F7F) + bintang merah (#B13535).
   Widget _buildFieldTitle(String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
@@ -729,7 +735,7 @@ class _RegisterPageState extends State<RegisterPage> {
         text: TextSpan(
           text: label,
           style: GoogleFonts.lato(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.normal,
             color: const Color(0xFF7F7F7F),
           ),
@@ -737,7 +743,7 @@ class _RegisterPageState extends State<RegisterPage> {
             TextSpan(
               text: '*',
               style: GoogleFonts.lato(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.normal,
                 color: const Color(0xFFB13535),
               ),
@@ -749,7 +755,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   /// Dekorasi TextFormField:
-  /// - Hint text: Lato regular 16 #C5C5C5
+  /// - Hint text: Lato regular 14 #C5C5C5
   /// - Underline border:
   ///   - Normal: abu-abu (#D1D5DB)
   ///   - Fokus: biru (#3985E7)
@@ -763,7 +769,7 @@ class _RegisterPageState extends State<RegisterPage> {
       contentPadding: const EdgeInsets.only(top: 8, bottom: 8),
       hintText: hintText,
       hintStyle: GoogleFonts.lato(
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: FontWeight.normal,
         color: const Color(0xFFC5C5C5),
       ),
@@ -794,7 +800,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-/// Logo 'G' Google dengan 4 warna resmi (Biru, Merah, Kuning, Hijau).
+/// Logo 'G' Google resmi saat ini dengan 4 warna (Biru, Merah, Kuning, Hijau).
 class _GoogleGLogo extends StatelessWidget {
   final double size;
 
@@ -804,54 +810,84 @@ class _GoogleGLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(size, size),
-      painter: _GoogleGLogoPainter(),
+      painter: const _GoogleGLogoPainter(),
     );
   }
 }
 
 class _GoogleGLogoPainter extends CustomPainter {
+  const _GoogleGLogoPainter();
+
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final center = Offset(w / 2, h / 2);
-    final radius = w / 2;
+    canvas.save();
+    canvas.scale(size.width / 24.0, size.height / 24.0);
 
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.2
-      ..strokeCap = StrokeCap.butt;
-
-    final rect = Rect.fromCircle(center: center, radius: radius * 0.85);
-
-    // 1. Arc Merah (Atas)
-    paint.color = const Color(0xFFEA4335);
-    canvas.drawArc(rect, -math.pi * 0.75, math.pi * 0.5, false, paint);
-
-    // 2. Arc Kuning (Kiri)
-    paint.color = const Color(0xFFFBBC05);
-    canvas.drawArc(rect, math.pi * 0.75, math.pi * 0.5, false, paint);
-
-    // 3. Arc Hijau (Bawah)
-    paint.color = const Color(0xFF34A853);
-    canvas.drawArc(rect, math.pi * 0.25, math.pi * 0.5, false, paint);
-
-    // 4. Arc Biru (Kanan)
-    paint.color = const Color(0xFF4285F4);
-    canvas.drawArc(rect, -math.pi * 0.25, math.pi * 0.5, false, paint);
-
-    // 5. Palang Horizontal Biru
-    final barPaint = Paint()
+    // 1. Biru (#4285F4) - Palang horizontal dan lengkungan kanan
+    final paintBlue = Paint()
       ..color = const Color(0xFF4285F4)
       ..style = PaintingStyle.fill;
+    final pathBlue = Path()
+      ..moveTo(23.75, 12.27)
+      ..cubicTo(23.75, 11.57, 23.69, 10.87, 23.56, 10.2)
+      ..lineTo(12.0, 10.2)
+      ..lineTo(12.0, 14.71)
+      ..lineTo(18.6, 14.71)
+      ..cubicTo(18.31, 16.23, 17.46, 17.53, 16.2, 18.39)
+      ..lineTo(16.2, 21.44)
+      ..lineTo(20.08, 21.44)
+      ..cubicTo(22.35, 19.35, 23.75, 16.27, 23.75, 12.27)
+      ..close();
+    canvas.drawPath(pathBlue, paintBlue);
 
-    final barRect = Rect.fromLTRB(
-      center.dx - w * 0.05,
-      center.dy - (w * 0.1),
-      center.dx + radius * 0.95,
-      center.dy + (w * 0.1),
-    );
-    canvas.drawRect(barRect, barPaint);
+    // 2. Hijau (#34A853) - Lengkungan bawah
+    final paintGreen = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.fill;
+    final pathGreen = Path()
+      ..moveTo(12.0, 24.0)
+      ..cubicTo(15.24, 24.0, 17.95, 22.92, 19.93, 21.09)
+      ..lineTo(16.05, 18.04)
+      ..cubicTo(14.97, 18.76, 13.6, 19.2, 12.0, 19.2)
+      ..cubicTo(8.88, 19.2, 6.23, 17.1, 5.28, 14.27)
+      ..lineTo(1.25, 14.27)
+      ..lineTo(1.25, 17.42)
+      ..cubicTo(3.26, 21.36, 7.33, 24.0, 12.0, 24.0)
+      ..close();
+    canvas.drawPath(pathGreen, paintGreen);
+
+    // 3. Kuning (#FBBC05) - Lengkungan kiri
+    final paintYellow = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.fill;
+    final pathYellow = Path()
+      ..moveTo(5.28, 14.27)
+      ..cubicTo(5.03, 13.55, 4.9, 12.78, 4.9, 12.0)
+      ..cubicTo(4.9, 11.22, 5.03, 10.45, 5.28, 9.73)
+      ..lineTo(5.28, 6.58)
+      ..lineTo(1.25, 6.58)
+      ..cubicTo(0.45, 8.18, 0.0, 9.99, 0.0, 12.0)
+      ..cubicTo(0.0, 14.01, 0.45, 15.82, 1.25, 17.42)
+      ..lineTo(5.28, 14.27)
+      ..close();
+    canvas.drawPath(pathYellow, paintYellow);
+
+    // 4. Merah (#EA4335) - Lengkungan atas
+    final paintRed = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.fill;
+    final pathRed = Path()
+      ..moveTo(12.0, 4.75)
+      ..cubicTo(13.77, 4.75, 15.35, 5.36, 16.6, 6.55)
+      ..lineTo(20.02, 3.13)
+      ..cubicTo(17.95, 1.19, 15.24, 0.0, 12.0, 0.0)
+      ..cubicTo(7.33, 0.0, 3.26, 2.64, 1.25, 6.58)
+      ..lineTo(5.28, 9.73)
+      ..cubicTo(6.23, 6.9, 8.88, 4.75, 12.0, 4.75)
+      ..close();
+    canvas.drawPath(pathRed, paintRed);
+
+    canvas.restore();
   }
 
   @override
