@@ -88,7 +88,9 @@ class _RegisterPageState extends State<RegisterPage> {
       // Validasi berhasil
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...'),
+          content: Text(
+            'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
+          ),
           backgroundColor: Color(0xFF3985E7),
           duration: Duration(seconds: 2),
         ),
@@ -127,80 +129,83 @@ class _RegisterPageState extends State<RegisterPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const _GoogleGLogo(size: 24),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Pilih akun Google',
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const _GoogleGLogo(size: 24),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Pilih akun Google',
+                      style: GoogleFonts.lato(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'untuk mendaftar ke PediaGrow',
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildGoogleAccountTile(
+                  name: 'Pengguna PediaGrow',
+                  email: 'pengguna.pediagrow@gmail.com',
+                  initial: 'P',
+                  avatarColor: const Color(0xFF3985E7),
+                ),
+                const Divider(height: 1),
+                _buildGoogleAccountTile(
+                  name: 'Bunda Ceria',
+                  email: 'bunda.ceria@gmail.com',
+                  initial: 'B',
+                  avatarColor: const Color(0xFF3CC3A6),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFF1F5F9),
+                    child: Icon(
+                      Icons.person_add_alt_1_outlined,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                  title: Text(
+                    'Gunakan akun lain',
                     style: GoogleFonts.lato(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                       color: const Color(0xFF1E293B),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'untuk mendaftar ke PediaGrow',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _completeGoogleSignIn('Akun Google Baru');
+                  },
                 ),
-              ),
-              const SizedBox(height: 16),
-              _buildGoogleAccountTile(
-                name: 'Pengguna PediaGrow',
-                email: 'pengguna.pediagrow@gmail.com',
-                initial: 'P',
-                avatarColor: const Color(0xFF3985E7),
-              ),
-              const Divider(height: 1),
-              _buildGoogleAccountTile(
-                name: 'Bunda Ceria',
-                email: 'bunda.ceria@gmail.com',
-                initial: 'B',
-                avatarColor: const Color(0xFF3CC3A6),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFF1F5F9),
-                  child: Icon(Icons.person_add_alt_1_outlined, color: Color(0xFF475569)),
-                ),
-                title: Text(
-                  'Gunakan akun lain',
-                  style: GoogleFonts.lato(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _completeGoogleSignIn('Akun Google Baru');
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
   }
 
   Widget _buildGoogleAccountTile({
@@ -231,10 +236,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
       subtitle: Text(
         email,
-        style: GoogleFonts.lato(
-          fontSize: 13,
-          color: const Color(0xFF64748B),
-        ),
+        style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
       ),
       onTap: () {
         Navigator.of(context).pop();
@@ -415,7 +417,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             if (value.length < 6) {
                               return 'Kata sandi minimal 6 karakter';
                             }
-                            final hasLetter = RegExp(r'[a-zA-Z]').hasMatch(value);
+                            final hasLetter = RegExp(r'[a-zA-Z]')
+                                .hasMatch(value);
                             final hasNumber = RegExp(r'[0-9]').hasMatch(value);
                             final hasSymbol = RegExp(
                               r'[!@#\$%^&*(),.?":{}|<>\-_=+/\\~`\[\]]',
@@ -478,7 +481,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         // 6. Tombol Daftar (weight/width 350, height 46)
                         Center(
                           child: SizedBox(
-                            width: math.min(350.0, MediaQuery.of(context).size.width - 32),
+                            width: math.min(
+                              350.0,
+                              MediaQuery.of(context).size.width - 32,
+                            ),
                             height: 46.0,
                             child: ElevatedButton(
                               key: const Key('register_button'),
@@ -511,7 +517,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         // 7. Garis Pemisah "atau"
                         Center(
                           child: SizedBox(
-                            width: math.min(350.0, MediaQuery.of(context).size.width - 32),
+                            width: math.min(
+                              350.0,
+                              MediaQuery.of(context).size.width - 32,
+                            ),
                             child: Row(
                               children: [
                                 const Expanded(
@@ -549,13 +558,18 @@ class _RegisterPageState extends State<RegisterPage> {
                         // 8. Tombol Daftar dengan Google (weight/width 350, height 46)
                         Center(
                           child: SizedBox(
-                            width: math.min(350.0, MediaQuery.of(context).size.width - 32),
+                            width: math.min(
+                              350.0,
+                              MediaQuery.of(context).size.width - 32,
+                            ),
                             height: 46.0,
                             child: OutlinedButton(
                               key: const Key('google_register_button'),
                               onPressed: _showGoogleAccountPicker,
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                ),
                                 backgroundColor: Colors.white,
                                 foregroundColor: const Color(0xFF000000),
                                 side: const BorderSide(
@@ -594,7 +608,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         // 9. Teks Syarat & Ketentuan
                         Center(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
                             child: RichText(
                               textAlign: TextAlign.center,
                               text: TextSpan(
@@ -606,8 +622,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                                 children: [
                                   const TextSpan(
-                                    text:
-                                        'Dengan mendaftar anda telah membaca dan menyetujui ',
+                                    text: 'Dengan mendaftar anda telah membaca dan menyetujui ',
                                   ),
                                   TextSpan(
                                     text: 'Syarat & Ketentuan',
@@ -625,9 +640,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         );
                                       },
                                   ),
-                                  const TextSpan(
-                                    text: ' dari Tim PediaGrow',
-                                  ),
+                                  const TextSpan(text: ' dari Tim PediaGrow'),
                                 ],
                               ),
                             ),
@@ -647,9 +660,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 color: const Color(0xFF000000),
                               ),
                               children: [
-                                const TextSpan(
-                                  text: 'Sudah memiliki Akun? ',
-                                ),
+                                const TextSpan(text: 'Sudah memiliki Akun? '),
                                 TextSpan(
                                   text: 'Masuk',
                                   style: GoogleFonts.lato(
@@ -705,11 +716,7 @@ class _RegisterPageState extends State<RegisterPage> {
             },
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: Color(0xFF000000),
-                size: 24,
-              ),
+              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
             ),
           ),
           // Nama halaman terletak 12dp setelah button back
