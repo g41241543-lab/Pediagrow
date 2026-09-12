@@ -21,11 +21,11 @@ import '../pengguna/beranda/beranda_page.dart';
 ///    - Email (valid Gmail)
 ///    - Kata Sandi (min 6 karakter)
 /// 5. Visual border: normal abu-abu, fokus biru (#3985E7), error merah (#B13535).
-/// 6. Tombol "Masuk" (350x52, #3985E7, Lato Bold 20 putih).
+/// 6. Tombol "Masuk" (350x46, #3985E7, Lato Bold 20 putih).
 /// 7. Pemisah "atau" (Lato 16, #C5C5C5).
-/// 8. Tombol "Masuk dengan Google" (350x52, border, Lato Bold 20 #000000).
+/// 8. Tombol "Masuk dengan Google" (350x46, border, Lato Bold 20 #000000).
 /// 9. Footer: Belum memiliki Akun? Daftar (menuju RegisterPage).
-/// 10. Seluruh batas konten berada 12dp dari pinggir kiri dan kanan layar.
+/// 10. Seluruh batas konten berada 16dp dari pinggir kiri dan kanan layar.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -269,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Form(
                     key: _formKey,
                     autovalidateMode: _autoValidateMode,
@@ -307,7 +307,8 @@ class _LoginPageState extends State<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           style: GoogleFonts.lato(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
                             color: const Color(0xFF1E293B),
                           ),
                           decoration: _buildInputDecoration(
@@ -340,7 +341,8 @@ class _LoginPageState extends State<LoginPage> {
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _handleLogin(),
                           style: GoogleFonts.lato(
-                            fontSize: 16,
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
                             color: const Color(0xFF1E293B),
                           ),
                           decoration: _buildInputDecoration(
@@ -373,12 +375,12 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 32),
 
-                        // 4. Tombol Masuk (width: 350, height: 52)
+                        // 4. Tombol Masuk (width: 350, height: 46)
                         Center(
                           child: SizedBox(
                             width: math.min(
-                                350.0, MediaQuery.of(context).size.width - 24),
-                            height: 52.0,
+                                350.0, MediaQuery.of(context).size.width - 32),
+                            height: 46.0,
                             child: ElevatedButton(
                               key: const Key('login_button'),
                               onPressed: _handleLogin,
@@ -411,7 +413,7 @@ class _LoginPageState extends State<LoginPage> {
                         Center(
                           child: SizedBox(
                             width: math.min(
-                                350.0, MediaQuery.of(context).size.width - 24),
+                                350.0, MediaQuery.of(context).size.width - 32),
                             child: Row(
                               children: [
                                 const Expanded(
@@ -445,12 +447,12 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 16),
 
-                        // 6. Tombol Masuk dengan Google (width: 350, height: 52)
+                        // 6. Tombol Masuk dengan Google (width: 350, height: 46)
                         Center(
                           child: SizedBox(
                             width: math.min(
-                                350.0, MediaQuery.of(context).size.width - 24),
-                            height: 52.0,
+                                350.0, MediaQuery.of(context).size.width - 32),
+                            height: 46.0,
                             child: OutlinedButton(
                               key: const Key('google_login_button'),
                               onPressed: _showGoogleAccountPicker,
@@ -498,7 +500,8 @@ class _LoginPageState extends State<LoginPage> {
                             textAlign: TextAlign.center,
                             text: TextSpan(
                               style: GoogleFonts.lato(
-                                fontSize: 16,
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
                                 color: const Color(0xFF000000),
                               ),
                               children: [
@@ -508,7 +511,7 @@ class _LoginPageState extends State<LoginPage> {
                                 TextSpan(
                                   text: 'Daftar',
                                   style: GoogleFonts.lato(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     color: const Color(0xFF3985E7),
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -582,7 +585,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  /// Judul setiap TextFormField (Lato reguler 18 #7F7F7F) + bintang merah (#B13535).
+  /// Judul setiap TextFormField (Lato reguler 16 #7F7F7F) + bintang merah (#B13535).
   Widget _buildFieldTitle(String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
@@ -590,7 +593,7 @@ class _LoginPageState extends State<LoginPage> {
         text: TextSpan(
           text: label,
           style: GoogleFonts.lato(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.normal,
             color: const Color(0xFF7F7F7F),
           ),
@@ -598,7 +601,7 @@ class _LoginPageState extends State<LoginPage> {
             TextSpan(
               text: '*',
               style: GoogleFonts.lato(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.normal,
                 color: const Color(0xFFB13535),
               ),
@@ -622,7 +625,7 @@ class _LoginPageState extends State<LoginPage> {
       contentPadding: const EdgeInsets.only(top: 8, bottom: 8),
       hintText: hintText,
       hintStyle: GoogleFonts.lato(
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: FontWeight.normal,
         color: const Color(0xFFC5C5C5),
       ),
@@ -653,7 +656,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-/// Logo 'G' Google dengan 4 warna resmi (Biru, Merah, Kuning, Hijau).
+/// Logo 'G' Google resmi saat ini dengan 4 warna (Biru, Merah, Kuning, Hijau).
 class _GoogleGLogo extends StatelessWidget {
   final double size;
   const _GoogleGLogo({required this.size});
@@ -662,61 +665,84 @@ class _GoogleGLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(size, size),
-      painter: _GoogleGPainter(),
+      painter: const _GoogleGPainter(),
     );
   }
 }
 
 class _GoogleGPainter extends CustomPainter {
+  const _GoogleGPainter();
+
   @override
   void paint(Canvas canvas, Size size) {
-    final double cx = size.width / 2;
-    final double cy = size.height / 2;
-    final double r = size.width / 2;
-    const double strokeW = 0.22; // relatif terhadap radius
+    canvas.save();
+    canvas.scale(size.width / 24.0, size.height / 24.0);
 
+    // 1. Biru (#4285F4) - Palang horizontal dan lengkungan kanan
     final paintBlue = Paint()
       ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * strokeW
-      ..strokeCap = StrokeCap.round;
+      ..style = PaintingStyle.fill;
+    final pathBlue = Path()
+      ..moveTo(23.75, 12.27)
+      ..cubicTo(23.75, 11.57, 23.69, 10.87, 23.56, 10.2)
+      ..lineTo(12.0, 10.2)
+      ..lineTo(12.0, 14.71)
+      ..lineTo(18.6, 14.71)
+      ..cubicTo(18.31, 16.23, 17.46, 17.53, 16.2, 18.39)
+      ..lineTo(16.2, 21.44)
+      ..lineTo(20.08, 21.44)
+      ..cubicTo(22.35, 19.35, 23.75, 16.27, 23.75, 12.27)
+      ..close();
+    canvas.drawPath(pathBlue, paintBlue);
 
-    final paintRed = Paint()
-      ..color = const Color(0xFFEA4335)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * strokeW
-      ..strokeCap = StrokeCap.round;
-
-    final paintYellow = Paint()
-      ..color = const Color(0xFFFBBC04)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * strokeW
-      ..strokeCap = StrokeCap.round;
-
+    // 2. Hijau (#34A853) - Lengkungan bawah
     final paintGreen = Paint()
       ..color = const Color(0xFF34A853)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * strokeW
-      ..strokeCap = StrokeCap.round;
+      ..style = PaintingStyle.fill;
+    final pathGreen = Path()
+      ..moveTo(12.0, 24.0)
+      ..cubicTo(15.24, 24.0, 17.95, 22.92, 19.93, 21.09)
+      ..lineTo(16.05, 18.04)
+      ..cubicTo(14.97, 18.76, 13.6, 19.2, 12.0, 19.2)
+      ..cubicTo(8.88, 19.2, 6.23, 17.1, 5.28, 14.27)
+      ..lineTo(1.25, 14.27)
+      ..lineTo(1.25, 17.42)
+      ..cubicTo(3.26, 21.36, 7.33, 24.0, 12.0, 24.0)
+      ..close();
+    canvas.drawPath(pathGreen, paintGreen);
 
-    // Lingkaran arc: mulai dari kanan (0°), berlawanan jarum jam
-    // Merah: kanan-atas (dari ~315° ke 90°)
-    final arcRect = Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.78);
+    // 3. Kuning (#FBBC05) - Lengkungan kiri
+    final paintYellow = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.fill;
+    final pathYellow = Path()
+      ..moveTo(5.28, 14.27)
+      ..cubicTo(5.03, 13.55, 4.9, 12.78, 4.9, 12.0)
+      ..cubicTo(4.9, 11.22, 5.03, 10.45, 5.28, 9.73)
+      ..lineTo(5.28, 6.58)
+      ..lineTo(1.25, 6.58)
+      ..cubicTo(0.45, 8.18, 0.0, 9.99, 0.0, 12.0)
+      ..cubicTo(0.0, 14.01, 0.45, 15.82, 1.25, 17.42)
+      ..lineTo(5.28, 14.27)
+      ..close();
+    canvas.drawPath(pathYellow, paintYellow);
 
-    canvas.drawArc(arcRect, -math.pi * 0.25, -math.pi * 1.0, false, paintRed);
-    canvas.drawArc(arcRect, math.pi * 0.75, -math.pi * 0.5, false, paintBlue);
-    canvas.drawArc(arcRect, math.pi * 0.25, math.pi * 0.5, false, paintGreen);
-    canvas.drawArc(arcRect, -math.pi * 0.25, math.pi * 0.5, false, paintYellow);
+    // 4. Merah (#EA4335) - Lengkungan atas
+    final paintRed = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.fill;
+    final pathRed = Path()
+      ..moveTo(12.0, 4.75)
+      ..cubicTo(13.77, 4.75, 15.35, 5.36, 16.6, 6.55)
+      ..lineTo(20.02, 3.13)
+      ..cubicTo(17.95, 1.19, 15.24, 0.0, 12.0, 0.0)
+      ..cubicTo(7.33, 0.0, 3.26, 2.64, 1.25, 6.58)
+      ..lineTo(5.28, 9.73)
+      ..cubicTo(6.23, 6.9, 8.88, 4.75, 12.0, 4.75)
+      ..close();
+    canvas.drawPath(pathRed, paintRed);
 
-    // Garis horizontal 'G' (bagian tengah)
-    final double gLineY = cy;
-    final double gLineX1 = cx;
-    final double gLineX2 = cx + r * 0.7;
-    canvas.drawLine(
-      Offset(gLineX1, gLineY),
-      Offset(gLineX2, gLineY),
-      paintBlue,
-    );
+    canvas.restore();
   }
 
   @override
