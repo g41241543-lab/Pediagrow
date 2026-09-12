@@ -599,7 +599,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               textAlign: TextAlign.center,
                               text: TextSpan(
                                 style: GoogleFonts.lato(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   height: 1.4,
                                   fontWeight: FontWeight.normal,
                                   color: const Color(0xFF000000),
@@ -612,9 +612,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                   TextSpan(
                                     text: 'Syarat & Ketentuan',
                                     style: GoogleFonts.lato(
-                                      fontSize: 16,
+                                      fontSize: 14,
                                       color: const Color(0xFF3985E7),
-                                      fontWeight: FontWeight.normal,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () {
@@ -642,7 +642,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             textAlign: TextAlign.center,
                             text: TextSpan(
                               style: GoogleFonts.lato(
-                                fontSize: 16,
+                                fontSize: 14,
                                 fontWeight: FontWeight.normal,
                                 color: const Color(0xFF000000),
                               ),
@@ -653,9 +653,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 TextSpan(
                                   text: 'Masuk',
                                   style: GoogleFonts.lato(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     color: const Color(0xFF3985E7),
-                                    fontWeight: FontWeight.normal,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
