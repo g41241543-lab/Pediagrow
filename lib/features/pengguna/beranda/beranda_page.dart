@@ -51,6 +51,10 @@ class _BerandaPageState extends State<BerandaPage>
   }
 
   void _navigateTo(Widget page) {
+    if (page is PilihAnakPage) {
+      PilihAnakPage.show(context, children: page.children);
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => page),
     );
