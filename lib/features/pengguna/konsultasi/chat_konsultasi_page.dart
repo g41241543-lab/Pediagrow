@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -95,17 +96,20 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _resolveDoctorData() {
-    _effectiveDoctorName = widget.namaDokter ??
+    _effectiveDoctorName =
+        widget.namaDokter ??
         widget.doctor?.name ??
         widget.consultation?.doctor.name ??
         'dr. Ririn Esterina, Sp.A';
 
-    _effectiveDoctorSpecialist = widget.spesialisDokter ??
+    _effectiveDoctorSpecialist =
+        widget.spesialisDokter ??
         widget.doctor?.specialization ??
         widget.consultation?.doctor.specialization ??
         'Dokter Spesialis Anak';
 
-    _effectiveDoctorPhoto = widget.fotoDokter ??
+    _effectiveDoctorPhoto =
+        widget.fotoDokter ??
         widget.doctor?.assetImagePath ??
         widget.consultation?.doctor.assetImagePath ??
         'assets/images/doctor_ririn.png';
@@ -126,8 +130,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       {
         'sender': 'user',
         'type': 'text',
-        'message':
-            'Dok, anak saya umur 18 bulan, BB-nya naik turun terus. Nafsu makannya juga kadang kurang. Apakah ini berpengaruh ke pertumbuhannya?',
+        'message': 'Dok, anak saya umur 18 bulan, BB-nya naik turun terus. Nafsu makannya juga kadang kurang. Apakah ini berpengaruh ke pertumbuhannya?',
         'timestamp': '16.00',
         'isRead': true,
       },
@@ -135,8 +138,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       {
         'sender': 'doctor',
         'type': 'text',
-        'message':
-            'Halo Mom’s\nTerima kasih sudah menghubungi. Naik turun BB pada anak bisa dipengaruhi oleh pola makan, aktivitas, dan kondisi kesehatan. Boleh saya tahu tinggi dan berat badan terakhir si kecil?',
+        'message': 'Halo Mom’s\nTerima kasih sudah menghubungi. Naik turun BB pada anak bisa dipengaruhi oleh pola makan, aktivitas, dan kondisi kesehatan. Boleh saya tahu tinggi dan berat badan terakhir si kecil?',
         'timestamp': '16.02',
         'isRead': true,
       },
@@ -144,10 +146,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       {
         'sender': 'user',
         'type': 'text',
-        'message':
-            widget.weightKg != null && widget.heightCm != null
-                ? 'Terakhir ${widget.weightKg} kg dan tinggi ${widget.heightCm} cm dok. Diperiksa 2 minggu yang lalu.'
-                : 'Terakhir 10 kg dan tinggi 80 cm dok. Diperiksa 2 minggu yang lalu.',
+        'message': widget.weightKg != null && widget.heightCm != null
+            ? 'Terakhir ${widget.weightKg} kg dan tinggi ${widget.heightCm} cm dok. Diperiksa 2 minggu yang lalu.'
+            : 'Terakhir 10 kg dan tinggi 80 cm dok. Diperiksa 2 minggu yang lalu.',
         'timestamp': '16.05',
         'isRead': true,
       },
@@ -155,8 +156,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       {
         'sender': 'doctor',
         'type': 'text',
-        'message':
-            'Baik Mom’s, berdasarkan usia 18 bulan,  BB 10kg dan TB 80cm masih dalam batas normal, namun tetap perlu dipantau ya.\n\nPastikan asupan gizi seimbang dan stimulasi tumbuh kembangnya dilakukan rutin.',
+        'message': 'Baik Mom’s, berdasarkan usia 18 bulan,  BB 10kg dan TB 80cm masih dalam batas normal, namun tetap perlu dipantau ya.\n\nPastikan asupan gizi seimbang dan stimulasi tumbuh kembangnya dilakukan rutin.',
         'timestamp': '16.07',
         'isRead': true,
       },
@@ -225,8 +225,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           _messages.add({
             'sender': 'doctor',
             'type': 'text',
-            'message':
-                'Sama-sama Mom’s. Jika ada keluhan lanjutan atau si kecil demam, segera konsultasikan kembali ya. Sehat selalu untuk si kecil!',
+            'message': 'Sama-sama Mom’s. Jika ada keluhan lanjutan atau si kecil demam, segera konsultasikan kembali ya. Sehat selalu untuk si kecil!',
             'timestamp': replyTimeStr,
             'isRead': true,
           });
@@ -278,9 +277,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             if (_showDisclaimer) _buildDisclaimer(),
 
             // 3. Area Chat List (Satu-satunya area yang scroll)
-            Expanded(
-              child: _buildChatList(),
-            ),
+            Expanded(child: _buildChatList()),
 
             // 4. Input Pesan Fixed di Bagian Bawah
             _buildInputArea(),
@@ -313,11 +310,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 width: 36,
                 height: 36,
                 child: Center(
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: colorWhite,
-                    size: 24,
-                  ),
+                  child: Icon(Icons.arrow_back, color: colorWhite, size: 24),
                 ),
               ),
             ),
@@ -413,11 +406,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   Widget _buildDefaultDoctorIcon() {
     return const Center(
-      child: Icon(
-        Icons.person,
-        size: 24,
-        color: colorGreyDark,
-      ),
+      child: Icon(Icons.person, size: 24, color: colorGreyDark),
     );
   }
 
@@ -433,11 +422,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.info_outline,
-            size: 20,
-            color: colorTextSecondary,
-          ),
+          const Icon(Icons.info_outline, size: 20, color: colorTextSecondary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -461,11 +446,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               },
               child: const Padding(
                 padding: EdgeInsets.all(4.0),
-                child: Icon(
-                  Icons.close,
-                  size: 19,
-                  color: colorTextSecondary,
-                ),
+                child: Icon(Icons.close, size: 19, color: colorTextSecondary),
               ),
             ),
           ),
@@ -576,11 +557,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(
-                    Icons.done_all,
-                    size: 15,
-                    color: colorPrimaryBlue,
-                  ),
+                  const Icon(Icons.done_all, size: 15, color: colorPrimaryBlue),
                 ],
               ),
             ],
@@ -599,9 +576,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       child: Align(
         alignment: Alignment.centerRight,
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: screenWidth * 0.74,
-          ),
+          constraints: BoxConstraints(maxWidth: screenWidth * 0.74),
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             decoration: BoxDecoration(
@@ -674,9 +649,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
           // Bubble Putih Dokter
           ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: screenWidth * 0.72,
-            ),
+            constraints: BoxConstraints(maxWidth: screenWidth * 0.72),
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
               decoration: BoxDecoration(
@@ -756,7 +729,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   children: List.generate(3, (dotIndex) {
                     final progress =
                         (_typingAnimController.value + (dotIndex * 0.25)) % 1.0;
-                    final scale = 0.6 + (0.5 * (1.0 - (progress - 0.5).abs() * 2));
+                    final scale =
+                        0.6 + (0.5 * (1.0 - (progress - 0.5).abs() * 2));
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2.5),
@@ -807,9 +781,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           const SizedBox(width: 8),
 
           // 2. TextField "Ketik pesan..."
-          Expanded(
-            child: _buildTextField(),
-          ),
+          Expanded(child: _buildTextField()),
           const SizedBox(width: 8),
 
           // 3. Tombol "Akhiri Konsultasi" (Merah #E53E3E)
@@ -850,11 +822,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             );
           },
           child: const Center(
-            child: Icon(
-              Icons.add,
-              color: colorPrimaryBlue,
-              size: 22,
-            ),
+            child: Icon(Icons.add, color: colorPrimaryBlue, size: 22),
           ),
         ),
       ),
@@ -874,10 +842,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       alignment: Alignment.center,
       child: TextField(
         controller: _textController,
-        style: GoogleFonts.lato(
-          fontSize: 14,
-          color: colorTextPrimary,
-        ),
+        style: GoogleFonts.lato(fontSize: 14, color: colorTextPrimary),
         textInputAction: TextInputAction.send,
         onSubmitted: (_) => _sendMessage(),
         decoration: InputDecoration(
@@ -910,11 +875,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           borderRadius: BorderRadius.circular(12),
           onTap: _onAkhiriKonsultasiPressed,
           child: const Center(
-            child: Icon(
-              Icons.call_end_rounded,
-              color: colorEndRed,
-              size: 20,
-            ),
+            child: Icon(Icons.call_end_rounded, color: colorEndRed, size: 20),
           ),
         ),
       ),
@@ -936,11 +897,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           borderRadius: BorderRadius.circular(19),
           onTap: _sendMessage,
           child: const Center(
-            child: Icon(
-              Icons.send_rounded,
-              color: colorWhite,
-              size: 19,
-            ),
+            child: Icon(Icons.send_rounded, color: colorWhite, size: 19),
           ),
         ),
       ),
