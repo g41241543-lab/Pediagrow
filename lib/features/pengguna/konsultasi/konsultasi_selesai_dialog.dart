@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/notification_service.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 
 /// Menampilkan Bottom Sheet bahwa konsultasi dokter telah selesai.
 Future<void> showKonsultasiSelesaiDialog(BuildContext context) {
+  // Buat notifikasi otomatis oleh sistem bahwa konsultasi telah berakhir
+  NotificationService().addConsultationEndedNotification();
+
   return showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,

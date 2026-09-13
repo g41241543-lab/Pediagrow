@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/notification_service.dart';
 import '../../../models/child_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../konsultasi/formulir_konsultasi_page.dart';
@@ -44,6 +45,9 @@ class HasilCekStuntingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Pengguna telah melakukan cek stunting bulan ini, hentikan notifikasi pengingat otomatis
+    NotificationService().markStuntingCheckedThisMonth();
+
     final isNormal = result.status == StuntingStatus.normal;
     final statusColor = isNormal ? const Color(0xFF2E7D32) : colorDangerRed;
     final statusBgColor =
