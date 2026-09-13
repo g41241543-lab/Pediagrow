@@ -8,6 +8,7 @@ class ChildModel {
   final double? weightKg;
   final double? heightCm;
   final double? headCircumferenceCm;
+  final String? photoUrl;
 
   const ChildModel({
     required this.id,
@@ -18,6 +19,7 @@ class ChildModel {
     this.weightKg,
     this.heightCm,
     this.headCircumferenceCm,
+    this.photoUrl,
   });
 
   /// Factory dari Map/JSON
@@ -33,6 +35,7 @@ class ChildModel {
       weightKg: (map['weight_kg'] as num?)?.toDouble(),
       heightCm: (map['height_cm'] as num?)?.toDouble(),
       headCircumferenceCm: (map['head_circumference_cm'] as num?)?.toDouble(),
+      photoUrl: map['photo_url'] ?? map['avatar'],
     );
   }
 
@@ -46,6 +49,7 @@ class ChildModel {
       'weight_kg': weightKg,
       'height_cm': heightCm,
       'head_circumference_cm': headCircumferenceCm,
+      'photo_url': photoUrl,
     };
   }
 
