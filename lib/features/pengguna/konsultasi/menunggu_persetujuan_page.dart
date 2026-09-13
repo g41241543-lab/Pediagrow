@@ -51,6 +51,8 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   static const int _initialCountdownSeconds = 300;
   int _remainingSeconds = _initialCountdownSeconds;
   Timer? _countdownTimer;
+  Timer? _approvalSimulationTimer;
+  Timer? _autoNavTimer;
 
   // Animation Controllers untuk efek masuk berurutan
   late AnimationController _animController;
@@ -110,6 +112,11 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     // Mulai countdown jika dalam kondisi waiting
     if (_status == ConsultationStatus.waiting) {
       _startCountdownTimer();
+      // Simulasi persetujuan dokter otomatis (3.5 detik) sesuai alur
+      _approvalSimulationTimer = Timer(const Duration(milliseconds: 3500), () {
+        if (!mounted || _status != ConsultationStatus.waiting) return;
+        simulateDoctorAccept();
+      });
     }
   }
 
@@ -182,6 +189,8 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   void dispose() {
     // Membersihkan timer dan animation controller untuk mencegah memory leak
     _countdownTimer?.cancel();
+    _approvalSimulationTimer?.cancel();
+    _autoNavTimer?.cancel();
     _animController.dispose();
     super.dispose();
   }
@@ -190,14 +199,22 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // FUNGSI TESTING & DEVELOPMENT (Sesuai spesifikasi prompt)
   // ===========================================================================
 
-  /// [DEV/TESTING METHOD]
   /// Mensimulasikan dokter menyetujui konsultasi secara instan.
   /// Menghentikan countdown timer dan mengubah state menjadi `accepted`.
+  /// Secara otomatis beralih ke formulir konsultasi.
   void simulateDoctorAccept() {
     if (!mounted) return;
     _countdownTimer?.cancel();
+    _approvalSimulationTimer?.cancel();
     setState(() {
       _status = ConsultationStatus.accepted;
+    });
+
+    // Otomatis beralih ke halaman isi formulir setelah dokter menyetujui
+    _autoNavTimer?.cancel();
+    _autoNavTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (!mounted || _status != ConsultationStatus.accepted) return;
+      _navigateToFormulir();
     });
   }
 
@@ -207,6 +224,8 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   void simulateDoctorReject() {
     if (!mounted) return;
     _countdownTimer?.cancel();
+    _approvalSimulationTimer?.cancel();
+    _autoNavTimer?.cancel();
     setState(() {
       _status = ConsultationStatus.expired;
       _remainingSeconds = 0;
@@ -217,9 +236,11 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // NAVIGASI & AKSI TOMBOL
   // ===========================================================================
 
-  /// Tombol "Isi Formulir" ditekan saat status accepted
+  /// Berpindah ke formulir konsultasi saat disetujui
   void _navigateToFormulir() {
-    Navigator.push(
+    _autoNavTimer?.cancel();
+    _approvalSimulationTimer?.cancel();
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => FormulirKonsultasiPage(

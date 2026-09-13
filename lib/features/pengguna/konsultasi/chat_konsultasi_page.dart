@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
@@ -66,6 +68,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // Controllers
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker();
 
   // Animation controller untuk typing indicator 3 titik
   late AnimationController _typingAnimController;
@@ -866,6 +869,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             return _buildAttachmentMessage(item);
           }
 
+          if (type == 'user_attachment') {
+            return _buildUserAttachmentBubble(item);
+          }
+
           if (isUser) {
             return _buildUserBubble(item);
           } else {
@@ -951,6 +958,106 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Bubble Lampiran Pengguna (Kanan, Soft Blue, Dukungan Foto & Dokumen File Manager)
+  Widget _buildUserAttachmentBubble(Map<String, dynamic> item) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final filePath = item['filePath'] as String?;
+    final fileName = item['fileName'] as String? ?? 'Lampiran Dokumen';
+    final isImage = filePath != null &&
+        (filePath.toLowerCase().endsWith('.jpg') ||
+            filePath.toLowerCase().endsWith('.jpeg') ||
+            filePath.toLowerCase().endsWith('.png') ||
+            filePath.toLowerCase().endsWith('.webp'));
+
+    final fileExists = filePath != null && File(filePath).existsSync();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: screenWidth * 0.76),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            decoration: BoxDecoration(
+              color: colorSoftBlue,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isImage && fileExists) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(filePath),
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isImage
+                          ? Icons.image_outlined
+                          : Icons.insert_drive_file_outlined,
+                      size: 20,
+                      color: colorPrimaryBlue,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        fileName,
+                        style: GoogleFonts.lato(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: colorTextPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item['timestamp'] ?? '',
+                      style: GoogleFonts.lato(
+                        fontSize: 11,
+                        color: colorTextSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.done_all,
+                      size: 15,
+                      color: colorPrimaryBlue,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -1216,24 +1323,221 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(19),
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Fitur kirim lampiran foto/dokumen konsultasi',
-                  style: GoogleFonts.lato(),
-                ),
-                duration: const Duration(seconds: 1),
-                backgroundColor: colorPrimaryBlue,
-              ),
-            );
-          },
+          onTap: _showAttachmentPickerOptions,
           child: const Center(
             child: Icon(Icons.add, color: colorPrimaryBlue, size: 22),
           ),
         ),
       ),
     );
+  }
+
+  /// Menampilkan menu pemilihan sumber lampiran (File Manager / Galeri / Kamera)
+  void _showAttachmentPickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Kirim Lampiran',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: colorTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorSoftBlue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.folder_open_rounded,
+                      color: colorPrimaryBlue,
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Pilih Dokumen / File Manager',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colorTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Pilih file atau berkas dari penyimpanan HP / Google Drive',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      color: colorTextSecondary,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickAttachment(ImageSource.gallery);
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: Color(0xFF2E7D32),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Galeri Foto',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colorTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Pilih gambar dari galeri HP',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      color: colorTextSecondary,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickAttachment(ImageSource.gallery);
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: Color(0xFFE65100),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Ambil Foto dari Kamera',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colorTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Ambil foto kondisi anak atau obat secara langsung',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      color: colorTextSecondary,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickAttachment(ImageSource.camera);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAttachment(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (file != null) {
+        final now = DateTime.now();
+        final timeStr =
+            '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
+
+        setState(() {
+          _messages.add({
+            'sender': 'user',
+            'type': 'user_attachment',
+            'fileName': file.name,
+            'filePath': file.path,
+            'timestamp': timeStr,
+            'isRead': true,
+          });
+        });
+
+        _scrollToBottom();
+
+        // Respon dokter terhadap lampiran yang dikirim pengguna
+        Future.delayed(const Duration(milliseconds: 700), () {
+          if (!mounted) return;
+          setState(() => _isDoctorTyping = true);
+          _scrollToBottom();
+
+          Future.delayed(const Duration(milliseconds: 1800), () {
+            if (!mounted) return;
+            final replyTime = DateTime.now();
+            final replyTimeStr =
+                '${replyTime.hour.toString().padLeft(2, '0')}.${replyTime.minute.toString().padLeft(2, '0')}';
+
+            setState(() {
+              _isDoctorTyping = false;
+              _messages.add({
+                'sender': 'doctor',
+                'type': 'text',
+                'message':
+                    'Terima kasih Mom’s sudah melampirkan berkas (${file.name}). Saya sudah mencermati lampiran tersebut. Boleh ceritakan lebih lanjut bagaimana gejala atau kondisi yang tampak pada lampiran ini Mom’s?',
+                'timestamp': replyTimeStr,
+                'isRead': true,
+              });
+            });
+            _scrollToBottom();
+          });
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih file: $e', style: GoogleFonts.lato()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildTextField() {

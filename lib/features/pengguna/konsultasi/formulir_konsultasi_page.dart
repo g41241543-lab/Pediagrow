@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -534,12 +536,16 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   Widget _buildChildAvatar() {
     const double size = 48;
     final isGirl = _effectiveGender.toLowerCase().contains('perempuan');
-    final bgColor = isGirl ? const Color(0xFFFFEDEB) : const Color(0xFFE2F0FE);
+
+    // Background: jika cewe berwarna pink, jika cowo berwarna biru
+    final bgColor = isGirl ? const Color(0xFFFFD1DC) : const Color(0xFFCCE4FF);
     final borderColor =
-        isGirl ? const Color(0xFFFCA5A5) : const Color(0xFF93C5FD);
+        isGirl ? const Color(0xFFF687B3) : const Color(0xFF63B3ED);
 
     final photoUrl = widget.child?.photoUrl;
-    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
+    final hasPhoto = photoUrl != null &&
+        photoUrl.isNotEmpty &&
+        (photoUrl.startsWith('assets/') || File(photoUrl).existsSync());
 
     return Container(
       width: size,
@@ -547,26 +553,40 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       decoration: BoxDecoration(
         color: bgColor,
         shape: BoxShape.circle,
-        border: Border.all(color: borderColor, width: 1.5),
+        border: Border.all(color: borderColor, width: 1.8),
       ),
       clipBehavior: Clip.antiAlias,
       child: hasPhoto
-          ? Image.asset(
-              photoUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Center(
-                child: CustomPaint(
-                  size: const Size(34, 34),
-                  painter: _CuteBabyFacePainter(isGirl: isGirl),
-                ),
-              ),
-            )
-          : Center(
-              child: CustomPaint(
-                size: const Size(34, 34),
-                painter: _CuteBabyFacePainter(isGirl: isGirl),
-              ),
+          ? (photoUrl.startsWith('assets/')
+              ? Image.asset(
+                  photoUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
+                )
+              : Image.file(
+                  File(photoUrl),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
+                ))
+          : _buildDefaultBabyIcon(),
+    );
+  }
+
+  Widget _buildDefaultBabyIcon() {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Image.asset(
+        'assets/images/default_baby_avatar.png',
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Center(
+          child: CustomPaint(
+            size: const Size(34, 34),
+            painter: _CuteBabyFacePainter(
+              isGirl: _effectiveGender.toLowerCase().contains('perempuan'),
             ),
+          ),
+        ),
+      ),
     );
   }
 

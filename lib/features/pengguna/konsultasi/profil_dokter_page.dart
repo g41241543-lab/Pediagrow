@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/doctor_model.dart';
-import 'formulir_konsultasi_page.dart';
+import 'menunggu_persetujuan_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
+///
+/// Alur navigasi: Profil Dokter → [MenungguPersetujuanPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
 ///
 /// Disesuaikan persis dengan acuan desain:
 /// 1. Header: Tombol kembali + judul "Profil Dokter Anak"
@@ -20,17 +22,18 @@ import 'formulir_konsultasi_page.dart';
 ///    - Kartu berisikan daftar rumah sakit/klinik praktik dokter dengan ikon fasyankes
 ///      dan garis divider horizontal
 /// 4. Bottom Action Bar:
-///    - Tombol oranye "Chat Dokter" di sisi kanan bawah
+///    - Tombol oranye "Chat Dokter" → navigasi ke [MenungguPersetujuanPage]
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
 
   const ProfilDokterPage({super.key, required this.doctor});
 
   void _onChatDokterPressed(BuildContext context) {
+    // Alur resmi: Profil Dokter → Menunggu Persetujuan (otomatis 3.5s) → Formulir → Chat
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            FormulirKonsultasiPage(doctor: doctor),
+            MenungguPersetujuanPage(doctor: doctor),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,
