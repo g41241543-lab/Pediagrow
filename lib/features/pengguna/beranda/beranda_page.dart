@@ -211,8 +211,9 @@ class _BerandaPageState extends State<BerandaPage>
               // Jarak margin-top dari teks "Profil Anak" ke card: 16dp
               const SizedBox(height: 16),
 
-              // Card MomDad (340×120, radius 15, #FFFFFF)
-              Center(
+              // Card MomDad (margin 12dp horizontal, radius 15, #FFFFFF)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: _buildMomDadCard(context),
               ),
 
@@ -267,11 +268,11 @@ class _BerandaPageState extends State<BerandaPage>
 
   // ===================================================================
   // CARD MOMDAD (Belum Punya Profil Anak)
-  // Dimensi: width 340 x height 120, warna #FFFFFF, corner radius 15
+  // Dimensi: lebar penuh sejajar margin 12dp x height 120, warna #FFFFFF, corner radius 15
   // ===================================================================
   Widget _buildMomDadCard(BuildContext context) {
     return Container(
-      width: 340,
+      width: double.infinity,
       height: 120,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -309,9 +310,9 @@ class _BerandaPageState extends State<BerandaPage>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // "MomDad belum punya profil anak" (Lato Regular 17, #7F7F7F)
+                // "Mom Dad belum punya profil anak" (Lato Regular 15, #7F7F7F)
                 Text(
-                  'MomDad belum punya profil anak',
+                  'Mom Dad belum punya profil anak',
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
@@ -368,7 +369,7 @@ class _BerandaPageState extends State<BerandaPage>
       padding: const EdgeInsets.only(top: 24, bottom: 20),
       child: Column(
         children: [
-          // 6 Card Menu
+          // 6 Card Menu (lebar penuh sejajar margin 12dp)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: _build6MenuGrid(context),
@@ -376,12 +377,10 @@ class _BerandaPageState extends State<BerandaPage>
 
           const SizedBox(height: 24),
 
-          // Card PediaGrow (340×115, radius 10, #ECF6FF)
+          // Card PediaGrow (lebar penuh identik dengan Card MomDad & Menu, margin 12dp)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Center(
-              child: _buildPediaGrowCard(),
-            ),
+            child: _buildPediaGrowCard(),
           ),
         ],
       ),
@@ -390,30 +389,37 @@ class _BerandaPageState extends State<BerandaPage>
 
   // ===================================================================
   // 6 CARD MENU
-  // Warna #ECF6FF, dimensi width 80 x height 85, corner radius 10
+  // Warna #ECF6FF, dimensi 3 kolom sejajar presisi, corner radius 10
   // ===================================================================
   Widget _build6MenuGrid(BuildContext context) {
     return Column(
       children: [
         // Baris 1: Cek Stunting, Grafik Pertumbuhan, Resep MPASI
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMenuItem(
-              title: 'Cek\nStunting',
-              iconWidget: const _ScaleIcon(),
-              onTap: () => _navigateTo(const PilihAnakPage()),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Cek\nStunting',
+                imageAsset: 'assets/images/cek_stunting_logo.png',
+                onTap: () => _navigateTo(const PilihAnakPage()),
+              ),
             ),
-            _buildMenuItem(
-              title: 'Grafik\nPertumbuhan',
-              iconWidget: const _BarChartIcon(),
-              onTap: () => _navigateTo(const PilihAnakGrafikPage()),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Grafik\nPertumbuhan',
+                imageAsset: 'assets/images/grafik_pertumbuhan_logo.png',
+                onTap: () => _navigateTo(const PilihAnakGrafikPage()),
+              ),
             ),
-            _buildMenuItem(
-              title: 'Resep\nMPASI',
-              iconWidget: const _FoodJarIcon(),
-              onTap: () => _navigateTo(const DaftarResepPage()),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Resep\nMPASI',
+                imageAsset: 'assets/images/resep_mpasi_logo.png',
+                onTap: () => _navigateTo(const DaftarResepPage()),
+              ),
             ),
           ],
         ),
@@ -422,23 +428,30 @@ class _BerandaPageState extends State<BerandaPage>
 
         // Baris 2: Artikel Kesehatan, Lokasi Fasyankes, Permainan
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMenuItem(
-              title: 'Artikel\nKesehatan',
-              iconWidget: const _HealthCertIcon(),
-              onTap: () => _navigateTo(const DaftarArtikelPage()),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Artikel\nKesehatan',
+                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                onTap: () => _navigateTo(const DaftarArtikelPage()),
+              ),
             ),
-            _buildMenuItem(
-              title: 'Lokasi\nFasyankes',
-              iconWidget: const _MapPinIcon(),
-              onTap: () => _navigateTo(const LokasiFasyankesPage()),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Lokasi\nFasyankes',
+                imageAsset: 'assets/images/lokasi_fasyankes_logo.png',
+                onTap: () => _navigateTo(const LokasiFasyankesPage()),
+              ),
             ),
-            _buildMenuItem(
-              title: 'Permainan\n',
-              iconWidget: const _GameScreenIcon(),
-              onTap: () => _navigateTo(const GameMulaiPage()),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Permainan\n',
+                imageAsset: 'assets/images/permainan_logo.png',
+                onTap: () => _navigateTo(const GameMulaiPage()),
+              ),
             ),
           ],
         ),
@@ -448,63 +461,63 @@ class _BerandaPageState extends State<BerandaPage>
 
   Widget _buildMenuItem({
     required String title,
-    required Widget iconWidget,
+    required String imageAsset,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 95,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Card Menu: 80×85, radius 10, #ECF6FF
-            Container(
-              width: 80,
-              height: 85,
-              decoration: BoxDecoration(
-                color: const Color(0xFFECF6FF),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3985E7).withValues(alpha: 0.06),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: iconWidget,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Card Menu: fills available width of this column!
+          Container(
+            height: 85,
+            decoration: BoxDecoration(
+              color: const Color(0xFFECF6FF),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            // Judul Menu (Lato Regular 16-18, #000000)
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 15,
-                fontWeight: FontWeight.normal,
-                color: const Color(0xFF000000),
-                height: 1.25,
-              ),
+            alignment: Alignment.center,
+            child: Image.asset(
+              imageAsset,
+              height: 48,
+              fit: BoxFit.contain,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          // Judul Menu (Lato Regular 14, #000000)
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+              color: const Color(0xFF000000),
+              height: 1.25,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   // ===================================================================
   // CARD PEDIAGROW
-  // Warna #ECF6FF, dimensi width 340 x height 115, corner radius 10
-  // Sisi kiri: ilustrasi bayi bermain dengan mainan
+  // Warna #ECF6FF, dimensi lebar penuh (margin 12dp) x height 115, corner radius 10
+  // Sisi kiri: ilustrasi bayi pediagrow
   // Sisi kanan: "PediaGrow" + Tagline
   // ===================================================================
   Widget _buildPediaGrowCard() {
     return Container(
-      width: 340,
+      width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
         color: const Color(0xFFECF6FF),
@@ -521,15 +534,15 @@ class _BerandaPageState extends State<BerandaPage>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Ilustrasi Bayi Bermain Mainan
+          // Ilustrasi Bayi PediaGrow (gambar 7)
           SizedBox(
             width: 84,
             height: 94,
             child: Image.asset(
-              'assets/images/baby_cloud_illustration.jpg',
+              'assets/images/bayi_pediagrow_logo.png',
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.toys_outlined,
+                Icons.child_care_rounded,
                 size: 50,
                 color: Color(0xFF3985E7),
               ),
@@ -593,7 +606,9 @@ class _BerandaPageState extends State<BerandaPage>
       width: double.infinity,
       child: Image.asset(
         'assets/images/beranda_landscape_footer.jpg',
+        width: double.infinity,
         fit: BoxFit.fitWidth,
+        alignment: Alignment.bottomCenter,
         errorBuilder: (context, error, stackTrace) => Container(
           height: 100,
           color: const Color(0xFFD1FAE5),
@@ -772,399 +787,3 @@ class _BlurredEllipsePainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.blurSigma != blurSigma;
 }
 
-// =====================================================================
-// CUSTOM PAINTER ICONS (6 MENU)
-// Sesuai persis dengan ilustrasi referensi desain
-// =====================================================================
-
-/// 1. Ikon Cek Stunting: Timbangan (Balance Scale), biru
-class _ScaleIcon extends StatelessWidget {
-  const _ScaleIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(40, 40),
-      painter: _ScaleIconPainter(),
-    );
-  }
-}
-
-class _ScaleIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF72A9F4)
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    // Tiang Tengah & Alas
-    canvas.drawLine(Offset(w * 0.5, h * 0.15), Offset(w * 0.5, h * 0.88), strokePaint);
-    canvas.drawLine(Offset(w * 0.35, h * 0.88), Offset(w * 0.65, h * 0.88), strokePaint);
-
-    // Palang Horizontal Atas
-    canvas.drawLine(Offset(w * 0.18, h * 0.22), Offset(w * 0.82, h * 0.22), strokePaint);
-
-    // Titik tumpu tengah atas
-    canvas.drawCircle(Offset(w * 0.5, h * 0.18), 3, strokePaint..style = PaintingStyle.fill);
-    strokePaint.style = PaintingStyle.stroke;
-
-    // Tali kiri
-    canvas.drawLine(Offset(w * 0.18, h * 0.22), Offset(w * 0.10, h * 0.48), strokePaint);
-    canvas.drawLine(Offset(w * 0.18, h * 0.22), Offset(w * 0.28, h * 0.48), strokePaint);
-
-    // Piringan kiri (fill + stroke)
-    final leftPan = Path()
-      ..moveTo(w * 0.08, h * 0.48)
-      ..quadraticBezierTo(w * 0.19, h * 0.62, w * 0.30, h * 0.48)
-      ..close();
-    canvas.drawPath(leftPan, fillPaint);
-    canvas.drawPath(leftPan, strokePaint);
-
-    // Tali kanan
-    canvas.drawLine(Offset(w * 0.82, h * 0.22), Offset(w * 0.72, h * 0.48), strokePaint);
-    canvas.drawLine(Offset(w * 0.82, h * 0.22), Offset(w * 0.90, h * 0.48), strokePaint);
-
-    // Piringan kanan (fill + stroke)
-    final rightPan = Path()
-      ..moveTo(w * 0.70, h * 0.48)
-      ..quadraticBezierTo(w * 0.81, h * 0.62, w * 0.92, h * 0.48)
-      ..close();
-    canvas.drawPath(rightPan, fillPaint);
-    canvas.drawPath(rightPan, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// 2. Ikon Grafik Pertumbuhan: Bar chart 3 batang warna-warni (kuning, biru, tosca/hijau)
-class _BarChartIcon extends StatelessWidget {
-  const _BarChartIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(40, 40),
-      painter: _BarChartIconPainter(),
-    );
-  }
-}
-
-class _BarChartIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round;
-
-    final w = size.width;
-    final h = size.height;
-
-    // Sumbu X & Sumbu Y
-    canvas.drawLine(Offset(w * 0.15, h * 0.15), Offset(w * 0.15, h * 0.85), strokePaint);
-    canvas.drawLine(Offset(w * 0.15, h * 0.85), Offset(w * 0.88, h * 0.85), strokePaint);
-
-    // Batang 1: Kuning
-    final bar1Rect = Rect.fromLTWH(w * 0.25, h * 0.50, w * 0.16, h * 0.35);
-    final fill1 = Paint()..color = const Color(0xFFFBBF24);
-    canvas.drawRect(bar1Rect, fill1);
-    canvas.drawRect(bar1Rect, strokePaint);
-
-    // Batang 2: Biru/Ungu
-    final bar2Rect = Rect.fromLTWH(w * 0.45, h * 0.60, w * 0.16, h * 0.25);
-    final fill2 = Paint()..color = const Color(0xFF6366F1);
-    canvas.drawRect(bar2Rect, fill2);
-    canvas.drawRect(bar2Rect, strokePaint);
-
-    // Batang 3: Tosca/Hijau
-    final bar3Rect = Rect.fromLTWH(w * 0.65, h * 0.32, w * 0.16, h * 0.53);
-    final fill3 = Paint()..color = const Color(0xFF06B6D4);
-    canvas.drawRect(bar3Rect, fill3);
-    canvas.drawRect(bar3Rect, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// 3. Ikon Resep MPASI: Toples/jar makanan bayi dengan sendok, oranye
-class _FoodJarIcon extends StatelessWidget {
-  const _FoodJarIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(40, 40),
-      painter: _FoodJarIconPainter(),
-    );
-  }
-}
-
-class _FoodJarIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final fillPaint = Paint()..color = const Color(0xFFFDBA74);
-    final innerPaint = Paint()..color = const Color(0xFFFED7AA);
-
-    final w = size.width;
-    final h = size.height;
-
-    // Tutup toples
-    final lidRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.20, h * 0.16, w * 0.42, h * 0.10),
-      const Radius.circular(3),
-    );
-    canvas.drawRRect(lidRect, strokePaint);
-
-    // Badan toples
-    final jarRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.16, h * 0.26, w * 0.50, h * 0.58),
-      const Radius.circular(8),
-    );
-    canvas.drawRRect(jarRect, fillPaint);
-    canvas.drawRRect(jarRect, strokePaint);
-
-    // Label di toples
-    final labelRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.22, h * 0.40, w * 0.38, h * 0.26),
-      const Radius.circular(4),
-    );
-    canvas.drawRRect(labelRect, innerPaint);
-    canvas.drawRRect(labelRect, strokePaint);
-
-    // Sendok di samping kanan
-    final spoonHead = Rect.fromLTWH(w * 0.74, h * 0.22, w * 0.14, h * 0.22);
-    canvas.drawOval(spoonHead, Paint()..color = const Color(0xFFE2E8F0));
-    canvas.drawOval(spoonHead, strokePaint);
-    canvas.drawLine(Offset(w * 0.81, h * 0.44), Offset(w * 0.81, h * 0.84), strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// 4. Ikon Artikel Kesehatan: Sertifikat/piagam dengan simbol palang kesehatan (+)
-class _HealthCertIcon extends StatelessWidget {
-  const _HealthCertIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(40, 40),
-      painter: _HealthCertIconPainter(),
-    );
-  }
-}
-
-class _HealthCertIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final frameFill = Paint()..color = const Color(0xFFFEF08A);
-    final blueFill = Paint()..color = const Color(0xFF38BDF8);
-
-    final w = size.width;
-    final h = size.height;
-
-    // Bingkai sertifikat
-    final certRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.18, h * 0.18, w * 0.64, h * 0.64),
-      const Radius.circular(6),
-    );
-    canvas.drawRRect(certRect, frameFill);
-    canvas.drawRRect(certRect, strokePaint);
-
-    // 4 Corner tabs
-    const tabSize = 5.0;
-    canvas.drawRect(Rect.fromLTWH(w * 0.14, h * 0.14, tabSize, tabSize), strokePaint);
-    canvas.drawRect(Rect.fromLTWH(w * 0.82 - tabSize, h * 0.14, tabSize, tabSize), strokePaint);
-    canvas.drawRect(Rect.fromLTWH(w * 0.14, h * 0.82 - tabSize, tabSize, tabSize), strokePaint);
-    canvas.drawRect(Rect.fromLTWH(w * 0.82 - tabSize, h * 0.82 - tabSize, tabSize, tabSize), strokePaint);
-
-    // Lambang tameng / palang di tengah
-    final badgeRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.32, h * 0.32, w * 0.36, h * 0.36),
-      const Radius.circular(4),
-    );
-    canvas.drawRRect(badgeRect, blueFill);
-    canvas.drawRRect(badgeRect, strokePaint);
-
-    // Palang (+) putih
-    final plusPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(Offset(w * 0.5, h * 0.38), Offset(w * 0.5, h * 0.62), plusPaint);
-    canvas.drawLine(Offset(w * 0.38, h * 0.5), Offset(w * 0.62, h * 0.5), plusPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// 5. Ikon Lokasi Fasyankes: Peta terlipat dengan pin lokasi merah
-class _MapPinIcon extends StatelessWidget {
-  const _MapPinIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(40, 40),
-      painter: _MapPinIconPainter(),
-    );
-  }
-}
-
-class _MapPinIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final mapFill = Paint()..color = const Color(0xFFBAE6FD);
-    final pinFill = Paint()..color = const Color(0xFFEF4444);
-
-    final w = size.width;
-    final h = size.height;
-
-    // Peta terlipat 3 panel
-    final mapPath = Path()
-      ..moveTo(w * 0.12, h * 0.38)
-      ..lineTo(w * 0.38, h * 0.30)
-      ..lineTo(w * 0.64, h * 0.38)
-      ..lineTo(w * 0.88, h * 0.30)
-      ..lineTo(w * 0.88, h * 0.76)
-      ..lineTo(w * 0.64, h * 0.84)
-      ..lineTo(w * 0.38, h * 0.76)
-      ..lineTo(w * 0.12, h * 0.84)
-      ..close();
-
-    canvas.drawPath(mapPath, mapFill);
-    canvas.drawPath(mapPath, strokePaint);
-
-    // Garis lipatan vertikal
-    canvas.drawLine(Offset(w * 0.38, h * 0.30), Offset(w * 0.38, h * 0.76), strokePaint);
-    canvas.drawLine(Offset(w * 0.64, h * 0.38), Offset(w * 0.64, h * 0.84), strokePaint);
-
-    // Pin Lokasi Merah di panel tengah
-    final pinCenter = Offset(w * 0.52, h * 0.32);
-    final pinHead = Path()
-      ..addOval(Rect.fromCircle(center: pinCenter, radius: 7.5))
-      ..moveTo(w * 0.44, h * 0.34)
-      ..lineTo(w * 0.52, h * 0.54)
-      ..lineTo(w * 0.60, h * 0.34)
-      ..close();
-
-    canvas.drawPath(pinHead, pinFill);
-    canvas.drawPath(pinHead, strokePaint);
-
-    // Titik putih di dalam pin
-    canvas.drawCircle(pinCenter, 2.5, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// 6. Ikon Permainan: Layar monitor/tablet dengan simbol gear/kursor
-class _GameScreenIcon extends StatelessWidget {
-  const _GameScreenIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(40, 40),
-      painter: _GameScreenIconPainter(),
-    );
-  }
-}
-
-class _GameScreenIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final screenFill = Paint()..color = const Color(0xFFBAE6FD);
-    final sunFill = Paint()..color = const Color(0xFFFBBF24);
-
-    final w = size.width;
-    final h = size.height;
-
-    // Bingkai monitor
-    final monitorRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * 0.20, h * 0.16, w * 0.56, h * 0.56),
-      const Radius.circular(5),
-    );
-    canvas.drawRRect(monitorRect, screenFill);
-    canvas.drawRRect(monitorRect, strokePaint);
-
-    // Stand / kaki monitor
-    canvas.drawLine(Offset(w * 0.48, h * 0.72), Offset(w * 0.48, h * 0.84), strokePaint);
-    canvas.drawLine(Offset(w * 0.32, h * 0.84), Offset(w * 0.64, h * 0.84), strokePaint);
-
-    // Gambar di dalam layar: matahari & bukit
-    canvas.drawCircle(Offset(w * 0.60, h * 0.30), 4, sunFill);
-    final hillPath = Path()
-      ..moveTo(w * 0.22, h * 0.62)
-      ..lineTo(w * 0.38, h * 0.46)
-      ..lineTo(w * 0.52, h * 0.58)
-      ..lineTo(w * 0.64, h * 0.48)
-      ..lineTo(w * 0.74, h * 0.62)
-      ..close();
-    canvas.drawPath(hillPath, Paint()..color = const Color(0xFF34D399));
-    canvas.drawPath(hillPath, strokePaint..strokeWidth = 1.5);
-    strokePaint.strokeWidth = 2.2;
-
-    // Kursor Mouse di kanan bawah
-    final cursor = Path()
-      ..moveTo(w * 0.66, h * 0.50)
-      ..lineTo(w * 0.88, h * 0.66)
-      ..lineTo(w * 0.78, h * 0.68)
-      ..lineTo(w * 0.84, h * 0.84)
-      ..lineTo(w * 0.76, h * 0.86)
-      ..lineTo(w * 0.70, h * 0.70)
-      ..lineTo(w * 0.62, h * 0.74)
-      ..close();
-
-    canvas.drawPath(cursor, Paint()..color = const Color(0xFF1E293B));
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
