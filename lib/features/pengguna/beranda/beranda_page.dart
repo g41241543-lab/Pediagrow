@@ -97,6 +97,7 @@ class _BerandaPageState extends State<BerandaPage>
             // -------------------------------------------------------------
             _buildWhiteContentSection(context),
 
+            const SizedBox(height: 20), // jarak kecil sebelum ilustrasi footer
             // -------------------------------------------------------------
             // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
             // -------------------------------------------------------------
@@ -310,7 +311,7 @@ class _BerandaPageState extends State<BerandaPage>
               children: [
                 // "Mom Dad belum punya profil anak" (Lato Regular 15, #7F7F7F)
                 Text(
-                  'Mom Dad belum punya profil anak',
+                  'Mom and Dad belum punya profil anak',
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
@@ -418,6 +419,7 @@ class _BerandaPageState extends State<BerandaPage>
                 title: 'Resep\nMPASI',
                 imageAsset: 'assets/images/resep_mpasi_logo.png',
                 onTap: () => _navigateTo(const DaftarResepPage()),
+                logoOffsetX: 2,
               ),
             ),
           ],
@@ -450,6 +452,7 @@ class _BerandaPageState extends State<BerandaPage>
                 title: 'Permainan\n',
                 imageAsset: 'assets/images/permainan_logo.png',
                 onTap: () => _navigateTo(const GameMulaiPage()),
+                logoOffsetX: 5,
               ),
             ),
           ],
@@ -462,6 +465,10 @@ class _BerandaPageState extends State<BerandaPage>
     required String title,
     required String imageAsset,
     required VoidCallback onTap,
+    double cardInset =
+        6, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
+    double imageSize = 40, // ukuran logo, dikecilkan mengikuti card
+    double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -470,23 +477,33 @@ class _BerandaPageState extends State<BerandaPage>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card Menu: sekarang berbentuk kotak (1:1), lebar mengikuti kolom
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFECF6FF),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3985E7).withValues(alpha: 0.06),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+          // Card Menu: dikecilkan via padding horizontal, tetap kotak (1:1)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: cardInset),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECF6FF),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Transform.translate(
+                  offset: Offset(logoOffsetX, 0),
+                  child: Image.asset(
+                    imageAsset,
+                    height: imageSize,
+                    fit: BoxFit.contain,
                   ),
-                ],
+                ),
               ),
-              alignment: Alignment.center,
-              child: Image.asset(imageAsset, height: 48, fit: BoxFit.contain),
             ),
           ),
           const SizedBox(height: 8),
