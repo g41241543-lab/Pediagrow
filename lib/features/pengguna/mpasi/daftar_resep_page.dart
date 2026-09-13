@@ -16,8 +16,10 @@ import 'detail_resep_page.dart';
 /// hardcoded sebagai sumber data utama.
 ///
 /// Struktur Fixed/Scrollable:
-/// - FIXED  : Header (back + search bar) + Filter Kategori Usia + Bottom Nav
-/// - SCROLL : Daftar Resep + Garden Illustration
+/// - FIXED  : Header (back + judul "Resep MPASI" + search bar) + Filter Kategori Usia + Bottom Nav
+/// - SCROLL : Daftar Resep + Garden Illustration (ilustrasi selalu menempel
+///            tepat di atas bottom navigation, baik saat daftar kosong
+///            maupun saat daftar pendek)
 class DaftarResepPage extends StatefulWidget {
   const DaftarResepPage({super.key});
 
@@ -33,11 +35,22 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
   static const Color _colorWhite = Color(0xFFFFFFFF);
   static const Color _colorDark = Color(0xFF1A202C);
-  static const Color _colorTextMuted = Color(0xFF94A3B8);
-  static const Color _colorBorderLight = Color(0xFFC5C5C5);
+
+  // Design tokens resmi — abu tua & abu muda
+  static const Color _colorGreyDark = Color(0xFF7F7F7F); // abu tua
+  static const Color _colorGreyLight = Color(0xFFC5C5C5); // abu muda
+
+  // Alias agar konsisten dengan pemakaian sebelumnya di file ini
+  static const Color _colorTextMuted = _colorGreyDark;
+  static const Color _colorBorderLight = _colorGreyLight;
+
   static const Color _colorSearchBg = Color(0xFFF1F5F9);
   static const Color _colorDivider = Color(0xFFF1F5F9);
-  static const Color _colorNavBg = Color(0xFFFFFFFF);
+
+  // Warna bottom navigation — disamakan dengan beranda_page.dart (abu muda,
+  // bukan putih polos). Ikon/label non-aktif memakai abu tua resmi.
+  static const Color _colorNavBg = Color(0xFFF2ECEC);
+  static const Color _colorNavInactive = _colorGreyDark;
 
   // -------------------------------------------------------------------------
   // State
@@ -137,7 +150,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: back button + search bar — FIXED
+            // Header: back button + judul "Resep MPASI" + search bar — FIXED
             _buildHeader(),
 
             // Filter kategori usia — FIXED
@@ -154,44 +167,70 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 1. HEADER (Back Button + Search Bar) — FIXED
+  // 1. HEADER (Back Button + Judul "Resep MPASI" + Search Bar) — FIXED
+  //
+  //    Baris 1 : tombol back + judul "Resep MPASI"
+  //    Baris 2 : search bar (di bawah judul, bukan di sebelah tombol back)
   // -------------------------------------------------------------------------
 
-Widget _buildHeader() {
-  return Container(
-    width: double.infinity,
-    color: _colorWhite,
-    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+  // Header (back + judul) — tinggi PERSIS 56dp, terpisah dari search bar.
+  // Search bar berada di luar blok header, dengan margin umum 16dp.
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Back button
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: _onBackPressed,
-            child: const SizedBox(
-              width: 36,
-              height: 36,
-              child: Center(
-                child: Icon(
-                  Icons.arrow_back_rounded,
-                  color: _colorDark,
-                  size: 22,
+        // Blok header: tinggi 56dp — back button 12dp dari kiri layar,
+        // judul halaman 12dp setelah back button.
+        Container(
+          height: 56,
+          width: double.infinity,
+          color: _colorWhite,
+          padding: const EdgeInsets.only(left: 12, right: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: _onBackPressed,
+                  child: const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Center(
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        color: _colorDark,
+                        size: 22,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Text(
+                'Resep MPASI',
+                style: GoogleFonts.lato(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: _colorDark,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 8),
 
-        // Search bar
-        Expanded(child: _buildSearchBar()),
+        // Search bar — di luar blok header 56dp, margin kanan-kiri 16dp
+        // (mengikuti aturan umum jarak tepi layar).
+        Container(
+          width: double.infinity,
+          color: _colorWhite,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: _buildSearchBar(),
+        ),
       ],
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildSearchBar() {
     return Container(
@@ -296,6 +335,12 @@ Widget _buildHeader() {
 
   // -------------------------------------------------------------------------
   // 3. SCROLLABLE CONTENT (Recipe List + Garden Illustration)
+  //
+  //    Ilustrasi SELALU menempel tepat di atas bottom navigation:
+  //    - Jika daftar resep kosong/pendek, ilustrasi ditempatkan di bagian
+  //      bawah ruang yang tersisa (tidak ada celah putih di bawahnya).
+  //    - Jika daftar resep panjang (melebihi tinggi layar), ilustrasi
+  //      tetap muncul mengikuti scroll setelah item terakhir, seperti biasa.
   // -------------------------------------------------------------------------
 
   Widget _buildScrollableContent() {
@@ -314,43 +359,56 @@ Widget _buildHeader() {
       return _buildErrorState();
     }
 
-    // Empty state — belum ada resep dari PMIK/Superadmin
-    if (_recipes.isEmpty) {
-      return _buildEmptyState();
-    }
+    final bool isEmpty = _recipes.isEmpty;
 
-    // Recipe list + Garden illustration dalam satu scroll
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
-        // Daftar resep
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final recipe = _recipes[index];
-              return Column(
-                children: [
-                  _buildRecipeItem(recipe),
-                  if (index < _recipes.length - 1)
-                    Divider(
-                      color: _colorDivider,
-                      thickness: 1,
-                      height: 1,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                ],
-              );
-            },
-            childCount: _recipes.length,
+        // Daftar resep (kosong jika belum ada data dari PMIK/Superadmin)
+        if (!isEmpty)
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final recipe = _recipes[index];
+                return Column(
+                  children: [
+                    _buildRecipeItem(recipe),
+                    if (index < _recipes.length - 1)
+                      Divider(
+                        color: _colorDivider,
+                        thickness: 1,
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                      ),
+                  ],
+                );
+              },
+              childCount: _recipes.length,
+            ),
+          ),
+
+        // Sisa ruang di bawah daftar — ilustrasi selalu menempel tepat di
+        // atas bottom navigation, baik saat kosong maupun saat daftar pendek.
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Column(
+            children: [
+              Expanded(
+                child: isEmpty
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: _EmptyStateContent(),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              if (!isEmpty) const SizedBox(height: 20),
+              _buildGardenIllustration(),
+            ],
           ),
         ),
-
-        // Spacer antara list terakhir dan garden illustration
-        const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-        // Garden illustration — SCROLL (bukan fixed!)
-        SliverToBoxAdapter(child: _buildGardenIllustration()),
       ],
     );
   }
@@ -475,7 +533,13 @@ Widget _buildHeader() {
   }
 
   // -------------------------------------------------------------------------
-  // 5. GARDEN ILLUSTRATION — ikut scroll bersama daftar resep
+  // 5. GARDEN ILLUSTRATION
+  //
+  //    CATATAN: asset 'assets/images/garden_illustration.png' saat ini
+  //    menampilkan ilustrasi pohon pinus + tenda. Jika ini tidak sesuai
+  //    dengan desain resmi yang dimaksud, file asset ini perlu diganti
+  //    dengan aset yang benar (bukan perubahan kode) — silakan kirim
+  //    referensi/asset ilustrasi yang benar agar bisa disesuaikan.
   // -------------------------------------------------------------------------
 
   Widget _buildGardenIllustration() {
@@ -483,7 +547,7 @@ Widget _buildHeader() {
       'assets/images/garden_illustration.png',
       width: double.infinity,
       fit: BoxFit.cover,
-      alignment: Alignment.topCenter,
+      alignment: Alignment.bottomCenter,
       errorBuilder: (context, error, stackTrace) {
         return CustomPaint(
           size: const Size(double.infinity, 90),
@@ -494,45 +558,7 @@ Widget _buildHeader() {
   }
 
   // -------------------------------------------------------------------------
-  // 6. EMPTY STATE
-  // -------------------------------------------------------------------------
-
-  Widget _buildEmptyState() {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Column(
-            children: [
-              const Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: _EmptyStateContent(),
-                  ),
-                ),
-              ),
-              // Garden illustration tetap tampil di empty state
-              Image.asset(
-                'assets/images/garden_illustration.png',
-                width: double.infinity,
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-                errorBuilder: (_, __, ___) => CustomPaint(
-                  size: const Size(double.infinity, 90),
-                  painter: _GardenFallbackPainter(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // -------------------------------------------------------------------------
-  // 7. ERROR STATE
+  // 6. ERROR STATE
   // -------------------------------------------------------------------------
 
   Widget _buildErrorState() {
@@ -575,17 +601,24 @@ Widget _buildHeader() {
   }
 
   // -------------------------------------------------------------------------
-  // 8. BOTTOM NAVIGATION — FIXED (Scaffold.bottomNavigationBar)
+  // 7. BOTTOM NAVIGATION — FIXED (Scaffold.bottomNavigationBar)
+  //
+  //    Disamakan dengan beranda_page.dart:
+  //    - Background abu muda (_colorNavBg), bukan putih polos.
+  //    - Tab aktif: lingkaran putih di belakang ikon (efek elevated/floating)
+  //      + ikon biru + label tebal warna gelap.
+  //    - Tab non-aktif: ikon & label abu-abu polos, ukuran lebih besar dari
+  //      sebelumnya agar tidak terlihat kekecilan.
   // -------------------------------------------------------------------------
 
   Widget _buildBottomNavigation() {
     return Container(
-      height: 60,
+      height: 72,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
           BoxShadow(
-            color: Color(0x0F000000),
+            color: Color(0x14000000),
             blurRadius: 8,
             offset: Offset(0, -2),
           ),
@@ -599,6 +632,7 @@ Widget _buildHeader() {
             _buildNavItem(
               icon: Icons.home_rounded,
               label: 'Beranda',
+              isActive: false,
               onTap: () {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const BerandaPage()),
@@ -609,6 +643,7 @@ Widget _buildHeader() {
             _buildNavItem(
               icon: Icons.question_answer_rounded,
               label: 'Konsultasi',
+              isActive: false,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
@@ -617,6 +652,7 @@ Widget _buildHeader() {
             _buildNavItem(
               icon: Icons.manage_search_rounded,
               label: 'Riwayat Konsultasi',
+              isActive: false,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
@@ -625,6 +661,7 @@ Widget _buildHeader() {
             _buildNavItem(
               icon: Icons.person_outline_rounded,
               label: 'Profil Ibu',
+              isActive: false,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const MenuProfilPage()),
@@ -639,6 +676,7 @@ Widget _buildHeader() {
   Widget _buildNavItem({
     required IconData icon,
     required String label,
+    required bool isActive,
     required VoidCallback onTap,
   }) {
     return Material(
@@ -646,18 +684,41 @@ Widget _buildHeader() {
       child: InkWell(
         onTap: onTap,
         child: SizedBox(
-          width: 75,
-          height: 60,
+          width: 80,
+          height: 72,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 22, color: const Color(0xFF9E9E9E)),
-              const SizedBox(height: 3),
+              // Lingkaran putih di belakang ikon aktif (efek floating)
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isActive ? _colorWhite : Colors.transparent,
+                  shape: BoxShape.circle,
+                  boxShadow: isActive
+                      ? const [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Icon(
+                  icon,
+                  size: 26,
+                  color: isActive ? _colorPrimaryBlue : _colorNavInactive,
+                ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: GoogleFonts.lato(
-                  fontSize: 10.5,
-                  color: const Color(0xFF9E9E9E),
+                  fontSize: 11,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                  color: isActive ? _colorDark : _colorNavInactive,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
