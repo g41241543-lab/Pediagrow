@@ -12,6 +12,7 @@ import '../game_edukasi/game_mulai_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import '../profil/menu_profil_page.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -585,22 +586,8 @@ class _BerandaPageState extends State<BerandaPage>
   // 100% width layar, tanpa margin/padding, menempel langsung ke Nav Bar
   // ===================================================================
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
-        fit: BoxFit.fitWidth,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
     );
   }
 
