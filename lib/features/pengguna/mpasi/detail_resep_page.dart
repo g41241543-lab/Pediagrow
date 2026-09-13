@@ -148,48 +148,48 @@ class _DetailResepPageState extends State<DetailResepPage> {
   // 1. HEADER FIXED (Back Button 12dp dari kiri + Judul "Detail Resep")
   // ===========================================================================
 
-  Widget _buildHeader() {
-    return Container(
-      height: 56,
-      width: double.infinity,
-      color: colorWhite,
-      padding: const EdgeInsets.only(left: 12, right: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Tombol back berjarak tepat 12dp dari pinggir kiri layar
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: _onBackPressed,
-              child: const SizedBox(
-                width: 36,
-                height: 36,
-                child: Center(
-                  child: Icon(
-                    Icons.arrow_back_rounded,
-                    color: colorTextPrimary,
-                    size: 22,
-                  ),
+Widget _buildHeader() {
+  return Container(
+    height: 56,
+    width: double.infinity,
+    color: colorWhite,
+    padding: const EdgeInsets.only(left: 16, right: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Tombol back
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: _onBackPressed,
+            child: const SizedBox(
+              width: 36,
+              height: 36,
+              child: Center(
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                  color: colorTextPrimary,
+                  size: 22,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          // Judul "Detail Resep" berjarak 12dp dari tombol back
-          Text(
-            'Detail Resep',
-            style: GoogleFonts.lato(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorTextPrimary,
-            ),
+        ),
+        const SizedBox(width: 12),
+        // Judul "Detail Resep"
+        Text(
+          'Detail Resep',
+          style: GoogleFonts.lato(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: colorTextPrimary,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   // ===========================================================================
   // 2. KONTEN RESEP (Scrollable — gambar, tanggal, judul, nutrisi, bahan, cara)
