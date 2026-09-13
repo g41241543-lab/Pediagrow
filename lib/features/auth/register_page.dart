@@ -737,14 +737,14 @@ class _RegisterPageState extends State<RegisterPage> {
   /// Judul setiap TextFormField (Lato reguler 16 #7F7F7F) + bintang merah (#B13535).
   Widget _buildFieldTitle(String label) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: RichText(
         text: TextSpan(
           text: label,
           style: GoogleFonts.lato(
             fontSize: 16,
             fontWeight: FontWeight.normal,
-            color: const Color(0xFF7F7F7F),
+            color: const Color(0xFF000000),
           ),
           children: [
             TextSpan(
@@ -762,40 +762,47 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   /// Dekorasi TextFormField:
-  /// - Hint text: Lato regular 14 #C5C5C5
-  /// - Underline border:
-  ///   - Normal: abu-abu (#D1D5DB)
-  ///   - Fokus: biru (#3985E7)
-  ///   - Error: merah (#B13535) + pesan error #B13535
+  /// - Bentuk: Kotak (OutlineInputBorder) dengan radius 10dp
+  /// - Normal: border abu-abu (#CBD5E1)
+  /// - Fokus: border biru (#3985E7)
+  /// - Error: border merah (#B13535) + pesan error #B13535
   InputDecoration _buildInputDecoration({
     required String hintText,
     Widget? suffixIcon,
   }) {
     return InputDecoration(
-      isDense: true,
-      contentPadding: const EdgeInsets.only(top: 8, bottom: 8),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       hintText: hintText,
       hintStyle: GoogleFonts.lato(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: const Color(0xFFC5C5C5),
+        color: const Color(0xFF94A3B8),
       ),
       suffixIcon: suffixIcon,
-      suffixIconConstraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      // Border normal (abu-abu)
-      enabledBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFD1D5DB), width: 1.0),
+      // Border normal (kotak dengan corner radius 10)
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
       ),
       // Border saat fokus (biru #3985E7)
-      focusedBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFF3985E7), width: 2.0),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF3985E7), width: 1.5),
       ),
       // Border saat error (merah #B13535)
-      errorBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFB13535), width: 1.5),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFB13535), width: 1.5),
       ),
-      focusedErrorBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFB13535), width: 2.0),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFB13535), width: 2.0),
       ),
       // Pesan error di bawah dengan warna #B13535
       errorStyle: GoogleFonts.lato(
