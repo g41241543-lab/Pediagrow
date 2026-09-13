@@ -32,6 +32,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // Design Tokens (konsisten dengan beranda_page.dart & design reference)
   // -------------------------------------------------------------------------
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
+  static const Color _colorActiveNavIcon = Color(0xFF72A9F4);
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
   static const Color _colorWhite = Color(0xFFFFFFFF);
   static const Color _colorDark = Color(0xFF1A202C);
@@ -222,12 +223,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
         // Search bar — di luar blok header 56dp, margin kanan-kiri 16dp
         // (mengikuti aturan umum jarak tepi layar).
-        // Padding bawah diperbesar (8 -> 14) agar jarak ke filter usia
-        // di bawahnya tidak terlalu rapat.
         Container(
           width: double.infinity,
           color: _colorWhite,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: _buildSearchBar(),
         ),
       ],
@@ -292,9 +291,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     return Container(
       width: double.infinity,
       color: _colorWhite,
-      // Padding atas diperbesar (4 -> 8) agar jarak dari search bar
-      // di atasnya tidak terlalu dekat.
-      padding: const EdgeInsets.only(top: 8, bottom: 10),
+      padding: const EdgeInsets.only(top: 14, bottom: 10),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -345,12 +342,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   //      bawah ruang yang tersisa (tidak ada celah putih di bawahnya).
   //    - Jika daftar resep panjang (melebihi tinggi layar), ilustrasi
   //      tetap muncul mengikuti scroll setelah item terakhir, seperti biasa.
-  //
-  //    Catatan: ketika belum ada data resep dari PMIK/Superadmin,
-  //    _recipes akan kosong (bukan dummy). Dalam kondisi ini halaman
-  //    TIDAK menampilkan teks/empty-state apa pun — cukup daftar kosong
-  //    diikuti ilustrasi taman (pohon + rumput + tenda) yang menempel
-  //    tepat di atas bottom navigation, sesuai desain.
   // -------------------------------------------------------------------------
 
   Widget _buildScrollableContent() {
@@ -398,26 +389,25 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             ),
           ),
 
-        // Sisa ruang di bawah daftar — ilustrasi SELALU menempel presisi di
-        // dasar area scroll (yaitu tepat di atas bottom navigation), baik
-        // saat kosong maupun saat daftar pendek. Tidak ada teks/empty-state
-        // apa pun yang ditampilkan saat kosong — hanya ruang kosong lalu
-        // ilustrasi taman (pohon + rumput + tenda), sesuai desain.
-        //
-        // Menggunakan Align(bottomCenter) di dalam SliverFillRemaining:
-        // SliverFillRemaining memberi tinggi PERSIS sebesar ruang tersisa
-        // di viewport, lalu Align mendorong ilustrasi ke dasar area
-        // tersebut tanpa menyisakan celah kosong di bawahnya (beda dengan
-        // pendekatan Expanded+Column sebelumnya yang rawan menyisakan gap
-        // jika tinggi intrinsik gambar tidak terhitung tepat).
+        // Sisa ruang di bawah daftar — ilustrasi selalu menempel tepat di
+        // atas bottom navigation, baik saat kosong maupun saat daftar pendek.
         SliverFillRemaining(
           hasScrollBody: false,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(top: isEmpty ? 0 : 20),
-              child: _buildGardenIllustration(),
-            ),
+          child: Column(
+            children: [
+              Expanded(
+                child: isEmpty
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: _EmptyStateContent(),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              if (!isEmpty) const SizedBox(height: 20),
+              _buildGardenIllustration(),
+            ],
           ),
         ),
       ],
@@ -546,25 +536,30 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // -------------------------------------------------------------------------
   // 5. GARDEN ILLUSTRATION
   //
-  //    CATATAN: asset 'assets/images/garden_illustration.png' saat ini
-  //    menampilkan ilustrasi pohon pinus + tenda. Jika ini tidak sesuai
-  //    dengan desain resmi yang dimaksud, file asset ini perlu diganti
-  //    dengan aset yang benar (bukan perubahan kode) — silakan kirim
-  //    referensi/asset ilustrasi yang benar agar bisa disesuaikan.
+  //    Memakai asset yang SAMA PERSIS dengan yang dipakai di
+  //    beranda_page.dart (assets/images/beranda_landscape_footer.jpg),
+  //    supaya konsisten secara visual dengan halaman Beranda.
   // -------------------------------------------------------------------------
 
   Widget _buildGardenIllustration() {
-    return Image.asset(
-      'assets/images/garden_illustration.png',
+    return SizedBox(
       width: double.infinity,
-      fit: BoxFit.cover,
-      alignment: Alignment.bottomCenter,
-      errorBuilder: (context, error, stackTrace) {
-        return CustomPaint(
-          size: const Size(double.infinity, 90),
-          painter: _GardenFallbackPainter(),
-        );
-      },
+      child: Image.asset(
+        'assets/images/beranda_landscape_footer.jpg',
+        width: double.infinity,
+        fit: BoxFit.fitWidth,
+        alignment: Alignment.bottomCenter,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: 100,
+          color: const Color(0xFFD1FAE5),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.park_outlined,
+            size: 44,
+            color: Color(0xFF34D399),
+          ),
+        ),
+      ),
     );
   }
 
@@ -619,15 +614,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   //    - Tab aktif: lingkaran putih di belakang ikon (efek elevated/floating)
   //      + ikon biru + label tebal warna gelap.
   //    - Tab non-aktif: ikon & label abu-abu polos.
-  //
-  //    PERBAIKAN: tinggi container & item dikurangi (72 -> 64) dan jarak
-  //    ikon-ke-label dirapatkan (4 -> 2) + mainAxisSize.min pada Column,
-  //    supaya label tidak terlihat "terlalu ke bawah" / terlalu jauh dari
-  //    ikonnya.
   // -------------------------------------------------------------------------
 
   Widget _buildBottomNavigation() {
     return Container(
+      height: 64,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
@@ -638,58 +629,50 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
           ),
         ],
       ),
-      // Tidak lagi memaksa tinggi container secara manual (mis. 64/72).
-      // Tinggi dibiarkan menyesuaikan otomatis: konten (ikon+label) +
-      // padding vertikal + inset aman perangkat (gesture bar/home
-      // indicator) via SafeArea. Ini mencegah overflow di perangkat yang
-      // memiliki area aman bawah lebih besar (mis. Android gesture nav).
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                icon: Icons.home_rounded,
-                label: 'Beranda',
-                isActive: false,
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const BerandaPage()),
-                    (route) => false,
-                  );
-                },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(
+              icon: Icons.home_rounded,
+              label: 'Beranda',
+              isActive: false,
+              onTap: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const BerandaPage()),
+                  (route) => false,
+                );
+              },
+            ),
+            _buildNavItem(
+              icon: Icons.question_answer_rounded,
+              label: 'Konsultasi',
+              isActive: false,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
               ),
-              _buildNavItem(
-                icon: Icons.question_answer_rounded,
-                label: 'Konsultasi',
-                isActive: false,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-                ),
+            ),
+            _buildNavItem(
+              icon: Icons.manage_search_rounded,
+              label: 'Riwayat Konsultasi',
+              isActive: false,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
               ),
-              _buildNavItem(
-                icon: Icons.manage_search_rounded,
-                label: 'Riwayat Konsultasi',
-                isActive: false,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-                ),
+            ),
+            _buildNavItem(
+              icon: Icons.person_outline_rounded,
+              label: 'Profil Ibu',
+              isActive: false,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MenuProfilPage()),
               ),
-              _buildNavItem(
-                icon: Icons.person_outline_rounded,
-                label: 'Profil Ibu',
-                isActive: false,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -707,11 +690,9 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         onTap: onTap,
         child: SizedBox(
           width: 80,
-          // Tinggi TIDAK dipaksa (dihapus height: 64/72) — Column dengan
-          // mainAxisSize.min akan mengambil tinggi sesuai konten saja,
-          // sehingga tidak overflow di perangkat mana pun.
+          height: 64,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Lingkaran putih di belakang ikon aktif (efek floating)
               Container(
@@ -733,7 +714,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                 child: Icon(
                   icon,
                   size: 24,
-                  color: isActive ? _colorPrimaryBlue : _colorNavInactive,
+                  color: isActive ? _colorActiveNavIcon : _colorNavInactive,
                 ),
               ),
               const SizedBox(height: 2),
@@ -783,46 +764,39 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 // HELPER WIDGETS
 // =============================================================================
 
-/// Fallback CustomPainter untuk garden illustration
-class _GardenFallbackPainter extends CustomPainter {
+/// Empty state content widget
+class _EmptyStateContent extends StatelessWidget {
+  const _EmptyStateContent();
+
   @override
-  void paint(Canvas canvas, Size size) {
-    // Langit
-    final skyPaint = Paint()..color = const Color(0xFFE8F5E9);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), skyPaint);
-
-    final darkGreenPaint = Paint()
-      ..color = const Color(0xFF4A7D32)
-      ..style = PaintingStyle.fill;
-    final greenPaint = Paint()
-      ..color = const Color(0xFF679A45)
-      ..style = PaintingStyle.fill;
-
-    // Bukit belakang
-    final backPath = Path();
-    backPath.moveTo(0, size.height * 0.5);
-    backPath.quadraticBezierTo(
-        size.width * 0.25, size.height * 0.15, size.width * 0.5, size.height * 0.4);
-    backPath.quadraticBezierTo(
-        size.width * 0.75, size.height * 0.6, size.width, size.height * 0.35);
-    backPath.lineTo(size.width, size.height);
-    backPath.lineTo(0, size.height);
-    backPath.close();
-    canvas.drawPath(backPath, darkGreenPaint);
-
-    // Bukit depan
-    final frontPath = Path();
-    frontPath.moveTo(0, size.height * 0.65);
-    frontPath.quadraticBezierTo(
-        size.width * 0.3, size.height * 0.4, size.width * 0.6, size.height * 0.55);
-    frontPath.quadraticBezierTo(
-        size.width * 0.85, size.height * 0.7, size.width, size.height * 0.5);
-    frontPath.lineTo(size.width, size.height);
-    frontPath.lineTo(0, size.height);
-    frontPath.close();
-    canvas.drawPath(frontPath, greenPaint);
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.restaurant_menu_outlined,
+          size: 52,
+          color: Color(0xFFCBD5E1),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Belum ada resep MPASI',
+          style: GoogleFonts.lato(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF94A3B8),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Resep akan muncul setelah PMIK\nmenambahkan data resep.',
+          style: GoogleFonts.lato(
+            fontSize: 13,
+            color: const Color(0xFF94A3B8),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

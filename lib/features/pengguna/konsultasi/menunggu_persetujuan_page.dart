@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'daftar_dokter_page.dart';
@@ -17,12 +18,14 @@ class MenungguPersetujuanPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ConsultationModel? consultation;
   final DateTime? consultationCreatedAt;
+  final ChildModel? child;
 
   const MenungguPersetujuanPage({
     super.key,
     this.doctor,
     this.consultation,
     this.consultationCreatedAt,
+    this.child,
   });
 
   @override
@@ -222,6 +225,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
         builder: (_) => FormulirKonsultasiPage(
           doctor: _effectiveDoctor,
           consultation: _effectiveConsultation,
+          child: widget.child,
         ),
       ),
     );

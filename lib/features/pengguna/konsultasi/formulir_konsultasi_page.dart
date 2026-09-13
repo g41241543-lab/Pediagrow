@@ -74,8 +74,19 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
     _resolveChildData();
 
-    _weightController = TextEditingController();
-    _heightController = TextEditingController();
+    final initWeight = widget.child?.weightKg != null && widget.child!.weightKg! > 0
+        ? (widget.child!.weightKg! % 1 == 0
+            ? widget.child!.weightKg!.toInt().toString()
+            : widget.child!.weightKg!.toString())
+        : '';
+    final initHeight = widget.child?.heightCm != null && widget.child!.heightCm! > 0
+        ? (widget.child!.heightCm! % 1 == 0
+            ? widget.child!.heightCm!.toInt().toString()
+            : widget.child!.heightCm!.toString())
+        : '';
+
+    _weightController = TextEditingController(text: initWeight);
+    _heightController = TextEditingController(text: initHeight);
     _complaintController = TextEditingController();
 
     _complaintController.addListener(() {
@@ -100,7 +111,19 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       setState(() {
         _effectiveName = args.name;
         _effectiveGender = args.gender;
-        _effectiveAge = args.ageDescription;
+        _effectiveAge = args.birthDate != null
+            ? _calculateChildAge(args.birthDate!)
+            : args.ageDescription;
+        if (args.weightKg != null && args.weightKg! > 0 && _weightController.text.isEmpty) {
+          _weightController.text = args.weightKg! % 1 == 0
+              ? args.weightKg!.toInt().toString()
+              : args.weightKg!.toString();
+        }
+        if (args.heightCm != null && args.heightCm! > 0 && _heightController.text.isEmpty) {
+          _heightController.text = args.heightCm! % 1 == 0
+              ? args.heightCm!.toInt().toString()
+              : args.heightCm!.toString();
+        }
       });
     } else if (args is Map<String, dynamic>) {
       setState(() {
@@ -116,11 +139,38 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     if (widget.child != null) {
       _effectiveName = widget.child!.name;
       _effectiveGender = widget.child!.gender;
-      _effectiveAge = widget.child!.ageDescription;
+      _effectiveAge = widget.child!.birthDate != null
+          ? _calculateChildAge(widget.child!.birthDate!)
+          : widget.child!.ageDescription;
     } else {
-      _effectiveName = widget.namaAnak ?? 'Anak';
+      _effectiveName = widget.namaAnak ?? 'Kaia Anastasya';
       _effectiveGender = widget.jenisKelamin ?? 'Perempuan';
       _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan 3 hari';
+    }
+  }
+
+  String _calculateChildAge(DateTime birthDate) {
+    final now = DateTime.now();
+    int years = now.year - birthDate.year;
+    int months = now.month - birthDate.month;
+    int days = now.day - birthDate.day;
+
+    if (days < 0) {
+      final prevMonth = DateTime(now.year, now.month, 0);
+      days += prevMonth.day;
+      months -= 1;
+    }
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+
+    if (years > 0) {
+      return '$years tahun $months bulan $days hari';
+    } else if (months > 0) {
+      return '$months bulan $days hari';
+    } else {
+      return '$days hari';
     }
   }
 
@@ -437,10 +487,13 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // ===========================================================================
 
   Widget _buildChildInfoSection() {
+    final hasCustomName =
+        _effectiveName.isNotEmpty && _effectiveName.toLowerCase() != 'anak';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Avatar Anak Lingkaran Soft Peach
+        // Avatar Anak Lingkaran Proporsional (Anti-peyang)
         _buildChildAvatar(),
         const SizedBox(width: 14),
 
@@ -448,14 +501,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Data Anak',
+                hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
                 style: GoogleFonts.lato(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: colorTextPrimary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               Text(
@@ -463,7 +519,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w500,
-                  color: colorTextPrimary,
+                  color: colorTextSecondary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -476,21 +532,41 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   }
 
   Widget _buildChildAvatar() {
-    const double size = 46;
+    const double size = 48;
+    final isGirl = _effectiveGender.toLowerCase().contains('perempuan');
+    final bgColor = isGirl ? const Color(0xFFFFEDEB) : const Color(0xFFE2F0FE);
+    final borderColor =
+        isGirl ? const Color(0xFFFCA5A5) : const Color(0xFF93C5FD);
+
+    final photoUrl = widget.child?.photoUrl;
+    final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
 
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
-        color: colorPeachAvatar,
+      decoration: BoxDecoration(
+        color: bgColor,
         shape: BoxShape.circle,
+        border: Border.all(color: borderColor, width: 1.5),
       ),
-      child: Center(
-        child: CustomPaint(
-          size: const Size(28, 28),
-          painter: _ChildFacePainter(),
-        ),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: hasPhoto
+          ? Image.asset(
+              photoUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Center(
+                child: CustomPaint(
+                  size: const Size(34, 34),
+                  painter: _CuteBabyFacePainter(isGirl: isGirl),
+                ),
+              ),
+            )
+          : Center(
+              child: CustomPaint(
+                size: const Size(34, 34),
+                painter: _CuteBabyFacePainter(isGirl: isGirl),
+              ),
+            ),
     );
   }
 
@@ -1117,103 +1193,75 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   }
 }
 
-/// Custom Painter untuk avatar muka anak imut yang presisi dengan desain
-class _ChildFacePainter extends CustomPainter {
+/// Custom Painter untuk avatar muka anak imut yang bulat, simetris, dan proporsional (anti-peyang)
+class _CuteBabyFacePainter extends CustomPainter {
+  final bool isGirl;
+
+  _CuteBabyFacePainter({required this.isGirl});
+
   @override
   void paint(Canvas canvas, Size size) {
     final strokePaint = Paint()
-      ..color = const Color(0xFF2D3748)
+      ..color = const Color(0xFF1E293B)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
-
-    final fillEyePaint = Paint()
-      ..color = const Color(0xFF2D3748)
-      ..style = PaintingStyle.fill;
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFFB4A2).withOpacity(0.6)
+      ..color = isGirl
+          ? const Color(0xFFFB7185).withOpacity(0.5)
+          : const Color(0xFF60A5FA).withOpacity(0.4)
       ..style = PaintingStyle.fill;
 
-    final center = Offset(size.width / 2, size.height / 2);
+    final fillEyePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.fill;
 
-    // Garis kepala/rambut atas
-    final hairPath = Path();
-    hairPath.moveTo(size.width * 0.2, size.height * 0.4);
-    hairPath.quadraticBezierTo(
-      size.width * 0.5,
-      size.height * 0.12,
-      size.width * 0.8,
-      size.height * 0.4,
-    );
+    final w = size.width;
+    final h = size.height;
+
+    // Lingkaran kepala simetris di tengah
+    final headCenter = Offset(w * 0.5, h * 0.52);
+    final headRadius = w * 0.38;
+
+    // Telinga Kiri & Kanan simetris
+    canvas.drawCircle(Offset(w * 0.12, h * 0.52), 3.8, strokePaint);
+    canvas.drawCircle(Offset(w * 0.88, h * 0.52), 3.8, strokePaint);
+
+    // Garis Kepala Bulat Sempurna
+    canvas.drawCircle(headCenter, headRadius, strokePaint);
+
+    // Rambut Bayi
+    final hairPath = Path()
+      ..moveTo(w * 0.38, h * 0.20)
+      ..cubicTo(w * 0.42, h * 0.08, w * 0.58, h * 0.08, w * 0.62, h * 0.20);
     canvas.drawPath(hairPath, strokePaint);
 
-    // Lengkungan dagu bawah
-    final chinPath = Path();
-    chinPath.moveTo(size.width * 0.2, size.height * 0.4);
-    chinPath.quadraticBezierTo(
-      size.width * 0.5,
-      size.height * 0.88,
-      size.width * 0.8,
-      size.height * 0.4,
-    );
-    canvas.drawPath(chinPath, strokePaint);
+    // Mata Kiri & Kanan (Lengkungan senyum ramah)
+    final leftEye = Path()
+      ..moveTo(w * 0.33, h * 0.47)
+      ..quadraticBezierTo(w * 0.38, h * 0.42, w * 0.43, h * 0.47);
+    canvas.drawPath(leftEye, strokePaint..strokeWidth = 2.0);
 
-    // Telinga kiri & kanan
-    canvas.drawArc(
-      Rect.fromCircle(
-        center: Offset(size.width * 0.16, size.height * 0.45),
-        radius: 3.5,
-      ),
-      1.5,
-      3.14,
-      false,
-      strokePaint,
-    );
-    canvas.drawArc(
-      Rect.fromCircle(
-        center: Offset(size.width * 0.84, size.height * 0.45),
-        radius: 3.5,
-      ),
-      -1.5,
-      3.14,
-      false,
-      strokePaint,
-    );
+    final rightEye = Path()
+      ..moveTo(w * 0.57, h * 0.47)
+      ..quadraticBezierTo(w * 0.62, h * 0.42, w * 0.67, h * 0.47);
+    canvas.drawPath(rightEye, strokePaint);
 
-    // Mata kiri & kanan (titik)
-    canvas.drawCircle(
-      Offset(size.width * 0.36, size.height * 0.48),
-      1.8,
-      fillEyePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.64, size.height * 0.48),
-      1.8,
-      fillEyePaint,
-    );
+    strokePaint.strokeWidth = 1.8;
 
-    // Pipi kemerahan
-    canvas.drawCircle(
-      Offset(size.width * 0.28, size.height * 0.55),
-      2.5,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.72, size.height * 0.55),
-      2.5,
-      blushPaint,
-    );
+    // Pipi Merah Merona
+    canvas.drawCircle(Offset(w * 0.29, h * 0.56), 3.2, blushPaint);
+    canvas.drawCircle(Offset(w * 0.71, h * 0.56), 3.2, blushPaint);
 
-    // Senyuman manis
-    final smilePath = Path();
-    smilePath.moveTo(size.width * 0.42, size.height * 0.60);
-    smilePath.quadraticBezierTo(
-      size.width * 0.5,
-      size.height * 0.68,
-      size.width * 0.58,
-      size.height * 0.60,
-    );
+    // Hidung mungil
+    canvas.drawCircle(Offset(w * 0.5, h * 0.54), 1.2, fillEyePaint);
+
+    // Senyuman Ceria Melengkung Manis
+    final smilePath = Path()
+      ..moveTo(w * 0.41, h * 0.64)
+      ..quadraticBezierTo(w * 0.50, h * 0.74, w * 0.59, h * 0.64);
     canvas.drawPath(smilePath, strokePaint);
   }
 
