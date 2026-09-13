@@ -7,6 +7,7 @@ import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'hasil_cek_stunting_page.dart';
+import 'widgets/pego_analysis_overlay.dart';
 
 /// Halaman Formulir Cek Stunting PediaGrow.
 ///
@@ -75,6 +76,11 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
   // Umur Otomatis
   int _calculatedAgeInMonths = 15;
   String _calculatedAgeText = '1 tahun 3 bulan 4 Hari';
+
+  // State Animasi Pego
+  bool _isAnalyzing = false;
+  final GlobalKey<PegoAnalysisOverlayState> _pegoOverlayKey =
+      GlobalKey<PegoAnalysisOverlayState>();
 
   // Bottom Sheet Hasil Analisis State
   bool _showResultSheet = false;
@@ -234,7 +240,8 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
   // VALIDASI & KLASIFIKASI DATA MINING (RANDOM FOREST & GRID SEARCH CV)
   // ===========================================================================
 
-  void _onCekSekarangPressed() {
+  void _onCekSekarangPressed() async {
+    if (_isAnalyzing) return;
     FocusScope.of(context).unfocus();
 
     bool isValid = true;
@@ -316,34 +323,47 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
       return;
     }
 
-    // Eksekusi Klasifikasi Stunting Data Mining
-    final currentWeight = double.parse(rawBerat);
-    final currentHeight = double.parse(rawTinggi);
+    setState(() => _isAnalyzing = true);
 
-    final result = StuntingClassifier.classify(
-      ageInMonths: _calculatedAgeInMonths,
-      gender: _jenisKelamin,
-      birthWeightKg: double.tryParse(_beratBadanLahir) ?? 2.9,
-      birthHeightCm: double.tryParse(_tinggiBadanLahir) ?? 50.0,
-      currentWeightKg: currentWeight,
-      currentHeightCm: currentHeight,
-      isExclusiveBreastfeeding: _isAsiEksklusif!,
+    StuntingAnalysisResult? resultHolder;
+
+    await _pegoOverlayKey.currentState?.runSequence(
+      performAnalysisTask: () async {
+        // Eksekusi Klasifikasi Stunting Data Mining
+        final currentWeight = double.parse(rawBerat);
+        final currentHeight = double.parse(rawTinggi);
+
+        final result = StuntingClassifier.classify(
+          ageInMonths: _calculatedAgeInMonths,
+          gender: _jenisKelamin,
+          birthWeightKg: double.tryParse(_beratBadanLahir) ?? 2.9,
+          birthHeightCm: double.tryParse(_tinggiBadanLahir) ?? 50.0,
+          currentWeightKg: currentWeight,
+          currentHeightCm: currentHeight,
+          isExclusiveBreastfeeding: _isAsiEksklusif!,
+        );
+
+        // Simpan ke SQLite lokal bila tersedia
+        try {
+          LocalDbService().insertGrowthRecord({
+            'child_id': 1,
+            'tanggal': _tanggalCek,
+            'berat_kg': currentWeight,
+            'tinggi_cm': currentHeight,
+            'lingkar_kepala_cm': 0.0,
+            'synced': 0,
+          });
+        } catch (_) {}
+
+        resultHolder = result;
+      },
     );
 
-    // Simpan ke SQLite lokal bila tersedia
-    try {
-      LocalDbService().insertGrowthRecord({
-        'child_id': 1,
-        'tanggal': _tanggalCek,
-        'berat_kg': currentWeight,
-        'tinggi_cm': currentHeight,
-        'lingkar_kepala_cm': 0.0,
-        'synced': 0,
-      });
-    } catch (_) {}
+    if (!mounted) return;
 
     setState(() {
-      _currentResult = result;
+      _isAnalyzing = false;
+      _currentResult = resultHolder;
       _showResultSheet = true;
     });
     _sheetAnimationController.forward();
@@ -427,6 +447,15 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
                     ),
                   ),
                 ],
+              ),
+
+              // Overlay Animasi Sinematik Pego & Black Hole
+              AbsorbPointer(
+                absorbing: _isAnalyzing,
+                child: PegoAnalysisOverlay(
+                  key: _pegoOverlayKey,
+                  isVisible: _isAnalyzing,
+                ),
               ),
 
               // In-Scaffold Bottom Sheet Backdrop
