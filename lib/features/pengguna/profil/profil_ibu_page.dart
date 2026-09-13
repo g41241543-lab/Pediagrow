@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -45,6 +46,11 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   String _selectedGender = 'Perempuan';
   bool _isSaving = false;
 
+  bool _isSuccessBannerVisible = false;
+  Timer? _bannerTimer;
+  String _successBannerMessage = 'Berhasil Memperbarui Foto Profil';
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +62,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     _provinceController = TextEditingController(text: user.province ?? '');
     _cityController = TextEditingController(text: user.city ?? '');
     _districtController = TextEditingController(text: user.district ?? '');
-    _subDistrictController = TextEditingController(text: user.subDistrict ?? '');
+    _subDistrictController = TextEditingController(
+      text: user.subDistrict ?? '',
+    );
 
     if (user.gender != null && user.gender!.isNotEmpty) {
       _selectedGender = user.gender!;
@@ -72,7 +80,36 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     _cityController.dispose();
     _districtController.dispose();
     _subDistrictController.dispose();
+    _bannerTimer?.cancel();
     super.dispose();
+  }
+
+  void _triggerSuccessBanner(String message) {
+    _bannerTimer?.cancel();
+    setState(() {
+      _successBannerMessage = message;
+    });
+
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (!mounted) return;
+      setState(() {
+        _isSuccessBannerVisible = true;
+      });
+
+      // Banner otomatis menghilang setelah durasi 1 menit
+      _bannerTimer = Timer(const Duration(minutes: 1), () {
+        _hideSuccessBanner();
+      });
+    });
+  }
+
+  void _hideSuccessBanner() {
+    _bannerTimer?.cancel();
+    if (mounted && _isSuccessBannerVisible) {
+      setState(() {
+        _isSuccessBannerVisible = false;
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -184,17 +221,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
         UserService().updateAvatar(pickedFile.path);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Foto profil berhasil diperbarui!',
-                style: GoogleFonts.lato(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFF3985E7),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          _triggerSuccessBanner('Berhasil Memperbarui Foto Profil');
         }
       }
     } catch (e) {
@@ -262,8 +289,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       setState(() {
         _birthDateController.text = '$day/$month/$year';
       });
-      // Pemicu validasi ulang field jika sebelumnya sempat error
-      _formKey.currentState?.validate();
     }
   }
 
@@ -306,6 +331,11 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
           );
         }
       });
+    } else {
+      // Aktifkan autovalidasi hanya setelah tombol Simpan Perubahan diklik
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
     }
   }
 
@@ -314,148 +344,213 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            // Header bar tetap (56dp)
-            _buildAppBar(),
+            Column(
+              children: [
+                // Header bar tetap (56dp)
+                _buildAppBar(),
 
-            // Konten form scrollable dan adaptif terhadap keyboard Android
-            Expanded(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                  vertical: 14.0,
+                // Konten form scrollable dan adaptif terhadap keyboard Android
+                Expanded(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 14.0,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      autovalidateMode: _autovalidateMode,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. Avatar foto profil & Ubah Foto Profil
+                          _buildAvatarSection(),
+                          const SizedBox(height: 18),
+
+                          // 2. Nama Pengguna*
+                          _buildTextField(
+                            controller: _nameController,
+                            label: 'Nama Pengguna',
+                            hint: 'Masukkan nama pengguna',
+                            prefixIcon: Icons.person_outline_rounded,
+                            isRequired: true,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Nama pengguna tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 3. Email*
+                          _buildTextField(
+                            controller: _emailController,
+                            label: 'Email',
+                            hint: 'contoh@gmail.com',
+                            prefixIcon: Icons.mail_outline_rounded,
+                            keyboardType: TextInputType.emailAddress,
+                            isRequired: true,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Email tidak boleh kosong';
+                              }
+                              final emailRegex = RegExp(
+                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                              );
+                              if (!emailRegex.hasMatch(val.trim())) {
+                                return 'Format email tidak valid';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 4. Jenis Kelamin*
+                          _buildGenderRadioSection(),
+                          const SizedBox(height: 14),
+
+                          // 5. Tanggal Lahir Anda*
+                          _buildDateField(
+                            controller: _birthDateController,
+                            label: 'Tanggal Lahir Anda',
+                            hint: 'DD/MM/YYYY',
+                            isRequired: true,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Tanggal lahir tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 6. Provinsi*
+                          _buildTextField(
+                            controller: _provinceController,
+                            label: 'Provinsi',
+                            hint: 'Masukkan provinsi',
+                            prefixIcon: Icons.map_outlined,
+                            isRequired: true,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Provinsi tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 7. Kota/ Kabupaten*
+                          _buildTextField(
+                            controller: _cityController,
+                            label: 'Kota/ Kabupaten',
+                            hint: 'Masukkan kota/ kabupaten',
+                            prefixIcon: Icons.location_city_outlined,
+                            isRequired: true,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Kota/ Kabupaten tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 8. Kecamatan
+                          _buildTextField(
+                            controller: _districtController,
+                            label: 'Kecamatan',
+                            hint: 'Masukkan kecamatan',
+                            prefixIcon: Icons.place_outlined,
+                            isRequired: false,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 9. Kelurahan/ Desa
+                          _buildTextField(
+                            controller: _subDistrictController,
+                            label: 'Kelurahan/ Desa',
+                            hint: 'Masukkan kelurahan/ desa',
+                            prefixIcon: Icons.holiday_village_outlined,
+                            isRequired: false,
+                          ),
+                          const SizedBox(height: 28),
+
+                          // Tombol Simpan Perubahan
+                          _buildSaveButton(),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 1. Avatar foto profil & Ubah Foto Profil
-                      _buildAvatarSection(),
-                      const SizedBox(height: 18),
+              ],
+            ),
+            // Success banner overlay
+            _buildSuccessBanner(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                      // 2. Nama Pengguna*
-                      _buildTextField(
-                        controller: _nameController,
-                        label: 'Nama Pengguna',
-                        hint: 'Masukkan nama pengguna',
-                        prefixIcon: Icons.person_outline_rounded,
-                        isRequired: true,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Nama pengguna tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 3. Email*
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        hint: 'contoh@gmail.com',
-                        prefixIcon: Icons.mail_outline_rounded,
-                        keyboardType: TextInputType.emailAddress,
-                        isRequired: true,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Email tidak boleh kosong';
-                          }
-                          final emailRegex = RegExp(
-                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                          );
-                          if (!emailRegex.hasMatch(val.trim())) {
-                            return 'Format email tidak valid';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 4. Jenis Kelamin*
-                      _buildGenderRadioSection(),
-                      const SizedBox(height: 14),
-
-                      // 5. Tanggal Lahir Anda*
-                      _buildDateField(
-                        controller: _birthDateController,
-                        label: 'Tanggal Lahir Anda',
-                        hint: 'DD/MM/YYYY',
-                        isRequired: true,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Tanggal lahir tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 6. Provinsi*
-                      _buildTextField(
-                        controller: _provinceController,
-                        label: 'Provinsi',
-                        hint: 'Masukkan provinsi',
-                        prefixIcon: Icons.map_outlined,
-                        isRequired: true,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Provinsi tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 7. Kota/ Kabupaten*
-                      _buildTextField(
-                        controller: _cityController,
-                        label: 'Kota/ Kabupaten',
-                        hint: 'Masukkan kota/ kabupaten',
-                        prefixIcon: Icons.location_city_outlined,
-                        isRequired: true,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Kota/ Kabupaten tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 8. Kecamatan
-                      _buildTextField(
-                        controller: _districtController,
-                        label: 'Kecamatan',
-                        hint: 'Masukkan kecamatan',
-                        prefixIcon: Icons.place_outlined,
-                        isRequired: false,
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 9. Kelurahan/ Desa
-                      _buildTextField(
-                        controller: _subDistrictController,
-                        label: 'Kelurahan/ Desa',
-                        hint: 'Masukkan kelurahan/ desa',
-                        prefixIcon: Icons.holiday_village_outlined,
-                        isRequired: false,
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Tombol Simpan Perubahan
-                      _buildSaveButton(),
-                      const SizedBox(height: 24),
-                    ],
+  // ---------------------------------------------------------------------------
+  // SUCCESS BANNER OVERLAY
+  // ---------------------------------------------------------------------------
+  Widget _buildSuccessBanner() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.easeInOut,
+      top: _isSuccessBannerVisible ? 62.0 : -70.0,
+      left: 16.0,
+      right: 16.0,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 100),
+        opacity: _isSuccessBannerVisible ? 1.0 : 0.0,
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3985E7),
+            borderRadius: BorderRadius.circular(17),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3985E7).withOpacity(0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  _successBannerMessage,
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFFFFFFF),
                   ),
                 ),
               ),
-            ),
-          ],
+              InkWell(
+                onTap: _hideSuccessBanner,
+                borderRadius: BorderRadius.circular(12),
+                child: const Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: Icon(Icons.close, size: 20, color: Color(0xFF000000)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -470,12 +565,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFF1F5F9),
-            width: 1,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
       ),
       child: Row(
         children: [
@@ -484,11 +574,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             borderRadius: BorderRadius.circular(10),
             child: const Padding(
               padding: EdgeInsets.all(8.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: Color(0xFF0F172A),
-                size: 24,
-              ),
+              child: Icon(Icons.arrow_back, color: Color(0xFF0F172A), size: 24),
             ),
           ),
           const SizedBox(width: 8),
@@ -516,7 +602,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             valueListenable: UserService().currentUserNotifier,
             builder: (context, user, _) {
               final avatarPath = user.avatarPath;
-              final hasCustom = avatarPath != null &&
+              final hasCustom =
+                  avatarPath != null &&
                   avatarPath.isNotEmpty &&
                   File(avatarPath).existsSync();
 
@@ -559,10 +646,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF3985E7),
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2.5,
-                          ),
+                          border: Border.all(color: Colors.white, width: 2.5),
                           boxShadow: [
                             BoxShadow(
                               color: const Color(0xFF3985E7).withOpacity(0.3),
@@ -645,7 +729,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF3985E7) : const Color(0xFFCBD5E1),
+                  color: isSelected
+                      ? const Color(0xFF3985E7)
+                      : const Color(0xFFCBD5E1),
                   width: isSelected ? 6.5 : 1.5,
                 ),
                 color: Colors.white,
@@ -657,7 +743,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
               style: GoogleFonts.lato(
                 fontSize: 15,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF475569),
+                color: isSelected
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFF475569),
               ),
             ),
           ],
@@ -730,10 +818,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             fontWeight: FontWeight.w500,
             color: const Color(0xFF0F172A),
           ),
-          decoration: _inputDecoration(
-            hint: hint,
-            prefixIcon: prefixIcon,
-          ),
+          decoration: _inputDecoration(hint: hint, prefixIcon: prefixIcon),
           validator: validator,
         ),
       ],
@@ -777,25 +862,11 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.lato(
-        fontSize: 14,
-        color: const Color(0xFF94A3B8),
-      ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 12,
-      ),
-      prefixIcon: Icon(
-        prefixIcon,
-        size: 20,
-        color: const Color(0xFF64748B),
-      ),
+      hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      prefixIcon: Icon(prefixIcon, size: 20, color: const Color(0xFF64748B)),
       suffixIcon: suffixIcon != null
-          ? Icon(
-              suffixIcon,
-              size: 20,
-              color: const Color(0xFF64748B),
-            )
+          ? Icon(suffixIcon, size: 20, color: const Color(0xFF64748B))
           : null,
       filled: true,
       fillColor: Colors.white,
@@ -809,24 +880,15 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFF3985E7),
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: Color(0xFF3985E7), width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFEF4444),
-          width: 1.2,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFEF4444),
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
       ),
       errorStyle: GoogleFonts.lato(
         fontSize: 12,

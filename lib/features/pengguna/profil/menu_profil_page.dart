@@ -250,17 +250,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
         UserService().updateAvatar(pickedFile.path);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Foto profil berhasil diperbarui!',
-                style: GoogleFonts.lato(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFF3985E7),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          _triggerSuccessBanner(message: 'Berhasil Memperbarui Foto Profil.');
         }
       }
     } catch (e) {
