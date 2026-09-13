@@ -211,7 +211,7 @@ class _BerandaPageState extends State<BerandaPage>
 
               // Card MomDad (margin 12dp horizontal, radius 15, #FFFFFF)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: _buildMomDadCard(context),
               ),
 
@@ -370,7 +370,7 @@ class _BerandaPageState extends State<BerandaPage>
         children: [
           // 6 Card Menu (lebar penuh sejajar margin 12dp)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: _build6MenuGrid(context),
           ),
 
@@ -378,7 +378,7 @@ class _BerandaPageState extends State<BerandaPage>
 
           // Card PediaGrow (lebar penuh identik dengan Card MomDad & Menu, margin 12dp)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: _buildPediaGrowCard(),
           ),
         ],
@@ -470,22 +470,24 @@ class _BerandaPageState extends State<BerandaPage>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card Menu: fills available width of this column!
-          Container(
-            height: 85,
-            decoration: BoxDecoration(
-              color: const Color(0xFFECF6FF),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF3985E7).withValues(alpha: 0.06),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+          // Card Menu: sekarang berbentuk kotak (1:1), lebar mengikuti kolom
+          AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFECF6FF),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Image.asset(imageAsset, height: 48, fit: BoxFit.contain),
             ),
-            alignment: Alignment.center,
-            child: Image.asset(imageAsset, height: 48, fit: BoxFit.contain),
           ),
           const SizedBox(height: 8),
           // Judul Menu (Lato Regular 14, #000000)
