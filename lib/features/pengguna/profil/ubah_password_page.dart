@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'menu_profil_page.dart';
+
 /// Halaman Ubah Kata Sandi PediaGrow.
 class UbahPasswordPage extends StatefulWidget {
   const UbahPasswordPage({super.key});
@@ -36,25 +38,23 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      Future.delayed(const Duration(milliseconds: 900), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (!mounted) return;
         setState(() => _isLoading = false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Kata sandi berhasil diperbarui!',
-              style: GoogleFonts.lato(color: Colors.white),
+        // Kembali ke MenuProfilPage dengan membawa pesan sukses
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop('Berhasil Ubah Kata Sandi');
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const MenuProfilPage(
+                showSuccessBanner: true,
+                successMessage: 'Berhasil Ubah Kata Sandi',
+              ),
             ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-
-        Navigator.of(context).pop();
+          );
+        }
       });
     }
   }

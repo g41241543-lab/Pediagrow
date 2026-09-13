@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/doctor_model.dart';
-import 'formulir_konsultasi_page.dart';
+import 'menunggu_persetujuan_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
 ///
@@ -26,11 +26,11 @@ class ProfilDokterPage extends StatelessWidget {
 
   const ProfilDokterPage({super.key, required this.doctor});
 
-  void _onChatDokterPressed(BuildContext context) {
+  void _onKonsultasiSekarangPressed(BuildContext context) {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            FormulirKonsultasiPage(doctor: doctor),
+            MenungguPersetujuanPage(doctor: doctor),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,
@@ -197,13 +197,13 @@ class ProfilDokterPage extends StatelessWidget {
 
               const SizedBox(height: 22),
 
-              // Baris Statistik: Pengalaman & No. STR dipisahkan garis vertikal
+              // Baris Statistik: Pengalaman (digeser ke kiri) & No. STR (di sisi kanan) tanpa garis tengah
               Row(
                 children: [
-                  // Sisi Kiri: Pengalaman Kerja
+                  // Sisi Kiri: Pengalaman Kerja (rata kiri)
                   Expanded(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Container(
                           width: 36,
@@ -247,17 +247,12 @@ class ProfilDokterPage extends StatelessWidget {
                     ),
                   ),
 
-                  // Garis Pemisah Vertikal
-                  Container(
-                    width: 1,
-                    height: 38,
-                    color: const Color(0xFFE2E8F0),
-                  ),
+                  const SizedBox(width: 8),
 
-                  // Sisi Kanan: No. STR
+                  // Sisi Kanan: No. STR (rata kanan)
                   Expanded(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Container(
                           width: 36,
@@ -461,7 +456,7 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: () => _onChatDokterPressed(context),
+              onPressed: () => _onKonsultasiSekarangPressed(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFA000),
                 elevation: 0,
@@ -469,12 +464,12 @@ class ProfilDokterPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
+                  horizontal: 28,
                   vertical: 12,
                 ),
               ),
               child: Text(
-                'Chat Dokter',
+                'Konsultasi Sekarang',
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

@@ -38,6 +38,29 @@ class UserService {
     );
   }
 
+  /// Memperbarui profil pengguna secara lengkap
+  void updateProfile({
+    String? name,
+    String? email,
+    String? gender,
+    String? birthDate,
+    String? province,
+    String? city,
+    String? district,
+    String? subDistrict,
+  }) {
+    currentUserNotifier.value = currentUserNotifier.value.copyWith(
+      name: name,
+      email: email,
+      gender: gender,
+      birthDate: birthDate,
+      province: province,
+      city: city,
+      district: district,
+      subDistrict: subDistrict,
+    );
+  }
+
   /// Mengatur ulang sesi pengguna (logout)
   void logout() {
     currentUserNotifier.value = const UserModel(
