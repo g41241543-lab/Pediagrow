@@ -55,9 +55,7 @@ class _BerandaPageState extends State<BerandaPage>
       PilihAnakPage.show(context, children: page.children);
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => page),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
   void _onNavTap(int index) {
@@ -334,7 +332,8 @@ class _BerandaPageState extends State<BerandaPage>
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3985E7).withValues(alpha: 0.25),
+                          color: const Color(0xFF3985E7)
+                              .withValues(alpha: 0.25),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -486,11 +485,7 @@ class _BerandaPageState extends State<BerandaPage>
               ],
             ),
             alignment: Alignment.center,
-            child: Image.asset(
-              imageAsset,
-              height: 48,
-              fit: BoxFit.contain,
-            ),
+            child: Image.asset(imageAsset, height: 48, fit: BoxFit.contain),
           ),
           const SizedBox(height: 8),
           // Judul Menu (Lato Regular 14, #000000)
@@ -700,11 +695,7 @@ class _BerandaPageState extends State<BerandaPage>
                     ),
                   ] else ...[
                     // State tidak aktif: icon & label abu-abu #9E9E9E
-                    Icon(
-                      item.icon,
-                      size: 24,
-                      color: const Color(0xFF9E9E9E),
-                    ),
+                    Icon(item.icon, size: 24, color: const Color(0xFF9E9E9E)),
                     const SizedBox(height: 3),
                     Text(
                       item.label,
@@ -766,24 +757,17 @@ class _BlurredEllipsePainter extends CustomPainter {
   final Color color;
   final double blurSigma;
 
-  const _BlurredEllipsePainter({
-    required this.color,
-    required this.blurSigma,
-  });
+  const _BlurredEllipsePainter({required this.color, required this.blurSigma});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma);
-    canvas.drawOval(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      paint,
-    );
+    canvas.drawOval(Rect.fromLTWH(0, 0, size.width, size.height), paint);
   }
 
   @override
   bool shouldRepaint(covariant _BlurredEllipsePainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.blurSigma != blurSigma;
 }
-
