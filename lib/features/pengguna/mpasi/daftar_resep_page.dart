@@ -398,21 +398,26 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             ),
           ),
 
-        // Sisa ruang di bawah daftar — ilustrasi selalu menempel tepat di
-        // atas bottom navigation, baik saat kosong maupun saat daftar pendek.
+        // Sisa ruang di bawah daftar — ilustrasi SELALU menempel presisi di
+        // dasar area scroll (yaitu tepat di atas bottom navigation), baik
+        // saat kosong maupun saat daftar pendek. Tidak ada teks/empty-state
+        // apa pun yang ditampilkan saat kosong — hanya ruang kosong lalu
+        // ilustrasi taman (pohon + rumput + tenda), sesuai desain.
         //
-        // Catatan: saat kosong (isEmpty), TIDAK ada teks/empty-state apa pun
-        // yang ditampilkan — halaman hanya berisi header, search, filter
-        // usia, ruang kosong, lalu ilustrasi taman (pohon + rumput + tenda)
-        // menempel tepat di atas bottom navigation, sesuai desain.
+        // Menggunakan Align(bottomCenter) di dalam SliverFillRemaining:
+        // SliverFillRemaining memberi tinggi PERSIS sebesar ruang tersisa
+        // di viewport, lalu Align mendorong ilustrasi ke dasar area
+        // tersebut tanpa menyisakan celah kosong di bawahnya (beda dengan
+        // pendekatan Expanded+Column sebelumnya yang rawan menyisakan gap
+        // jika tinggi intrinsik gambar tidak terhitung tepat).
         SliverFillRemaining(
           hasScrollBody: false,
-          child: Column(
-            children: [
-              const Expanded(child: SizedBox.shrink()),
-              if (!isEmpty) const SizedBox(height: 20),
-              _buildGardenIllustration(),
-            ],
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(top: isEmpty ? 0 : 20),
+              child: _buildGardenIllustration(),
+            ),
           ),
         ),
       ],
@@ -623,7 +628,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   Widget _buildBottomNavigation() {
     return Container(
-      height: 64,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
@@ -634,50 +638,58 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
           ),
         ],
       ),
+      // Tidak lagi memaksa tinggi container secara manual (mis. 64/72).
+      // Tinggi dibiarkan menyesuaikan otomatis: konten (ikon+label) +
+      // padding vertikal + inset aman perangkat (gesture bar/home
+      // indicator) via SafeArea. Ini mencegah overflow di perangkat yang
+      // memiliki area aman bawah lebih besar (mis. Android gesture nav).
       child: SafeArea(
         top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              icon: Icons.home_rounded,
-              label: 'Beranda',
-              isActive: false,
-              onTap: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const BerandaPage()),
-                  (route) => false,
-                );
-              },
-            ),
-            _buildNavItem(
-              icon: Icons.question_answer_rounded,
-              label: 'Konsultasi',
-              isActive: false,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                icon: Icons.home_rounded,
+                label: 'Beranda',
+                isActive: false,
+                onTap: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const BerandaPage()),
+                    (route) => false,
+                  );
+                },
               ),
-            ),
-            _buildNavItem(
-              icon: Icons.manage_search_rounded,
-              label: 'Riwayat Konsultasi',
-              isActive: false,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+              _buildNavItem(
+                icon: Icons.question_answer_rounded,
+                label: 'Konsultasi',
+                isActive: false,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
+                ),
               ),
-            ),
-            _buildNavItem(
-              icon: Icons.person_outline_rounded,
-              label: 'Profil Ibu',
-              isActive: false,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MenuProfilPage()),
+              _buildNavItem(
+                icon: Icons.manage_search_rounded,
+                label: 'Riwayat Konsultasi',
+                isActive: false,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+                ),
               ),
-            ),
-          ],
+              _buildNavItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Profil Ibu',
+                isActive: false,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MenuProfilPage()),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -695,10 +707,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         onTap: onTap,
         child: SizedBox(
           width: 80,
-          height: 64,
+          // Tinggi TIDAK dipaksa (dihapus height: 64/72) — Column dengan
+          // mainAxisSize.min akan mengambil tinggi sesuai konten saja,
+          // sehingga tidak overflow di perangkat mana pun.
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Lingkaran putih di belakang ikon aktif (efek floating)
               Container(
