@@ -222,10 +222,12 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
         // Search bar — di luar blok header 56dp, margin kanan-kiri 16dp
         // (mengikuti aturan umum jarak tepi layar).
+        // Padding bawah diperbesar (8 -> 14) agar jarak ke filter usia
+        // di bawahnya tidak terlalu rapat.
         Container(
           width: double.infinity,
           color: _colorWhite,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
           child: _buildSearchBar(),
         ),
       ],
@@ -290,7 +292,9 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     return Container(
       width: double.infinity,
       color: _colorWhite,
-      padding: const EdgeInsets.only(top: 4, bottom: 10),
+      // Padding atas diperbesar (4 -> 8) agar jarak dari search bar
+      // di atasnya tidak terlalu dekat.
+      padding: const EdgeInsets.only(top: 8, bottom: 10),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -341,6 +345,12 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   //      bawah ruang yang tersisa (tidak ada celah putih di bawahnya).
   //    - Jika daftar resep panjang (melebihi tinggi layar), ilustrasi
   //      tetap muncul mengikuti scroll setelah item terakhir, seperti biasa.
+  //
+  //    Catatan: ketika belum ada data resep dari PMIK/Superadmin,
+  //    _recipes akan kosong (bukan dummy). Dalam kondisi ini halaman
+  //    TIDAK menampilkan teks/empty-state apa pun — cukup daftar kosong
+  //    diikuti ilustrasi taman (pohon + rumput + tenda) yang menempel
+  //    tepat di atas bottom navigation, sesuai desain.
   // -------------------------------------------------------------------------
 
   Widget _buildScrollableContent() {
@@ -390,20 +400,16 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
         // Sisa ruang di bawah daftar — ilustrasi selalu menempel tepat di
         // atas bottom navigation, baik saat kosong maupun saat daftar pendek.
+        //
+        // Catatan: saat kosong (isEmpty), TIDAK ada teks/empty-state apa pun
+        // yang ditampilkan — halaman hanya berisi header, search, filter
+        // usia, ruang kosong, lalu ilustrasi taman (pohon + rumput + tenda)
+        // menempel tepat di atas bottom navigation, sesuai desain.
         SliverFillRemaining(
           hasScrollBody: false,
           child: Column(
             children: [
-              Expanded(
-                child: isEmpty
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: _EmptyStateContent(),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              const Expanded(child: SizedBox.shrink()),
               if (!isEmpty) const SizedBox(height: 20),
               _buildGardenIllustration(),
             ],
@@ -607,13 +613,17 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   //    - Background abu muda (_colorNavBg), bukan putih polos.
   //    - Tab aktif: lingkaran putih di belakang ikon (efek elevated/floating)
   //      + ikon biru + label tebal warna gelap.
-  //    - Tab non-aktif: ikon & label abu-abu polos, ukuran lebih besar dari
-  //      sebelumnya agar tidak terlihat kekecilan.
+  //    - Tab non-aktif: ikon & label abu-abu polos.
+  //
+  //    PERBAIKAN: tinggi container & item dikurangi (72 -> 64) dan jarak
+  //    ikon-ke-label dirapatkan (4 -> 2) + mainAxisSize.min pada Column,
+  //    supaya label tidak terlihat "terlalu ke bawah" / terlalu jauh dari
+  //    ikonnya.
   // -------------------------------------------------------------------------
 
   Widget _buildBottomNavigation() {
     return Container(
-      height: 72,
+      height: 64,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
@@ -685,14 +695,15 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         onTap: onTap,
         child: SizedBox(
           width: 80,
-          height: 72,
+          height: 64,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Lingkaran putih di belakang ikon aktif (efek floating)
               Container(
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: isActive ? _colorWhite : Colors.transparent,
                   shape: BoxShape.circle,
@@ -708,11 +719,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                 ),
                 child: Icon(
                   icon,
-                  size: 26,
+                  size: 24,
                   color: isActive ? _colorPrimaryBlue : _colorNavInactive,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: GoogleFonts.lato(
@@ -758,43 +769,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 // =============================================================================
 // HELPER WIDGETS
 // =============================================================================
-
-/// Empty state content widget
-class _EmptyStateContent extends StatelessWidget {
-  const _EmptyStateContent();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(
-          Icons.restaurant_menu_outlined,
-          size: 52,
-          color: Color(0xFFCBD5E1),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          'Belum ada resep MPASI',
-          style: GoogleFonts.lato(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF94A3B8),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Resep akan muncul setelah PMIK\nmenambahkan data resep.',
-          style: GoogleFonts.lato(
-            fontSize: 13,
-            color: const Color(0xFF94A3B8),
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-}
 
 /// Fallback CustomPainter untuk garden illustration
 class _GardenFallbackPainter extends CustomPainter {
