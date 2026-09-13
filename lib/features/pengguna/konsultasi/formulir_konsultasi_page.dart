@@ -1,153 +1,1087 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
+import 'chat_konsultasi_page.dart';
 
-/// Halaman Formulir Konsultasi Dokter PediaGrow
-class FormulirKonsultasiPage extends StatelessWidget {
+/// Halaman "Formulir Konsultasi" PediaGrow.
+///
+/// Halaman ini digunakan pengguna untuk melengkapi informasi berat badan,
+/// tinggi badan, dan keluhan anak sebelum memulai sesi konsultasi chat dokter.
+class FormulirKonsultasiPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ConsultationModel? consultation;
+  final ChildModel? child;
+  final String? namaAnak;
+  final String? jenisKelamin;
+  final String? usiaAnak;
 
   const FormulirKonsultasiPage({
     super.key,
     this.doctor,
     this.consultation,
+    this.child,
+    this.namaAnak,
+    this.jenisKelamin,
+    this.usiaAnak,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final effectiveDoctor = doctor ?? consultation?.doctor ?? DoctorModel.defaultDoctor;
+  State<FormulirKonsultasiPage> createState() => _FormulirKonsultasiPageState();
+}
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
-          onPressed: () => Navigator.of(context).maybePop(),
+class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
+  // Palet Warna Resmi PediaGrow & Spesifikasi Desain Figma
+  static const Color colorPrimaryBlue = Color(0xFF2A85FF);
+  static const Color colorSoftBlue = Color(0xFFEBF5FF);
+  static const Color colorIconBoxBlue = Color(0xFFE2F0FE);
+  static const Color colorCardBg = Color(0xFFF8FAFC);
+  static const Color colorTextPrimary = Color(0xFF1A202C);
+  static const Color colorTextSecondary = Color(0xFF4A5568);
+  static const Color colorTextMuted = Color(0xFF718096);
+  static const Color colorBorder = Color(0xFFE2E8F0);
+  static const Color colorGreenSuccess = Color(0xFF48BB78);
+  static const Color colorPeachAvatar = Color(0xFFFFEDEB);
+  static const Color colorAmberTip = Color(0xFFFFB300);
+
+  // Controllers untuk input form
+  late final TextEditingController _weightController;
+  late final TextEditingController _heightController;
+  late final TextEditingController _complaintController;
+
+  // FocusNodes untuk navigasi keyboard yang halus
+  final FocusNode _weightFocusNode = FocusNode();
+  final FocusNode _heightFocusNode = FocusNode();
+  final FocusNode _complaintFocusNode = FocusNode();
+
+  // State validasi & realtime counter
+  String? _weightError;
+  String? _heightError;
+  String? _complaintError;
+  int _complaintCharCount = 0;
+  static const int _maxComplaintChars = 500;
+
+  // Data anak teresolusi (dinamis dengan fallback aman)
+  late String _effectiveGender;
+  late String _effectiveAge;
+  late String _effectiveName;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _resolveChildData();
+
+    _weightController = TextEditingController();
+    _heightController = TextEditingController();
+    _complaintController = TextEditingController();
+
+    _complaintController.addListener(() {
+      final text = _complaintController.text;
+      if (text.length != _complaintCharCount) {
+        setState(() {
+          _complaintCharCount = text.length;
+          if (_complaintError != null && text.trim().isNotEmpty) {
+            _complaintError = null;
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Mendukung penerimaan argumen navigasi via RouteSettings jika ada
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ChildModel) {
+      setState(() {
+        _effectiveName = args.name;
+        _effectiveGender = args.gender;
+        _effectiveAge = args.ageDescription;
+      });
+    } else if (args is Map<String, dynamic>) {
+      setState(() {
+        if (args['namaAnak'] != null) _effectiveName = args['namaAnak'];
+        if (args['jenisKelamin'] != null) _effectiveGender = args['jenisKelamin'];
+        if (args['usiaAnak'] != null) _effectiveAge = args['usiaAnak'];
+      });
+    }
+  }
+
+  /// Menyiapkan data anak secara dinamis dari parameter atau fallback aman
+  void _resolveChildData() {
+    if (widget.child != null) {
+      _effectiveName = widget.child!.name;
+      _effectiveGender = widget.child!.gender;
+      _effectiveAge = widget.child!.ageDescription;
+    } else {
+      _effectiveName = widget.namaAnak ?? 'Anak';
+      _effectiveGender = widget.jenisKelamin ?? 'Perempuan';
+      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan 3 hari';
+    }
+  }
+
+  @override
+  void dispose() {
+    _weightController.dispose();
+    _heightController.dispose();
+    _complaintController.dispose();
+    _weightFocusNode.dispose();
+    _heightFocusNode.dispose();
+    _complaintFocusNode.dispose();
+    super.dispose();
+  }
+
+  // ===========================================================================
+  // VALIDASI FORM & NAVIGASI
+  // ===========================================================================
+
+  bool _validateForm() {
+    bool isValid = true;
+
+    final weightText = _weightController.text.trim();
+    if (weightText.isEmpty) {
+      _weightError = 'Berat badan belum diisi.';
+      isValid = false;
+    } else {
+      final parsedWeight = double.tryParse(weightText.replaceAll(',', '.'));
+      if (parsedWeight == null || parsedWeight <= 0) {
+        _weightError = 'Format berat badan tidak valid (contoh: 10.5).';
+        isValid = false;
+      } else {
+        _weightError = null;
+      }
+    }
+
+    final heightText = _heightController.text.trim();
+    if (heightText.isEmpty) {
+      _heightError = 'Tinggi badan belum diisi.';
+      isValid = false;
+    } else {
+      final parsedHeight = double.tryParse(heightText.replaceAll(',', '.'));
+      if (parsedHeight == null || parsedHeight <= 0) {
+        _heightError = 'Format tinggi badan tidak valid (contoh: 85.0).';
+        isValid = false;
+      } else {
+        _heightError = null;
+      }
+    }
+
+    final complaintText = _complaintController.text.trim();
+    if (complaintText.isEmpty) {
+      _complaintError = 'Keluhan belum diisi.';
+      isValid = false;
+    } else {
+      _complaintError = null;
+    }
+
+    setState(() {});
+    return isValid;
+  }
+
+  void _handleSubmit() {
+    // Tutup keyboard
+    FocusScope.of(context).unfocus();
+
+    if (!_validateForm()) {
+      // Tampilkan notifikasi singkat jika ada field yang belum diisi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Mohon lengkapi seluruh data formulir terlebih dahulu.',
+            style: GoogleFonts.lato(color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFFE53935),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
         ),
-        title: Text(
-          'Formulir Konsultasi',
-          style: GoogleFonts.lato(
-            color: const Color(0xFF1E293B),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+      );
+      return;
+    }
+
+    // Persiapkan data yang telah diisi untuk dikirim ke chat dokter
+    final double weight = double.parse(
+      _weightController.text.trim().replaceAll(',', '.'),
+    );
+    final double height = double.parse(
+      _heightController.text.trim().replaceAll(',', '.'),
+    );
+    final String complaint = _complaintController.text.trim();
+
+    final childData = widget.child ??
+        ChildModel(
+          id: 'child-${DateTime.now().millisecondsSinceEpoch}',
+          name: _effectiveName,
+          gender: _effectiveGender,
+          ageDescription: _effectiveAge,
+          weightKg: weight,
+          heightCm: height,
+        );
+
+    final effectiveDoctor =
+        widget.doctor ?? widget.consultation?.doctor ?? DoctorModel.defaultDoctor;
+
+    // Navigasi ke halaman Chat Konsultasi Dokter yang sudah tersedia
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatKonsultasiPage(
+          doctor: effectiveDoctor,
+          consultation: widget.consultation,
+          child: childData,
+          weightKg: weight,
+          heightCm: height,
+          complaint: complaint,
+        ),
+      ),
+    );
+  }
+
+  void _onBackPressed() {
+    Navigator.of(context).maybePop();
+  }
+
+  // ===========================================================================
+  // BUILD METHOD UTAMA
+  // ===========================================================================
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // Menutup keyboard ketika pengguna mengetuk di luar input
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // ---------------------------------------------------------------
+              // 1. HEADER TETAP (Tinggi 56dp, Tombol Back 12dp dari kiri,
+              //    Judul 12dp setelah tombol back)
+              // ---------------------------------------------------------------
+              _buildFixedHeader(),
+
+              // ---------------------------------------------------------------
+              // 2. KONTEN SCROLLABLE (Padding horizontal 16dp)
+              // ---------------------------------------------------------------
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Card "Lengkapi Form Konsultasi"
+                      _buildInfoBannerCard(),
+                      const SizedBox(height: 18),
+
+                      // Informasi "Data Anak"
+                      _buildChildInfoSection(),
+                      const SizedBox(height: 18),
+
+                      // Card "Berat Badan Saat Ini"
+                      _buildWeightCard(),
+                      const SizedBox(height: 16),
+
+                      // Card "Tinggi Badan Saat Ini"
+                      _buildHeightCard(),
+                      const SizedBox(height: 16),
+
+                      // Card "Keluhan"
+                      _buildComplaintCard(),
+                      const SizedBox(height: 16),
+
+                      // Card "Tips"
+                      _buildTipsCard(),
+                      const SizedBox(height: 16),
+
+                      // Card "Informasi Penting"
+                      _buildImportantInfoCard(),
+                      const SizedBox(height: 24),
+
+                      // Button "Lanjutkan Chat Dokter"
+                      _buildSubmitButton(),
+                      const SizedBox(height: 14),
+
+                      // Footer Keamanan "Data Anda aman dan terlindungi"
+                      _buildSecurityFooter(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Banner Info Dokter
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F7FF),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFD6E4FF)),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: const Color(0xFFCCE0FF),
-                    backgroundImage: effectiveDoctor.assetImagePath != null
-                        ? AssetImage(effectiveDoctor.assetImagePath!)
-                        : null,
-                    child: effectiveDoctor.assetImagePath == null
-                        ? const Icon(Icons.person, color: Color(0xFF3985E7))
-                        : null,
+    );
+  }
+
+  // ===========================================================================
+  // 1. HEADER TETAP (56dp)
+  // ===========================================================================
+
+  Widget _buildFixedHeader() {
+    return Container(
+      height: 56,
+      width: double.infinity,
+      color: Colors.white,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Tombol back berjarak tepat 12dp dari pinggir kiri layar
+          const SizedBox(width: 12),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: _onBackPressed,
+              child: const SizedBox(
+                width: 36,
+                height: 36,
+                child: Center(
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    color: colorTextPrimary,
+                    size: 24,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          effectiveDoctor.name,
-                          style: GoogleFonts.lato(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          effectiveDoctor.specialization,
-                          style: GoogleFonts.lato(
-                            fontSize: 13,
-                            color: const Color(0xFF7F7F7F),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Keluhan Anak',
+          ),
+          // Jarak 12dp setelah posisi tombol back menuju judul halaman
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Formulir Konsultasi',
               style: GoogleFonts.lato(
-                fontSize: 15,
+                fontSize: 19,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
+                color: colorTextPrimary,
+                letterSpacing: -0.2,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 8),
-            TextField(
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Tuliskan keluhan atau gejala yang dialami anak...',
-                hintStyle: GoogleFonts.lato(color: const Color(0xFF9E9E9E)),
-                filled: true,
-                fillColor: const Color(0xFFFAFAFA),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF3985E7), width: 1.5),
-                ),
-              ),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 2. CARD "LENGKAPI FORM KONSULTASI"
+  // ===========================================================================
+
+  Widget _buildInfoBannerCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorSoftBlue,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Ikon Dokumen Biru
+          Container(
+            padding: const EdgeInsets.all(2),
+            child: const Icon(
+              Icons.description_outlined,
+              color: colorPrimaryBlue,
+              size: 26,
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Formulir berhasil dikirim!'),
-                      backgroundColor: Color(0xFF3985E7),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3985E7),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Mulai Sesi Chat',
+          ),
+          const SizedBox(width: 12),
+          // Judul & Deskripsi
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Lengkapi Form Konsultasi',
                   style: GoogleFonts.lato(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
+                    color: colorTextPrimary,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Mohon lengkapi data berikut agar dokter dapat memahami kondisi anak Anda dengan lebih baik.',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    color: colorTextSecondary,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 3. INFORMASI "DATA ANAK"
+  // ===========================================================================
+
+  Widget _buildChildInfoSection() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Avatar Anak Lingkaran Soft Peach
+        _buildChildAvatar(),
+        const SizedBox(width: 14),
+
+        // Teks "Data Anak" dan Subtitle Dinamis
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Data Anak',
+                style: GoogleFonts.lato(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$_effectiveGender, $_effectiveAge',
+                style: GoogleFonts.lato(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w500,
+                  color: colorTextPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChildAvatar() {
+    const double size = 46;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        color: colorPeachAvatar,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: CustomPaint(
+          size: const Size(28, 28),
+          painter: _ChildFacePainter(),
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 4. CARD "BERAT BADAN SAAT INI"
+  // ===========================================================================
+
+  Widget _buildWeightCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorCardBg,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Judul Card
+          Text(
+            'Berat Badan Saat Ini',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: colorTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Baris: Ikon Timbangan + TextFormField + Satuan "kg"
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Kotak Ikon Soft Blue (Scale / Weight)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorIconBoxBlue,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.scale_rounded,
+                    color: colorPrimaryBlue,
+                    size: 26,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Input Field Putih
+              Expanded(
+                child: TextFormField(
+                  controller: _weightController,
+                  focusNode: _weightFocusNode,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    color: colorTextPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan berat badan',
+                    hintStyle: GoogleFonts.lato(
+                      fontSize: 14,
+                      color: const Color(0xFFA0AEC0),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    isDense: true,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: _weightError != null
+                            ? const Color(0xFFE53935)
+                            : colorBorder,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: colorPrimaryBlue,
+                        width: 1.5,
+                      ),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFE53935),
+                      ),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    if (_weightError != null && val.trim().isNotEmpty) {
+                      setState(() {
+                        _weightError = null;
+                      });
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Satuan "kg"
+              Text(
+                'kg',
+                style: GoogleFonts.lato(
+                  fontSize: 14.5,
+                  color: colorTextMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+
+          // Pesan Error jika tidak valid
+          if (_weightError != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              _weightError!,
+              style: GoogleFonts.lato(
+                fontSize: 12,
+                color: const Color(0xFFE53935),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 6),
+          // Subtext "Contoh: 10.5"
+          Text(
+            'Contoh: 10.5',
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: colorTextMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 5. CARD "TINGGI BADAN SAAT INI"
+  // ===========================================================================
+
+  Widget _buildHeightCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorCardBg,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Judul Card
+          Text(
+            'Tinggi Badan Saat Ini',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: colorTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Baris: Ikon Pengukur + TextFormField + Satuan "cm"
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Kotak Ikon Soft Blue (Ruler / Straighten)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorIconBoxBlue,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.straighten_rounded,
+                    color: colorPrimaryBlue,
+                    size: 26,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Input Field Putih
+              Expanded(
+                child: TextFormField(
+                  controller: _heightController,
+                  focusNode: _heightFocusNode,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    color: colorTextPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Masukkan tinggi badan',
+                    hintStyle: GoogleFonts.lato(
+                      fontSize: 14,
+                      color: const Color(0xFFA0AEC0),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    isDense: true,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: _heightError != null
+                            ? const Color(0xFFE53935)
+                            : colorBorder,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: colorPrimaryBlue,
+                        width: 1.5,
+                      ),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFE53935),
+                      ),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    if (_heightError != null && val.trim().isNotEmpty) {
+                      setState(() {
+                        _heightError = null;
+                      });
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Satuan "cm"
+              Text(
+                'cm',
+                style: GoogleFonts.lato(
+                  fontSize: 14.5,
+                  color: colorTextMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+
+          // Pesan Error jika tidak valid
+          if (_heightError != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              _heightError!,
+              style: GoogleFonts.lato(
+                fontSize: 12,
+                color: const Color(0xFFE53935),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 6),
+          // Subtext "Contoh: 85.0"
+          Text(
+            'Contoh: 85.0',
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: colorTextMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 6. CARD "KELUHAN"
+  // ===========================================================================
+
+  Widget _buildComplaintCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorCardBg,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Ikon Chat Bubble + Judul & Deskripsi
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colorIconBoxBlue,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: colorPrimaryBlue,
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Keluhan',
+                      style: GoogleFonts.lato(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: colorTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Ceritakan keluhan atau kondisi yang dirasakan anak saat ini.',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: colorTextSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Textarea Putih dengan Realtime Counter di Kanan Bawah
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _complaintError != null
+                    ? const Color(0xFFE53935)
+                    : colorBorder,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                TextField(
+                  controller: _complaintController,
+                  focusNode: _complaintFocusNode,
+                  maxLength: _maxComplaintChars,
+                  maxLines: 5,
+                  minLines: 4,
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    color: colorTextPrimary,
+                    height: 1.4,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    counterText: '', // Hilangkan default counter agar rapi
+                    hintText: 'Tuliskan keluhan secara detail...',
+                    hintStyle: GoogleFonts.lato(
+                      fontSize: 13.5,
+                      color: const Color(0xFFA0AEC0),
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Counter Realtime "0/500"
+                Text(
+                  '$_complaintCharCount/$_maxComplaintChars',
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: colorTextMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Pesan Error jika keluhan belum diisi
+          if (_complaintError != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              _complaintError!,
+              style: GoogleFonts.lato(
+                fontSize: 12,
+                color: const Color(0xFFE53935),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 7. CARD "TIPS"
+  // ===========================================================================
+
+  Widget _buildTipsCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorSoftBlue,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Ikon Lampu Kuning / Amber
+          const Icon(
+            Icons.lightbulb_rounded,
+            color: colorAmberTip,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          // Judul Tips & Isi
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tips',
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: colorPrimaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Berikan informasi selengkap mungkin agar dokter dapat memberikan saran yang tepat.',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    color: colorTextSecondary,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 8. CARD "INFORMASI PENTING"
+  // ===========================================================================
+
+  Widget _buildImportantInfoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Ikon Gembok / Shield Biru
+          Row(
+            children: [
+              const Icon(
+                Icons.shield_rounded,
+                color: colorPrimaryBlue,
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Informasi Penting',
+                style: GoogleFonts.lato(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Poin 1: Data rahasia
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: colorGreenSuccess,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Data yang anda berikan bersifat rahasia.',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    color: colorTextSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Poin 2: Data benar
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: colorGreenSuccess,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Pastikan data yang diisi sudah benar.',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    color: colorTextSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 9. BUTTON "LANJUTKAN CHAT DOKTER"
+  // ===========================================================================
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        onPressed: _handleSubmit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorPrimaryBlue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.near_me_rounded,
+              size: 20,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Lanjutkan Chat Dokter',
+              style: GoogleFonts.lato(
+                fontSize: 15.5,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
               ),
             ),
           ],
@@ -155,4 +1089,134 @@ class FormulirKonsultasiPage extends StatelessWidget {
       ),
     );
   }
+
+  // ===========================================================================
+  // 10. FOOTER KEAMANAN
+  // ===========================================================================
+
+  Widget _buildSecurityFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.lock_outline_rounded,
+          size: 16,
+          color: colorTextMuted,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          'Data Anda aman dan terlindungi',
+          style: GoogleFonts.lato(
+            fontSize: 12.5,
+            color: colorTextMuted,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Custom Painter untuk avatar muka anak imut yang presisi dengan desain
+class _ChildFacePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final strokePaint = Paint()
+      ..color = const Color(0xFF2D3748)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+
+    final fillEyePaint = Paint()
+      ..color = const Color(0xFF2D3748)
+      ..style = PaintingStyle.fill;
+
+    final blushPaint = Paint()
+      ..color = const Color(0xFFFFB4A2).withOpacity(0.6)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(size.width / 2, size.height / 2);
+
+    // Garis kepala/rambut atas
+    final hairPath = Path();
+    hairPath.moveTo(size.width * 0.2, size.height * 0.4);
+    hairPath.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.12,
+      size.width * 0.8,
+      size.height * 0.4,
+    );
+    canvas.drawPath(hairPath, strokePaint);
+
+    // Lengkungan dagu bawah
+    final chinPath = Path();
+    chinPath.moveTo(size.width * 0.2, size.height * 0.4);
+    chinPath.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.88,
+      size.width * 0.8,
+      size.height * 0.4,
+    );
+    canvas.drawPath(chinPath, strokePaint);
+
+    // Telinga kiri & kanan
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: Offset(size.width * 0.16, size.height * 0.45),
+        radius: 3.5,
+      ),
+      1.5,
+      3.14,
+      false,
+      strokePaint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: Offset(size.width * 0.84, size.height * 0.45),
+        radius: 3.5,
+      ),
+      -1.5,
+      3.14,
+      false,
+      strokePaint,
+    );
+
+    // Mata kiri & kanan (titik)
+    canvas.drawCircle(
+      Offset(size.width * 0.36, size.height * 0.48),
+      1.8,
+      fillEyePaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.64, size.height * 0.48),
+      1.8,
+      fillEyePaint,
+    );
+
+    // Pipi kemerahan
+    canvas.drawCircle(
+      Offset(size.width * 0.28, size.height * 0.55),
+      2.5,
+      blushPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.72, size.height * 0.55),
+      2.5,
+      blushPaint,
+    );
+
+    // Senyuman manis
+    final smilePath = Path();
+    smilePath.moveTo(size.width * 0.42, size.height * 0.60);
+    smilePath.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.68,
+      size.width * 0.58,
+      size.height * 0.60,
+    );
+    canvas.drawPath(smilePath, strokePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
