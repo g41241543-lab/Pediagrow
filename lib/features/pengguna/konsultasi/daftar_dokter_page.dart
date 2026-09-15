@@ -5,6 +5,7 @@ import '../../../core/services/doctor_service.dart';
 import '../../../models/doctor_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../../core/services/notification_service.dart';
 import '../beranda/notifikasi_page.dart';
 import 'profil_dokter_page.dart';
 
@@ -264,34 +265,74 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             ),
           ),
           const SizedBox(width: 12),
-          // Lingkaran Notifikasi (31×31, #FFFFFF) sama persis dengan beranda_page.dart
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NotifikasiPage()),
+          // Lingkaran Notifikasi (31×31) + badge angka
+          ValueListenableBuilder<int>(
+            valueListenable: NotificationService().unreadCountNotifier,
+            builder: (context, unreadCount, _) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const NotifikasiPage()),
+                  );
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 31,
+                      height: 31,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x1F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.notifications_none_rounded,
+                        color: Color(0xFF1E293B),
+                        size: 19,
+                      ),
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53E3E),
+                            borderRadius: BorderRadius.circular(8),
+                            border:
+                                Border.all(color: Colors.white, width: 1),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            unreadCount > 9 ? '9+' : '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              height: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               );
             },
-            child: Container(
-              width: 31,
-              height: 31,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x1F000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: Color(0xFF1E293B),
-                size: 19,
-              ),
-            ),
           ),
         ],
       ),
