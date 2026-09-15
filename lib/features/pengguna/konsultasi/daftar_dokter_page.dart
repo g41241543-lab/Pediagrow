@@ -55,13 +55,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
       curve: Curves.easeOut,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.04),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
+        );
 
     _fadeController.forward();
   }
@@ -90,10 +87,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               begin: const Offset(1.0, 0.0),
               end: Offset.zero,
             ).animate(curvedAnimation),
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
+            child: FadeTransition(opacity: animation, child: child),
           );
         },
         transitionDuration: const Duration(milliseconds: 300),
@@ -176,9 +170,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                                     builder: (context, allDoctors, _) {
                                       final filteredDoctors =
                                           _searchQuery.isEmpty
-                                              ? allDoctors
-                                              : DoctorService()
-                                                  .filterDoctors(_searchQuery);
+                                          ? allDoctors
+                                          : DoctorService().filterDoctors(
+                                              _searchQuery,
+                                            );
 
                                       if (filteredDoctors.isEmpty) {
                                         return _buildEmptyState();
@@ -186,14 +181,16 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
 
                                       return Column(
                                         children: [
-                                          for (int i = 0;
-                                              i < filteredDoctors.length;
-                                              i++) ...[
+                                          for (
+                                            int i = 0;
+                                            i < filteredDoctors.length;
+                                            i++
+                                          ) ...[
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 16.0,
-                                              ),
+                                                    horizontal: 16.0,
+                                                  ),
                                               child: _buildDoctorCard(
                                                 filteredDoctors[i],
                                               ),
@@ -245,9 +242,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -272,8 +267,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               return GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const NotifikasiPage()),
+                    MaterialPageRoute(builder: (_) => const NotifikasiPage()),
                   );
                 },
                 child: Stack(
@@ -309,13 +303,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             minWidth: 16,
                             minHeight: 16,
                           ),
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE53E3E),
                             borderRadius: BorderRadius.circular(8),
-                            border:
-                                Border.all(color: Colors.white, width: 1),
+                            border: Border.all(color: Colors.white, width: 1),
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -412,171 +404,232 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-  /// Card Profil Dokter sesuai acuan desain
+  /// Card Profil Dokter dengan hover effect & desain premium
   Widget _buildDoctorCard(DoctorModel doctor) {
+    const colorPrimaryBlue = Color(0xFF3985E7);
+    const colorBlueShadow = Color(0xFF2B7AE8);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
-        boxShadow: const [
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0C000000),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
-            offset: Offset(0, 3),
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Sisi Atas: Avatar + Informasi Dokter
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _navigateToDetail(doctor),
+          splashColor: colorPrimaryBlue.withValues(alpha: 0.08),
+          highlightColor: colorPrimaryBlue.withValues(alpha: 0.04),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Avatar Dokter dengan Badge Status Online (Lingkaran Hijau)
-                Stack(
-                  clipBehavior: Clip.none,
+                // Sisi Atas: Avatar + Informasi Dokter
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _buildAvatar(doctor),
+                    // Avatar Dokter dengan Badge Status Online
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 62,
+                          height: 62,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECF6FF),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: colorPrimaryBlue.withValues(alpha: 0.15),
+                              width: 1.5,
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: _buildAvatar(doctor),
+                        ),
+                        // Indikator Status Online
+                        Positioned(
+                          bottom: 0,
+                          right: -2,
+                          child: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: doctor.isOnline
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF94A3B8),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (doctor.isOnline
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFF94A3B8))
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    // Indikator Status Online (Lingkaran hijau di sudut kanan atas avatar)
-                    Positioned(
-                      top: -2,
-                      right: -2,
+
+                    const SizedBox(width: 14),
+
+                    // Informasi Dokter (Nama, Spesialis, Pengalaman)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Status online teks kecil
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: doctor.isOnline
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF94A3B8),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                doctor.isOnline ? 'Online' : 'Offline',
+                                style: GoogleFonts.lato(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: doctor.isOnline
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Nama Dokter
+                          Text(
+                            doctor.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Chip Spesialis
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFFBFDBFE),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              doctor.specialization,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.5,
+                                color: colorBlueShadow,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Pengalaman Kerja
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.business_center_outlined,
+                                size: 14,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '${doctor.experienceYears} tahun pengalaman',
+                                style: GoogleFonts.lato(
+                                  fontSize: 12,
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Divider
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                  child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                ),
+
+                // Sisi Bawah: Tombol "Detail Dokter" biru
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _navigateToDetail(doctor),
                       child: Container(
-                        width: 12,
-                        height: 12,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 8.0,
+                        ),
                         decoration: BoxDecoration(
-                          color: doctor.isOnline
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFF94A3B8),
-                          shape: BoxShape.circle,
-                          border: Border.all(
+                          color: colorPrimaryBlue,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorPrimaryBlue.withValues(alpha: 0.25),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'Detail Dokter',
+                          style: GoogleFonts.lato(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            width: 2,
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(width: 14),
-
-                // Informasi Dokter (Nama, Spesialis, Pengalaman)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Nama Dokter (Lato 16sp, #000000, Bold, maks 1 baris)
-                      Text(
-                        doctor.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF000000),
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-
-                      // Kategori Spesialis (Lato 12sp, #A0A0A0)
-                      Text(
-                        doctor.specialization,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: const Color(0xFFA0A0A0),
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Informasi Pengalaman Kerja (Ikon koper + teks)
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.business_center_outlined,
-                            size: 15,
-                            color: Color(0xFF94A3B8),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${doctor.experienceYears} tahun',
-                            style: GoogleFonts.lato(
-                              fontSize: 12.5,
-                              color: const Color(0xFF64748B),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
-
-            // Divider Garis Abu-abu #E5E5E5
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.0),
-              child: Divider(
-                height: 1,
-                thickness: 1,
-                color: Color(0xFFE5E5E5),
-              ),
-            ),
-
-            // Sisi Bawah: Tombol "Detail Dokter" berbentuk pill di sebelah kanan
-            Align(
-              alignment: Alignment.centerRight,
-              child: InkWell(
-                onTap: () => _navigateToDetail(doctor),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18.0,
-                    vertical: 7.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFA000),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x33FFA000),
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'Detail Dokter',
-                    style: GoogleFonts.lato(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -628,10 +681,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
             ),
             alignment: Alignment.center,
             child: Icon(

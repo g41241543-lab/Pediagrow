@@ -8,6 +8,7 @@ import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'hasil_cek_stunting_page.dart';
 import 'widgets/pego_analysis_overlay.dart';
+import '../../Grafik_Pertumbuhan/services/growth_service.dart';
 
 /// Halaman Formulir Cek Stunting PediaGrow.
 ///
@@ -353,6 +354,18 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
             'lingkar_kepala_cm': 0.0,
             'synced': 0,
           });
+        } catch (_) {}
+
+        // Catat ke GrowthService agar titik baru langsung muncul di Grafik Pertumbuhan
+        try {
+          if (widget.child != null) {
+            GrowthService().addMeasurementFromStunting(
+              child: widget.child!,
+              weightKg: currentWeight,
+              heightCm: currentHeight,
+              measurementDate: DateTime.now(),
+            );
+          }
         } catch (_) {}
 
         resultHolder = result;

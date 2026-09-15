@@ -699,16 +699,16 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
         const SizedBox(height: 6),
         Row(
           children: [
-            _buildGenderOption('Laki-laki'),
+            _buildGenderOption('Laki-laki', const Color(0xFF3985E7)),
             const SizedBox(width: 24),
-            _buildGenderOption('Perempuan'),
+            _buildGenderOption('Perempuan', const Color(0xFFEC4899)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildGenderOption(String value) {
+  Widget _buildGenderOption(String value, Color activeColor) {
     final isSelected = _selectedGender == value;
 
     return InkWell(
@@ -729,9 +729,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF3985E7)
-                      : const Color(0xFFCBD5E1),
+                  color: isSelected ? activeColor : const Color(0xFFCBD5E1),
                   width: isSelected ? 6.5 : 1.5,
                 ),
                 color: Colors.white,
