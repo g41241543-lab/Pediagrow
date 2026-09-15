@@ -93,6 +93,10 @@ class _BerandaPageState extends State<BerandaPage>
       PilihAnakPage.show(context, children: page.children);
       return;
     }
+    if (page is PilihAnakGrafikPage) {
+      PilihAnakGrafikPage.show(context, children: page.children);
+      return;
+    }
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
