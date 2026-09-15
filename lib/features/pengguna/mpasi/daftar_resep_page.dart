@@ -61,7 +61,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   static const List<String> _categories = [
     'Semua',
-    '0-6 bulan',
     '6-8 bulan',
     '9-11 bulan',
     '12-23 bulan',
@@ -127,11 +126,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   void _onCategoryChanged(String category) {
     if (category == _selectedCategory) return;
     setState(() => _selectedCategory = category);
-    // Kategori 0-6 bulan menampilkan info ASI Eksklusif, bukan resep.
-    // Tidak perlu query DB — langsung rebuild.
-    if (category != '0-6 bulan') {
-      _loadRecipes();
-    }
+    _loadRecipes();
   }
 
   void _onBackPressed() => Navigator.of(context).maybePop();
@@ -365,12 +360,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // -------------------------------------------------------------------------
 
   Widget _buildScrollableContent() {
-    // Kasus khusus: 0-6 bulan → tampilkan info ASI Eksklusif
-    // (MPASI baru dimulai di usia 6 bulan)
-    if (_selectedCategory == '0-6 bulan') {
-      return _buildAsiEksklusifView();
-    }
-
     // Loading state
     if (_isLoading) {
       return const Center(
@@ -533,175 +522,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 5. TAMPILAN KHUSUS — 0-6 BULAN (ASI EKSKLUSIF)
-  //
-  //    Kategori 0-6 bulan bukan sasaran MPASI; WHO & Kemenkes RI
-  //    merekomendasikan ASI Eksklusif. Menampilkan kartu informatif
-  //    daripada daftar kosong yang membingungkan.
-  // -------------------------------------------------------------------------
-
-  Widget _buildAsiEksklusifView() {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-      child: Column(
-        children: [
-          // Kartu utama ASI Eksklusif
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2A85FF), Color(0xFF5AA8FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF2A85FF).withOpacity(0.25),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _colorWhite.withOpacity(0.22),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Text('🤱', style: TextStyle(fontSize: 22)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'ASI Eksklusif\n0–6 Bulan',
-                        style: GoogleFonts.lato(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: _colorWhite,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Di usia 0–6 bulan, bayi hanya membutuhkan ASI (Air Susu Ibu) '
-                  'tanpa tambahan makanan atau minuman apapun. '
-                  'Ini disebut ASI Eksklusif.',
-                  style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    color: _colorWhite.withOpacity(0.93),
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '✅ Resep MPASI tersedia mulai usia 6 bulan ke atas.',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _colorWhite,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Info cards manfaat ASI
-          ..._asiInfoCards.map((info) => _buildAsiInfoCard(info)).toList(),
-        ],
-      ),
-    );
-  }
-
-  static const List<Map<String, String>> _asiInfoCards = [
-    {
-      'emoji': '🧠',
-      'judul': 'Perkembangan Otak Optimal',
-      'isi':
-          'ASI mengandung DHA dan ARA yang mendukung perkembangan otak dan penglihatan bayi.',
-    },
-    {
-      'emoji': '🛡️',
-      'judul': 'Kekebalan Tubuh Alami',
-      'isi':
-          'Antibodi dalam ASI melindungi bayi dari infeksi, diare, dan penyakit pernapasan.',
-    },
-    {
-      'emoji': '📅',
-      'judul': 'Mulai MPASI di Usia 6 Bulan',
-      'isi':
-          'Setelah 6 bulan, perkenalkan MPASI secara bertahap. Pilih filter usia di atas untuk melihat resepnya.',
-    },
-  ];
-
-  Widget _buildAsiInfoCard(Map<String, String> info) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: _colorWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _colorDivider),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(info['emoji']!, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  info['judul']!,
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: _colorDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  info['isi']!,
-                  style: GoogleFonts.lato(
-                    fontSize: 12.5,
-                    color: _colorTextMuted,
-                    height: 1.55,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // -------------------------------------------------------------------------
-  // 6. ERROR STATE
+  // 5. ERROR STATE
   // -------------------------------------------------------------------------
 
   Widget _buildErrorState() {
@@ -744,7 +565,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 7. BOTTOM NAVIGATION
+  // 6. BOTTOM NAVIGATION
   //    → Digantikan oleh PediaBottomNavBar(selectedIndex: -1) di build().
   //    → Tidak ada implementasi lokal; semua routing dikelola oleh widget
   //      terpusat agar konsisten dengan BerandaPage.
