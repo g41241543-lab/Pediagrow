@@ -15,8 +15,8 @@ import 'detail_resep_page.dart';
 ///
 /// Struktur Fixed/Scrollable:
 /// - FIXED  : Header (back + judul "Resep MPASI" + search bar) + Filter Kategori Usia
-/// - SCROLL : Daftar Resep (hanya menu yang di-scroll, posisi tepat di atas ilustrasi, tidak menimpa ilustrasi)
-/// - FIXED  : Ilustrasi Lanskap Hutan (menempel tepat di bawah daftar resep & di atas Bottom Nav)
+/// - SCROLL : Daftar Resep (hanya menu yang di-scroll, dengan fade mask menyatu mengalir ke ilustrasi)
+/// - FIXED  : Ilustrasi Lanskap Hutan (stay/fixed di bagian bawah dengan feather gradient lembut)
 /// - FIXED  : PediaBottomNavBar (Scaffold.bottomNavigationBar)
 class DaftarResepPage extends StatefulWidget {
   const DaftarResepPage({super.key});
@@ -154,13 +154,46 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             // Filter kategori usia — FIXED
             _buildAgeFilter(),
 
-            // Konten scrollable: daftar resep (berada di atas ilustrasi, tidak menimpa ilustrasi)
+            // Area konten scrollable & ilustrasi menyatu secara seamless:
+            // - Ilustrasi lanskap stay/fixed di posisi bawah
+            // - Konten resep dapat di-scroll mengalir dengan efek fade mask halus
+            //   di atas ilustrasi sehingga batasannya menyatu dan tidak kaku
             Expanded(
-              child: _buildScrollableContent(),
-            ),
+              child: Stack(
+                children: [
+                  // 1. Ilustrasi lanskap — FIXED di bagian bawah (di atas Nav Bar)
+                  //    dilengkapi gradient lembut di batas atas agar membaur
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: _buildSeamlessFooterIllustration(),
+                  ),
 
-            // Ilustrasi lanskap footer — FIXED di bagian bawah (tepat di atas bottom nav)
-            const IllustrationForestFooter(),
+                  // 2. Daftar resep scrollable — menggunakan ShaderMask gradient
+                  //    agar saat di-scroll ke bawah, item mengalir memudar secara halus
+                  //    ke dalam ilustrasi tanpa batas potong yang kaku
+                  Positioned.fill(
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ],
+                          stops: [0.0, 0.72, 0.95],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: _buildScrollableContent(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -365,7 +398,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       return const SingleChildScrollView(
         physics: BouncingScrollPhysics(),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: EdgeInsets.fromLTRB(24, 32, 24, 140),
           child: Center(
             child: _EmptyStateContent(),
           ),
@@ -373,10 +406,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       );
     }
 
-    // Daftar resep — ListView.separated berada tepat di atas ilustrasi lanskap
+    // Daftar resep — ListView.separated dengan padding bawah 140dp
+    // agar item terakhir dapat di-scroll penuh ke area baca sebelum batas ilustrasi
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(0, 6, 0, 16),
+      padding: const EdgeInsets.fromLTRB(0, 6, 0, 140),
       itemCount: _recipes.length,
       separatorBuilder: (_, __) => Divider(
         color: _colorDivider,
@@ -553,7 +587,47 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 6. BOTTOM NAVIGATION
+  // 6. SEAMLESS FOOTER ILLUSTRATION (FIXED)
+  //    Ilustrasi lanskap tetap diam (stay/fixed) di bagian bawah.
+  //    Dilengkapi dengan feather gradient overlay di batas atas agar menyatu
+  //    secara mulus tanpa garis potong dengan area putih scroll resep.
+  // -------------------------------------------------------------------------
+
+  Widget _buildSeamlessFooterIllustration() {
+    return IgnorePointer(
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          const IllustrationForestFooter(
+            fit: BoxFit.fitWidth,
+          ),
+          // Gradient transparan halus di batas atas ilustrasi
+          // agar menyatu tanpa garis batas potongan gambar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 42,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    _colorWhite,
+                    Color(0x00FFFFFF),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // 7. BOTTOM NAVIGATION
   //    → Digantikan oleh PediaBottomNavBar(selectedIndex: -1) di build().
   //    → Tidak ada implementasi lokal; semua routing dikelola oleh widget
   //      terpusat agar konsisten dengan BerandaPage.
