@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import 'form_cek_stunting_page.dart';
 
@@ -34,8 +35,8 @@ String calculateAge(DateTime birthDate, [DateTime? referenceDate]) {
 /// di belakangnya tanpa berganti atau melompat. Memberikan efek fade overlay 50%
 /// dan animasi slide-up card berdurasi 350 ms secara halus.
 class PilihAnakPage extends StatefulWidget {
-  /// Daftar profil anak dari database/API.
-  /// Jika null, default memuat profil Kaia Anastasya dan Arfa Zivano Kayfan.
+  /// Daftar profil anak dari ChildService.
+  /// Jika null, akan mengambil dari ChildService secara otomatis.
   final List<ChildModel>? children;
 
   /// Callback opsional saat salah satu profil anak dipilih
@@ -55,48 +56,6 @@ class PilihAnakPage extends StatefulWidget {
     this.onCancel,
   });
 
-  /// Daftar profil anak default (Kaia: 1 thn 3 bln 4 hr, Arfa: 0 thn 4 bln 11 hr)
-  static List<ChildModel> get defaultChildren {
-    final now = DateTime.now();
-    return [
-      ChildModel(
-        id: 'child-kaia',
-        name: 'Kaia Anastasya',
-        gender: 'Perempuan',
-        birthDate: _createBirthDateForAge(now, 1, 3, 4),
-        weightKg: 2.9,
-        heightCm: 50.0,
-      ),
-      ChildModel(
-        id: 'child-arfa',
-        name: 'Arfa Zivano Kayfan',
-        gender: 'Laki-laki',
-        birthDate: _createBirthDateForAge(now, 0, 4, 11),
-        weightKg: 3.2,
-        heightCm: 51.0,
-      ),
-    ];
-  }
-
-  static DateTime _createBirthDateForAge(
-      DateTime now, int targetYears, int targetMonths, int targetDays) {
-    int y = now.year - targetYears;
-    int m = now.month - targetMonths;
-    int d = now.day - targetDays;
-
-    if (d <= 0) {
-      m -= 1;
-      final prevMonthDays = DateTime(now.year, now.month - 1, 0).day;
-      d += prevMonthDays;
-    }
-    if (m <= 0) {
-      y -= 1;
-      m += 12;
-    }
-
-    return DateTime(y, m, d);
-  }
-
   /// Menampilkan snackbar warning merah jika pengguna belum memiliki profil anak.
   static void showWarningNoChild(BuildContext context) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -112,7 +71,7 @@ class PilihAnakPage extends StatefulWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Tambah Profil Anak Terlebih Dahulu!',
+                'Silahkan isi profil anak terlebih dahulu!',
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -137,14 +96,15 @@ class PilihAnakPage extends StatefulWidget {
   /// halaman Beranda yang sedang aktif.
   ///
   /// Jika pengguna belum memiliki profil anak, request ditolak dan ditampilkan
-  /// warning "Tambah Profil Anak Terlebih Dahulu!".
+  /// warning "Silahkan isi profil anak terlebih dahulu!".
   static Future<void> show(
     BuildContext context, {
     List<ChildModel>? children,
     ValueChanged<ChildModel>? onChildSelected,
     VoidCallback? onAddChild,
   }) async {
-    final effectiveChildren = children ?? defaultChildren;
+    // Selalu ambil data real dari ChildService
+    final effectiveChildren = children ?? ChildService().children;
 
     // Jika pengguna belum memiliki profil anak (kosong)
     if (effectiveChildren.isEmpty) {
@@ -206,7 +166,8 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   void initState() {
     super.initState();
 
-    _childList = widget.children ?? PilihAnakPage.defaultChildren;
+    // Selalu ambil dari ChildService jika tidak ada children yang diteruskan
+    _childList = widget.children ?? ChildService().children;
 
     // Jika daftar anak kosong, tolak dan tampilkan warning
     if (_childList.isEmpty) {
