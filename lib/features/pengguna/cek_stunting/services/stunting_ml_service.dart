@@ -71,17 +71,17 @@ class StuntingInputData {
 
   /// Mapping fitur untuk REST API backend Python
   Map<String, dynamic> toFeatureMap() {
-    final isGirl = gender.toLowerCase().contains('perempuan');
+    final isGirl = gender.toLowerCase().contains('perempuan') ||
+        gender.toLowerCase().contains('female');
     return {
       'nama_anak': namaAnak,
-      'gender': isGirl ? 1 : 0, // 0: Laki-laki, 1: Perempuan
-      'gender_label': gender,
-      'age_months': ageInMonths,
-      'birth_weight_kg': birthWeightKg,
-      'birth_height_cm': birthHeightCm,
-      'current_weight_kg': currentWeightKg,
-      'current_height_cm': currentHeightCm,
-      'asi_eksklusif': isExclusiveBreastfeeding ? 1 : 0,
+      'gender_label': isGirl ? 'female' : 'male',
+      'age': ageInMonths,
+      'birth_weight': birthWeightKg,
+      'birth_length': birthHeightCm,
+      'body_weight': currentWeightKg,
+      'body_length': currentHeightCm,
+      'breastfeeding_label': isExclusiveBreastfeeding ? 'Yes' : 'No',
       'tanggal_periksa': checkDate.toIso8601String(),
     };
   }
@@ -119,6 +119,7 @@ class StuntingPredictionResult {
         statusCat = StuntingStatusCategory.severelyStunted;
         break;
       case 'stunted':
+      case 'stunting':
       case 'berisiko_stunting':
         statusCat = StuntingStatusCategory.berisikoStunting;
         break;
@@ -154,16 +155,25 @@ class StuntingPredictionResult {
 /// Menggabungkan inference via backend REST API (jika server aktif)
 /// dan fallback engine Random Forest + GridSearchCV lokal yang akurat.
 class StuntingMlService {
-  /// URL backend REST API opsional (dapat dikonfigurasi)
-  static String? backendBaseUrl;
+  /// URL backend REST API (default USB reverse port 5000)
+  static String? backendBaseUrl = 'http://127.0.0.1:5000';
+
+  /// URL cadangan melalui IP WiFi LAN komputer
+  static String? secondaryBackendUrl = 'http://10.125.173.15:5000';
 
   /// Memprediksi status stunting dengan data mining
   static Future<StuntingPredictionResult> predict(
       StuntingInputData input) async {
-    // 1. Coba hubungi backend REST API jika base URL dikonfigurasi
-    if (backendBaseUrl != null && backendBaseUrl!.isNotEmpty) {
+    // 1. Coba hubungi backend REST API primer (USB adb reverse: 127.0.0.1:5000)
+    final candidateUrls = [
+      if (backendBaseUrl != null && backendBaseUrl!.isNotEmpty) backendBaseUrl!,
+      if (secondaryBackendUrl != null && secondaryBackendUrl!.isNotEmpty)
+        secondaryBackendUrl!,
+    ];
+
+    for (final baseUrl in candidateUrls) {
       try {
-        final uri = Uri.parse('$backendBaseUrl/predict_stunting');
+        final uri = Uri.parse('$baseUrl/predict_stunting');
         final response = await http
             .post(
               uri,
@@ -178,9 +188,13 @@ class StuntingMlService {
         }
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('Backend REST API tidak merespons ($e), menggunakan Local Ensemble.');
+          debugPrint('Backend ($baseUrl) error: $e, mencoba opsi berikutnya...');
         }
       }
+    }
+
+    if (kDebugMode) {
+      debugPrint('Semua REST API backend tidak merespons, menggunakan Local Ensemble.');
     }
 
     // 2. Local Tuned Random Forest Engine (GridSearchCV Optimized)
