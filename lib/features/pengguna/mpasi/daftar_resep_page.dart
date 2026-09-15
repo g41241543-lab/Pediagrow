@@ -14,10 +14,10 @@ import 'detail_resep_page.dart';
 /// hardcoded sebagai sumber data utama.
 ///
 /// Struktur Fixed/Scrollable:
-/// - FIXED  : Header (back + judul "Resep MPASI" + search bar) + Filter Kategori Usia + Bottom Nav
-/// - SCROLL : Daftar Resep + Garden Illustration (ilustrasi selalu menempel
-///            tepat di atas bottom navigation, baik saat daftar kosong
-///            maupun saat daftar pendek)
+/// - FIXED  : Header (back + judul "Resep MPASI" + search bar) + Filter Kategori Usia
+/// - SCROLL : Daftar Resep (hanya menu yang di-scroll, dengan fade mask menyatu mengalir ke ilustrasi)
+/// - FIXED  : Ilustrasi Lanskap Hutan (stay/fixed di bagian bawah dengan feather gradient lembut)
+/// - FIXED  : PediaBottomNavBar (Scaffold.bottomNavigationBar)
 class DaftarResepPage extends StatefulWidget {
   const DaftarResepPage({super.key});
 
@@ -61,7 +61,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   static const List<String> _categories = [
     'Semua',
-    '0-6 bulan',
     '6-8 bulan',
     '9-11 bulan',
     '12-23 bulan',
@@ -127,11 +126,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   void _onCategoryChanged(String category) {
     if (category == _selectedCategory) return;
     setState(() => _selectedCategory = category);
-    // Kategori 0-6 bulan menampilkan info ASI Eksklusif, bukan resep.
-    // Tidak perlu query DB — langsung rebuild.
-    if (category != '0-6 bulan') {
-      _loadRecipes();
-    }
+    _loadRecipes();
   }
 
   void _onBackPressed() => Navigator.of(context).maybePop();
@@ -149,6 +144,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       // selectedIndex: -1 agar tidak ada tab aktif.
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -158,25 +154,42 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             // Filter kategori usia — FIXED
             _buildAgeFilter(),
 
-            // Area utama: ilustrasi terpaku di bawah, daftar resep scrollable di atas.
-            // Menggunakan Stack agar IllustrationForestFooter selalu menempel
-            // tepat di atas bottom nav, tidak ikut scroll.
+            // Area konten scrollable & ilustrasi menyatu secara seamless:
+            // - Ilustrasi lanskap stay/fixed di posisi bawah
+            // - Konten resep dapat di-scroll mengalir dengan efek fade mask halus
+            //   di atas ilustrasi sehingga batasannya menyatu dan tidak kaku
             Expanded(
               child: Stack(
                 children: [
-                  // Ilustrasi lanskap SELALU di bagian bawah (di bawah z-order)
-                  const Positioned(
+                  // 1. Ilustrasi lanskap — FIXED di bagian bawah (di atas Nav Bar)
+                  //    dilengkapi gradient lembut di batas atas agar membaur
+                  Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: IgnorePointer(
-                      child: IllustrationForestFooter(),
-                    ),
+                    child: _buildSeamlessFooterIllustration(),
                   ),
-                  // Konten resep scrollable — padding bottom 120dp agar tidak
-                  // tertutup ilustrasi.
+
+                  // 2. Daftar resep scrollable — menggunakan ShaderMask gradient
+                  //    agar saat di-scroll ke bawah, item mengalir memudar secara halus
+                  //    ke dalam ilustrasi tanpa batas potong yang kaku
                   Positioned.fill(
-                    child: _buildScrollableContent(),
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ],
+                          stops: [0.0, 0.72, 0.95],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: _buildScrollableContent(),
+                    ),
                   ),
                 ],
               ),
@@ -365,12 +378,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // -------------------------------------------------------------------------
 
   Widget _buildScrollableContent() {
-    // Kasus khusus: 0-6 bulan → tampilkan info ASI Eksklusif
-    // (MPASI baru dimulai di usia 6 bulan)
-    if (_selectedCategory == '0-6 bulan') {
-      return _buildAsiEksklusifView();
-    }
-
     // Loading state
     if (_isLoading) {
       return const Center(
@@ -388,311 +395,202 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
     // Empty state
     if (_recipes.isEmpty) {
-      return const Center(
+      return const SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, 120),
-          child: _EmptyStateContent(),
+          padding: EdgeInsets.fromLTRB(24, 32, 24, 140),
+          child: Center(
+            child: _EmptyStateContent(),
+          ),
         ),
       );
     }
 
-    // Daftar resep — ListView.separated dengan padding bawah 120dp
-    // agar item terakhir tidak tertutup ilustrasi lanskap.
-    return ListView.separated(
+    // Daftar resep — ListView bergaya artikel/majalah:
+    // setiap item adalah kartu dengan gambar landscape besar
+    return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(0, 6, 0, 120),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 140),
       itemCount: _recipes.length,
-      separatorBuilder: (_, __) => Divider(
-        color: _colorDivider,
-        thickness: 1,
-        height: 1,
-        indent: 16,
-        endIndent: 16,
-      ),
-      itemBuilder: (_, index) => _buildRecipeItem(_recipes[index]),
+      itemBuilder: (_, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildRecipeCard(_recipes[index]),
+        );
+      },
     );
   }
 
   // -------------------------------------------------------------------------
-  // 4. RECIPE ITEM
+  // 4. RECIPE CARD (Gaya Artikel/Majalah)
+  //    - Gambar landscape besar di atas (16:9 / tinggi tetap 190dp)
+  //    - Badge kategori usia
+  //    - Judul bold besar (maks 2 baris)
+  //    - Baris metadata: penulis + tanggal
   // -------------------------------------------------------------------------
 
-  Widget _buildRecipeItem(ResepMpasiModel recipe) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DetailResepPage(resep: _toDetailModel(recipe)),
+  Widget _buildRecipeCard(ResepMpasiModel recipe) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DetailResepPage(resep: _toDetailModel(recipe)),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: _colorWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0D000000),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Kiri: judul, metadata, tanggal
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Judul resep — maks 2 baris
-                  Text(
-                    recipe.judul,
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: _colorDark,
-                      height: 1.35,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // -------------------------------------------------------
+              // Gambar resep landscape (190dp tinggi, full lebar card)
+              // -------------------------------------------------------
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: _buildCardImage(recipe),
+              ),
 
-                  // Metadata: ikon jam + kategori
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 15,
-                        color: _colorTextMuted,
+              // -------------------------------------------------------
+              // Konten teks resep di bawah gambar
+              // -------------------------------------------------------
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Badge kategori usia resep
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'Resep MPASI  •  ${recipe.kategoriUsia}',
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            color: _colorTextMuted,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      decoration: BoxDecoration(
+                        color: _colorSoftBlue,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        recipe.kategoriUsia,
+                        style: GoogleFonts.lato(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: _colorPrimaryBlue,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Tanggal resep
-                  Text(
-                    recipe.tanggal,
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      color: _colorTextMuted,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 14),
+                    const SizedBox(height: 8),
 
-            // Kanan: thumbnail resep
-            _buildThumbnail(recipe),
-          ],
+                    // Judul resep — bold besar, maks 2 baris
+                    Text(
+                      recipe.judul,
+                      style: GoogleFonts.lato(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.bold,
+                        color: _colorDark,
+                        height: 1.35,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Baris bawah: metadata resep + tanggal
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: _colorTextMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Resep MPASI  •  ${recipe.kategoriUsia}',
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              color: _colorTextMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Tanggal resep
+                        Text(
+                          recipe.tanggal,
+                          style: GoogleFonts.lato(
+                            fontSize: 11.5,
+                            color: _colorTextMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildThumbnail(ResepMpasiModel recipe) {
+  /// Gambar utama kartu artikel — tinggi 190dp, full lebar
+  Widget _buildCardImage(ResepMpasiModel recipe) {
     final imagePath = recipe.displayImage;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 100,
-        height: 70,
-        color: _colorSearchBg,
-        child: imagePath != null
-            ? Image.asset(
-                imagePath,
-                width: 100,
-                height: 70,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _thumbnailFallback(),
-              )
-            : _thumbnailFallback(),
-      ),
+    return SizedBox(
+      width: double.infinity,
+      height: 190,
+      child: imagePath != null
+          ? Image.asset(
+              imagePath,
+              width: double.infinity,
+              height: 190,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _cardImageFallback(),
+            )
+          : _cardImageFallback(),
     );
   }
 
-  Widget _thumbnailFallback() {
-    return Container(
-      width: 100,
-      height: 70,
-      color: _colorSoftBlue,
-      child: const Icon(
-        Icons.restaurant_menu_rounded,
-        color: _colorPrimaryBlue,
-        size: 28,
-      ),
-    );
-  }
-
-  // -------------------------------------------------------------------------
-  // 5. TAMPILAN KHUSUS — 0-6 BULAN (ASI EKSKLUSIF)
-  //
-  //    Kategori 0-6 bulan bukan sasaran MPASI; WHO & Kemenkes RI
-  //    merekomendasikan ASI Eksklusif. Menampilkan kartu informatif
-  //    daripada daftar kosong yang membingungkan.
-  // -------------------------------------------------------------------------
-
-  Widget _buildAsiEksklusifView() {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-      child: Column(
-        children: [
-          // Kartu utama ASI Eksklusif
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2A85FF), Color(0xFF5AA8FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF2A85FF).withOpacity(0.25),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _colorWhite.withOpacity(0.22),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Text('🤱', style: TextStyle(fontSize: 22)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'ASI Eksklusif\n0–6 Bulan',
-                        style: GoogleFonts.lato(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: _colorWhite,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Di usia 0–6 bulan, bayi hanya membutuhkan ASI (Air Susu Ibu) '
-                  'tanpa tambahan makanan atau minuman apapun. '
-                  'Ini disebut ASI Eksklusif.',
-                  style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    color: _colorWhite.withOpacity(0.93),
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '✅ Resep MPASI tersedia mulai usia 6 bulan ke atas.',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _colorWhite,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Info cards manfaat ASI
-          ..._asiInfoCards.map((info) => _buildAsiInfoCard(info)).toList(),
-        ],
-      ),
-    );
-  }
-
-  static const List<Map<String, String>> _asiInfoCards = [
-    {
-      'emoji': '🧠',
-      'judul': 'Perkembangan Otak Optimal',
-      'isi':
-          'ASI mengandung DHA dan ARA yang mendukung perkembangan otak dan penglihatan bayi.',
-    },
-    {
-      'emoji': '🛡️',
-      'judul': 'Kekebalan Tubuh Alami',
-      'isi':
-          'Antibodi dalam ASI melindungi bayi dari infeksi, diare, dan penyakit pernapasan.',
-    },
-    {
-      'emoji': '📅',
-      'judul': 'Mulai MPASI di Usia 6 Bulan',
-      'isi':
-          'Setelah 6 bulan, perkenalkan MPASI secara bertahap. Pilih filter usia di atas untuk melihat resepnya.',
-    },
-  ];
-
-  Widget _buildAsiInfoCard(Map<String, String> info) {
+  /// Fallback ketika gambar resep tidak tersedia
+  Widget _cardImageFallback() {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: _colorWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _colorDivider),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      height: 190,
+      color: _colorSoftBlue,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(info['emoji']!, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  info['judul']!,
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: _colorDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  info['isi']!,
-                  style: GoogleFonts.lato(
-                    fontSize: 12.5,
-                    color: _colorTextMuted,
-                    height: 1.55,
-                  ),
-                ),
-              ],
+          const Icon(
+            Icons.restaurant_menu_rounded,
+            color: _colorPrimaryBlue,
+            size: 40,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Foto Belum Tersedia',
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: _colorPrimaryBlue.withOpacity(0.7),
             ),
           ),
         ],
@@ -701,12 +599,13 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 6. ERROR STATE
+  // 5. ERROR STATE
   // -------------------------------------------------------------------------
 
   Widget _buildErrorState() {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -739,6 +638,46 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // 6. SEAMLESS FOOTER ILLUSTRATION (FIXED)
+  //    Ilustrasi lanskap tetap diam (stay/fixed) di bagian bawah.
+  //    Dilengkapi dengan feather gradient overlay di batas atas agar menyatu
+  //    secara mulus tanpa garis potong dengan area putih scroll resep.
+  // -------------------------------------------------------------------------
+
+  Widget _buildSeamlessFooterIllustration() {
+    return IgnorePointer(
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          const IllustrationForestFooter(
+            fit: BoxFit.fitWidth,
+          ),
+          // Gradient transparan halus di batas atas ilustrasi
+          // agar menyatu tanpa garis batas potongan gambar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 42,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    _colorWhite,
+                    Color(0x00FFFFFF),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

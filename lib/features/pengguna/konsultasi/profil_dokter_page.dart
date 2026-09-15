@@ -163,12 +163,12 @@ class ProfilDokterPage extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-            boxShadow: const [
+            border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0C000000),
+                color: const Color(0xFF3985E7).withValues(alpha: 0.08),
                 blurRadius: 16,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -316,12 +316,12 @@ class ProfilDokterPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
-                  boxShadow: const [
+                  border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
+                  boxShadow: [
                     BoxShadow(
-                      color: Color(0x12000000),
+                      color: const Color(0xFF3985E7).withValues(alpha: 0.12),
                       blurRadius: 10,
-                      offset: Offset(0, 3),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -357,12 +357,12 @@ class ProfilDokterPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-        boxShadow: const [
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: const Color(0xFF3985E7).withValues(alpha: 0.08),
             blurRadius: 10,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -415,7 +415,7 @@ class ProfilDokterPage extends StatelessWidget {
                 const Divider(
                   height: 1,
                   thickness: 1,
-                  color: Color(0xFFE2E8F0),
+                  color: Color(0xFFBFDBFE),
                 ),
             ],
           );
@@ -429,14 +429,17 @@ class ProfilDokterPage extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFBFDBFE), width: 1.2),
+        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x10000000),
+            color: const Color(0xFF3985E7).withValues(alpha: 0.08),
             blurRadius: 10,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -448,8 +451,9 @@ class ProfilDokterPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => _onChatDokterPressed(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFA000),
+                backgroundColor: const Color(0xFF3985E7),
                 elevation: 0,
+                shadowColor: const Color(0xFF3985E7).withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

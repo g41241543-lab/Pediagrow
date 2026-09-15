@@ -11,7 +11,7 @@ import '../profil_anak/tambah_anak_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
 import '../grafik_pertumbuhan/pilih_anak_grafik_page.dart';
 import '../mpasi/daftar_resep_page.dart';
-import '../artikel/daftar_artikel_page.dart';
+import '../artikel/artikel_kesehatan_page.dart';
 import '../fasyankes/lokasi_fasyankes_page.dart';
 import '../game_edukasi/game_mulai_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
@@ -688,7 +688,7 @@ class _BerandaPageState extends State<BerandaPage>
               child: _buildMenuItem(
                 title: 'Artikel\nKesehatan',
                 imageAsset: 'assets/images/artikel_kesehatan_logo.png',
-                onTap: () => _navigateTo(const DaftarArtikelPage()),
+                onTap: () => _navigateTo(const ArtikelKesehatanPage()),
               ),
             ),
             const SizedBox(width: 16),
