@@ -406,138 +406,194 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       );
     }
 
-    // Daftar resep — ListView.separated dengan padding bawah 140dp
-    // agar item terakhir dapat di-scroll penuh ke area baca sebelum batas ilustrasi
-    return ListView.separated(
+    // Daftar resep — ListView bergaya artikel/majalah:
+    // setiap item adalah kartu dengan gambar landscape besar
+    return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(0, 6, 0, 140),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 140),
       itemCount: _recipes.length,
-      separatorBuilder: (_, __) => Divider(
-        color: _colorDivider,
-        thickness: 1,
-        height: 1,
-        indent: 16,
-        endIndent: 16,
-      ),
-      itemBuilder: (_, index) => _buildRecipeItem(_recipes[index]),
+      itemBuilder: (_, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildRecipeCard(_recipes[index]),
+        );
+      },
     );
   }
 
   // -------------------------------------------------------------------------
-  // 4. RECIPE ITEM
+  // 4. RECIPE CARD (Gaya Artikel/Majalah)
+  //    - Gambar landscape besar di atas (16:9 / tinggi tetap 190dp)
+  //    - Badge kategori usia
+  //    - Judul bold besar (maks 2 baris)
+  //    - Baris metadata: penulis + tanggal
   // -------------------------------------------------------------------------
 
-  Widget _buildRecipeItem(ResepMpasiModel recipe) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DetailResepPage(resep: _toDetailModel(recipe)),
+  Widget _buildRecipeCard(ResepMpasiModel recipe) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DetailResepPage(resep: _toDetailModel(recipe)),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: _colorWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0D000000),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Kiri: judul, metadata, tanggal
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Judul resep — maks 2 baris
-                  Text(
-                    recipe.judul,
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: _colorDark,
-                      height: 1.35,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // -------------------------------------------------------
+              // Gambar resep landscape (190dp tinggi, full lebar card)
+              // -------------------------------------------------------
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: _buildCardImage(recipe),
+              ),
 
-                  // Metadata: ikon jam + kategori
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 15,
-                        color: _colorTextMuted,
+              // -------------------------------------------------------
+              // Konten teks resep di bawah gambar
+              // -------------------------------------------------------
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Badge kategori usia resep
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'Resep MPASI  •  ${recipe.kategoriUsia}',
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            color: _colorTextMuted,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      decoration: BoxDecoration(
+                        color: _colorSoftBlue,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        recipe.kategoriUsia,
+                        style: GoogleFonts.lato(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: _colorPrimaryBlue,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Tanggal resep
-                  Text(
-                    recipe.tanggal,
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      color: _colorTextMuted,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 14),
+                    const SizedBox(height: 8),
 
-            // Kanan: thumbnail resep
-            _buildThumbnail(recipe),
-          ],
+                    // Judul resep — bold besar, maks 2 baris
+                    Text(
+                      recipe.judul,
+                      style: GoogleFonts.lato(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.bold,
+                        color: _colorDark,
+                        height: 1.35,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Baris bawah: metadata resep + tanggal
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: _colorTextMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Resep MPASI  •  ${recipe.kategoriUsia}',
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              color: _colorTextMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Tanggal resep
+                        Text(
+                          recipe.tanggal,
+                          style: GoogleFonts.lato(
+                            fontSize: 11.5,
+                            color: _colorTextMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildThumbnail(ResepMpasiModel recipe) {
+  /// Gambar utama kartu artikel — tinggi 190dp, full lebar
+  Widget _buildCardImage(ResepMpasiModel recipe) {
     final imagePath = recipe.displayImage;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 100,
-        height: 70,
-        color: _colorSearchBg,
-        child: imagePath != null
-            ? Image.asset(
-                imagePath,
-                width: 100,
-                height: 70,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _thumbnailFallback(),
-              )
-            : _thumbnailFallback(),
-      ),
+    return SizedBox(
+      width: double.infinity,
+      height: 190,
+      child: imagePath != null
+          ? Image.asset(
+              imagePath,
+              width: double.infinity,
+              height: 190,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _cardImageFallback(),
+            )
+          : _cardImageFallback(),
     );
   }
 
-  Widget _thumbnailFallback() {
+  /// Fallback ketika gambar resep tidak tersedia
+  Widget _cardImageFallback() {
     return Container(
-      width: 100,
-      height: 70,
+      width: double.infinity,
+      height: 190,
       color: _colorSoftBlue,
-      child: const Icon(
-        Icons.restaurant_menu_rounded,
-        color: _colorPrimaryBlue,
-        size: 28,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.restaurant_menu_rounded,
+            color: _colorPrimaryBlue,
+            size: 40,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Foto Belum Tersedia',
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: _colorPrimaryBlue.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
     );
   }

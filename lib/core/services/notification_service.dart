@@ -5,15 +5,13 @@ import '../../models/notification_model.dart';
 ///
 /// Fitur sistem notifikasi otomatis:
 /// 1. Notifikasi bulanan Pengingat Cek Stunting:
-///    - Dibuat otomatis oleh sistem pada rentang tanggal 1 - 10 setiap bulan.
-///    - Dikirim 1 hari sekali secara berturut-turut sampai tanggal 10.
-///    - Jika pengguna telah melakukan cek stunting di bulan ini dalam rentang tanggal 1-10,
-///      notifikasi otomatis dihentikan dan tidak muncul lagi bahkan jika sudah lewat tgl 10.
-///    - Jika sudah lewat tanggal 10 dan pengguna belum cek, notifikasi juga berhenti.
+///    - Dibuat otomatis oleh sistem pada rentang tanggal 1 - 10 setiap bulan (1 kali per hari).
+///    - Jika pengguna telah melakukan cek stunting di rentang tanggal 1-10, notifikasi otomatis
+///      hilang/dihapus dari daftar dan tidak muncul lagi hari ini maupun besok.
+///    - Jika hingga tanggal 10 pengguna belum melakukan cek stunting, notifikasi tetap berhenti di tanggal 10.
 /// 2. Notifikasi Konsultasi Berakhir:
-///    - Dibuat otomatis saat pengguna mengakhiri sesi chat konsultasi dengan dokter.
-///    - Hanya ada 1 notifikasi konsultasi per sesi (tidak duplikat jika konsultasi belum
-///      ada yang baru).
+///    - Dibuat otomatis setiap kali pengguna melakukan/mengakhiri sesi konsultasi dengan dokter.
+///    - Setiap konsultasi selalu menghasilkan 1 notifikasi baru di daftar dan menambah badge lonceng.
 /// 3. Badge angka unread tersedia via [unreadCountNotifier] untuk ditampilkan di ikon lonceng.
 /// 4. Default awal: daftar notifikasi kosong (menampilkan empty state lonceng).
 class NotificationService {
@@ -42,11 +40,29 @@ class NotificationService {
   /// Set bulan-tahun yang sudah dilakukan cek stunting (misal {"2026_09"})
   final Set<String> _stuntingCheckedMonths = {};
 
-  /// Menandai bahwa pengguna telah melakukan cek stunting pada bulan saat ini
+  /// Menandai bahwa pengguna telah melakukan cek stunting pada bulan saat ini.
+  /// Otomatis menghapus notifikasi pengingat stunting dari daftar sehingga
+  /// tidak lagi muncul untuk hari ini maupun besok dalam rentang tanggal 1–10.
   void markStuntingCheckedThisMonth({DateTime? currentDate}) {
     final now = currentDate ?? DateTime.now();
     final key = '${now.year}_${now.month.toString().padLeft(2, '0')}';
     _stuntingCheckedMonths.add(key);
+
+    // Otomatis hilangkan notifikasi pengingat stunting dari daftar notifikasi
+    final currentList = List<NotificationItem>.from(notificationsNotifier.value);
+    int removedUnread = 0;
+    currentList.removeWhere((item) {
+      if (item.type == NotificationType.stunting) {
+        if (!item.isRead) removedUnread++;
+        return true;
+      }
+      return false;
+    });
+    notificationsNotifier.value = currentList;
+    if (removedUnread > 0) {
+      unreadCountNotifier.value =
+          (unreadCountNotifier.value - removedUnread).clamp(0, 999);
+    }
   }
 
   /// Mengecek apakah pengguna sudah cek stunting pada bulan tertentu
@@ -140,35 +156,12 @@ class NotificationService {
 
   /// Menambahkan notifikasi saat konsultasi chat dengan dokter telah berakhir.
   ///
-  /// Hanya akan ada 1 notifikasi konsultasi yang aktif pada satu waktu.
-  /// Jika sudah ada notifikasi konsultasi sebelumnya (yang belum dibaca), tidak
-  /// menambahkan duplikat baru — cukup perbarui waktu notifikasi yang sudah ada.
+  /// Setiap kali pengguna melakukan atau mengakhiri sesi konsultasi dengan dokter,
+  /// selalu dibuatkan notifikasi baru di dalam daftar notifikasi dan menambah
+  /// badge notifikasi yang belum dibaca pada ikon lonceng.
   void addConsultationEndedNotification({DateTime? date}) {
     final now = date ?? DateTime.now();
-
-    // Cek apakah sudah ada notifikasi konsultasi yang belum dibaca
-    final existing = notificationsNotifier.value
-        .where((item) =>
-            item.type == NotificationType.consultation && !item.isRead)
-        .toList();
-
-    if (existing.isNotEmpty) {
-      // Sudah ada notifikasi konsultasi yang belum dibaca — perbarui saja waktunya
-      final updated = existing.first.copyWith(date: now);
-      final currentList =
-          List<NotificationItem>.from(notificationsNotifier.value);
-      // Hapus yang lama
-      currentList.removeWhere((item) =>
-          item.type == NotificationType.consultation && !item.isRead);
-      // Masukkan yang diperbarui di posisi paling atas
-      currentList.insert(0, updated);
-      notificationsNotifier.value = currentList;
-      // unreadCount tidak berubah karena ini bukan notif baru
-      return;
-    }
-
-    // Belum ada notifikasi konsultasi yang belum dibaca → tambah notif baru
-    final id = 'consultation_ended_${now.millisecondsSinceEpoch}';
+    final id = 'consultation_ended_${now.microsecondsSinceEpoch}';
     final newItem = NotificationItem(
       id: id,
       title: 'Konsultasi Selesai',
