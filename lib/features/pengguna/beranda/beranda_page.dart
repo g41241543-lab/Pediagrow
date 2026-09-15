@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import 'notifikasi_page.dart';
+import '../../../core/services/notification_service.dart';
 import '../profil_anak/tambah_anak_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
 import '../grafik_pertumbuhan/pilih_anak_grafik_page.dart';
@@ -188,30 +189,74 @@ class _BerandaPageState extends State<BerandaPage>
                           ),
                         ),
                         const Spacer(),
-                        // Lingkaran Notifikasi (31×31, #FFFFFF, 12dp dari kanan)
-                        GestureDetector(
-                          onTap: () => _navigateTo(const NotifikasiPage()),
-                          child: Container(
-                            width: 31,
-                            height: 31,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x1F000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.notifications_none_rounded,
-                              color: Color(0xFF1E293B),
-                              size: 19,
-                            ),
-                          ),
+                        // Lingkaran Notifikasi (31×31, #FFFFFF, 12dp dari kanan) + badge angka
+                        ValueListenableBuilder<int>(
+                          valueListenable:
+                              NotificationService().unreadCountNotifier,
+                          builder: (context, unreadCount, _) {
+                            return GestureDetector(
+                              onTap: () => _navigateTo(const NotifikasiPage()),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 31,
+                                    height: 31,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0x1F000000),
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.notifications_none_rounded,
+                                      color: Color(0xFF1E293B),
+                                      size: 19,
+                                    ),
+                                  ),
+                                  // Badge angka notifikasi belum dibaca
+                                  if (unreadCount > 0)
+                                    Positioned(
+                                      top: -4,
+                                      right: -4,
+                                      child: Container(
+                                        constraints: const BoxConstraints(
+                                          minWidth: 16,
+                                          minHeight: 16,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE53E3E),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: Colors.white, width: 1),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          unreadCount > 9
+                                              ? '9+'
+                                              : '$unreadCount',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            height: 1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

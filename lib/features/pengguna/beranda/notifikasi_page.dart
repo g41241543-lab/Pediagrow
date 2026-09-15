@@ -42,6 +42,10 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
     super.initState();
     // Sistem otomatis mengecek jadwal pengingat bulanan (rentang tanggal 1-10)
     NotificationService().checkMonthlyStuntingReminder();
+    // Tandai semua notifikasi sebagai sudah dibaca ─ badge angka di lonceng direset
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService().markAllAsRead();
+    });
   }
 
   void _onNotificationTap(NotificationItem item) {
@@ -170,10 +174,10 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   }
 
   /// Tampilan Daftar Notifikasi (Gambar 2):
-  /// Non-scrollable (NeverScrollableScrollPhysics) sesuai instruksi user.
+  /// Scrollable agar semua notifikasi dapat dibaca meski banyak.
   Widget _buildNotificationList(List<NotificationItem> items) {
     return ListView.separated(
-      physics: const NeverScrollableScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       itemCount: items.length,
       separatorBuilder: (_, __) =>
