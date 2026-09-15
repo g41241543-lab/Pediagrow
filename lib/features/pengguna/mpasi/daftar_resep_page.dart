@@ -14,10 +14,10 @@ import 'detail_resep_page.dart';
 /// hardcoded sebagai sumber data utama.
 ///
 /// Struktur Fixed/Scrollable:
-/// - FIXED  : Header (back + judul "Resep MPASI" + search bar) + Filter Kategori Usia + Bottom Nav
-/// - SCROLL : Daftar Resep + Garden Illustration (ilustrasi selalu menempel
-///            tepat di atas bottom navigation, baik saat daftar kosong
-///            maupun saat daftar pendek)
+/// - FIXED  : Header (back + judul "Resep MPASI" + search bar) + Filter Kategori Usia
+/// - SCROLL : Daftar Resep (hanya menu yang di-scroll, posisi tepat di atas ilustrasi, tidak menimpa ilustrasi)
+/// - FIXED  : Ilustrasi Lanskap Hutan (menempel tepat di bawah daftar resep & di atas Bottom Nav)
+/// - FIXED  : PediaBottomNavBar (Scaffold.bottomNavigationBar)
 class DaftarResepPage extends StatefulWidget {
   const DaftarResepPage({super.key});
 
@@ -144,6 +144,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       // selectedIndex: -1 agar tidak ada tab aktif.
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -153,29 +154,13 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             // Filter kategori usia — FIXED
             _buildAgeFilter(),
 
-            // Area utama: ilustrasi terpaku di bawah, daftar resep scrollable di atas.
-            // Menggunakan Stack agar IllustrationForestFooter selalu menempel
-            // tepat di atas bottom nav, tidak ikut scroll.
+            // Konten scrollable: daftar resep (berada di atas ilustrasi, tidak menimpa ilustrasi)
             Expanded(
-              child: Stack(
-                children: [
-                  // Ilustrasi lanskap SELALU di bagian bawah (di bawah z-order)
-                  const Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: IgnorePointer(
-                      child: IllustrationForestFooter(),
-                    ),
-                  ),
-                  // Konten resep scrollable — padding bottom 120dp agar tidak
-                  // tertutup ilustrasi.
-                  Positioned.fill(
-                    child: _buildScrollableContent(),
-                  ),
-                ],
-              ),
+              child: _buildScrollableContent(),
             ),
+
+            // Ilustrasi lanskap footer — FIXED di bagian bawah (tepat di atas bottom nav)
+            const IllustrationForestFooter(),
           ],
         ),
       ),
@@ -377,19 +362,21 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
     // Empty state
     if (_recipes.isEmpty) {
-      return const Center(
+      return const SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, 120),
-          child: _EmptyStateContent(),
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Center(
+            child: _EmptyStateContent(),
+          ),
         ),
       );
     }
 
-    // Daftar resep — ListView.separated dengan padding bawah 120dp
-    // agar item terakhir tidak tertutup ilustrasi lanskap.
+    // Daftar resep — ListView.separated berada tepat di atas ilustrasi lanskap
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(0, 6, 0, 120),
+      padding: const EdgeInsets.fromLTRB(0, 6, 0, 16),
       itemCount: _recipes.length,
       separatorBuilder: (_, __) => Divider(
         color: _colorDivider,
@@ -527,7 +514,8 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   Widget _buildErrorState() {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
