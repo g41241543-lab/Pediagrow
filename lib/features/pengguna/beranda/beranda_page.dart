@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
+import '../../../models/child_model.dart';
 import 'notifikasi_page.dart';
 import '../../../core/services/notification_service.dart';
 import '../profil_anak/tambah_anak_page.dart';
@@ -19,7 +23,8 @@ import '../profil/menu_profil_page.dart';
 /// Ditampilkan setelah login berhasil untuk pengguna yang BELUM memiliki profil anak.
 /// Halaman scrollable secara penuh dengan Navigation Bar tetap (fixed di Scaffold).
 class BerandaPage extends StatefulWidget {
-  const BerandaPage({super.key});
+  final bool showAddSuccessSnackbar;
+  const BerandaPage({super.key, this.showAddSuccessSnackbar = false});
 
   @override
   State<BerandaPage> createState() => _BerandaPageState();
@@ -35,6 +40,28 @@ class _BerandaPageState extends State<BerandaPage>
   @override
   void initState() {
     super.initState();
+
+    if (widget.showAddSuccessSnackbar) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Profil anak berhasil ditambahkan',
+              style: GoogleFonts.lato(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      });
+    }
+
     _ellipseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -255,10 +282,20 @@ class _BerandaPageState extends State<BerandaPage>
               // Jarak margin-top dari teks "Profil Anak" ke card: 16dp
               const SizedBox(height: 16),
 
-              // Card MomDad (margin 12dp horizontal, radius 15, #FFFFFF)
+              // Card MomDad atau Kartu Biodata Anak Real-Time
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _buildMomDadCard(context),
+                child: ValueListenableBuilder<List<ChildModel>>(
+                  valueListenable: ChildService().childrenNotifier,
+                  builder: (context, children, _) {
+                    if (children.isEmpty) {
+                      return _buildMomDadCard(context);
+                    }
+                    final activeChild =
+                        ChildService().activeChild ?? children.first;
+                    return _buildChildBiodataCard(context, activeChild);
+                  },
+                ),
               ),
 
               // Jarak ±20-30dp dari bottom card MomDad ke batas transisi biru→putih
@@ -394,6 +431,173 @@ class _BerandaPageState extends State<BerandaPage>
                         color: Colors.white,
                       ),
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===================================================================
+  // KARTU BIODATA ANAK (Real-Time saat sudah ada profil anak)
+  // Dimensi: lebar penuh sejajar margin 16dp x height 120, warna #FFFFFF, corner radius 15
+  // ===================================================================
+  Widget _buildChildBiodataCard(BuildContext context, ChildModel child) {
+    final hasPhoto = child.photoUrl != null &&
+        child.photoUrl!.isNotEmpty &&
+        File(child.photoUrl!).existsSync();
+    final isMale = child.gender.toLowerCase().contains('laki');
+
+    return Container(
+      width: double.infinity,
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Avatar Anak
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFEFF6FF),
+              border: Border.all(
+                color: isMale
+                    ? const Color(0xFF93C5FD)
+                    : const Color(0xFFFBCFE8),
+                width: 2,
+              ),
+            ),
+            child: ClipOval(
+              child: hasPhoto
+                  ? Image.file(
+                      File(child.photoUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'assets/images/default_baby_avatar.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Icon(
+                        Icons.face_rounded,
+                        size: 44,
+                        color: isMale
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFFEC4899),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Biodata Anak & Tombol Tambah Anak
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        child.name,
+                        style: GoogleFonts.lato(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isMale
+                            ? const Color(0xFFEFF6FF)
+                            : const Color(0xFFFDF2F8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isMale
+                              ? const Color(0xFFBFDBFE)
+                              : const Color(0xFFFBCFE8),
+                        ),
+                      ),
+                      child: Text(
+                        child.gender,
+                        style: GoogleFonts.lato(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: isMale
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFFDB2777),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.cake_outlined,
+                      size: 14,
+                      color: Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      child.ageDescription,
+                      style: GoogleFonts.lato(
+                        fontSize: 12,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Lahir: ${child.weightKg != null ? '${child.weightKg} kg' : '-'} | ${child.heightCm != null ? '${child.heightCm} cm' : '-'}',
+                  style: GoogleFonts.lato(
+                    fontSize: 11,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () => _navigateTo(const TambahAnakPage()),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.add_circle_outline_rounded,
+                        size: 15,
+                        color: Color(0xFF3985E7),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tambah Anak Lainnya',
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3985E7),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

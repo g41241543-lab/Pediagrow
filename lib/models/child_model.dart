@@ -9,6 +9,11 @@ class ChildModel {
   final double? heightCm;
   final double? headCircumferenceCm;
   final String? photoUrl;
+  final String? birthPhotoUrl;
+  final bool? isPremature;
+  final int? gestationalAgeWeeks;
+  final bool? hasAllergies;
+  final String? allergies;
 
   const ChildModel({
     required this.id,
@@ -20,6 +25,11 @@ class ChildModel {
     this.heightCm,
     this.headCircumferenceCm,
     this.photoUrl,
+    this.birthPhotoUrl,
+    this.isPremature,
+    this.gestationalAgeWeeks,
+    this.hasAllergies,
+    this.allergies,
   });
 
   /// Factory dari Map/JSON
@@ -36,6 +46,15 @@ class ChildModel {
       heightCm: (map['height_cm'] as num?)?.toDouble(),
       headCircumferenceCm: (map['head_circumference_cm'] as num?)?.toDouble(),
       photoUrl: map['photo_url'] ?? map['avatar'],
+      birthPhotoUrl: map['birth_photo_url'],
+      isPremature: map['is_premature'] == null
+          ? null
+          : (map['is_premature'] == 1 || map['is_premature'] == true),
+      gestationalAgeWeeks: (map['gestational_age_weeks'] as num?)?.toInt(),
+      hasAllergies: map['has_allergies'] == null
+          ? null
+          : (map['has_allergies'] == 1 || map['has_allergies'] == true),
+      allergies: map['allergies'],
     );
   }
 
@@ -50,6 +69,11 @@ class ChildModel {
       'height_cm': heightCm,
       'head_circumference_cm': headCircumferenceCm,
       'photo_url': photoUrl,
+      'birth_photo_url': birthPhotoUrl,
+      'is_premature': isPremature == true ? 1 : (isPremature == false ? 0 : null),
+      'gestational_age_weeks': gestationalAgeWeeks,
+      'has_allergies': hasAllergies == true ? 1 : (hasAllergies == false ? 0 : null),
+      'allergies': allergies,
     };
   }
 
