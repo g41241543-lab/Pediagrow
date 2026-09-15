@@ -260,137 +260,235 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   /// Engine Analisis Pertanyaan Medis Anak (Pediatric Clinical Response Engine)
-  /// Menjawab secara formal, ilmiah, edukatif, dan sesuai standar IDAI
+  /// Menjawab secara ramah, komunikatif, empatik, dan memahami typo/bahasa santai
   String _generateDoctorResponse(String userMessage) {
-    final msg = userMessage.toLowerCase();
+    final raw = userMessage.trim();
+    final msg = raw.toLowerCase();
 
-    // 1. Demam / Panas / Suhu Tubuh
-    if (msg.contains('demam') ||
+    // 1. UCAPAN TERIMA KASIH & CLOSING (Menangani typos & singkatan: makasih, mksih, mksh, makasii, dll.)
+    final isThanks = msg.contains('makasih') ||
+        msg.contains('makasi') ||
+        msg.contains('mksih') ||
+        msg.contains('mksh') ||
+        msg.contains('terima kasih') ||
+        msg.contains('trimakasih') ||
+        msg.contains('tengkyu') ||
+        msg.contains('thanks') ||
+        msg.contains('thx') ||
+        msg.contains('tq') ||
+        msg.contains('matur nuwun');
+
+    if (isThanks) {
+      return 'Sama-sama Mom’s! Senang sekali bisa membantu Mom’s dan mendampingi si kecil. '
+          'Tetap pantau kondisinya ya. Semoga si kecil lekas pulih, sehat selalu, dan kembali ceria bermain. '
+          'Kalau nanti ada keluhan lain atau ada hal yang perlu ditanyakan lagi, jangan ragu untuk berkonsultasi kembali ya Mom’s! 😊';
+    }
+
+    // 2. KONFIRMASI / RESPON SINGKAT (baik dok, siap dok, paham, oke dok)
+    if (msg == 'baik dok' ||
+        msg == 'siap dok' ||
+        msg == 'paham dok' ||
+        msg == 'oke dok' ||
+        msg == 'ok dok' ||
+        msg == 'sip dok' ||
+        msg == 'iya dok' ||
+        msg == 'ya dok') {
+      return 'Baik Mom’s, tetap semangat ya dalam merawat si kecil. Jangan lupa pastikan kebutuhan cairan dan istirahatnya terpenuhi dengan baik. '
+          'Bila ada perubahan kondisi sewaktu-waktu, segera kabari saya ya Mom’s.';
+    }
+
+    // 3. SALAM & SAPAAN (halo, pagi, siang, assalamualaikum)
+    if (msg.startsWith('halo') ||
+        msg.startsWith('hai') ||
+        msg.contains('assalamu') ||
+        msg.contains('selamat pagi') ||
+        msg.contains('selamat siang') ||
+        msg.contains('selamat sore') ||
+        msg.contains('selamat malam')) {
+      return 'Halo juga Mom’s! Selamat datang di sesi konsultasi kita. '
+          'Bagaimana kondisi si kecil saat ini? Boleh diceritakan keluhan atau gejala apa yang sedang dialami si kecil hari ini?';
+    }
+
+    // 4. DEMAM / SUHU TINGGI / PANAS (Menangani: dmm, panas, suhu, menggigil, paracetamol, dll.)
+    final isFever = msg.contains('demam') ||
+        msg.contains('dmm') ||
         msg.contains('panas') ||
         msg.contains('suhu') ||
+        msg.contains('sumeng') ||
         msg.contains('menggigil') ||
         msg.contains('paracetamol') ||
+        msg.contains('tempra') ||
         msg.contains('sanmol') ||
         msg.contains('termometer') ||
         msg.contains('38') ||
-        msg.contains('39')) {
-      return 'Baik Mom’s, demam merupakan respons alami sistem imun tubuh anak dalam melawan infeksi.\n\nLangkah penanganan yang tepat di rumah:\n1. Ukur suhu secara berkala dengan termometer aksila (ketiak).\n2. Berikan cairan (ASI, air putih, atau kuah hangat) sesering mungkin untuk mencegah dehidrasi.\n3. Kompres hangat pada area lipatan ketiak dan selangkangan (hindari air dingin/alkohol).\n4. Jika suhu ≥38°C dan si kecil merasa tidak nyaman, dapat diberikan paracetamol tetes/sirup sesuai dosis berat badan (10-15 mg/kgBB per kali pemberian, jeda minimal 4-6 jam).\n\nSegera bawa ke fasyankes jika demam berlangsung lebih dari 3 hari, si kecil tampak sangat lemas, atau disertai kejang ya Mom’s.';
+        msg.contains('39');
+
+    if (isFever) {
+      return 'Wajar sekali kalau Mom’s merasa khawatir saat si kecil demam. Sebenarnya demam adalah reaksi alami dan tanda positif bahwa daya tahan tubuh si kecil sedang aktif melawan kuman atau virus.\n\n'
+          'Saran perawatan yang bisa Mom’s lakukan langsung di rumah:\n'
+          '• Berikan cairan (ASI, susu, atau air putih hangat) sesering mungkin untuk mencegah dehidrasi.\n'
+          '• Kompres lipatan ketiak dan selangkangan dengan air hangat suam kuku (hindari kompres es atau alkohol ya Mom’s).\n'
+          '• Kenakan pakaian katun tipis yang longgar dan menyerap keringat.\n'
+          '• Jika suhu mencapai ≥38°C dan si kecil tampak gelisah/kurang nyaman, berikan paracetamol sesuai dosis berat badannya.\n\n'
+          'Boleh saya tahu sudah berapa hari demamnya berlangsung dan apakah si kecil masih mau minum serta aktif bermain Mom’s?';
     }
 
-    // 2. Berat Badan / BB / Stunting / Gizi / Tumbuh Kembang
-    if (msg.contains('berat badan') ||
-        msg.contains('bb') ||
-        msg.contains('stunting') ||
-        msg.contains('gizi') ||
-        msg.contains('tumbuh kembang') ||
-        msg.contains('kurus') ||
-        msg.contains('tinggi badan') ||
-        msg.contains('tb') ||
-        msg.contains('naik turun')) {
-      final weightInfo = widget.weightKg != null
-          ? ' (saat ini ${widget.weightKg} kg)'
-          : '';
-      return 'Mengenai kenaikan berat badan si kecil$weightInfo, pada usia balita fluktuasi berat badan memang sering terjadi, namun kurva pertumbuhannya harus tetap dipantau mengikuti grafik KMS/WHO.\n\nSaran kami untuk mengoptimalkan kenaikan BB:\n1. Tingkatkan densitas kalori MPASI dengan menambahkan lemak tambahan (seperti butter, minyak kelapa, atau santan matang).\n2. Utamakan asupan protein hewani setiap kali makan (telur, daging ayam/sapi cincang, atau ikan kembung) yang sangat efektif mencegah stunting.\n3. Evaluasi aturan makan (feeding rules): makan maksimal 30 menit dan hindari distraksi gadget/mainan saat makan.\n\nTetap pantau penimbangan rutin setiap bulan di posyandu atau fasyankes ya Mom’s.';
-    }
-
-    // 3. Gerakan Tutup Mulut (GTM) / Susah Makan / Nafsu Makan
-    if (msg.contains('gtm') ||
-        msg.contains('susah makan') ||
-        msg.contains('nafsu makan') ||
-        msg.contains('gamau makan') ||
-        msg.contains('muntah makan') ||
-        msg.contains('pilih makanan') ||
-        msg.contains('ngemil')) {
-      return 'Keluhan GTM (Gerakan Tutup Mulut) memang sering menjadi tantangan Mom’s. Hal ini bisa dipicu oleh fase tumbuh gigi, rasa bosan pada menu/tekstur, atau kondisi perut yang kurang nyaman.\n\nPanduan feeding rules yang disarankan:\n1. Buat jadwal makan yang teratur: 3 kali makan utama dan 2 kali camilan sehat terjadwal.\n2. Batasi waktu makan maksimal 30 menit. Jika belum habis, sudahi tanpa memarahi si kecil.\n3. Jangan berikan susu formula atau camilan padat 1-2 jam sebelum jam makan utama agar si kecil merasakan sinyal lapar alami.\n4. Ciptakan suasana makan bersama keluarga yang menyenangkan.\n\nApakah si kecil saat ini sedang terlihat rewel saat mengunyah atau ada tanda tumbuh gigi Mom’s?';
-    }
-
-    // 4. Batuk / Pilek / Flu / Hidung Tersumbat / Grok-grok
-    if (msg.contains('batuk') ||
+    // 5. BATUK, PILEK, FLU, SESAK, GROK-GROK (Menangani: btk, plk, ingus, meler, grok, dll.)
+    final isFlu = msg.contains('batuk') ||
         msg.contains('pilek') ||
+        msg.contains('btk') ||
+        msg.contains('plk') ||
         msg.contains('flu') ||
         msg.contains('ingus') ||
+        msg.contains('meler') ||
         msg.contains('grok') ||
         msg.contains('tersumbat') ||
         msg.contains('sesak') ||
-        msg.contains('napas')) {
-      return 'Untuk batuk dan pilek pada si kecil, sebagian besar disebabkan oleh infeksi virus saluran pernapasan atas (common cold) yang umumnya bersifat self-limiting (dapat sembuh mandiri).\n\nPerawatan di rumah:\n1. Teteskan cairan saline/NaCl fisiologis 0.9% steril ke hidung untuk mengencerkan lendir dan melegakan sumbatan.\n2. Cukupi asupan cairan hangat dan ASI untuk membantu mengencerkan dahak.\n3. Tinggikan posisi kepala si kecil saat tidur dengan bantal tipis.\n4. Hindari pemberian obat batuk-pilek sirup bebas (OTC) tanpa resep dokter spesialis anak.\n\nWaspadai tanda bahaya: jika napas terlihat cepat, ada tarikan dinding dada ke dalam (retraksi), atau bibir membiru, segera bawa ke IGD rumah sakit terdekat ya Mom’s.';
+        msg.contains('bersin');
+
+    if (isFlu) {
+      return 'Keluhan batuk dan pilek pada anak memang sering kali bikin si kecil tidak nyaman dan rewel saat tidur ya Mom’s. Sebagian besar kasus disebabkan oleh infeksi virus ringan yang dapat membaik dengan sendirinya.\n\n'
+          'Langkah pertolongan pertama di rumah:\n'
+          '• Teteskan cairan saline/NaCl 0.9% steril ke rongga hidung si kecil untuk membantu mengencerkan lendir dan melegakan napas.\n'
+          '• Perbanyak asupan cairan hangat dan ASI untuk menjaga tenggorokan tetap lembap.\n'
+          '• Posisikan kepala si kecil sedikit lebih tinggi saat tidur menggunakan bantal tipis.\n'
+          '• Sebaiknya hindari pemberian obat sirup batuk-pilek bebas tanpa resep langsung dokter ya Mom’s.\n\n'
+          'Perhatikan juga tanda bahaya: bila napas si kecil terlihat sangat cepat atau ada tarikan di dada saat bernapas, segera bawa ke fasyankes terdekat ya Mom’s.';
     }
 
-    // 5. Diare / Mencret / BAB Cair
-    if (msg.contains('diare') ||
+    // 6. DIARE, MENCRET, PUP CAIR (Menangani: mencret, bab cair, pup cair, lendir, dll.)
+    final isDiarrhea = msg.contains('diare') ||
         msg.contains('mencret') ||
         msg.contains('bab cair') ||
         msg.contains('pup cair') ||
-        msg.contains('lendir') ||
-        msg.contains('tinja')) {
-      return 'Baik Mom’s, penanganan utama diare pada anak adalah mencegah terjadinya dehidrasi (kekurangan cairan tubuh).\n\nLangkah tindakan:\n1. Berikan larutan Oralit setiap kali si kecil BAB cair (50-100 ml per kali BAB).\n2. Berikan suplementasi Zinc selama 10 hari berturut-turut meskipun diare sudah membaik (dosis 10 mg untuk usia <6 bulan, 20 mg untuk usia ≥6 bulan) untuk mempercepat perbaikan dinding usus.\n3. Teruskan pemberian ASI dan makanan bertekstur lembut tanpa bumbu menyengat.\n\nPerhatikan tanda dehidrasi: mata cekung, air mata tidak keluar saat menangis, bibir sangat kering, atau anak sangat haus/lemas. Jika ada tanda tersebut, segera periksakan langsung ya Mom’s.';
+        msg.contains('pup mencret') ||
+        msg.contains('pup terus') ||
+        msg.contains('tinja') ||
+        msg.contains('berak');
+
+    if (isDiarrhea) {
+      return 'Kunci utama penanganan diare pada anak adalah memastikan si kecil tidak kekurangan cairan (dehidrasi) ya Mom’s.\n\n'
+          'Langkah yang perlu segera dilakukan:\n'
+          '• Berikan larutan Oralit atau cairan rehidrasi setiap kali si kecil buang air besar cair (sekitar 50-100 ml per kali BAB).\n'
+          '• Tetap teruskan pemberian ASI dan makanan dengan tekstur lembut yang mudah dicerna.\n'
+          '• Berikan suplemen Zinc selama 10 hari berturut-turut untuk membantu memperbaiki sel dinding usus si kecil.\n\n'
+          'Bagaimana frekuensi BAB-nya hari ini Mom’s? Apakah si kecil buang air kecilnya masih teratur (popok basah setiap 4-6 jam)?';
     }
 
-    // 6. Muntah / Gumoh
-    if (msg.contains('muntah') ||
+    // 7. MUNTAH, GUMOH, MUAL (Menangani: muntah, gumoh, enek, mual, dll.)
+    final isVomit = msg.contains('muntah') ||
         msg.contains('gumoh') ||
+        msg.contains('mual') ||
         msg.contains('enek') ||
-        msg.contains('mual')) {
-      return 'Jika si kecil sedang muntah, lambungnya memerlukan waktu istirahat sejenak.\n\nLangkah yang dianjurkan:\n1. Istirahatkan lambung selama 30-60 menit setelah muntah (jangan langsung dipaksa minum banyak).\n2. Setelah itu, berikan cairan rehidrasi oral atau ASI sedikit demi sedikit (1-2 sendok teh atau 5-10 ml) setiap 10-15 menit.\n3. Jika cairan dapat bertahan di lambung, tingkatkan jumlahnya secara bertahap.\n\nBila muntahan berwarna hijau, menyemprot kuat, atau si kecil sama sekali tidak bisa menelan cairan, mohon segera diperiksakan langsung ke dokter ya Mom’s.';
+        msg.contains('muntah2');
+
+    if (isVomit) {
+      return 'Saat si kecil muntah, lambungnya sedang sensitif dan butuh istirahat sejenak Mom’s.\n\n'
+          'Tips penanganan aman:\n'
+          '• Istirahatkan lambung si kecil selama 30-60 menit setelah muntah (jangan langsung dipaksa minum banyak sekaligus).\n'
+          '• Setelah itu, berikan cairan oralit atau ASI sedikit demi sedikit (1-2 sendok teh) setiap 10-15 menit.\n'
+          '• Bila cairan tidak dimuntahkan kembali, barulah jumlahnya bisa ditingkatkan bertahap.\n\n'
+          'Apakah muntahnya menyemprot atau disertai demam Mom’s? Tetap pantau agar si kecil tidak lemas ya.';
     }
 
-    // 7. Ruam Kulit / Alergi / Bintik Merah / Gatal
-    if (msg.contains('ruam') ||
-        msg.contains('alergi') ||
+    // 8. GTM, SUSAH MAKAN, NAFSU MAKAN (Menangani: gtm, gamau makan, ga mau makan, gak mau makan, dll.)
+    final isGTM = msg.contains('gtm') ||
+        msg.contains('susah makan') ||
+        msg.contains('gamau') ||
+        msg.contains('ga mau') ||
+        msg.contains('gak mau') ||
+        msg.contains('nafsu makan') ||
+        msg.contains('pilih makan') ||
+        msg.contains('ngemil terus') ||
+        msg.contains('lepeh');
+
+    if (isGTM) {
+      return 'Fase GTM (Gerakan Tutup Mulut) memang sering kali menguras energi orang tua ya Mom’s. Biasanya hal ini dipicu oleh proses tumbuh gigi, rasa bosan pada variasi menu/tekstur, atau rasa kenyang karena susu/camilan sebelum jam makan.\n\n'
+          'Strategi yang sangat dianjurkan:\n'
+          '• Terapkan feeding rules: batasi waktu makan maksimal 30 menit. Jika si kecil menolak setelah 30 menit, sudahi dengan tenang tanpa memaksa.\n'
+          '• Berikan jeda minimal 2 jam bebas susu/camilan sebelum jam makan utama agar rasa lapar alaminya muncul.\n'
+          '• Variasikan tekstur atau warna makanan, dan ajak makan bersama anggota keluarga di meja makan.\n\n'
+          'Apakah si kecil saat ini sedang tumbuh gigi atau gusi tampak bengkak kemerahan Mom’s?';
+    }
+
+    // 9. BERAT BADAN, KURUS, STUNTING, GIZI (Menangani: bb seret, berat badan, kurus, stunting, dll.)
+    final isWeight = msg.contains('berat badan') ||
+        msg.contains('bb') ||
+        msg.contains('kurus') ||
+        msg.contains('stunting') ||
+        msg.contains('gizi') ||
+        msg.contains('tumbuh kembang') ||
+        msg.contains('timbangan');
+
+    if (isWeight) {
+      final weightDetail = widget.weightKg != null
+          ? ' (berat saat ini ${widget.weightKg} kg)'
+          : '';
+      return 'Kenaikan berat badan si kecil$weightDetail memang perlu kita pantau konsistensinya di grafik KMS/WHO setiap bulan Mom’s.\n\n'
+          'Tips praktis untuk mengoptimalkan kenaikan berat badan:\n'
+          '• Tambahkan sumber lemak sehat berkalori tinggi ke dalam menu MPASI/makanan (seperti unsalted butter, minyak kelapa, santan matang, atau keju).\n'
+          '• Utamakan protein hewani ganda di setiap porsi makan (kombinasi telur, hati ayam, daging cincang, atau ikan kembung) yang terbukti efektif mencegah stunting.\n'
+          '• Batasi konsumsi air putih atau camilan manis berlebih yang membuat si kecil cepat kenyang palsu.\n\n'
+          'Bulan ini apakah kenaikan berat badannya sudah sempat dicek di posyandu atau fasyankes Mom’s?';
+    }
+
+    // 10. RUAM KULIT, BINTIK MERAH, GATAL, ALERGI (Menangani: ruam, bintik, merah, gatal, alergi, popok, dll.)
+    final isSkin = msg.contains('ruam') ||
         msg.contains('bintik') ||
         msg.contains('gatal') ||
+        msg.contains('alergi') ||
+        msg.contains('merah') ||
         msg.contains('bentol') ||
-        msg.contains('kulit') ||
         msg.contains('popok') ||
-        msg.contains('eksim')) {
-      return 'Ruam pada kulit anak dapat dipicu oleh dermatitis kontak, alergi makanan/cuaca, biang keringat, atau ruam popok.\n\nSaran perawatan kulit si kecil:\n1. Gunakan pakaian berbahan katun longgar yang menyerap keringat.\n2. Mandikan dengan air suam kuku dan sabun bayi hipoalergenik tanpa pewangi buatan.\n3. Untuk ruam popok, bersihkan dengan air mengalir, keringkan dengan cara ditepuk lembut, dan oleskan salep pelindung berbahan Zinc Oxide sebelum memakaikan popok baru.\n4. Ganti popok setiap 3-4 jam atau segera setelah si kecil buang air.\n\nHindari penggunaan salep kortikosteroid tanpa instruksi langsung dari dokter ya Mom’s.';
+        msg.contains('eksim') ||
+        msg.contains('biang keringat');
+
+    if (isSkin) {
+      return 'Keluhan ruam atau bintik kemerahan pada kulit si kecil bisa timbul karena biang keringat, ruam popok, dermatitis kontak, atau reaksi alergi makanan/cuaca Mom’s.\n\n'
+          'Perawatan kulit sensitif si kecil:\n'
+          '• Mandikan dengan air suam kuku dan sabun bayi hipoalergenik tanpa SLS dan tanpa wewangian tajam.\n'
+          '• Jangan digosok saat mengeringkan, cukup ditepuk-tepuk lembut dengan handuk katun.\n'
+          '• Bila ruam ada di area popok, oleskan salep pelindung Zinc Oxide dan ganti popok tiap 3-4 jam atau segera setelah si kecil buang air.\n'
+          '• Hindari penggunaan salep kortikosteroid sembarangan tanpa resep ya Mom’s.\n\n'
+          'Apakah bintik merahnya terasa gatal atau si kecil tampak sering menggaruk area tersebut Mom’s?';
     }
 
-    // 8. Imunisasi / Vaksin
-    if (msg.contains('imunisasi') ||
+    // 11. IMUNISASI & VAKSINASI
+    final isVaccine = msg.contains('imunisasi') ||
         msg.contains('vaksin') ||
         msg.contains('dpt') ||
-        msg.contains('polio') ||
         msg.contains('campak') ||
+        msg.contains('polio') ||
         msg.contains('bcg') ||
-        msg.contains('jadwal')) {
-      return 'Jadwal imunisasi sangat penting untuk membentuk antibodi spesifik bagi tumbuh kembang si kecil sesuai rekomendasi resmi IDAI (Ikatan Dokter Anak Indonesia).\n\nJika ada jadwal imunisasi yang sempat terlewat, jangan khawatir karena tidak perlu mengulang dari awal, cukup dilanjutkan imunisasi kejar (catch-up immunization). Reaksi ringan seperti sumeng atau nyeri bekas suntikan adalah wajar dan dapat diredakan dengan kompres hangat serta paracetamol jika diperlukan ya Mom’s.';
+        msg.contains('jadwal vaksin');
+
+    if (isVaccine) {
+      return 'Jadwal imunisasi sangat krusial untuk membentengi si kecil dari berbagai penyakit berbahaya sesuai panduan resmi IDAI Mom’s.\n\n'
+          'Bila ada imunisasi yang sempat terlewat, Mom’s tidak perlu mengulang dari awal, cukup lakukan imunisasi kejar (catch-up) sesegera mungkin di fasyankes terdekat. '
+          'Reaksi pasca-imunisasi seperti sumeng ringan atau nyeri di bekas suntikan adalah hal yang wajar dan bisa diredakan dengan kompres hangat serta paracetamol bila si kecil rewel ya Mom’s.';
     }
 
-    // 9. Tidur / Rewel / Kolik / Menangis
-    if (msg.contains('rewel') ||
+    // 12. TIDUR, REWEL, MENANGIS, KEMBUNG
+    final isSleepFuss = msg.contains('rewel') ||
         msg.contains('nangis') ||
         msg.contains('menangis') ||
         msg.contains('tidur') ||
         msg.contains('begadang') ||
-        msg.contains('kolik') ||
-        msg.contains('kembung')) {
-      return 'Kondisi anak yang rewel dan sulit tidur biasanya merupakan sinyal rasa tidak nyaman fisik, seperti perut kembung (kolik), rasa gerah, atau sedang fase lompatan perkembangan (wonder weeks).\n\nTips menenangkan si kecil:\n1. Lakukan pijatan lembut pada perut searah jarum jam (pijat I-Love-U) dan gerakan gowes sepeda pada kaki untuk membantu mengeluarkan gas di perut.\n2. Ciptakan rutinitas tidur yang tenang (redupkan lampu, suhu kamar sejuk 24-26°C, dan suara desiran lembut/white noise).\n3. Pastikan popok kering dan si kecil sudah kenyang sebelum tidur.';
+        msg.contains('kembung') ||
+        msg.contains('kolik');
+
+    if (isSleepFuss) {
+      return 'Kondisi si kecil yang rewel dan susah tidur biasanya menandakan adanya rasa tidak nyaman di tubuhnya, seperti perut kembung, kegerahan, atau sedang melewati fase lonjakan tumbuh kembang (growth spurt) Mom’s.\n\n'
+          'Tips menenangkan si kecil:\n'
+          '• Lakukan pijatan lembut pada perut searah jarum jam (pijat I-Love-U) dan gerakan kaki mengayuh sepeda untuk membantu mengeluarkan gas di perut.\n'
+          '• Ciptakan suasana kamar yang tenang, redup, dan sejuk (suhu ideal 24-26°C).\n'
+          '• Pastikan popoknya bersih dan si kecil sudah kenyang sebelum tidur ya Mom’s.';
     }
 
-    // 10. Ucapan Terima Kasih / Closing
-    if (msg.contains('terima kasih') ||
-        msg.contains('makasih') ||
-        msg.contains('tengkyu') ||
-        msg.contains('thanks') ||
-        msg.contains('baik dok') ||
-        msg.contains('siap dok') ||
-        msg.contains('paham dok')) {
-      return 'Sama-sama Mom’s. Senang sekali bisa membantu mendampingi tumbuh kembang si kecil. Tetap pantau kondisinya ya Mom’s.\n\nJika ada pertanyaan lanjutan atau kondisi belum membaik, jangan ragu untuk berkonsultasi kembali. Sehat selalu untuk si kecil dan keluarga! 😊';
-    }
-
-    // 11. Salam / Sapaan
-    if (msg.contains('halo') ||
-        msg.contains('pagi') ||
-        msg.contains('siang') ||
-        msg.contains('sore') ||
-        msg.contains('malam') ||
-        msg.contains('assalamu')) {
-      return 'Halo juga Mom’s. Ada hal spesifik yang ingin Mom’s tanyakan atau konsultasikan mengenai kondisi si kecil saat ini?';
-    }
-
-    // 12. Fallback Medis Formal Kontekstual (Bukan template kaku)
-    return 'Terima kasih atas informasinya Mom’s. Berdasarkan penjelasan yang Mom’s sampaikan, hal ini perlu kami cermati bersama kondisi penyerta lainnya.\n\nBoleh saya tahu:\n1. Apakah si kecil masih aktif bermain atau tampak cenderung lebih lemas?\n2. Bagaimana asupan makan dan minumnya hari ini?\n\nTetap berikan cairan yang cukup dan amati respon si kecil. Jika gejala berlanjut atau disertai demam tinggi, kami sarankan untuk melakukan pemeriksaan fisik langsung ke dokter spesialis anak di fasyankes terdekat ya Mom’s.';
+    // 13. FALLBACK DINAMIS & RESPONSIF (Merujuk langsung ke pertanyaan pengguna secara natural)
+    return 'Terima kasih atas pertanyaannya Mom’s. Terkait "$raw", kami sangat memahami kekhawatiran Mom’s terhadap kesehatan si kecil.\n\n'
+        'Secara umum, yang terpenting adalah mengamati keaktifan si kecil dan memastikan kebutuhan nutrisi serta cairannya tetap masuk. '
+        'Boleh diceritakan lebih detail sejak kapan keluhan ini muncul, dan apakah ada gejala lain seperti demam, batuk, atau perubahan nafsu makan si kecil Mom’s?';
   }
 
   void _scrollToBottom() {
@@ -1065,7 +1163,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  // Bubble Chat User (Kanan, Soft Blue)
+  // Bubble Chat User (Kanan, Soft Blue) - Dynamic Width Sesuai Isi Chat
   Widget _buildUserBubble(Map<String, dynamic> item) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -1075,47 +1173,47 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         alignment: Alignment.centerRight,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: screenWidth * 0.74),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-            decoration: BoxDecoration(
-              color: colorSoftBlue,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  item['message'] ?? '',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    color: colorTextPrimary,
-                    height: 1.35,
+          child: IntrinsicWidth(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 7),
+              decoration: BoxDecoration(
+                color: colorSoftBlue,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item['message'] ?? '',
+                    style: GoogleFonts.lato(
+                      fontSize: 14,
+                      color: colorTextPrimary,
+                      height: 1.35,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Row(
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         item['timestamp'] ?? '',
                         style: GoogleFonts.lato(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           color: colorTextSecondary,
                         ),
                       ),
                       const SizedBox(width: 4),
                       const Icon(
                         Icons.done_all,
-                        size: 15,
+                        size: 14,
                         color: colorPrimaryBlue,
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1123,7 +1221,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  // Bubble Chat Dokter (Kiri, Putih, Border Halus, Avatar Dokter)
+  // Bubble Chat Dokter (Kiri, Putih, Border Halus, Avatar Dokter) - Dynamic Width
   Widget _buildDoctorBubble(Map<String, dynamic> item) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -1149,44 +1247,49 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           // Bubble Putih Dokter
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: screenWidth * 0.72),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-              decoration: BoxDecoration(
-                color: colorWhite,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colorBorder, width: 1.0),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x06000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    item['message'] ?? '',
-                    style: GoogleFonts.lato(
-                      fontSize: 14,
-                      color: colorTextPrimary,
-                      height: 1.38,
+            child: IntrinsicWidth(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 7),
+                decoration: BoxDecoration(
+                  color: colorWhite,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: colorBorder, width: 1.0),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(
-                      item['timestamp'] ?? '',
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item['message'] ?? '',
                       style: GoogleFonts.lato(
-                        fontSize: 11,
-                        color: colorTextSecondary,
+                        fontSize: 14,
+                        color: colorTextPrimary,
+                        height: 1.38,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          item['timestamp'] ?? '',
+                          style: GoogleFonts.lato(
+                            fontSize: 10.5,
+                            color: colorTextSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1570,24 +1673,27 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   Widget _buildEndConsultationButton() {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFECEC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFED7D7), width: 1.0),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+    return Tooltip(
+      message: 'Akhiri Konsultasi',
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFECEC),
           borderRadius: BorderRadius.circular(12),
-          onTap: _onAkhiriKonsultasiPressed,
-          child: const Center(
-            child: Icon(
-              Icons.bookmark_outline_rounded,
-              color: colorEndRed,
-              size: 20,
+          border: Border.all(color: const Color(0xFFFED7D7), width: 1.0),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _onAkhiriKonsultasiPressed,
+            child: const Center(
+              child: Icon(
+                Icons.comments_disabled_rounded,
+                color: colorEndRed,
+                size: 20,
+              ),
             ),
           ),
         ),

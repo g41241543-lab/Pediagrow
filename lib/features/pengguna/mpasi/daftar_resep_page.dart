@@ -3,10 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/resep_mpasi_service.dart';
 import '../../../models/resep_mpasi_model.dart';
-import '../beranda/beranda_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import 'detail_resep_page.dart';
 
 /// Halaman "Daftar Resep MPASI" PediaGrow.
@@ -32,7 +30,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // Design Tokens (konsisten dengan beranda_page.dart & design reference)
   // -------------------------------------------------------------------------
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorActiveNavIcon = Color(0xFF72A9F4);
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
   static const Color _colorWhite = Color(0xFFFFFFFF);
   static const Color _colorDark = Color(0xFF1A202C);
@@ -48,10 +45,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   static const Color _colorSearchBg = Color(0xFFF1F5F9);
   static const Color _colorDivider = Color(0xFFF1F5F9);
 
-  // Warna bottom navigation — disamakan dengan beranda_page.dart (abu muda,
-  // bukan putih polos). Ikon/label non-aktif memakai abu tua resmi.
-  static const Color _colorNavBg = Color(0xFFF2ECEC);
-  static const Color _colorNavInactive = _colorGreyDark;
+  // (Warna nav dikelola oleh PediaBottomNavBar yang sudah terpusat)
 
   // -------------------------------------------------------------------------
   // State
@@ -67,6 +61,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   static const List<String> _categories = [
     'Semua',
+    '0-6 bulan',
     '6-8 bulan',
     '9-11 bulan',
     '12-23 bulan',
@@ -132,7 +127,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   void _onCategoryChanged(String category) {
     if (category == _selectedCategory) return;
     setState(() => _selectedCategory = category);
-    _loadRecipes();
+    // Kategori 0-6 bulan menampilkan info ASI Eksklusif, bukan resep.
+    // Tidak perlu query DB — langsung rebuild.
+    if (category != '0-6 bulan') {
+      _loadRecipes();
+    }
   }
 
   void _onBackPressed() => Navigator.of(context).maybePop();
@@ -145,8 +144,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _colorWhite,
-      // Bottom navigation FIXED — tidak ikut scroll
-      bottomNavigationBar: _buildBottomNavigation(),
+      // Bottom navigation FIXED — menggunakan PediaBottomNavBar terpusat
+      // (konsisten dengan BerandaPage, warna #F2EDED, tinggi 68dp).
+      // selectedIndex: -1 agar tidak ada tab aktif.
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,9 +158,28 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             // Filter kategori usia — FIXED
             _buildAgeFilter(),
 
-            // Area scrollable: Daftar Resep + Garden Illustration
+            // Area utama: ilustrasi terpaku di bawah, daftar resep scrollable di atas.
+            // Menggunakan Stack agar IllustrationForestFooter selalu menempel
+            // tepat di atas bottom nav, tidak ikut scroll.
             Expanded(
-              child: _buildScrollableContent(),
+              child: Stack(
+                children: [
+                  // Ilustrasi lanskap SELALU di bagian bawah (di bawah z-order)
+                  const Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: IgnorePointer(
+                      child: IllustrationForestFooter(),
+                    ),
+                  ),
+                  // Konten resep scrollable — padding bottom 120dp agar tidak
+                  // tertutup ilustrasi.
+                  Positioned.fill(
+                    child: _buildScrollableContent(),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -345,6 +365,12 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // -------------------------------------------------------------------------
 
   Widget _buildScrollableContent() {
+    // Kasus khusus: 0-6 bulan → tampilkan info ASI Eksklusif
+    // (MPASI baru dimulai di usia 6 bulan)
+    if (_selectedCategory == '0-6 bulan') {
+      return _buildAsiEksklusifView();
+    }
+
     // Loading state
     if (_isLoading) {
       return const Center(
@@ -360,57 +386,30 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       return _buildErrorState();
     }
 
-    final bool isEmpty = _recipes.isEmpty;
-
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        // Daftar resep (kosong jika belum ada data dari PMIK/Superadmin)
-        if (!isEmpty)
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final recipe = _recipes[index];
-                return Column(
-                  children: [
-                    _buildRecipeItem(recipe),
-                    if (index < _recipes.length - 1)
-                      Divider(
-                        color: _colorDivider,
-                        thickness: 1,
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                      ),
-                  ],
-                );
-              },
-              childCount: _recipes.length,
-            ),
-          ),
-
-        // Sisa ruang di bawah daftar — ilustrasi selalu menempel tepat di
-        // atas bottom navigation, baik saat kosong maupun saat daftar pendek.
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Column(
-            children: [
-              Expanded(
-                child: isEmpty
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24),
-                          child: _EmptyStateContent(),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-              if (!isEmpty) const SizedBox(height: 20),
-              _buildGardenIllustration(),
-            ],
-          ),
+    // Empty state
+    if (_recipes.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24, 24, 24, 120),
+          child: _EmptyStateContent(),
         ),
-      ],
+      );
+    }
+
+    // Daftar resep — ListView.separated dengan padding bawah 120dp
+    // agar item terakhir tidak tertutup ilustrasi lanskap.
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(0, 6, 0, 120),
+      itemCount: _recipes.length,
+      separatorBuilder: (_, __) => Divider(
+        color: _colorDivider,
+        thickness: 1,
+        height: 1,
+        indent: 16,
+        endIndent: 16,
+      ),
+      itemBuilder: (_, index) => _buildRecipeItem(_recipes[index]),
     );
   }
 
@@ -534,31 +533,169 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 5. GARDEN ILLUSTRATION
+  // 5. TAMPILAN KHUSUS — 0-6 BULAN (ASI EKSKLUSIF)
   //
-  //    Memakai asset yang SAMA PERSIS dengan yang dipakai di
-  //    beranda_page.dart (assets/images/beranda_landscape_footer.jpg),
-  //    supaya konsisten secara visual dengan halaman Beranda.
+  //    Kategori 0-6 bulan bukan sasaran MPASI; WHO & Kemenkes RI
+  //    merekomendasikan ASI Eksklusif. Menampilkan kartu informatif
+  //    daripada daftar kosong yang membingungkan.
   // -------------------------------------------------------------------------
 
-  Widget _buildGardenIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
+  Widget _buildAsiEksklusifView() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      child: Column(
+        children: [
+          // Kartu utama ASI Eksklusif
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2A85FF), Color(0xFF5AA8FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2A85FF).withOpacity(0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _colorWhite.withOpacity(0.22),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Text('🤱', style: TextStyle(fontSize: 22)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'ASI Eksklusif\n0–6 Bulan',
+                        style: GoogleFonts.lato(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: _colorWhite,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Di usia 0–6 bulan, bayi hanya membutuhkan ASI (Air Susu Ibu) '
+                  'tanpa tambahan makanan atau minuman apapun. '
+                  'Ini disebut ASI Eksklusif.',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    color: _colorWhite.withOpacity(0.93),
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '✅ Resep MPASI tersedia mulai usia 6 bulan ke atas.',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _colorWhite,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 16),
+
+          // Info cards manfaat ASI
+          ..._asiInfoCards.map((info) => _buildAsiInfoCard(info)).toList(),
+        ],
+      ),
+    );
+  }
+
+  static const List<Map<String, String>> _asiInfoCards = [
+    {
+      'emoji': '🧠',
+      'judul': 'Perkembangan Otak Optimal',
+      'isi':
+          'ASI mengandung DHA dan ARA yang mendukung perkembangan otak dan penglihatan bayi.',
+    },
+    {
+      'emoji': '🛡️',
+      'judul': 'Kekebalan Tubuh Alami',
+      'isi':
+          'Antibodi dalam ASI melindungi bayi dari infeksi, diare, dan penyakit pernapasan.',
+    },
+    {
+      'emoji': '📅',
+      'judul': 'Mulai MPASI di Usia 6 Bulan',
+      'isi':
+          'Setelah 6 bulan, perkenalkan MPASI secara bertahap. Pilih filter usia di atas untuk melihat resepnya.',
+    },
+  ];
+
+  Widget _buildAsiInfoCard(Map<String, String> info) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: _colorWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _colorDivider),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(info['emoji']!, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  info['judul']!,
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _colorDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  info['isi']!,
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    color: _colorTextMuted,
+                    height: 1.55,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -607,134 +744,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 7. BOTTOM NAVIGATION — FIXED (Scaffold.bottomNavigationBar)
-  //
-  //    Disamakan dengan beranda_page.dart:
-  //    - Background abu muda (_colorNavBg), bukan putih polos.
-  //    - Tab aktif: lingkaran putih di belakang ikon (efek elevated/floating)
-  //      + ikon biru + label tebal warna gelap.
-  //    - Tab non-aktif: ikon & label abu-abu polos.
+  // 7. BOTTOM NAVIGATION
+  //    → Digantikan oleh PediaBottomNavBar(selectedIndex: -1) di build().
+  //    → Tidak ada implementasi lokal; semua routing dikelola oleh widget
+  //      terpusat agar konsisten dengan BerandaPage.
   // -------------------------------------------------------------------------
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      height: 64,
-      decoration: const BoxDecoration(
-        color: _colorNavBg,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              icon: Icons.home_rounded,
-              label: 'Beranda',
-              isActive: false,
-              onTap: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const BerandaPage()),
-                  (route) => false,
-                );
-              },
-            ),
-            _buildNavItem(
-              icon: Icons.question_answer_rounded,
-              label: 'Konsultasi',
-              isActive: false,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-              ),
-            ),
-            _buildNavItem(
-              icon: Icons.manage_search_rounded,
-              label: 'Riwayat Konsultasi',
-              isActive: false,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-              ),
-            ),
-            _buildNavItem(
-              icon: Icons.person_outline_rounded,
-              label: 'Profil Ibu',
-              isActive: false,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 80,
-          height: 64,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Lingkaran putih di belakang ikon aktif (efek floating)
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isActive ? _colorWhite : Colors.transparent,
-                  shape: BoxShape.circle,
-                  boxShadow: isActive
-                      ? const [
-                          BoxShadow(
-                            color: Color(0x1F000000),
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: isActive ? _colorActiveNavIcon : _colorNavInactive,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: GoogleFonts.lato(
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                  color: isActive ? _colorDark : _colorNavInactive,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // -------------------------------------------------------------------------
   // HELPER: konversi ResepMpasiModel → ResepMpasi (untuk detail page)

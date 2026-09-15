@@ -41,7 +41,7 @@ void main() {
       // Input elements
       expect(find.byIcon(Icons.add), findsOneWidget);
       expect(find.text('Ketik pesan...'), findsOneWidget);
-      expect(find.byIcon(Icons.call_end_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.comments_disabled_rounded), findsOneWidget);
       expect(find.byIcon(Icons.send_rounded), findsOneWidget);
     });
 

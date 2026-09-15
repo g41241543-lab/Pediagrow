@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,7 +34,7 @@ class MenungguPersetujuanPage extends StatefulWidget {
 }
 
 class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // Palet Warna Resmi PediaGrow & Spesifikasi
   static const Color colorPrimaryBlue = Color(0xFF3985E7);
   static const Color colorGreyDark = Color(0xFF7F7F7F);
@@ -54,12 +55,24 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   Timer? _approvalSimulationTimer;
   Timer? _autoNavTimer;
 
-  // Animation Controllers untuk efek masuk berurutan
-  late AnimationController _animController;
-  late Animation<double> _illustrationFadeAnimation;
-  late Animation<double> _illustrationScaleAnimation;
+  // Timer & State untuk Fase 1 (10 Detik di Tengah)
+  static const int _tenSecInitial = 10;
+  int _tenSecCountdown = _tenSecInitial;
+  Timer? _tenSecTimer;
+  Timer? _tenSecTickTimer;
+
+  // Animation Controllers:
+  // 1. Slow, calm breathing/pulsing animation loop (3000ms)
+  late AnimationController _breathingController;
+  late Animation<double> _breathingScaleAnimation;
+  late Animation<double> _breathingAuraAnimation;
+
+  // 2. Upward push transition controller (1200ms, Curves.easeInOutCubic)
+  late AnimationController _pushUpController;
+  late Animation<double> _pushUpAnimation;
   late Animation<Offset> _cardSlideAnimation;
   late Animation<double> _cardFadeAnimation;
+  late Animation<double> _centerHintFadeAnimation;
 
   @override
   void initState() {
@@ -71,53 +84,101 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     // Resolve data dokter & konsultasi awal
     _resolveData();
 
-    // Konfigurasi animasi masuk berurutan:
-    // 1. Ilustrasi muncul terlebih dahulu (fade-in & scale-in)
-    // 2. Card informasi konsultasi naik dari bawah (slide-up)
-    _animController = AnimationController(
+    // 1. Inisialisasi animasi breathing yang santai & slow (2800ms)
+    _breathingController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 950),
+      duration: const Duration(milliseconds: 2800),
     );
 
-    _illustrationFadeAnimation = CurvedAnimation(
-      parent: _animController,
-      curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
-    );
-
-    _illustrationScaleAnimation = Tween<double>(begin: 0.88, end: 1.0).animate(
+    _breathingScaleAnimation = Tween<double>(begin: 0.96, end: 1.04).animate(
       CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0.0, 0.60, curve: Curves.easeOutBack),
+        parent: _breathingController,
+        curve: Curves.easeInOutSine,
       ),
+    );
+
+    _breathingAuraAnimation = Tween<double>(begin: 0.18, end: 0.42).animate(
+      CurvedAnimation(
+        parent: _breathingController,
+        curve: Curves.easeInOutSine,
+      ),
+    );
+
+    if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+      _breathingController.forward();
+    } else {
+      _breathingController.repeat(reverse: true);
+    }
+
+    // 2. Inisialisasi controller pendorong ke atas (1200ms, Curves.easeInOutCubic)
+    _pushUpController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _pushUpAnimation = CurvedAnimation(
+      parent: _pushUpController,
+      curve: Curves.easeInOutCubic,
     );
 
     _cardSlideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.35),
+      begin: const Offset(0.0, 1.15),
       end: Offset.zero,
-    ).animate(
+    ).animate(_pushUpAnimation);
+
+    _cardFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animController,
-        curve: const Interval(0.30, 1.0, curve: Curves.easeOutCubic),
+        parent: _pushUpController,
+        curve: const Interval(0.20, 1.0, curve: Curves.easeOut),
       ),
     );
 
-    _cardFadeAnimation = CurvedAnimation(
-      parent: _animController,
-      curve: const Interval(0.30, 0.85, curve: Curves.easeOut),
+    _centerHintFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _pushUpController,
+        curve: const Interval(0.0, 0.45, curve: Curves.easeOut),
+      ),
     );
-
-    // Jalankan animasi masuk
-    _animController.forward();
 
     // Mulai countdown jika dalam kondisi waiting
     if (_status == ConsultationStatus.waiting) {
       _startCountdownTimer();
-      // Simulasi persetujuan dokter otomatis (3.5 detik) sesuai alur
-      _approvalSimulationTimer = Timer(const Duration(milliseconds: 3500), () {
+
+      // Countdown 10 detik di tengah layar
+      _tenSecTickTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        if (_tenSecCountdown > 1) {
+          setState(() {
+            _tenSecCountdown--;
+          });
+        } else {
+          timer.cancel();
+        }
+      });
+
+      // Pemicu pendorongan ke atas tepat setelah 10 detik
+      _tenSecTimer = Timer(const Duration(seconds: 10), () {
+        if (!mounted || _status != ConsultationStatus.waiting) return;
+        _triggerPushUp();
+      });
+
+      // Simulasi persetujuan dokter otomatis (dijadwalkan di detik 18 agar ada jeda setelah card naik)
+      _approvalSimulationTimer = Timer(const Duration(seconds: 18), () {
         if (!mounted || _status != ConsultationStatus.waiting) return;
         simulateDoctorAccept();
       });
+    } else {
+      // Jika langsung accepted / expired dari awal, langsung posisikan card di atas
+      _pushUpController.value = 1.0;
     }
+  }
+
+  void _triggerPushUp() {
+    if (!mounted) return;
+    _pushUpController.forward();
   }
 
   @override
@@ -191,7 +252,10 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     _countdownTimer?.cancel();
     _approvalSimulationTimer?.cancel();
     _autoNavTimer?.cancel();
-    _animController.dispose();
+    _tenSecTimer?.cancel();
+    _tenSecTickTimer?.cancel();
+    _breathingController.dispose();
+    _pushUpController.dispose();
     super.dispose();
   }
 
@@ -206,6 +270,14 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     if (!mounted) return;
     _countdownTimer?.cancel();
     _approvalSimulationTimer?.cancel();
+    _tenSecTimer?.cancel();
+    _tenSecTickTimer?.cancel();
+
+    // Selesaikan animasi dorong ke atas secara instan jika belum selesai
+    if (_pushUpController.value < 1.0) {
+      _pushUpController.value = 1.0;
+    }
+
     setState(() {
       _status = ConsultationStatus.accepted;
     });
@@ -226,6 +298,13 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     _countdownTimer?.cancel();
     _approvalSimulationTimer?.cancel();
     _autoNavTimer?.cancel();
+    _tenSecTimer?.cancel();
+    _tenSecTickTimer?.cancel();
+
+    if (_pushUpController.value < 1.0) {
+      _pushUpController.value = 1.0;
+    }
+
     setState(() {
       _status = ConsultationStatus.expired;
       _remainingSeconds = 0;
@@ -299,36 +378,77 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
             _buildFixedHeader(),
 
             // -----------------------------------------------------------------
-            // 2. KONTEN UTAMA: Ilustrasi Dokter & Card Informasi
+            // 2. KONTEN UTAMA: Ilustrasi Dokter & Card Informasi (Koreografi 2-Fase)
             // -----------------------------------------------------------------
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return Column(
-                    children: [
-                      // Area Ilustrasi (Fleksibel & Proporsional)
-                      Expanded(
-                        flex: isCompactScreen ? 3 : 4,
-                        child: Center(
-                          child: FadeTransition(
-                            opacity: _illustrationFadeAnimation,
-                            child: ScaleTransition(
-                              scale: _illustrationScaleAnimation,
-                              child: _buildDoctorIllustration(constraints.maxHeight),
+                  final totalHeight = constraints.maxHeight;
+
+                  return AnimatedBuilder(
+                    animation: Listenable.merge([
+                      _breathingController,
+                      _pushUpController,
+                    ]),
+                    builder: (context, child) {
+                      final t = _pushUpAnimation.value;
+
+                      // Tinggi proporsional ilustrasi dokter
+                      final double illustrationHeight = isCompactScreen
+                          ? (totalHeight * 0.28).clamp(100.0, 150.0)
+                          : (totalHeight * 0.34).clamp(130.0, 200.0);
+
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          // 1. ILUSTRASI DOKTER DENGAN GERAKAN DARI TENGAH KE ATAS
+                          // Pada t = 0 (10 detik awal): tampil tenang di tengah layar
+                          // Pada t = 1 (setelah 10 detik): terdorong mulus ke atas menyesuaikan card
+                          Positioned.fill(
+                            child: Align(
+                              alignment: Alignment.lerp(
+                                const Alignment(0.0, -0.15),
+                                const Alignment(0.0, -0.92),
+                                t,
+                              )!,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Transform.scale(
+                                    scale: _breathingScaleAnimation.value,
+                                    child: _buildDoctorIllustration(
+                                      illustrationHeight,
+                                      _breathingAuraAnimation.value,
+                                    ),
+                                  ),
+                                  if (t < 0.95) ...[
+                                    const SizedBox(height: 14),
+                                    Opacity(
+                                      opacity: (1.0 - (t * 1.5)).clamp(0.0, 1.0),
+                                      child: _buildCenterHint(),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ),
 
-                      // Card Informasi Konsultasi (Slide Up Animation)
-                      SlideTransition(
-                        position: _cardSlideAnimation,
-                        child: FadeTransition(
-                          opacity: _cardFadeAnimation,
-                          child: _buildConsultationCard(isCompactScreen),
-                        ),
-                      ),
-                    ],
+                          // 2. CARD INFORMASI KONSULTASI (SWIPE UP BERSAMAAN SAAT ILUSTRASI NAIK)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: SlideTransition(
+                              position: _cardSlideAnimation,
+                              child: FadeTransition(
+                                opacity: _cardFadeAnimation,
+                                child: _buildConsultationCard(isCompactScreen),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
@@ -393,29 +513,120 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   }
 
   // ===========================================================================
-  // ILUSTRASI DOKTER
+  // ILUSTRASI DOKTER HD & HINT FASE TENGAH
   // ===========================================================================
 
-  Widget _buildDoctorIllustration(double availableHeight) {
-    // Tinggi proporsional agar tidak mendorong card ke bawah
-    final double targetHeight = (availableHeight * 0.38).clamp(110.0, 190.0);
+  Widget _buildDoctorIllustration(double targetHeight, double auraOpacity) {
+    // Lebar ilustrasi sedikit lebih besar dari tinggi agar proporsional dengan
+    // gambar dokter yang memiliki elemen medis melebar ke samping.
+    final double illustrationWidth = targetHeight * 1.15;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: FittedBox(
-        fit: BoxFit.contain,
-        child: SizedBox(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // ─── Aura glow + gambar ilustrasi dokter ───────────────────────────
+        Container(
+          width: illustrationWidth,
           height: targetHeight,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: colorPrimaryBlue.withOpacity(auraOpacity * 0.65),
+                blurRadius: 36,
+                spreadRadius: 6,
+              ),
+            ],
+          ),
           child: Image.asset(
             'assets/images/doctor_waiting_illustration.png',
+            width: illustrationWidth,
+            height: targetHeight,
             fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
             errorBuilder: (context, error, stackTrace) {
-              // Fallback anggun jika aset gambar gagal dimuat
               return _buildVectorIllustrationFallback(targetHeight);
             },
           ),
         ),
-      ),
+
+        // ─── Badge jam (ikon waktu) di pojok kanan atas ilustrasi ──────────
+        Positioned(
+          top: 2,
+          right: 2,
+          child: Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: colorPrimaryBlue,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: colorPrimaryBlue.withOpacity(0.35),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.access_time_rounded,
+                color: Colors.white,
+                size: 17,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCenterHint() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Menghubungkan ke dokter...',
+          style: GoogleFonts.lato(
+            fontSize: 16.5,
+            fontWeight: FontWeight.bold,
+            color: colorTextDark,
+            letterSpacing: -0.2,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEBF5FF),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFC7E2FE)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(colorPrimaryBlue),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Mohon tunggu sebentar (00:${_tenSecCountdown.toString().padLeft(2, '0')})',
+                style: GoogleFonts.lato(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: colorPrimaryBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

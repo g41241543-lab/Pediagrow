@@ -29,7 +29,7 @@ class ProfilDokterPage extends StatelessWidget {
   const ProfilDokterPage({super.key, required this.doctor});
 
   void _onChatDokterPressed(BuildContext context) {
-    // Alur resmi: Profil Dokter → Menunggu Persetujuan (otomatis 3.5s) → Formulir → Chat
+    // Alur resmi: Profil Dokter → Menunggu Persetujuan → Formulir → Chat
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -37,17 +37,20 @@ class ProfilDokterPage extends StatelessWidget {
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOutCubic,
+            curve: Curves.easeInOutCubic,
           );
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
+              begin: const Offset(0.15, 0.0),
               end: Offset.zero,
             ).animate(curved),
-            child: child,
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
           );
         },
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 550),
       ),
     );
   }
