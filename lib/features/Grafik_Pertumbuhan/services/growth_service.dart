@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:pediagrow/features/Grafik_Pertumbuhan/services/who_growth_data.dart';
+
 import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
 import '../../../models/child_model.dart';
@@ -19,7 +21,7 @@ String formatTanggalIndonesia(DateTime date) {
     'September',
     'Oktober',
     'November',
-    'Desember'
+    'Desember',
   ];
   return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
@@ -48,8 +50,9 @@ class GrowthService {
   /// Sinkronisasi titik data awal (saat lahir) untuk setiap anak yang terdaftar
   void _syncWithChildService() {
     final children = ChildService().children;
-    final currentMap =
-        Map<String, List<GrowthRecordModel>>.from(recordsNotifier.value);
+    final currentMap = Map<String, List<GrowthRecordModel>>.from(
+      recordsNotifier.value,
+    );
 
     for (final child in children) {
       if (!currentMap.containsKey(child.id) || currentMap[child.id]!.isEmpty) {
@@ -65,7 +68,8 @@ class GrowthService {
   List<GrowthRecordModel> _generateInitialRecordsForChild(ChildModel child) {
     final List<GrowthRecordModel> records = [];
     final isGirl = child.gender.toLowerCase().contains('perempuan');
-    final birthDate = child.birthDate ??
+    final birthDate =
+        child.birthDate ??
         DateTime.now().subtract(const Duration(days: 365 + 90)); // ~1.2 tahun
 
     // 1. Titik Data Pertama: Saat Lahir (Usia 0 Bulan 0 Hari)
@@ -256,7 +260,8 @@ class GrowthService {
   /// terurut dari termuda ke tertua (cocok untuk plot grafik garis).
   List<GrowthRecordModel> getRecordsForChildOldestFirst(String childId) {
     final list = List<GrowthRecordModel>.from(
-        recordsNotifier.value[childId] ?? <GrowthRecordModel>[]);
+      recordsNotifier.value[childId] ?? <GrowthRecordModel>[],
+    );
     list.sort((a, b) => a.date.compareTo(b.date));
     return list;
   }
@@ -265,7 +270,8 @@ class GrowthService {
   /// terurut dari terbaru ke terlama (cocok untuk tabel riwayat & card).
   List<GrowthRecordModel> getRecordsForChildNewestFirst(String childId) {
     final list = List<GrowthRecordModel>.from(
-        recordsNotifier.value[childId] ?? <GrowthRecordModel>[]);
+      recordsNotifier.value[childId] ?? <GrowthRecordModel>[],
+    );
     list.sort((a, b) => b.date.compareTo(a.date));
     return list;
   }
@@ -279,10 +285,12 @@ class GrowthService {
 
   /// Menambahkan entri pertumbuhan baru
   void addRecord(GrowthRecordModel record) {
-    final currentMap =
-        Map<String, List<GrowthRecordModel>>.from(recordsNotifier.value);
+    final currentMap = Map<String, List<GrowthRecordModel>>.from(
+      recordsNotifier.value,
+    );
     final childList = List<GrowthRecordModel>.from(
-        currentMap[record.childId] ?? <GrowthRecordModel>[]);
+      currentMap[record.childId] ?? <GrowthRecordModel>[],
+    );
 
     childList.add(record);
     currentMap[record.childId] = childList;
@@ -290,14 +298,16 @@ class GrowthService {
 
     // Simpan juga ke database lokal SQLite
     try {
-      LocalDbService().insertGrowthRecord({
-        'child_id': record.childId.hashCode,
-        'tanggal': formatTanggalIndonesia(record.date),
-        'berat_kg': record.weightKg,
-        'tinggi_cm': record.heightCm,
-        'lingkar_kepala_cm': record.headCircumferenceCm,
-        'synced': 0,
-      }).catchError((_) => 0);
+      LocalDbService()
+          .insertGrowthRecord({
+            'child_id': record.childId.hashCode,
+            'tanggal': formatTanggalIndonesia(record.date),
+            'berat_kg': record.weightKg,
+            'tinggi_cm': record.heightCm,
+            'lingkar_kepala_cm': record.headCircumferenceCm,
+            'synced': 0,
+          })
+          .catchError((_) => 0);
     } catch (_) {}
   }
 
@@ -350,7 +360,8 @@ class GrowthService {
     );
 
     // Jika lingkar kepala tidak diisi, gunakan estimasi median WHO
-    final effectiveHead = headCircumferenceCm ??
+    final effectiveHead =
+        headCircumferenceCm ??
         (isGirl
             ? WhoGrowthData.getHeadCircumferenceForAgeGirls(ageMonths).m
             : WhoGrowthData.getHeadCircumferenceForAgeBoys(ageMonths).m);
