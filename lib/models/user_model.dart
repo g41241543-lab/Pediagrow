@@ -4,6 +4,12 @@ class UserModel {
   final String email;
   final String? avatarPath;
   final String? phone;
+  final String? gender;
+  final String? birthDate;
+  final String? province;
+  final String? city;
+  final String? district;
+  final String? subDistrict;
 
   const UserModel({
     required this.id,
@@ -11,6 +17,12 @@ class UserModel {
     required this.email,
     this.avatarPath,
     this.phone,
+    this.gender,
+    this.birthDate,
+    this.province,
+    this.city,
+    this.district,
+    this.subDistrict,
   });
 
   UserModel copyWith({
@@ -19,6 +31,12 @@ class UserModel {
     String? email,
     String? avatarPath,
     String? phone,
+    String? gender,
+    String? birthDate,
+    String? province,
+    String? city,
+    String? district,
+    String? subDistrict,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -26,6 +44,12 @@ class UserModel {
       email: email ?? this.email,
       avatarPath: avatarPath ?? this.avatarPath,
       phone: phone ?? this.phone,
+      gender: gender ?? this.gender,
+      birthDate: birthDate ?? this.birthDate,
+      province: province ?? this.province,
+      city: city ?? this.city,
+      district: district ?? this.district,
+      subDistrict: subDistrict ?? this.subDistrict,
     );
   }
 
@@ -36,6 +60,12 @@ class UserModel {
       'email': email,
       'avatarPath': avatarPath,
       'phone': phone,
+      'gender': gender,
+      'birthDate': birthDate,
+      'province': province,
+      'city': city,
+      'district': district,
+      'subDistrict': subDistrict,
     };
   }
 
@@ -46,6 +76,12 @@ class UserModel {
       email: map['email'] as String? ?? '',
       avatarPath: map['avatarPath'] as String?,
       phone: map['phone'] as String?,
+      gender: map['gender'] as String?,
+      birthDate: map['birthDate'] as String?,
+      province: map['province'] as String?,
+      city: map['city'] as String?,
+      district: map['district'] as String?,
+      subDistrict: map['subDistrict'] as String?,
     );
   }
 }

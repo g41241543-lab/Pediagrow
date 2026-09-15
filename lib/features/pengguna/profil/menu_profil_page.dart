@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -40,7 +41,13 @@ import 'ubah_password_page.dart';
 /// 3. Navigation Bar Tetap (68dp, #F2EDED) di posisi Scaffold:
 ///    - Menu Profil Ibu terpilih dengan bulatan putih dan ikon biru (#72A9F4).
 class MenuProfilPage extends StatefulWidget {
-  const MenuProfilPage({super.key});
+  final bool showSuccessBanner;
+  final String? successMessage;
+  const MenuProfilPage({
+    super.key,
+    this.showSuccessBanner = false,
+    this.successMessage,
+  });
 
   @override
   State<MenuProfilPage> createState() => _MenuProfilPageState();
@@ -52,10 +59,67 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
 
   final ImagePicker _picker = ImagePicker();
 
-  void _navigateTo(Widget page) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => page),
-    );
+  String _successBannerMessage = 'Berhasil Memperbarui Profil';
+  bool _isSuccessBannerVisible = false;
+  Timer? _bannerTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showSuccessBanner) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _triggerSuccessBanner(
+          message: widget.successMessage ?? 'Berhasil Memperbarui Profil',
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _bannerTimer?.cancel();
+    super.dispose();
+  }
+
+  void _triggerSuccessBanner({String message = 'Berhasil Memperbarui Profil'}) {
+    _bannerTimer?.cancel();
+    setState(() {
+      _successBannerMessage = message;
+    });
+
+    // Animasi after delay / timer otomatis masuk halus
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (!mounted) return;
+      setState(() {
+        _isSuccessBannerVisible = true;
+      });
+
+      // Banner otomatis menghilang setelah durasi 1 menit (60 detik)
+      _bannerTimer = Timer(const Duration(minutes: 1), () {
+        _hideSuccessBanner();
+      });
+    });
+  }
+
+  void _hideSuccessBanner() {
+    _bannerTimer?.cancel();
+    if (mounted && _isSuccessBannerVisible) {
+      setState(() {
+        _isSuccessBannerVisible = false;
+      });
+    }
+  }
+
+  void _navigateTo(Widget page) async {
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => page));
+    if (result != null && mounted) {
+      if (result is String && result.isNotEmpty) {
+        _triggerSuccessBanner(message: result);
+      } else if (result == true) {
+        _triggerSuccessBanner(message: 'Berhasil Memperbarui Profil');
+      }
+    }
   }
 
   void _onNavTap(int index) {
@@ -186,17 +250,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
         UserService().updateAvatar(pickedFile.path);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Foto profil berhasil diperbarui!',
-                style: GoogleFonts.lato(color: Colors.white),
-              ),
-              backgroundColor: const Color(0xFF3985E7),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          _triggerSuccessBanner(message: 'Berhasil Memperbarui Foto Profil.');
         }
       }
     } catch (e) {
@@ -221,78 +275,142 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
       backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
-        child: Column(
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            // ---------------------------------------------------------------
-            // 1. HEADER TETAP DI POSISI ATAS (56dp)
-            // ---------------------------------------------------------------
-            _buildFixedHeader(),
+            Column(
+              children: [
+                // ---------------------------------------------------------------
+                // 1. HEADER TETAP DI POSISI ATAS (56dp)
+                // ---------------------------------------------------------------
+                _buildFixedHeader(),
 
-            // ---------------------------------------------------------------
-            // 2. KONTEN SCROLLABLE (KARTU PROFIL + DAFTAR MENU + ILUSTRASI)
-            // ---------------------------------------------------------------
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 12),
+                // ---------------------------------------------------------------
+                // 2. KONTEN SCROLLABLE (KARTU PROFIL + DAFTAR MENU + ILUSTRASI)
+                // ---------------------------------------------------------------
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: 12),
 
-                            // Kartu Profil Ibu (Avatar Bulat + Nama Lengkap Dinamis)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              child: _buildProfileCard(),
+                                // Kartu Profil Ibu (Avatar Bulat + Nama Lengkap Dinamis)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
+                                  child: _buildProfileCard(),
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // Garis pembatas tipis di bawah kartu profil
+                                const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: Color(0xFFF1F5F9),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Daftar 5 Menu Vertikal
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
+                                  child: _buildMenuList(),
+                                ),
+
+                                // Spacer fleksibel agar ilustrasi menempel di bagian bawah
+                                const Spacer(),
+
+                                // Ilustrasi Pemandangan Hutan/Rumput/Tenda Reusable
+                                const IllustrationForestFooter(
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ],
                             ),
-
-                            const SizedBox(height: 16),
-
-                            // Garis pembatas tipis di bawah kartu profil
-                            const Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: Color(0xFFF1F5F9),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            // Daftar 5 Menu Vertikal
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              child: _buildMenuList(),
-                            ),
-
-                            // Spacer fleksibel agar ilustrasi menempel di bagian bawah
-                            const Spacer(),
-
-                            // Ilustrasi Pemandangan Hutan/Rumput/Tenda Reusable
-                            const IllustrationForestFooter(
-                              fit: BoxFit.fitWidth,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
+
+            // ---------------------------------------------------------------
+            // 3. SUCCESS NOTIFICATION BANNER (MELAYANG DI ATAS KONTEN)
+            // ---------------------------------------------------------------
+            _buildSuccessBanner(),
           ],
         ),
       ),
       // Navigation Bar tetap di posisi Scaffold
       bottomNavigationBar: _buildFixedNavBar(),
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // SUCCESS BANNER (NOTIFIKASI BERHASIL MEMPERBARUI PROFIL)
+  // -------------------------------------------------------------------------
+  Widget _buildSuccessBanner() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.easeInOut,
+      top: _isSuccessBannerVisible ? 62.0 : -70.0,
+      left: 16.0,
+      right: 16.0,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 100),
+        opacity: _isSuccessBannerVisible ? 1.0 : 0.0,
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3985E7),
+            borderRadius: BorderRadius.circular(17),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3985E7).withOpacity(0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                _successBannerMessage,
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFFFFFFF),
+                ),
+              ),
+              InkWell(
+                onTap: _hideSuccessBanner,
+                borderRadius: BorderRadius.circular(12),
+                child: const Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: Icon(Icons.close, size: 20, color: Color(0xFF000000)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -524,11 +642,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
               child: Row(
                 children: [
                   // Icon Outline sebelah kiri (warna #000000, ukuran 22-24dp)
-                  Icon(
-                    icon,
-                    size: 22,
-                    color: const Color(0xFF000000),
-                  ),
+                  Icon(icon, size: 22, color: const Color(0xFF000000)),
                   const SizedBox(width: 14),
 
                   // Label Teks Nama Menu (font Lato reguler 18, warna #000000)
@@ -555,11 +669,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
           ),
         ),
         if (showDivider)
-          const Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0xFFF1F5F9),
-          ),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
       ],
     );
   }
@@ -573,18 +683,12 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   Widget _buildFixedNavBar() {
     final navItems = [
       _NavigationData(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavigationData(
-        icon: Icons.question_answer_rounded,
-        label: 'Konsultasi',
-      ),
+      _NavigationData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
       _NavigationData(
         icon: Icons.manage_search_rounded,
         label: 'Riwayat Konsultasi',
       ),
-      _NavigationData(
-        icon: Icons.person_outline_rounded,
-        label: 'Profil Ibu',
-      ),
+      _NavigationData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
     ];
 
     return Container(
@@ -651,11 +755,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     ),
                   ] else ...[
                     // State tidak aktif: icon & label abu-abu #9E9E9E
-                    Icon(
-                      item.icon,
-                      size: 24,
-                      color: const Color(0xFF9E9E9E),
-                    ),
+                    Icon(item.icon, size: 24, color: const Color(0xFF9E9E9E)),
                     const SizedBox(height: 3),
                     Text(
                       item.label,

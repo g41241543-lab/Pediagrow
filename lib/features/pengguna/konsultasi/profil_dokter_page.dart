@@ -163,10 +163,7 @@ class ProfilDokterPage extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0C000000),
@@ -203,13 +200,13 @@ class ProfilDokterPage extends StatelessWidget {
 
               const SizedBox(height: 22),
 
-              // Baris Statistik: Pengalaman & No. STR dipisahkan garis vertikal
+              // Baris Statistik: Pengalaman (digeser ke kiri) & No. STR (di sisi kanan) tanpa garis pemisah
               Row(
                 children: [
-                  // Sisi Kiri: Pengalaman Kerja
+                  // Sisi kiri: Pengalaman Kerja (rata kiri)
                   Expanded(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Container(
                           width: 36,
@@ -253,17 +250,10 @@ class ProfilDokterPage extends StatelessWidget {
                     ),
                   ),
 
-                  // Garis Pemisah Vertikal
-                  Container(
-                    width: 1,
-                    height: 38,
-                    color: const Color(0xFFE2E8F0),
-                  ),
-
-                  // Sisi Kanan: No. STR
+                  // No. STR (rata kiri di sisi kanan)
                   Expanded(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Container(
                           width: 36,
@@ -326,10 +316,7 @@ class ProfilDokterPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  border: Border.all(
-                    color: const Color(0xFFE2E8F0),
-                    width: 2,
-                  ),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x12000000),
@@ -338,9 +325,7 @@ class ProfilDokterPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: ClipOval(
-                  child: _buildAvatarImage(),
-                ),
+                child: ClipOval(child: _buildAvatarImage()),
               ),
               // Indikator Titik Hijau di sudut atas kanan avatar
               Positioned(
@@ -352,10 +337,7 @@ class ProfilDokterPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFF10B981),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2.2,
-                    ),
+                    border: Border.all(color: Colors.white, width: 2.2),
                   ),
                 ),
               ),
@@ -375,10 +357,7 @@ class ProfilDokterPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -480,7 +459,7 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Chat Dokter',
+                'Konsultasi Sekarang',
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

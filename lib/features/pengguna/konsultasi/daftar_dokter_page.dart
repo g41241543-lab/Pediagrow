@@ -264,7 +264,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             ),
           ),
           const SizedBox(width: 12),
-          // Ikon Notifikasi Lonceng di kanan atas (31x31dp)
+          // Lingkaran Notifikasi (31×31, #FFFFFF) sama persis dengan beranda_page.dart
           GestureDetector(
             onTap: () {
               Navigator.of(context).push(
@@ -272,15 +272,18 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               );
             },
             child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+              width: 31,
+              height: 31,
+              decoration: const BoxDecoration(
+                color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFE2E8F0),
-                  width: 1,
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x1F000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               alignment: Alignment.center,
               child: const Icon(
