@@ -169,6 +169,9 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
   void _onSelectChild(ChildModel child) async {
     setState(() => _tappedChildId = child.id);
 
+    // Set child yang dipilih sebagai active child di ChildService
+    ChildService().setActiveChild(child);
+
     // Efek feedback singkat
     await Future.delayed(const Duration(milliseconds: 120));
 

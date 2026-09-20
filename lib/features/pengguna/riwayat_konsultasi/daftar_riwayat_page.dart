@@ -78,46 +78,43 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     );
   }
 
-  /// Penanganan tombol kembali pada header
+  /// Penanganan tombol kembali pada header -> selalu kembali ke Beranda
   void _handleBack() {
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    } else {
-      // Jika halaman dibuka langsung dari menu tab dan tidak ada stack navigasi,
-      // kembali ke Beranda untuk pengalaman navigasi yang intuitif
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const BerandaPage(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
-        ),
-      );
-    }
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const BerandaPage()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      // 1. Custom Header permanen di paling atas
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: RiwayatHeader(
-          title: 'Riwayat Konsultasi',
-          onBackPressed: _handleBack,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        // 1. Custom Header permanen di paling atas
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: RiwayatHeader(
+            title: 'Riwayat Konsultasi',
+            onBackPressed: _handleBack,
+          ),
         ),
-      ),
-      // 2. Konten Utama Scrollable
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: _riwayatList.isEmpty ? _buildEmptyView() : _buildPopulatedView(),
-      ),
-      // 3. Bottom Navigation Bar permanen
-      bottomNavigationBar: const PediaBottomNavBar(
-        selectedIndex: 2,
+        // 2. Konten Utama Scrollable
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child:
+              _riwayatList.isEmpty ? _buildEmptyView() : _buildPopulatedView(),
+        ),
+        // 3. Bottom Navigation Bar permanen
+        bottomNavigationBar: const PediaBottomNavBar(
+          selectedIndex: 2,
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/features/pengguna/beranda/beranda_page.dart';
+import 'package:pediagrow/features/pengguna/profil/profil_ibu_page.dart';
 
 void main() {
   testWidgets('BerandaPage verification: text, card widths, and images', (
@@ -138,6 +139,36 @@ void main() {
 
     final footerFinder = find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg');
     expect(footerFinder, findsOneWidget);
+  });
+
+  testWidgets('BerandaPage shows Lengkapi Profil Ibu banner and navigates to ProfilIbuPage', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: BerandaPage(showLengkapiProfilBanner: true),
+      ),
+    );
+
+    // Initial pump and delay for banner entrance animation
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Verify banner text is present
+    expect(find.text('Silahkan lengkapi profil ibu'), findsOneWidget);
+
+    // Verify '>' icon button is present
+    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+
+    // Tap the banner
+    await tester.tap(find.text('Silahkan lengkapi profil ibu'));
+    await tester.pumpAndSettle();
+
+    // Verify navigation to ProfilIbuPage
+    expect(find.byType(ProfilIbuPage), findsOneWidget);
   });
 }
 

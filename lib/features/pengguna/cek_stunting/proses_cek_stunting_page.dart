@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
 import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
@@ -131,19 +132,22 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     super.dispose();
   }
 
+  /// Inisialisasi data form dari widget.child; jika null fallback ke
+  /// anak aktif di [ChildService].
   void _setupInitialData() {
-    if (widget.child != null) {
-      _namaController.text = widget.child!.name;
-      _jenisKelamin = widget.child!.gender;
-      if (widget.child!.birthDate != null) {
-        _birthDate = widget.child!.birthDate!;
+    final effectiveChild = widget.child ?? ChildService().activeChild;
+    if (effectiveChild != null) {
+      _namaController.text = effectiveChild.name;
+      _jenisKelamin = effectiveChild.gender;
+      if (effectiveChild.birthDate != null) {
+        _birthDate = effectiveChild.birthDate!;
       }
-      if (widget.child!.weightKg != null) {
-        _beratLahirController.text = widget.child!.weightKg.toString();
+      if (effectiveChild.weightKg != null) {
+        _beratLahirController.text = effectiveChild.weightKg.toString();
       }
-      if (widget.child!.heightCm != null) {
+      if (effectiveChild.heightCm != null) {
         _tinggiLahirController.text =
-            widget.child!.heightCm.toString().replaceAll('.0', '');
+            effectiveChild.heightCm.toString().replaceAll('.0', '');
       }
     }
   }
