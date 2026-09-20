@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/features/pengguna/artikel/artikel_kesehatan_page.dart';
 import 'package:pediagrow/features/pengguna/detail/detail_artikel_page.dart';
 import 'package:pediagrow/models/artikel_model.dart';
-import 'package:pediagrow/shared/widgets/illustration_forest_footer.dart';
 import 'package:pediagrow/shared/widgets/pedia_bottom_nav_bar.dart';
 
 void main() {

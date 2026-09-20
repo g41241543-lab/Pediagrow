@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -15,16 +16,15 @@ import '../mpasi/daftar_resep_page.dart';
 import '../artikel/artikel_kesehatan_page.dart';
 import '../fasyankes/lokasi_fasyankes_page.dart';
 import '../game_edukasi/game_mulai_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
-import '../profil/menu_profil_page.dart';
 import '../profil/profil_ibu_page.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../core/services/artikel_service.dart';
 import '../../../models/artikel_model.dart';
 import '../detail/detail_artikel_page.dart';
 import '../../../core/services/youtube_service.dart';
 import '../../../models/youtube_video_model.dart';
 import 'widgets/youtube_player_sheet.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -46,7 +46,6 @@ class BerandaPage extends StatefulWidget {
 
 class _BerandaPageState extends State<BerandaPage>
     with SingleTickerProviderStateMixin {
-  int _selectedNavIndex = 0;
 
   late AnimationController _ellipseController;
   late Animation<double> _ellipsePulse;
@@ -77,22 +76,9 @@ class _BerandaPageState extends State<BerandaPage>
 
     if (widget.showAddSuccessSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Profil anak berhasil ditambahkan',
-              style: GoogleFonts.lato(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            duration: const Duration(seconds: 3),
-          ),
+        PediaBanner.showSuccess(
+          context,
+          message: 'Profil anak berhasil ditambahkan',
         );
       });
     }
@@ -218,23 +204,6 @@ class _BerandaPageState extends State<BerandaPage>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
-  void _onNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-    switch (index) {
-      case 0:
-        setState(() => _selectedNavIndex = 0);
-        break;
-      case 1:
-        _navigateTo(const DaftarDokterPage());
-        break;
-      case 2:
-        _navigateTo(const DaftarRiwayatPage());
-        break;
-      case 3:
-        _navigateTo(const MenuProfilPage());
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -2172,98 +2141,7 @@ class _BerandaPageState extends State<BerandaPage>
   // Beranda aktif: bulatan putih dengan ikon biru #72A9F4 di dalamnya
   // ===================================================================
   Widget _buildFixedNavBar() {
-    final navItems = [
-      _NavData(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(navItems.length, (i) {
-          final isSelected = i == _selectedNavIndex;
-          final item = navItems[i];
-
-          return GestureDetector(
-            onTap: () => _onNavTap(i),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 80,
-              height: 68,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSelected) ...[
-                    // State aktif: lingkaran putih dengan icon biru #72A9F4
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x1A000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        item.icon,
-                        size: 24,
-                        color: const Color(0xFF72A9F4),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        color: const Color(0xFF1E293B),
-                      ),
-                    ),
-                  ] else ...[
-                    // State tidak aktif: icon & label abu-abu #9E9E9E
-                    Icon(item.icon, size: 24, color: const Color(0xFF9E9E9E)),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        color: const Color(0xFF9E9E9E),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
+    return const PediaBottomNavBar(selectedIndex: 0);
   }
 }
 
@@ -2271,12 +2149,7 @@ class _BerandaPageState extends State<BerandaPage>
 // DATA MODELS & HELPER WIDGETS
 // =====================================================================
 
-class _NavData {
-  final IconData icon;
-  final String label;
 
-  const _NavData({required this.icon, required this.label});
-}
 
 /// Widget elips dekoratif dengan efek Gaussian blur
 class _BlurredEllipse extends StatelessWidget {

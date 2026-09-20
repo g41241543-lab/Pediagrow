@@ -265,44 +265,47 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   }
 
   // ===========================================================================
-  // 2. SEARCH BAR "CARI LOKASI" (Keyboard-Aware & Rounded)
+  // 2. SEARCH BAR "CARI LOKASI FASYANKES" — Sama dengan Halaman Resep MPASI
   // ===========================================================================
   Widget _buildSearchBarSection() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Container(
-        height: 44,
+        height: 48,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFD1D5DB), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: const Color(0xFFF1F2F6),
+          borderRadius: BorderRadius.circular(20),
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(width: 16),
+            const Icon(
+              Icons.search_rounded,
+              size: 22,
+              color: Color(0xFF9E9E9E),
+            ),
+            const SizedBox(width: 10),
             Expanded(
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                onChanged: _onSearchChanged,
+                onChanged: (val) {
+                  setState(() {});
+                  _onSearchChanged(val);
+                },
                 textInputAction: TextInputAction.search,
                 style: GoogleFonts.lato(
                   fontSize: 15,
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFF000000),
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Cari Lokasi',
+                  hintText: 'Cari Lokasi Fasyankes',
                   hintStyle: GoogleFonts.lato(
-                    fontSize: 14,
-                    color: const Color(0xFF9CA3AF),
+                    fontSize: 15,
+                    color: const Color(0xFFA0A0A0),
+                    fontWeight: FontWeight.w400,
                   ),
                   border: InputBorder.none,
                   isDense: true,
@@ -311,19 +314,20 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
               ),
             ),
             if (_searchController.text.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF9CA3AF)),
-                onPressed: _clearSearch,
-                splashRadius: 16,
+              GestureDetector(
+                onTap: () {
+                  setState(() {});
+                  _clearSearch();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: Color(0xFF9E9E9E),
+                  ),
+                ),
               ),
-            const Padding(
-              padding: EdgeInsets.only(right: 14),
-              child: Icon(
-                Icons.search_rounded,
-                size: 22,
-                color: Color(0xFF6B7280),
-              ),
-            ),
           ],
         ),
       ),

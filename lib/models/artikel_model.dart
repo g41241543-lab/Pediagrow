@@ -64,20 +64,26 @@ class ArtikelModel {
       return [];
     }
 
+    final image = (map['image_url'] ?? map['gambar_url'] ?? map['asset_image_path']) as String?;
+    final dateStr = (map['tanggal'] ?? map['dibuat_pada'])?.toString() ?? '';
+    final summary = (map['deskripsi'] ?? map['ringkasan'] ?? map['pengertian']) as String?;
+    final fullContent = (map['isi_lengkap'] ?? map['isi'] ?? summary) as String? ?? '';
+
     return ArtikelModel(
       id: (map['id'] as num?)?.toInt(),
-      judul: map['judul'] as String? ?? '',
-      kategori: map['kategori'] as String? ?? 'Artikel',
+      judul: (map['judul'] as String?) ?? '',
+      kategori: (map['kategori'] as String?) ?? 'Artikel',
       subKategori: parseSubKategori(map['sub_kategori']),
-      tanggal: map['tanggal'] as String? ?? '',
+      tanggal: dateStr,
       assetImagePath: map['asset_image_path'] as String?,
-      imageUrl: map['image_url'] as String?,
-      penulis: map['penulis'] as String? ?? 'Pego',
-      deskripsi: map['deskripsi'] as String?,
-      pengertian: map['pengertian'] as String?,
-      isiLengkap: map['isi_lengkap'] as String? ?? '',
+      imageUrl: image,
+      penulis: (map['penulis'] as String?) ?? 'Pego',
+      deskripsi: summary,
+      pengertian: (map['pengertian'] as String?) ?? summary,
+      isiLengkap: fullContent,
     );
   }
+
 
   /// Konversi ke Map SQLite
   Map<String, dynamic> toMap() {

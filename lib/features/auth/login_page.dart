@@ -3,10 +3,19 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pediagrow/core/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/services/user_service.dart';
+import '../../core/services/child_service.dart';
+import '../../models/user_model.dart';
+
+import '../../core/services/google_auth_service.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
+import 'widgets/google_auth_dialog.dart';
 import '../pengguna/beranda/beranda_page.dart';
+import '../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Masuk (Login Page) PediaGrow.
 ///
@@ -47,6 +56,9 @@ class _LoginPageState extends State<LoginPage> {
   // Toggle visibilitas kata sandi
   bool _obscurePassword = true;
 
+  // Loading state saat Google Sign-In sedang diproses
+  bool _isGoogleLoading = false;
+
   // Mode validasi otomatis setelah tombol Masuk pertama kali ditekan
   AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
 
@@ -66,27 +78,70 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Berhasil masuk! Mengalihkan ke beranda...'),
-          backgroundColor: Color(0xFF3985E7),
-          duration: Duration(milliseconds: 1500),
-        ),
+      final hasil = await ApiService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
-          ),
-          (route) => false,
+      if (!mounted) return;
+
+      if (hasil['status'] == 'sukses') {
+        final int idAkun = int.tryParse(hasil['id']?.toString() ?? '0') ?? 0;
+        final String namaUser = hasil['nama']?.toString() ?? 'Pengguna';
+        final String emailUser = (hasil['email']?.toString() ?? _emailController.text).trim();
+        final String? fotoUrl = hasil['foto_url']?.toString();
+
+        // Simpan token & profil pengguna ke SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', hasil['token']?.toString() ?? '');
+        await prefs.setString('peran', hasil['peran']?.toString() ?? 'orang_tua');
+        await prefs.setInt('id_akun', idAkun);
+        await prefs.setString('nama', namaUser);
+        await prefs.setString('email', emailUser);
+        if (fotoUrl != null) {
+          await prefs.setString('foto_url', fotoUrl);
+        }
+
+        // Perbarui UserService reaktif agar profil di UI langsung sesuai akun database
+        UserService().currentUserNotifier.value = UserModel(
+          id: idAkun.toString(),
+          name: namaUser,
+          email: emailUser,
+          avatarPath: fotoUrl,
         );
-      });
+
+        // Muat data profil anak milik user dari database MySQL
+        if (idAkun > 0) {
+          await ChildService().loadChildrenFromApi(idAkun);
+        }
+
+        if (!mounted) return;
+
+        PediaBanner.showSuccess(
+          context,
+          message: 'Berhasil masuk! Mengalihkan ke beranda...',
+        );
+
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (!mounted) return;
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+            ),
+            (route) => false,
+          );
+        });
+
+      } else {
+        PediaBanner.showError(
+          context,
+          message: hasil['pesan'] ?? 'Email atau kata sandi salah.',
+        );
+      }
     } else {
       setState(() {
         _autoValidateMode = AutovalidateMode.onUserInteraction;
@@ -94,160 +149,77 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _showGoogleAccountPicker() {
+  /// Memulai alur Google Sign-In menggunakan [GoogleAuthService].
+  /// Menampilkan native OS account picker — pengguna memilih akun Google
+  /// yang terdaftar di perangkat mereka sendiri.
+  Future<void> _handleGoogleSignIn() async {
     FocusScope.of(context).unfocus();
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const _GoogleGLogo(size: 24),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Pilih akun Google',
-                      style: GoogleFonts.lato(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E293B),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'untuk masuk ke PediaGrow',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    color: const Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildGoogleAccountTile(
-                  ctx: ctx,
-                  name: 'Pengguna PediaGrow',
-                  email: 'pengguna.pediagrow@gmail.com',
-                  initial: 'P',
-                  avatarColor: const Color(0xFF3985E7),
-                ),
-                const Divider(height: 1),
-                _buildGoogleAccountTile(
-                  ctx: ctx,
-                  name: 'Bunda Ceria',
-                  email: 'bunda.ceria@gmail.com',
-                  initial: 'B',
-                  avatarColor: const Color(0xFF3CC3A6),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFF1F5F9),
-                    child: Icon(
-                      Icons.person_add_alt_1_outlined,
-                      color: Color(0xFF475569),
-                    ),
-                  ),
-                  title: Text(
-                    'Gunakan akun lain',
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1E293B),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _completeGoogleSignIn('Akun Google Baru');
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
+    if (_isGoogleLoading) return; // Cegah double-tap
+
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      final result = await GoogleAuthService().signIn();
+
+      if (!mounted) return;
+
+      if (result.isCancelled) {
+        // Pengguna membatalkan dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Masuk dengan Google dibatalkan.',
+              style: GoogleFonts.lato(color: Colors.white),
             ),
+            backgroundColor: const Color(0xFF64748B),
+            duration: const Duration(seconds: 2),
           ),
         );
-      },
-    );
-  }
+        return;
+      }
 
-  Widget _buildGoogleAccountTile({
-    required BuildContext ctx,
-    required String name,
-    required String email,
-    required String initial,
-    required Color avatarColor,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
-      leading: CircleAvatar(
-        backgroundColor: avatarColor,
-        child: Text(
-          initial,
-          style: GoogleFonts.lato(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+      if (!result.isSuccess) {
+        showGoogleAuthErrorDialog(
+          context,
+          errorMessage: result.errorMessage ?? 'Gagal masuk dengan Google.',
+          statusCode: result.statusCode,
+        );
+        return;
+      }
+
+      final account = result.account!;
+
+      // Berhasil — tampilkan pesan sambutan lalu navigasi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Selamat datang, ${account.displayName ?? account.email}!',
+            style: GoogleFonts.lato(color: Colors.white),
           ),
+          backgroundColor: const Color(0xFF3985E7),
+          duration: const Duration(milliseconds: 1500),
         ),
-      ),
-      title: Text(
-        name,
-        style: GoogleFonts.lato(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-          color: const Color(0xFF1E293B),
-        ),
-      ),
-      subtitle: Text(
-        email,
-        style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
-      ),
-      onTap: () {
-        Navigator.of(ctx).pop();
-        _completeGoogleSignIn(email);
-      },
-    );
-  }
+      );
 
-  void _completeGoogleSignIn(String account) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Berhasil masuk dengan Google: $account'),
-        backgroundColor: const Color(0xFF3985E7),
-        duration: const Duration(milliseconds: 1500),
-      ),
-    );
-
-    Future.delayed(const Duration(milliseconds: 600), () {
+      await Future.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
         ),
         (route) => false,
       );
-    });
+    } catch (e) {
+      if (!mounted) return;
+      showGoogleAuthErrorDialog(
+        context,
+        errorMessage: 'Gagal masuk dengan Google: $e',
+      );
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
+    }
   }
 
   @override
@@ -465,7 +437,9 @@ class _LoginPageState extends State<LoginPage> {
                             height: 46.0,
                             child: OutlinedButton(
                               key: const Key('google_login_button'),
-                              onPressed: _showGoogleAccountPicker,
+                              // Gunakan _handleGoogleSignIn() yang real; nonaktifkan saat loading
+                              onPressed:
+                                  _isGoogleLoading ? null : _handleGoogleSignIn,
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
@@ -481,24 +455,37 @@ class _LoginPageState extends State<LoginPage> {
                                   borderRadius: BorderRadius.circular(26),
                                 ),
                               ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const _GoogleGLogo(size: 24),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'Masuk dengan Google',
-                                      style: GoogleFonts.lato(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF000000),
+                              child: _isGoogleLoading
+                                  // Loading spinner saat menunggu Google account picker
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF3985E7),
+                                        ),
+                                      ),
+                                    )
+                                  : FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const _GoogleGLogo(size: 24),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'Masuk dengan Google',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF000000),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
                             ),
                           ),
                         ),

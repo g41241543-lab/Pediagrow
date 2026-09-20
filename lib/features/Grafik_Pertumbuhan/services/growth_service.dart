@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:pediagrow/features/Grafik_Pertumbuhan/services/who_growth_data.dart';
 
+import '../../../core/services/api_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
 import '../../../models/child_model.dart';
@@ -282,6 +283,25 @@ class GrowthService {
     if (list.isNotEmpty) return list.first;
     return null;
   }
+
+  /// Memuat riwayat pengukuran dari database MySQL untuk anak tertentu
+  Future<void> loadRecordsFromApi(String childId) async {
+    final childIdInt = int.tryParse(childId);
+    if (childIdInt == null || childIdInt <= 0) return;
+
+    try {
+      final remoteRecords = await ApiService.getGrowthRecords(childIdInt);
+      if (remoteRecords.isNotEmpty) {
+        final models = remoteRecords.map((m) => GrowthRecordModel.fromMap(m)).toList();
+        final currentMap = Map<String, List<GrowthRecordModel>>.from(recordsNotifier.value);
+        currentMap[childId] = models;
+        recordsNotifier.value = currentMap;
+      }
+    } catch (e) {
+      debugPrint('GrowthService.loadRecordsFromApi error: $e');
+    }
+  }
+
 
   /// Menambahkan entri pertumbuhan baru
   void addRecord(GrowthRecordModel record) {

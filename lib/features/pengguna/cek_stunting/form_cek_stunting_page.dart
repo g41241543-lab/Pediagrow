@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
+import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
@@ -11,6 +12,7 @@ import 'hasil_cek_stunting_page.dart';
 import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Formulir Cek Stunting PediaGrow.
 ///
@@ -249,6 +251,18 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     if (_isAnalyzing) return;
     FocusScope.of(context).unfocus();
 
+    // ── Cek Batas 2x per Bulan per Anak ─────────────────────────────────────
+    final childId = widget.child?.id ?? 'default';
+    if (!StuntingLimitService().canCheck(childId)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     bool isValid = true;
     String? beratErr;
     String? tinggiErr;
@@ -296,34 +310,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     });
 
     if (!isValid) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  color: Colors.white, size: 22),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: colorDangerRed,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 3),
-        ),
+      PediaBanner.showError(
+        context,
+        message: 'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
       );
       return;
     }
@@ -409,6 +398,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
         } catch (_) {}
 
         resultHolder = result;
+
+        // Catat satu sesi cek berhasil ke limit service
+        StuntingLimitService().recordCheck(childId);
       },
     );
 

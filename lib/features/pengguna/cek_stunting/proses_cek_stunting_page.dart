@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/api_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
+import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
@@ -12,6 +15,7 @@ import 'hasil_cek_stunting_page.dart';
 import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Proses Cek Stunting PediaGrow
 ///
@@ -184,6 +188,18 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     if (_isAnalyzing) return;
     FocusScope.of(context).unfocus();
 
+    // ── Cek Batas 2x per Bulan per Anak ───────────────────────────────────
+    final childId = widget.child?.id ?? 'default';
+    if (!StuntingLimitService().canCheck(childId)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     bool isValid = true;
     String? bErr;
     String? tErr;
@@ -229,17 +245,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     });
 
     if (!isValid) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
-            style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: colorDangerRed,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      PediaBanner.showError(
+        context,
+        message: 'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
       );
       return;
     }
@@ -256,6 +264,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     required double currentHeight,
   }) async {
     setState(() => _isAnalyzing = true);
+    final childId = widget.child?.id ?? 'default';
 
     final inputData = StuntingInputData(
       namaAnak: _namaController.text.trim(),
@@ -278,17 +287,40 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           // Menjalankan inferensi model Random Forest & GridSearchCV (REST API / Local Engine)
           resultHolder = await StuntingMlService.predict(inputData);
 
-          // Simpan ke database lokal SQLite jika tersedia
+          // Simpan ke database MySQL tabel data_pertumbuhan
+          final childIdInt = int.tryParse(widget.child?.id ?? '1') ?? 1;
+          final statusLabel = resultHolder?.status ?? 'Normal';
+          final formattedDate = _formatDate(_checkDate);
+
           try {
-            await LocalDbService().insertGrowthRecord({
-              'child_id': 1,
-              'tanggal': _formatDate(_checkDate),
+            final prefs = await SharedPreferences.getInstance();
+            final idAkun = prefs.getInt('id_akun');
+            await ApiService.addGrowthRecord({
+              'id_anak': childIdInt,
+              'tanggal': formattedDate,
               'berat_kg': currentWeight,
               'tinggi_cm': currentHeight,
               'lingkar_kepala_cm': 0.0,
-              'synced': 0,
+              'status_stunting': statusLabel,
+              'hasil_prediksi_ai': statusLabel,
+              'dicatat_oleh': idAkun,
+            });
+          } catch (e) {
+            debugPrint('Gagal simpan growth record ke MySQL: $e');
+          }
+
+          // Simpan ke database lokal SQLite jika tersedia
+          try {
+            await LocalDbService().insertGrowthRecord({
+              'child_id': childIdInt,
+              'tanggal': formattedDate,
+              'berat_kg': currentWeight,
+              'tinggi_cm': currentHeight,
+              'lingkar_kepala_cm': 0.0,
+              'synced': 1,
             }).catchError((_) => 0);
           } catch (_) {}
+
 
           // Catat ke GrowthService agar titik baru langsung muncul di Grafik Pertumbuhan
           try {
@@ -301,6 +333,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               );
             }
           } catch (_) {}
+
+          // Catat satu sesi cek berhasil ke limit service
+          StuntingLimitService().recordCheck(childId);
         } catch (e) {
           debugPrint('Error saat prediksi: $e');
         }

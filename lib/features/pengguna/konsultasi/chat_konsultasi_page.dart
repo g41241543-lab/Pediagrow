@@ -10,6 +10,7 @@ import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'konfirmasi_selesai_dialog.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Chat Konsultasi Dokter PediaGrow.
 ///
@@ -1008,7 +1009,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -1027,12 +1028,14 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                         color: Color(0xFF2D3748),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        item['title'] ?? 'Formulir Keluhan Pasien',
-                        style: GoogleFonts.lato(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: colorTextPrimary,
+                      Flexible(
+                        child: Text(
+                          item['title'] ?? 'Formulir Keluhan Pasien',
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorTextPrimary,
+                          ),
                         ),
                       ),
                     ],
@@ -1587,11 +1590,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih file: $e', style: GoogleFonts.lato()),
-            backgroundColor: Colors.red,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal memilih file: $e',
         );
       }
     }

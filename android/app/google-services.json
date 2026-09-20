@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "174123262665",
+    "project_id": "pediagrow-4f285",
+    "storage_bucket": "pediagrow-4f285.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:174123262665:android:1288819ffcb385440e2318",
+        "android_client_info": {
+          "package_name": "com.example.pediagrow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAb-Z55X4EqFZkKES8YIJHSViqk3tKJ1DU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

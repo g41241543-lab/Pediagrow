@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../models/artikel_model.dart';
+import 'api_service.dart';
 
 /// Service repositori untuk mengelola data Artikel Kesehatan di SQLite lokal.
 ///
@@ -79,8 +80,23 @@ class ArtikelService {
     await batch.commit(noResult: true);
   }
 
-  /// Memuat seluruh artikel dari database ke notifier memori
+  /// Memuat seluruh artikel dari database ke notifier memori (MySQL dengan fallback SQLite)
   Future<List<ArtikelModel>> getAllArticles({String? searchQuery}) async {
+    // 1. Coba ambil dari database MySQL via API
+    try {
+      final remoteList = await ApiService.getArticles(query: searchQuery);
+      if (remoteList.isNotEmpty) {
+        final models = remoteList.map((m) => ArtikelModel.fromMap(m)).toList();
+        if (searchQuery == null || searchQuery.trim().isEmpty) {
+          _articlesNotifier.value = models;
+        }
+        return models;
+      }
+    } catch (e) {
+      debugPrint('ArtikelService: fallback to local database ($e)');
+    }
+
+    // 2. Fallback ke SQLite lokal
     final db = await _database;
     List<Map<String, dynamic>> maps;
 
@@ -105,6 +121,7 @@ class ArtikelService {
     }
     return list;
   }
+
 
   /// Mengambil satu artikel berdasarkan ID
   Future<ArtikelModel?> getArticleById(int id) async {
