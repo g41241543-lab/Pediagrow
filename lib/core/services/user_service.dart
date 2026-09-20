@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../models/user_model.dart';
 
 /// Service singleton untuk mengelola data pengguna yang sedang aktif (login).
@@ -58,6 +59,20 @@ class UserService {
       city: city,
       district: district,
       subDistrict: subDistrict,
+    );
+  }
+
+  /// Login menggunakan akun Google.
+  /// Dipanggil oleh [GoogleAuthService] setelah sign-in berhasil.
+  /// Data nama, email, dan foto profil diambil langsung dari [GoogleSignInAccount].
+  void loginWithGoogle(GoogleSignInAccount account) {
+    currentUserNotifier.value = UserModel(
+      id: account.id,
+      name: account.displayName ?? account.email.split('@').first,
+      email: account.email,
+      // photoUrl dari Google adalah URL https — disimpan sebagai avatarPath
+      // Halaman profil perlu mengecek apakah ini URL atau path lokal
+      avatarPath: account.photoUrl,
     );
   }
 
