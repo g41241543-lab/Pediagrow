@@ -185,12 +185,16 @@ class _DetailResepPageState extends State<DetailResepPage> {
           ),
           const SizedBox(width: 12),
           // Judul "Detail Resep"
-          Text(
-            'Detail Resep',
-            style: GoogleFonts.lato(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorTextPrimary,
+          Expanded(
+            child: Text(
+              'Detail Resep',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.lato(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorTextPrimary,
+              ),
             ),
           ),
         ],
@@ -256,21 +260,22 @@ class _DetailResepPageState extends State<DetailResepPage> {
             children: [
               const SizedBox(height: 12),
 
-              // Tanggal
+              // Tanggal (Lato 16sp abu-abu lembut sesuai detail artikel)
               Text(
                 resep.date,
                 style: GoogleFonts.lato(
-                  fontSize: 12,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
                   color: colorTextMuted,
                 ),
               ),
               const SizedBox(height: 6),
 
-              // Judul Resep
+              // Judul Resep (Lato 18sp bold hitam sesuai detail artikel)
               Text(
                 resep.title,
                 style: GoogleFonts.lato(
-                  fontSize: 17,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: colorTextPrimary,
                   height: 1.3,
@@ -278,11 +283,12 @@ class _DetailResepPageState extends State<DetailResepPage> {
               ),
               const SizedBox(height: 4),
 
-              // Penulis
+              // Penulis (Lato 14sp abu-abu sesuai detail artikel)
               Text(
                 'Ditulis oleh ${resep.author}',
                 style: GoogleFonts.lato(
-                  fontSize: 12,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
                   color: colorTextMuted,
                 ),
               ),
@@ -476,30 +482,30 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // Judul section (Bahan, Bahan Pelapis, Buah, Cara Membuat)
+  // Judul section (Bahan, Bahan Pelapis, Buah, Cara Membuat - Lato 16sp bold sesuai detail artikel)
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
       style: GoogleFonts.lato(
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: FontWeight.bold,
         color: colorTextPrimary,
       ),
     );
   }
 
-  // Daftar dengan bullet point (lingkaran kecil)
+  // Daftar dengan bullet point (lingkaran kecil - Lato 15sp sesuai detail artikel)
   Widget _buildBulletList(List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items.map((item) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 5),
+          padding: const EdgeInsets.only(bottom: 6),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 6, right: 8),
+                padding: const EdgeInsets.only(top: 8, right: 8),
                 child: Container(
                   width: 5,
                   height: 5,
@@ -513,9 +519,10 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 child: Text(
                   item,
                   style: GoogleFonts.lato(
-                    fontSize: 13,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
                     color: colorTextSecondary,
-                    height: 1.5,
+                    height: 1.6,
                   ),
                 ),
               ),
@@ -526,7 +533,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // Daftar dengan nomor urut (1. 2. 3. ...)
+  // Daftar dengan nomor urut (1. 2. 3. ... - Lato 15sp sesuai detail artikel)
   Widget _buildNumberedList(List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,14 +546,14 @@ class _DetailResepPageState extends State<DetailResepPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 22,
+                width: 24,
                 child: Text(
                   '$index.',
                   style: GoogleFonts.lato(
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: colorTextSecondary,
-                    height: 1.5,
+                    height: 1.6,
                   ),
                 ),
               ),
@@ -554,9 +561,10 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 child: Text(
                   item,
                   style: GoogleFonts.lato(
-                    fontSize: 13,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
                     color: colorTextSecondary,
-                    height: 1.5,
+                    height: 1.6,
                   ),
                 ),
               ),

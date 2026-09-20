@@ -3,14 +3,19 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pediagrow/core/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/services/user_service.dart';
+import '../../core/services/child_service.dart';
+import '../../core/services/google_auth_service.dart';
 import '../../models/user_model.dart';
 
-import '../../core/services/google_auth_service.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
 import 'widgets/google_auth_dialog.dart';
 import '../pengguna/beranda/beranda_page.dart';
+import '../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Masuk (Login Page) PediaGrow.
 ///
@@ -51,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
   // Toggle visibilitas kata sandi
   bool _obscurePassword = true;
 
-  // Loading state saat Google Sign-In sedang diproses
+  // Loading state untuk tombol Google Sign-In (cegah double-tap)
   bool _isGoogleLoading = false;
 
   // Mode validasi otomatis setelah tombol Masuk pertama kali ditekan
@@ -73,31 +78,70 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
-      UserService().currentUserNotifier.value = UserModel(
-        id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-        name: _emailController.text.trim().split('@').first,
-        email: _emailController.text.trim(),
+      final hasil = await ApiService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Berhasil masuk! Mengalihkan ke beranda...'),
-          backgroundColor: Color(0xFF3985E7),
-          duration: Duration(milliseconds: 1500),
-        ),
-      );
+      if (!mounted) return;
 
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const BerandaPage()),
-          (route) => false,
+      if (hasil['status'] == 'sukses') {
+        final int idAkun = int.tryParse(hasil['id']?.toString() ?? '0') ?? 0;
+        final String namaUser = hasil['nama']?.toString() ?? 'Pengguna';
+        final String emailUser = (hasil['email']?.toString() ?? _emailController.text).trim();
+        final String? fotoUrl = hasil['foto_url']?.toString();
+
+        // Simpan token & profil pengguna ke SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', hasil['token']?.toString() ?? '');
+        await prefs.setString('peran', hasil['peran']?.toString() ?? 'orang_tua');
+        await prefs.setInt('id_akun', idAkun);
+        await prefs.setString('nama', namaUser);
+        await prefs.setString('email', emailUser);
+        if (fotoUrl != null) {
+          await prefs.setString('foto_url', fotoUrl);
+        }
+
+        // Perbarui UserService reaktif agar profil di UI langsung sesuai akun database
+        UserService().currentUserNotifier.value = UserModel(
+          id: idAkun.toString(),
+          name: namaUser,
+          email: emailUser,
+          avatarPath: fotoUrl,
         );
-      });
+
+        // Muat data profil anak milik user dari database MySQL
+        if (idAkun > 0) {
+          await ChildService().loadChildrenFromApi(idAkun);
+        }
+
+        if (!mounted) return;
+
+        PediaBanner.showSuccess(
+          context,
+          message: 'Berhasil masuk! Mengalihkan ke beranda...',
+        );
+
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (!mounted) return;
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+            ),
+            (route) => false,
+          );
+        });
+
+      } else {
+        PediaBanner.showError(
+          context,
+          message: hasil['pesan'] ?? 'Email atau kata sandi salah.',
+        );
+      }
     } else {
       setState(() {
         _autoValidateMode = AutovalidateMode.onUserInteraction;
@@ -394,9 +438,8 @@ class _LoginPageState extends State<LoginPage> {
                             child: OutlinedButton(
                               key: const Key('google_login_button'),
                               // Gunakan _handleGoogleSignIn() yang real; nonaktifkan saat loading
-                              onPressed: _isGoogleLoading
-                                  ? null
-                                  : _handleGoogleSignIn,
+                              onPressed:
+                                  _isGoogleLoading ? null : _handleGoogleSignIn,
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
@@ -419,10 +462,9 @@ class _LoginPageState extends State<LoginPage> {
                                       height: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Color(0xFF3985E7),
-                                            ),
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF3985E7),
+                                        ),
                                       ),
                                     )
                                   : FittedBox(

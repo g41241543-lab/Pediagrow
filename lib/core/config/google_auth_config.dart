@@ -8,7 +8,7 @@ class GoogleAuthConfig {
 
   /// SHA-1 Debug Certificate Fingerprint dari mesin/keystore pengembangan
   static const String debugSha1 =
-      'C2:89:4C:64:2B:97:E7:81:A5:50:68:9B:17:8E:C4:83:02:EC:AF:B6';
+      '7E:29:68:9E:26:81:DE:AC:A0:44:EA:E3:8E:20:E0:6B:7C:F2:39:8D';
 
   /// SHA-256 Debug Certificate Fingerprint
   static const String debugSha256 =
