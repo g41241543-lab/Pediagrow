@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/resep_mpasi_model.dart';
-<<<<<<< HEAD
 
-=======
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
->>>>>>> 8ad24152613421bbc0878066cbe8fd3da78ef89c
 
 /// Model data untuk Resep MPASI pada halaman detail.
 /// Kompatibel dengan [ResepMpasiModel] dari database PMIK Superadmin.

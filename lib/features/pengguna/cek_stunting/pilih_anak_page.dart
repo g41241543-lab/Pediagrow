@@ -507,8 +507,8 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                               ),
                               child: Text(
                                 isFull
-                                    ? 'Batas 2x/bulan tercapai'
-                                    : 'Sisa kuota: $rem/2 bulan ini',
+                                    ? 'Batas ${StuntingLimitService.maxPerMonth}x/bulan tercapai'
+                                    : 'Sisa kuota: $rem/${StuntingLimitService.maxPerMonth} bulan ini',
                                 style: GoogleFonts.lato(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,

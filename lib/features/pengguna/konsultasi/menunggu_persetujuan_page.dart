@@ -283,10 +283,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
 
   /// Berpindah ke formulir konsultasi saat disetujui
   void _navigateToFormulir() {
-<<<<<<< HEAD
-=======
     _countdownTimer?.cancel();
->>>>>>> 8ad24152613421bbc0878066cbe8fd3da78ef89c
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -840,15 +837,11 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // ===========================================================================
 
   Widget _buildConsultationTimeline() {
-<<<<<<< HEAD
     // Expired: tahap 1 & 2 sudah dilalui → keduanya biru; tahap 3 merah (tidak diterima).
     // Accepted: semua tahap biru.
     // Waiting:  hanya tahap 1 biru, sisanya abu.
     final isStage2Active = _status == ConsultationStatus.accepted ||
         _status == ConsultationStatus.expired;
-=======
-    final isStage2Active = _status == ConsultationStatus.accepted;
->>>>>>> 8ad24152613421bbc0878066cbe8fd3da78ef89c
     final isStage3Active = _status == ConsultationStatus.accepted;
     final isStage3Expired = _status == ConsultationStatus.expired;
 
@@ -877,6 +870,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
           title: 'Menunggu persetujuan dokter',
           subtitle: null,
           isTitleBold: false,
+          onTap: _status == ConsultationStatus.waiting ? simulateDoctorAccept : null,
         ),
 
         // Tahap 3: Biru saat accepted, merah saat expired, abu saat waiting
@@ -898,6 +892,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
                   : null),
           isTitleBold: isStage3Active,
           titleColor: isStage3Expired ? colorExpiredRed : null,
+          onTap: _status == ConsultationStatus.waiting ? simulateDoctorAccept : null,
         ),
       ],
     );
@@ -913,12 +908,13 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     String? subtitle,
     bool isTitleBold = false,
     Color? titleColor,
+    VoidCallback? onTap,
   }) {
     const double circleDiameter = 14.0;
     const double lineThickness = 1.6;
     const double columnWidth = 24.0;
 
-    return IntrinsicHeight(
+    final rowContent = IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -987,6 +983,15 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
         ],
       ),
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: rowContent,
+      );
+    }
+    return rowContent;
   }
 
   // ===========================================================================
@@ -996,28 +1001,32 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   Widget _buildBottomAction() {
     switch (_status) {
       case ConsultationStatus.waiting:
-        // Kotak Abu Muda Countdown 05:00 .. 00:00
-        return Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: colorGreyBg,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            _formattedCountdown,
-            style: GoogleFonts.lato(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.8,
-              color: colorTextDark,
+        // Kotak Abu Muda Countdown 05:00 .. 00:00 (dapat di-tap langsung untuk demo konfirmasi dokter)
+        return InkWell(
+          onTap: simulateDoctorAccept,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: colorGreyBg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _formattedCountdown,
+              style: GoogleFonts.lato(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.8,
+                color: colorTextDark,
+              ),
             ),
           ),
         );
 
       case ConsultationStatus.accepted:
-        // Tombol Biru "Isi Formulir"
+        // Tombol Biru "Lanjutkan Isi Formulir"
         return SizedBox(
           width: double.infinity,
           height: 52,
@@ -1032,7 +1041,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
               elevation: 0,
             ),
             child: Text(
-              'Isi Formulir',
+              'Lanjutkan Isi Formulir',
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
