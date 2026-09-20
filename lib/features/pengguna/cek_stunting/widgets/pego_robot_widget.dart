@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Widget Karakter Robot AI "Pego" — sesuai referensi gambar PediaGrow
