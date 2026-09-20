@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -15,14 +16,8 @@ import '../mpasi/daftar_resep_page.dart';
 import '../artikel/artikel_kesehatan_page.dart';
 import '../fasyankes/lokasi_fasyankes_page.dart';
 import '../game_edukasi/game_mulai_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
-import '../profil/menu_profil_page.dart';
-<<<<<<< HEAD
-import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
-=======
 import '../profil/profil_ibu_page.dart';
->>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../core/services/artikel_service.dart';
 import '../../../models/artikel_model.dart';
 import '../detail/detail_artikel_page.dart';
@@ -2154,12 +2149,7 @@ class _BerandaPageState extends State<BerandaPage>
 // DATA MODELS & HELPER WIDGETS
 // =====================================================================
 
-class _NavData {
-  final IconData icon;
-  final String label;
 
-  const _NavData({required this.icon, required this.label});
-}
 
 /// Widget elips dekoratif dengan efek Gaussian blur
 class _BlurredEllipse extends StatelessWidget {

@@ -159,8 +159,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Scroll to button
-      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -300));
+      // Scroll to button until visible
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -600));
       await tester.pumpAndSettle();
 
       // Tap submit with empty fields
@@ -179,7 +179,7 @@ void main() {
       await tester.enterText(complaintField, 'Anak demam sejak semalam');
       await tester.pump();
 
-      expect(find.text('23/500'), findsOneWidget);
+      expect(find.text('24/500'), findsOneWidget);
     });
 
     testWidgets('Navigates to ChatKonsultasiPage when all inputs valid', (
@@ -214,8 +214,8 @@ void main() {
       await tester.enterText(complaintField, 'Anak batuk pilek dan nafsu makan menurun');
       await tester.pump();
 
-      // Scroll down to submit button
-      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -400));
+      // Scroll down to submit button until visible
+      await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -600));
       await tester.pumpAndSettle();
 
       // Tap submit

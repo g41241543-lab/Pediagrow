@@ -558,12 +558,16 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                                 color: Color(0xFF94A3B8),
                               ),
                               const SizedBox(width: 5),
-                              Text(
-                                '${doctor.experienceYears} tahun pengalaman',
-                                style: GoogleFonts.lato(
-                                  fontSize: 12,
-                                  color: const Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Text(
+                                  '${doctor.experienceYears} tahun pengalaman',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 12,
+                                    color: const Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],

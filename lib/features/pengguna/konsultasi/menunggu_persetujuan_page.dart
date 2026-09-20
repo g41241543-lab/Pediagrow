@@ -283,8 +283,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
 
   /// Berpindah ke formulir konsultasi saat disetujui
   void _navigateToFormulir() {
-    _autoNavTimer?.cancel();
-    _approvalSimulationTimer?.cancel();
+    _countdownTimer?.cancel();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -328,7 +327,6 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
-    final topPadding = mediaQuery.padding.top;
     final isCompactScreen = screenHeight < 700;
 
     return Scaffold(
@@ -839,7 +837,6 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // ===========================================================================
 
   Widget _buildConsultationTimeline() {
-    final isStage1Active = true; // Selalu aktif karena permintaan telah dibuat
     final isStage2Active = _status == ConsultationStatus.accepted;
     final isStage3Active = _status == ConsultationStatus.accepted;
     final isStage3Expired = _status == ConsultationStatus.expired;

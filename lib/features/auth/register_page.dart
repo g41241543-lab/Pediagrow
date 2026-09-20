@@ -3,9 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pediagrow/core/services/api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../core/services/api_service.dart';
 import 'auth_choice_page.dart';
 import 'login_page.dart';
@@ -89,30 +86,19 @@ class _RegisterPageState extends State<RegisterPage> {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
-<<<<<<< HEAD
       final hasil = await ApiService.register(
         _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
         'orang_tua',
-=======
-      // Validasi berhasil
-      PediaBanner.showSuccess(
-        context,
-        message:
-            'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
->>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
       );
 
       if (!mounted) return;
 
       if (hasil['status'] == 'sukses') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pendaftaran berhasil! Silakan masuk.'),
-            backgroundColor: Color(0xFF3985E7),
-            duration: Duration(seconds: 2),
-          ),
+        PediaBanner.showSuccess(
+          context,
+          message: 'Pendaftaran berhasil! Silakan masuk.',
         );
 
         Future.delayed(const Duration(milliseconds: 900), () {
@@ -123,11 +109,9 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(hasil['pesan'] ?? 'Pendaftaran gagal, coba lagi.'),
-            backgroundColor: Colors.red,
-          ),
+        PediaBanner.showError(
+          context,
+          message: hasil['pesan'] ?? 'Pendaftaran gagal, coba lagi.',
         );
       }
     } else {

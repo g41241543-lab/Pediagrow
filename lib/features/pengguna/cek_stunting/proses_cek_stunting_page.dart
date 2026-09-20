@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-<<<<<<< HEAD
 import '../../../core/services/api_service.dart';
-=======
 import '../../../core/services/child_service.dart';
->>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
 import '../../../core/services/local_db_service.dart';
 import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';

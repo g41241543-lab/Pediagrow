@@ -47,7 +47,6 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   static const Color colorTextMuted = Color(0xFF718096);
   static const Color colorBorder = Color(0xFFE2E8F0);
   static const Color colorGreenSuccess = Color(0xFF48BB78);
-  static const Color colorPeachAvatar = Color(0xFFFFEDEB);
   static const Color colorAmberTip = Color(0xFFFFB300);
 
   // Controllers untuk input form
@@ -1336,24 +1335,28 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           ),
           elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.near_me_rounded,
-              size: 20,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Lanjutkan Chat Dokter',
-              style: GoogleFonts.lato(
-                fontSize: 15.5,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.2,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.near_me_rounded,
+                size: 20,
+                color: Colors.white,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Text(
+                'Lanjutkan Chat Dokter',
+                style: GoogleFonts.lato(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1364,24 +1367,28 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // ===========================================================================
 
   Widget _buildSecurityFooter() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.lock_outline_rounded,
-          size: 16,
-          color: colorTextMuted,
-        ),
-        const SizedBox(width: 6),
-        Text(
-          'Data Anda aman dan terlindungi',
-          style: GoogleFonts.lato(
-            fontSize: 12.5,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.lock_outline_rounded,
+            size: 16,
             color: colorTextMuted,
-            fontWeight: FontWeight.w500,
           ),
-        ),
-      ],
+          const SizedBox(width: 6),
+          Text(
+            'Data Anda aman dan terlindungi',
+            style: GoogleFonts.lato(
+              fontSize: 12.5,
+              color: colorTextMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -41,14 +41,26 @@ class ResepMpasiModel {
   /// Gambar yang ditampilkan: prioritaskan assetImagePath, fallback imageUrl.
   String? get displayImage => assetImagePath ?? imageUrl;
 
-<<<<<<< HEAD
+  /// Cek apakah gambar berupa URL network HTTP/HTTPS
+  bool get isNetworkImage {
+    final img = displayImage;
+    if (img == null) return false;
+    return img.startsWith('http://') || img.startsWith('https://');
+  }
+
   /// Factory dari Map (Mendukung skema MySQL dan SQLite lokal)
   factory ResepMpasiModel.fromMap(Map<String, dynamic> map) {
     List<String> splitLines(dynamic raw) {
       if (raw == null) return [];
       if (raw is List) return raw.map((e) => e.toString()).toList();
       final str = raw.toString().trim();
-      return str.isEmpty ? [] : str.split('\n').map((s) => s.trim()).toList();
+      return str.isEmpty
+          ? []
+          : str
+              .split('\n')
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
     }
 
     String usia = (map['kategori_usia'] as String?) ?? '';
@@ -59,25 +71,6 @@ class ResepMpasiModel {
 
     final steps = splitLines(map['cara_membuat'] ?? map['langkah']);
     final ingredients = splitLines(map['bahan']);
-=======
-  /// Cek apakah gambar berupa URL network HTTP/HTTPS
-  bool get isNetworkImage {
-    final img = displayImage;
-    if (img == null) return false;
-    return img.startsWith('http://') || img.startsWith('https://');
-  }
-
-  /// Factory dari Map SQLite.
-  factory ResepMpasiModel.fromMap(Map<String, dynamic> map) {
-    List<String> splitLines(String? raw) {
-      if (raw == null || raw.trim().isEmpty) return [];
-      return raw
-          .split('\n')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
-    }
->>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
 
     return ResepMpasiModel(
       id: (map['id'] as num?)?.toInt(),
@@ -91,17 +84,10 @@ class ResepMpasiModel {
       lemakGr: (map['lemak_gr'] as num?)?.toDouble(),
       proteinGr: (map['protein_gr'] as num?)?.toDouble(),
       porsi: (map['porsi'] as num?)?.toInt(),
-<<<<<<< HEAD
       bahan: ingredients,
       bahanPelapis: splitLines(map['bahan_pelapis']),
       buah: splitLines(map['buah']),
       caraMembuat: steps,
-=======
-      bahan: splitLines(map['bahan'] as String?),
-      bahanPelapis: splitLines(map['bahan_pelapis'] as String?),
-      buah: splitLines(map['buah'] as String?),
-      caraMembuat: splitLines(map['cara_membuat'] as String?),
->>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
     );
   }
 
