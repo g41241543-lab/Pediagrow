@@ -34,6 +34,8 @@ class DetailKonsultasiPage extends StatelessWidget {
         preferredSize: const Size.fromHeight(56.0),
         child: RiwayatHeader(
           title: 'Detail Konsultasi',
+          showBackButton: true,
+          showNotification: false,
           onBackPressed: () => Navigator.of(context).pop(),
         ),
       ),

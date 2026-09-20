@@ -81,6 +81,7 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text,
       );
 
+<<<<<<< HEAD
       if (!mounted) return;
 
       if (hasil['status'] == 'sukses') {
@@ -106,6 +107,15 @@ class _LoginPageState extends State<LoginPage> {
           name: namaUser,
           email: emailUser,
           avatarPath: fotoUrl,
+=======
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+          ),
+          (route) => false,
+>>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
         );
 
         // Muat data profil anak milik user dari database MySQL
@@ -294,7 +304,9 @@ class _LoginPageState extends State<LoginPage> {
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const BerandaPage()),
+        MaterialPageRoute(
+          builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+        ),
         (route) => false,
       );
     });

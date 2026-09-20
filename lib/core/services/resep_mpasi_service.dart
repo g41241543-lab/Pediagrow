@@ -1,29 +1,42 @@
 import 'package:flutter/foundation.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../models/resep_mpasi_model.dart';
-import 'api_service.dart';
 
 /// Service untuk mengelola data Resep MPASI di SQLite lokal.
 ///
-/// Bertindak sebagai sumber data tunggal yang digunakan oleh:
-/// - Halaman pengguna: DaftarResepPage, DetailResepPage
-/// - Halaman PMIK/Superadmin: (untuk input & pengelolaan resep)
+/// Bertindak sebagai single source of truth yang digunakan oleh:
+/// - Halaman Pengguna: [DaftarResepPage], [DetailResepPage]
+/// - Halaman PMIK/Superadmin: Untuk input, edit, dan pengelolaan resep
 ///
-/// Data awal (seed) merupakan 7 resep default sesuai acuan desain.
-/// PMIK/Superadmin dapat menambah, mengubah, dan menghapus resep melalui
-/// service ini sehingga perubahan langsung terlihat di halaman pengguna.
+/// Fitur:
+/// 1. Data awal (seed) memuat 7 resep resmi Kemenkes RI secara utuh (termasuk
+///    resep ke-5 "Mie Kukus Telur Puyuh") dengan bahan dan langkah lengkap.
+/// 2. Pembaruan reaktif melalui [recipesNotifier] sehingga setiap perubahan
+///    oleh PMIK Superadmin langsung tercermin di halaman pengguna.
+/// 3. Mekanisme pemulihan integritas data otomatis (_ensureDataIntegrity)
+///    untuk memastikan perangkat dengan basis data lama langsung diperbarui.
 class ResepMpasiService {
   static final ResepMpasiService _instance = ResepMpasiService._internal();
   factory ResepMpasiService() => _instance;
   ResepMpasiService._internal();
 
   static const String _dbName = 'pediagrow_resep.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2; // Dinaikkan ke v2 untuk migrasi data lengkap
   static const String _tableName = 'resep_mpasi';
 
   Database? _db;
+
+  /// Notifier reaktif untuk mendengarkan perubahan daftar resep secara real-time
+  final ValueNotifier<List<ResepMpasiModel>> _recipesNotifier =
+      ValueNotifier<List<ResepMpasiModel>>([]);
+  ValueListenable<List<ResepMpasiModel>> get recipesNotifier =>
+      _recipesNotifier;
+
+  /// Ambil daftar resep terkini di memori
+  List<ResepMpasiModel> get currentRecipes =>
+      List<ResepMpasiModel>.unmodifiable(_recipesNotifier.value);
 
   Future<Database> get _database async {
     if (_db != null) return _db!;
@@ -35,11 +48,17 @@ class ResepMpasiService {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, _dbName);
 
-    return openDatabase(
+    final db = await openDatabase(
       path,
       version: _dbVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+
+    // Pastikan integritas data: jika resep lama memiliki bahan/langkah kosong, perbaiki
+    await _ensureDataIntegrity(db);
+
+    return db;
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -63,133 +82,60 @@ class ResepMpasiService {
       )
     ''');
 
-    // Seed data awal dari PMIK/Superadmin (7 resep default sesuai desain)
+    // Seed data awal dari PMIK/Superadmin (7 resep default Kemenkes)
     await _seedDefaultRecipes(db);
   }
 
-  /// Seed 7 resep default. Data ini merepresentasikan resep yang sudah
-  /// diinput oleh PMIK/Superadmin ke dalam sistem.
-  Future<void> _seedDefaultRecipes(Database db) async {
-    final recipes = [
-      {
-        'judul': 'Bubur Singkong Isi Ikan dan Ayam dengan Saus Jeruk',
-        'kategori_usia': '6-8 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_1.png',
-        'penulis': 'Pego',
-        'energi_kkal': 191.0,
-        'lemak_gr': 9.0,
-        'protein_gr': 10.5,
-        'porsi': 3,
-        'bahan':
-            '200 gr tempe di potong kotak kecil, kukus\n100 gr daging ayam cincang, haluskan\n100 gr (2 butir) telur ayam, kocok\n50 gr (5 sdm) wortel\n50 gr (5 sdm) keju parut\n10 gr (1 batang) bawang daun, iris halus\n10 gr (1 sdm) bawang goreng halus\n10 gr (1 sdm) bawang putih halus\n20 gr (2 sdm) tepung terigu\n20 gr (2 sdm) tepung tapioka',
-        'bahan_pelapis':
-            '30 gr (3 sdm) tepung terigu\n100 ml air atau secukupnya\n100 gr (10 sdm) tepung panir\nMinyak untuk menggoreng secukupnya',
-        'buah': '270 gr buah semangka',
-        'cara_membuat':
-            'Campurkan tempe, daging ayam cincang, wortel, keju, bawang daun, tepung terigu, tapioka, telur, bawang goreng, dan bawang putih halus. Aduk sampai tercampur rata. Ambil loyang olesi minyak dulu kemudian masukkan adonan nugget dan ratakan. Kukus selama 30 menit atau sampai matang. Setelah dingin potong adonan sesuai ukuran yang diinginkan.\nCairkan terigu dengan air sampai menjadi larutan yang cukup kekentalannya. Celupkan nugget ke tepung terigu basah, gulirkan pada tepung panir.\nSebaiknya disimpan dulu di kulkas selama 30 menit Atau bisa langsung di goreng di minyak yang panas. Sajikan selagi hangat. Bisa juga di jadikan lauk',
-        'image_url': null,
-      },
-      {
-        'judul': 'Bubur Soto Ayam Santan',
-        'kategori_usia': '6-8 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_2.png',
-        'penulis': 'Pego',
-        'energi_kkal': 175.0,
-        'lemak_gr': 7.5,
-        'protein_gr': 9.0,
-        'porsi': 2,
-        'bahan': '',
-        'bahan_pelapis': '',
-        'buah': '',
-        'cara_membuat': '',
-        'image_url': null,
-      },
-      {
-        'judul': 'Puding Kentang Ayam dan Telur',
-        'kategori_usia': '6-8 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_3.png',
-        'penulis': 'Pego',
-        'energi_kkal': 160.0,
-        'lemak_gr': 6.0,
-        'protein_gr': 8.5,
-        'porsi': 3,
-        'bahan': '',
-        'bahan_pelapis': '',
-        'buah': '',
-        'cara_membuat': '',
-        'image_url': null,
-      },
-      {
-        'judul': 'Nasi Tim Ikan Tuna Telur Puyuh',
-        'kategori_usia': '9-11 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_4.png',
-        'penulis': 'Pego',
-        'energi_kkal': 200.0,
-        'lemak_gr': 8.0,
-        'protein_gr': 12.0,
-        'porsi': 2,
-        'bahan': '',
-        'bahan_pelapis': '',
-        'buah': '',
-        'cara_membuat': '',
-        'image_url': null,
-      },
-      {
-        'judul': 'Mie Kukus Telur Puyuh',
-        'kategori_usia': '9-11 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_5.png',
-        'penulis': 'Pego',
-        'energi_kkal': 185.0,
-        'lemak_gr': 7.0,
-        'protein_gr': 10.0,
-        'porsi': 2,
-        'bahan': '',
-        'bahan_pelapis': '',
-        'buah': '',
-        'cara_membuat': '',
-        'image_url': null,
-      },
-      {
-        'judul': 'Tim Bubur Manado Daging dan Udang',
-        'kategori_usia': '9-11 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_6.png',
-        'penulis': 'Pego',
-        'energi_kkal': 210.0,
-        'lemak_gr': 9.5,
-        'protein_gr': 13.0,
-        'porsi': 3,
-        'bahan': '',
-        'bahan_pelapis': '',
-        'buah': '',
-        'cara_membuat': '',
-        'image_url': null,
-      },
-      {
-        'judul': 'Nasi Soto Ayam Kuah Kuning',
-        'kategori_usia': '12-23 bulan',
-        'tanggal': '26 Agustus 2026',
-        'asset_image_path': 'assets/images/resep_7.png',
-        'penulis': 'Pego',
-        'energi_kkal': 230.0,
-        'lemak_gr': 10.0,
-        'protein_gr': 14.0,
-        'porsi': 3,
-        'bahan': '',
-        'bahan_pelapis': '',
-        'buah': '',
-        'cara_membuat': '',
-        'image_url': null,
-      },
-    ];
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _ensureDataIntegrity(db);
+    }
+  }
 
-    for (final recipe in recipes) {
-      await db.insert(_tableName, recipe);
+  /// Memastikan 7 resep default Kemenkes memiliki bahan dan cara membuat yang lengkap.
+  /// Jika database lokal sebelumnya memiliki data resep yang kosong atau rumpang,
+  /// fungsi ini akan memperbaruinya secara otomatis.
+  Future<void> _ensureDataIntegrity(Database db) async {
+    for (final defaultRecipe in ResepMpasiModel.defaultKemenkesRecipes) {
+      final existing = await db.query(
+        _tableName,
+        where: 'id = ? OR judul = ?',
+        whereArgs: [defaultRecipe.id, defaultRecipe.judul],
+        limit: 1,
+      );
+
+      if (existing.isEmpty) {
+        // Belum ada di database, tambahkan
+        await db.insert(_tableName, defaultRecipe.toMap());
+      } else {
+        final currentBahan = existing.first['bahan'] as String?;
+        final currentCara = existing.first['cara_membuat'] as String?;
+
+        // Jika bahan atau cara membuat kosong/rumpang, perbarui dengan data resmi
+        if (currentBahan == null ||
+            currentBahan.trim().isEmpty ||
+            currentCara == null ||
+            currentCara.trim().isEmpty ||
+            (defaultRecipe.id == 1 && currentBahan.contains('nugget'))) {
+          await db.update(
+            _tableName,
+            defaultRecipe.toMap(),
+            where: 'id = ?',
+            whereArgs: [existing.first['id']],
+          );
+        }
+      }
+    }
+  }
+
+  /// Seed 7 resep default resmi Kemenkes RI ke SQLite.
+  Future<void> _seedDefaultRecipes(Database db) async {
+    for (final recipe in ResepMpasiModel.defaultKemenkesRecipes) {
+      await db.insert(
+        _tableName,
+        recipe.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
     }
   }
 
@@ -197,26 +143,11 @@ class ResepMpasiService {
   // PUBLIC API (digunakan oleh pengguna maupun PMIK/Superadmin)
   // ---------------------------------------------------------------------------
 
-  /// Ambil semua resep. Opsional filter by kategoriUsia dan/atau kata kunci.
+  /// Ambil semua resep dengan filter kategoriUsia dan/atau kata kunci pencarian.
   Future<List<ResepMpasiModel>> getAllResep({
     String? kategoriUsia,
     String? searchQuery,
   }) async {
-    // 1. Coba ambil dari database MySQL via API
-    try {
-      final remoteList = await ApiService.getRecipes(query: searchQuery);
-      if (remoteList.isNotEmpty) {
-        var models = remoteList.map((m) => ResepMpasiModel.fromMap(m)).toList();
-        if (kategoriUsia != null && kategoriUsia != 'Semua') {
-          models = models.where((r) => r.kategoriUsia.toLowerCase().contains(kategoriUsia.toLowerCase())).toList();
-        }
-        return models;
-      }
-    } catch (e) {
-      debugPrint('ResepMpasiService: fallback to local database ($e)');
-    }
-
-    // 2. Fallback ke SQLite lokal
     final db = await _database;
 
     String where = '1=1';
@@ -236,14 +167,21 @@ class ResepMpasiService {
       _tableName,
       where: where,
       whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'id DESC',
+      orderBy: 'id ASC',
     );
 
-    return maps.map((m) => ResepMpasiModel.fromMap(m)).toList();
+    final results = maps.map((m) => ResepMpasiModel.fromMap(m)).toList();
+
+    // Perbarui notifier jika query tanpa filter
+    if ((kategoriUsia == null || kategoriUsia == 'Semua') &&
+        (searchQuery == null || searchQuery.trim().isEmpty)) {
+      _recipesNotifier.value = results;
+    }
+
+    return results;
   }
 
-
-  /// Ambil satu resep berdasarkan id.
+  /// Ambil satu resep berdasarkan ID secara spesifik.
   Future<ResepMpasiModel?> getResepById(int id) async {
     final db = await _database;
     final maps = await db.query(
@@ -259,28 +197,50 @@ class ResepMpasiService {
   /// Tambah resep baru (digunakan oleh PMIK/Superadmin).
   Future<int> insertResep(ResepMpasiModel resep) async {
     final db = await _database;
-    return db.insert(
+    final id = await db.insert(
       _tableName,
       resep.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    await _refreshNotifier();
+    return id;
   }
 
   /// Update resep yang sudah ada (digunakan oleh PMIK/Superadmin).
   Future<int> updateResep(ResepMpasiModel resep) async {
     final db = await _database;
-    return db.update(
+    final count = await db.update(
       _tableName,
       resep.toMap(),
       where: 'id = ?',
       whereArgs: [resep.id],
     );
+    await _refreshNotifier();
+    return count;
   }
 
   /// Hapus resep (digunakan oleh PMIK/Superadmin).
   Future<int> deleteResep(int id) async {
     final db = await _database;
-    return db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
+    final count = await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
+    await _refreshNotifier();
+    return count;
+  }
+
+  /// Segarkan cache notifier di memori
+  Future<void> _refreshNotifier() async {
+    final db = await _database;
+    final maps = await db.query(_tableName, orderBy: 'id ASC');
+    _recipesNotifier.value =
+        maps.map((m) => ResepMpasiModel.fromMap(m)).toList();
+  }
+
+  /// Reset data kembali ke 7 resep default Kemenkes
+  Future<void> resetToDefault() async {
+    final db = await _database;
+    await db.delete(_tableName);
+    await _seedDefaultRecipes(db);
+    await _refreshNotifier();
   }
 
   /// Tutup koneksi database.

@@ -10,6 +10,7 @@ import '../../core/services/api_service.dart';
 import 'auth_choice_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
+import '../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Pendaftaran Akun Baru (Register Page) PediaGrow.
 ///
@@ -88,11 +89,19 @@ class _RegisterPageState extends State<RegisterPage> {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
+<<<<<<< HEAD
       final hasil = await ApiService.register(
         _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
         'orang_tua',
+=======
+      // Validasi berhasil
+      PediaBanner.showSuccess(
+        context,
+        message:
+            'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
+>>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
       );
 
       if (!mounted) return;
@@ -262,12 +271,9 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _completeGoogleSignIn(String account) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Berhasil terhubung dengan Google: $account'),
-        backgroundColor: const Color(0xFF3985E7),
-        duration: const Duration(seconds: 2),
-      ),
+    PediaBanner.showSuccess(
+      context,
+      message: 'Berhasil terhubung dengan Google: $account',
     );
 
     Future.delayed(const Duration(milliseconds: 800), () {

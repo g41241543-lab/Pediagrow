@@ -18,13 +18,18 @@ import '../game_edukasi/game_mulai_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import '../profil/menu_profil_page.dart';
+<<<<<<< HEAD
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+=======
+import '../profil/profil_ibu_page.dart';
+>>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
 import '../../../core/services/artikel_service.dart';
 import '../../../models/artikel_model.dart';
 import '../detail/detail_artikel_page.dart';
 import '../../../core/services/youtube_service.dart';
 import '../../../models/youtube_video_model.dart';
 import 'widgets/youtube_player_sheet.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -32,7 +37,13 @@ import 'widgets/youtube_player_sheet.dart';
 /// Halaman scrollable secara penuh dengan Navigation Bar tetap (fixed di Scaffold).
 class BerandaPage extends StatefulWidget {
   final bool showAddSuccessSnackbar;
-  const BerandaPage({super.key, this.showAddSuccessSnackbar = false});
+  final bool showLengkapiProfilBanner;
+
+  const BerandaPage({
+    super.key,
+    this.showAddSuccessSnackbar = false,
+    this.showLengkapiProfilBanner = false,
+  });
 
   @override
   State<BerandaPage> createState() => _BerandaPageState();
@@ -54,28 +65,25 @@ class _BerandaPageState extends State<BerandaPage>
   List<YoutubeVideoModel> _educationalVideos = [];
   bool _isLoadingVideos = true;
 
+  // Banner Notifikasi Lengkapi Profil Ibu
+  bool _isLengkapiProfilBannerVisible = false;
+  Timer? _lengkapiProfilTimer;
+
   @override
   void initState() {
     super.initState();
 
+    if (widget.showLengkapiProfilBanner) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _triggerLengkapiProfilBanner();
+      });
+    }
+
     if (widget.showAddSuccessSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Profil anak berhasil ditambahkan',
-              style: GoogleFonts.lato(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            duration: const Duration(seconds: 3),
-          ),
+        PediaBanner.showSuccess(
+          context,
+          message: 'Profil anak berhasil ditambahkan',
         );
       });
     }
@@ -110,9 +118,34 @@ class _BerandaPageState extends State<BerandaPage>
 
   @override
   void dispose() {
+    _lengkapiProfilTimer?.cancel();
     ArtikelService().articlesNotifier.removeListener(_onArticlesUpdated);
     _ellipseController.dispose();
     super.dispose();
+  }
+
+  void _triggerLengkapiProfilBanner() {
+    _lengkapiProfilTimer?.cancel();
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      setState(() {
+        _isLengkapiProfilBannerVisible = true;
+      });
+
+      // Otomatis disembunyikan setelah 1 menit jika tidak diinteraksi
+      _lengkapiProfilTimer = Timer(const Duration(minutes: 1), () {
+        _hideLengkapiProfilBanner();
+      });
+    });
+  }
+
+  void _hideLengkapiProfilBanner() {
+    _lengkapiProfilTimer?.cancel();
+    if (mounted && _isLengkapiProfilBannerVisible) {
+      setState(() {
+        _isLengkapiProfilBannerVisible = false;
+      });
+    }
   }
 
   void _onArticlesUpdated() {
@@ -182,32 +215,117 @@ class _BerandaPageState extends State<BerandaPage>
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // -------------------------------------------------------------
-            // 1. AREA BIRU SEAMLESS (Header + "Profil Anak" + Card MomDad)
-            //    Satu container gradient menerus dari paling atas layar
-            // -------------------------------------------------------------
-            _buildSeamlessBlueArea(context),
+      body: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -------------------------------------------------------------
+                // 1. AREA BIRU SEAMLESS (Header + "Profil Anak" + Card MomDad)
+                //    Satu container gradient menerus dari paling atas layar
+                // -------------------------------------------------------------
+                _buildSeamlessBlueArea(context),
 
-            // -------------------------------------------------------------
-            // 2. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
-            // -------------------------------------------------------------
-            _buildWhiteContentSection(context),
+                // -------------------------------------------------------------
+                // 2. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
+                // -------------------------------------------------------------
+                _buildWhiteContentSection(context),
 
-            const SizedBox(height: 20), // jarak kecil sebelum ilustrasi footer
-            // -------------------------------------------------------------
-            // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
-            // -------------------------------------------------------------
-            _buildFooterIllustration(),
-          ],
-        ),
+                const SizedBox(height: 20), // jarak kecil sebelum ilustrasi footer
+                // -------------------------------------------------------------
+                // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
+                // -------------------------------------------------------------
+                _buildFooterIllustration(),
+              ],
+            ),
+          ),
+
+          // -----------------------------------------------------------------
+          // 4. FLOATING NOTIFIKASI POP-UP LENGKAPI PROFIL IBU
+          // -----------------------------------------------------------------
+          _buildLengkapiProfilBanner(),
+        ],
       ),
       // Navigation Bar tetap di posisi Scaffold
       bottomNavigationBar: _buildFixedNavBar(),
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // NOTIFIKASI POP-UP "Silahkan lengkapi profil ibu"
+  // Bentuk dan penempatan persis seperti notif berhasil ubah kata sandi,
+  // dengan tombol '>' di sebelah kanan yang mengarah ke Profil Ibu saat dipencet.
+  // -------------------------------------------------------------------------
+  Widget _buildLengkapiProfilBanner() {
+    final topPadding = MediaQuery.of(context).padding.top;
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      top: _isLengkapiProfilBannerVisible ? (topPadding + 62.0) : -80.0,
+      left: 16.0,
+      right: 16.0,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: _isLengkapiProfilBannerVisible ? 1.0 : 0.0,
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3985E7),
+            borderRadius: BorderRadius.circular(17),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3985E7).withOpacity(0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                _hideLengkapiProfilBanner();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ProfilIbuPage(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(17),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Silahkan lengkapi profil ibu',
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFFFFFF),
+                      ),
+                    ),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 26,
+                        color: Color(0xFFFFFFFF),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

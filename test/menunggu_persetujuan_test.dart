@@ -131,7 +131,7 @@ void main() {
 
       // Verify expired UI
       expect(find.text('Kembali ke Daftar Dokter'), findsOneWidget);
-      expect(find.text('Waktu persetujuan telah habis'), findsWidgets);
+      expect(find.text('Konsultasi tidak diterima'), findsWidgets);
 
       // Tap "Kembali ke Daftar Dokter"
       await tester.tap(find.text('Kembali ke Daftar Dokter'));
