@@ -36,36 +36,34 @@ class GrowthRecordModel {
     this.notes,
   });
 
-  /// Factory dari Map/JSON
+  /// Factory dari Map/JSON (Mendukung MySQL dan local schema)
   factory GrowthRecordModel.fromMap(Map<String, dynamic> map) {
+    final rawDate = map['date'] ?? map['tanggal'];
+    final parsedDate = rawDate != null
+        ? (DateTime.tryParse(rawDate.toString()) ?? DateTime.now())
+        : DateTime.now();
+
     return GrowthRecordModel(
       id: map['id']?.toString() ?? '',
-      childId: map['child_id']?.toString() ?? '',
-      date: map['date'] != null
-          ? (DateTime.tryParse(map['date'].toString()) ?? DateTime.now())
-          : DateTime.now(),
+      childId: (map['child_id'] ?? map['id_anak'])?.toString() ?? '',
+      date: parsedDate,
       ageMonths: (map['age_months'] as num?)?.toInt() ?? 0,
       ageDays: (map['age_days'] as num?)?.toInt() ?? 0,
       ageFormatted: map['age_formatted']?.toString() ?? '0 bulan 0 hari',
-      weightKg: (map['weight_kg'] as num?)?.toDouble() ?? 0.0,
-      heightCm: (map['height_cm'] as num?)?.toDouble() ?? 0.0,
-      headCircumferenceCm:
-          (map['head_circumference_cm'] as num?)?.toDouble() ?? 0.0,
-      zScoreWeightForAge:
-          (map['z_score_weight_for_age'] as num?)?.toDouble() ?? 0.0,
-      zScoreHeightForAge:
-          (map['z_score_height_for_age'] as num?)?.toDouble() ?? 0.0,
-      zScoreHeadForAge:
-          (map['z_score_head_for_age'] as num?)?.toDouble() ?? 0.0,
-      zScoreWeightForHeight:
-          (map['z_score_weight_for_height'] as num?)?.toDouble() ?? 0.0,
-      statusGizi: map['status_gizi']?.toString() ?? 'Gizi Normal',
-      isBirthRecord: map['is_birth_record'] == true ||
-          map['is_birth_record'] == 1 ||
-          map['is_birth_record'] == 'true',
-      notes: map['notes']?.toString(),
+      weightKg: double.tryParse(map['weight_kg']?.toString() ?? map['berat_kg']?.toString() ?? '0') ?? 0.0,
+      heightCm: double.tryParse(map['height_cm']?.toString() ?? map['tinggi_cm']?.toString() ?? '0') ?? 0.0,
+      headCircumferenceCm: double.tryParse(map['head_circumference_cm']?.toString() ?? map['lingkar_kepala_cm']?.toString() ?? '0') ?? 0.0,
+      zScoreWeightForAge: double.tryParse(map['z_score_weight_for_age']?.toString() ?? map['z_score_bb_u']?.toString() ?? '0') ?? 0.0,
+      zScoreHeightForAge: double.tryParse(map['z_score_height_for_age']?.toString() ?? map['z_score_tb_u']?.toString() ?? '0') ?? 0.0,
+      zScoreHeadForAge: double.tryParse(map['z_score_head_for_age']?.toString() ?? '0') ?? 0.0,
+      zScoreWeightForHeight: double.tryParse(map['z_score_weight_for_height']?.toString() ?? map['z_score_bb_tb']?.toString() ?? '0') ?? 0.0,
+      statusGizi: (map['status_gizi'] ?? map['status_stunting'] ?? 'Gizi Normal').toString(),
+      isBirthRecord: map['is_birth_record'] == true || map['is_birth_record'] == 1,
+      notes: map['notes']?.toString() ?? map['hasil_prediksi_ai']?.toString(),
     );
   }
+
+
 
   Map<String, dynamic> toMap() {
     return {

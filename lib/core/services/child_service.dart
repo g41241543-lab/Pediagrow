@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../models/child_model.dart';
+import 'api_service.dart';
 
 /// Service singleton untuk mengelola data profil anak-anak pada aplikasi PediaGrow.
 ///
@@ -41,10 +42,8 @@ class ChildService {
     final updatedList = List<ChildModel>.from(childrenNotifier.value)..add(child);
     childrenNotifier.value = updatedList;
 
-    // Jika belum ada anak yang aktif, otomatis jadikan anak baru ini sebagai yang aktif
-    if (activeChildNotifier.value == null) {
-      activeChildNotifier.value = child;
-    }
+    // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
+    activeChildNotifier.value = child;
   }
 
   /// Memperbarui data profil anak yang sudah ada
@@ -79,9 +78,29 @@ class ChildService {
     activeChildNotifier.value = child;
   }
 
+  /// Memuat profil anak dari database MySQL via [ApiService]
+  Future<void> loadChildrenFromApi(int parentId) async {
+    try {
+      final list = await ApiService.getChildren(parentId);
+      final models = list.map((m) => ChildModel.fromMap(m)).toList();
+      childrenNotifier.value = models;
+      if (models.isNotEmpty) {
+        if (activeChildNotifier.value == null ||
+            !models.any((c) => c.id == activeChildNotifier.value?.id)) {
+          activeChildNotifier.value = models.first;
+        }
+      } else {
+        activeChildNotifier.value = null;
+      }
+    } catch (e) {
+      debugPrint('ChildService.loadChildrenFromApi error: $e');
+    }
+  }
+
   /// Mengatur ulang daftar anak (misal saat logout atau inisialisasi)
   void clear() {
     childrenNotifier.value = [];
     activeChildNotifier.value = null;
   }
 }
+

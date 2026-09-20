@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
+import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import 'menunggu_persetujuan_page.dart';
 
@@ -25,15 +27,19 @@ import 'menunggu_persetujuan_page.dart';
 ///    - Tombol oranye "Chat Dokter" → navigasi ke [MenungguPersetujuanPage]
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
+  final ChildModel? child;
 
-  const ProfilDokterPage({super.key, required this.doctor});
+  const ProfilDokterPage({super.key, required this.doctor, this.child});
 
   void _onChatDokterPressed(BuildContext context) {
     // Alur resmi: Profil Dokter → Menunggu Persetujuan → Formulir → Chat
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            MenungguPersetujuanPage(doctor: doctor),
+            MenungguPersetujuanPage(
+              doctor: doctor,
+              child: child ?? ChildService().activeChild,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,

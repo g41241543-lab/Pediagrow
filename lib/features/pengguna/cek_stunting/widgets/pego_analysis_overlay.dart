@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,15 +19,15 @@ enum PegoAnimationState {
 
 /// Overlay Animasi Pego & Black Hole
 ///
-/// Menyajikan transisi sinematik:
-/// 1. White fade 60% opacity masuk
-/// 2. Black hole elips #484747 muncul dengan scale & opacity
-/// 3. Pego keluar dari black hole dengan spring animation (~1600ms)
+/// Menyajikan transisi sinematik yang super smooth:
+/// 1. White fade 85% opacity masuk halus (Color(0xD9FFFFFF))
+/// 2. Black hole elips #484747 muncul dengan scale & opacity lembut
+/// 3. Pego keluar dari black hole dengan interpolasi kurva halus (~1400ms)
 /// 4. Pego melambaikan tangan + dada-dada selama 1600ms (analyzing)
 /// 5. Teks "Pego sedang menganalisis..." looping dots
-/// 6. Pego kembali ke dalam black hole (reverse)
+/// 6. Pego kembali masuk ke dalam black hole secara mulus (reverse)
 /// 7. Black hole mengecil dan lenyap
-/// 8. White fade keluar → tampil hasil
+/// 8. White fade keluar → tampil hasil pemeriksaan
 class PegoAnalysisOverlay extends StatefulWidget {
   final bool isVisible;
   final String? customPegoAsset;
@@ -48,13 +47,13 @@ class PegoAnalysisOverlay extends StatefulWidget {
 class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
     with TickerProviderStateMixin {
   // ────────────────────────────────────────────────
-  // Konstanta
+  // Konstanta Desain
   // ────────────────────────────────────────────────
   static const Color colorBlackHole = Color(0xFF484747);
   static const Color colorAnalyzingText = Color(0xFF7F7F7F);
 
-  // White fade 60% opacity (0x99 = 153/255 ≈ 60%)
-  static const Color colorWhiteFade = Color(0x99FFFFFF);
+  /// White fade 85% opacity (0xD9 = 217/255 ≈ 85.1%)
+  static const Color colorWhiteFade = Color(0xD9FFFFFF);
 
   // ────────────────────────────────────────────────
   // State & Controllers
@@ -82,20 +81,21 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
   void initState() {
     super.initState();
 
-    // 1. White Fade (300ms)
+    // 1. White Fade 85% (350ms, kurva easeInOutCubic yang halus)
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
     );
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
     );
 
-    // 2. Black Hole (400ms) — lebih kecil dari sebelumnya
+    // 2. Black Hole (450ms)
     _blackHoleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 450),
     );
     _blackHoleScaleAnimation = CurvedAnimation(
       parent: _blackHoleController,
@@ -104,44 +104,44 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
     );
     _blackHoleOpacityAnimation = CurvedAnimation(
       parent: _blackHoleController,
-      curve: Curves.easeIn,
+      curve: Curves.easeInOutCubic,
     );
 
-    // 3. Pego Spring (~1600ms)
+    // 3. Pego Emergence & Return (~1400ms, kurva smooth natural)
     _pegoSpringController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1400),
     );
 
-    final springCurve = CurvedAnimation(
-      parent: _pegoSpringController,
-      curve: const _PegoSpringCurve(damping: 0.72, frequency: 1.15),
-      reverseCurve: Curves.easeInOutCubic,
-    );
-
-    _pegoTranslationAnimation =
-        Tween<double>(begin: 70.0, end: 0.0).animate(springCurve);
-
-    _pegoScaleAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+    _pegoTranslationAnimation = Tween<double>(begin: 75.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _pegoSpringController,
-        curve: const Interval(0.0, 0.75, curve: Curves.easeOutCubic),
-        reverseCurve: Curves.easeInCubic,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeInBack,
+      ),
+    );
+
+    _pegoScaleAnimation = Tween<double>(begin: 0.25, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _pegoSpringController,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeInBack,
       ),
     );
 
     _pegoOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _pegoSpringController,
-        curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
-        reverseCurve: Curves.easeOut,
+        curve: const Interval(0.0, 0.40, curve: Curves.easeIn),
+        reverseCurve: const Interval(0.60, 1.0, curve: Curves.easeOut),
       ),
     );
 
-    _pegoWobbleAnimation = Tween<double>(begin: -0.08, end: 0.0).animate(
+    _pegoWobbleAnimation = Tween<double>(begin: -0.06, end: 0.0).animate(
       CurvedAnimation(
         parent: _pegoSpringController,
-        curve: const Interval(0.0, 0.65, curve: Curves.elasticOut),
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
       ),
     );
 
@@ -170,13 +170,13 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
     super.dispose();
   }
 
-  /// Jalankan sekuens animasi lengkap secara presisi
+  /// Jalankan sekuens animasi lengkap secara presisi dan mulus
   Future<void> runSequence({
     required Future<void> Function() performAnalysisTask,
   }) async {
     if (!mounted) return;
 
-    // 1. White Fade 60% masuk
+    // 1. White Fade 85% masuk
     setState(() => _currentState = PegoAnimationState.whiteFadeIn);
     await _fadeController.forward();
 
@@ -185,7 +185,7 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
     setState(() => _currentState = PegoAnimationState.blackHoleAppearing);
     await _blackHoleController.forward();
 
-    // 3. Pego Emergence (~1600ms)
+    // 3. Pego Emergence (~1400ms)
     if (!mounted) return;
     setState(() {
       _currentState = PegoAnimationState.pegoEmergence;
@@ -194,18 +194,18 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
     _dotsController.forward();
     await _pegoSpringController.forward();
 
-    // 4. Pego Analyzing — melambaikan tangan + dada-dada selama 1600ms
+    // 4. Pego Analyzing — melambaikan tangan + dada-dada secara smooth
     if (!mounted) return;
     setState(() {
       _currentState = PegoAnimationState.analyzing;
-      _isPegoWaving = true; // aktifkan animasi lambaian
+      _isPegoWaving = true;
     });
 
-    // Minimum display 1600ms agar tangan sempat melambaikan, sembari task jalan
+    // Minimum display 1600ms agar animasi lambaian tangan terlihat anggun
     final minDelay = Future.delayed(const Duration(milliseconds: 1600));
     await Future.wait([performAnalysisTask(), minDelay]);
 
-    // 5. Pego Returning ke black hole
+    // 5. Pego Returning ke black hole secara mulus
     if (!mounted) return;
     setState(() {
       _currentState = PegoAnimationState.pegoReturning;
@@ -239,7 +239,7 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
 
     return Stack(
       children: [
-        // ── White Overlay 60% ──────────────────────────────────────────
+        // ── White Overlay 85% ──────────────────────────────────────────
         FadeTransition(
           opacity: _fadeAnimation,
           child: Container(
@@ -249,7 +249,7 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
           ),
         ),
 
-        // ── Pusat Animasi Pego ─────────────────────────────────────────
+        // ── Pusat Animasi Pego & Black Hole ────────────────────────────
         Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -260,7 +260,7 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // A. Black Hole Elips — lebih kecil
+                    // A. Black Hole Elips
                     Positioned(
                       bottom: 20,
                       child: ScaleTransition(
@@ -268,7 +268,6 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
                         child: FadeTransition(
                           opacity: _blackHoleOpacityAnimation,
                           child: Container(
-                            // Ukuran dikecilkan dari 190×64 → 120×36
                             width: 120,
                             height: 36,
                             decoration: BoxDecoration(
@@ -290,37 +289,27 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
                       ),
                     ),
 
-                    // B. Robot Pego
+                    // B. Robot Pego (Continuous smooth transform)
                     Positioned(
                       bottom: 26,
                       child: AnimatedBuilder(
                         animation: _pegoSpringController,
                         builder: (context, child) {
-                          final isEmergingOrReturning =
-                              _currentState == PegoAnimationState.pegoEmergence ||
-                              _currentState == PegoAnimationState.pegoReturning;
-                          final isAnalyzing =
-                              _currentState == PegoAnimationState.analyzing;
-
-                          final double currentOpacity = isEmergingOrReturning
-                              ? _pegoOpacityAnimation.value.clamp(0.0, 1.0)
-                              : (isAnalyzing ? 1.0 : 0.0);
+                          final double currentOpacity =
+                              _pegoOpacityAnimation.value.clamp(0.0, 1.0);
+                          final double currentTranslation =
+                              _pegoTranslationAnimation.value;
+                          final double currentScale =
+                              _pegoScaleAnimation.value;
+                          final double currentWobble =
+                              _pegoWobbleAnimation.value;
 
                           return Transform.translate(
-                            offset: Offset(
-                              0,
-                              isEmergingOrReturning
-                                  ? _pegoTranslationAnimation.value
-                                  : 0,
-                            ),
+                            offset: Offset(0, currentTranslation),
                             child: Transform.rotate(
-                              angle: isEmergingOrReturning
-                                  ? _pegoWobbleAnimation.value
-                                  : 0,
+                              angle: currentWobble,
                               child: Transform.scale(
-                                scale: isEmergingOrReturning
-                                    ? _pegoScaleAnimation.value
-                                    : (isAnalyzing ? 1.0 : 0.3),
+                                scale: currentScale,
                                 child: Opacity(
                                   opacity: currentOpacity,
                                   child: child,
@@ -381,20 +370,5 @@ class PegoAnalysisOverlayState extends State<PegoAnalysisOverlay>
         ),
       ],
     );
-  }
-}
-
-/// Custom Curve berdasarkan fisika pegas (spring physics)
-class _PegoSpringCurve extends Curve {
-  final double damping;
-  final double frequency;
-
-  const _PegoSpringCurve({this.damping = 0.75, this.frequency = 1.2});
-
-  @override
-  double transformInternal(double t) {
-    final double decay = -damping * 5.0 * t;
-    final double rad = frequency * math.pi * 2.0 * t;
-    return 1.0 - (math.exp(decay) * math.cos(rad));
   }
 }

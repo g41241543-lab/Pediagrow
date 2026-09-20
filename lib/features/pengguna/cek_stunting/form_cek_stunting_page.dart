@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
+import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'hasil_cek_stunting_page.dart';
+import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Formulir Cek Stunting PediaGrow.
 ///
@@ -165,10 +169,12 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     super.dispose();
   }
 
-  /// Inisialisasi data profil anak
+  /// Inisialisasi data profil anak — menggunakan widget.child, jika tidak ada
+  /// maka fallback ke anak aktif dari [ChildService].
   void _setupChildData() {
-    if (widget.child != null) {
-      _applyChildModel(widget.child!);
+    final effectiveChild = widget.child ?? ChildService().activeChild;
+    if (effectiveChild != null) {
+      _applyChildModel(effectiveChild);
     } else {
       // Default presisi sesuai Gambar 1, 2, 3
       _namaLengkap = 'Kaia Anastasya';
@@ -245,6 +251,18 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     if (_isAnalyzing) return;
     FocusScope.of(context).unfocus();
 
+    // ── Cek Batas 2x per Bulan per Anak ─────────────────────────────────────
+    final childId = widget.child?.id ?? 'default';
+    if (!StuntingLimitService().canCheck(childId)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     bool isValid = true;
     String? beratErr;
     String? tinggiErr;
@@ -292,34 +310,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     });
 
     if (!isValid) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  color: Colors.white, size: 22),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: colorDangerRed,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 3),
-        ),
+      PediaBanner.showError(
+        context,
+        message: 'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
       );
       return;
     }
@@ -330,19 +323,55 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
 
     await _pegoOverlayKey.currentState?.runSequence(
       performAnalysisTask: () async {
-        // Eksekusi Klasifikasi Stunting Data Mining
+        // Eksekusi Klasifikasi Stunting Data Mining menggunakan StuntingMlService
         final currentWeight = double.parse(rawBerat);
         final currentHeight = double.parse(rawTinggi);
 
-        final result = StuntingClassifier.classify(
-          ageInMonths: _calculatedAgeInMonths,
+        final inputData = StuntingInputData(
+          namaAnak: _namaLengkap,
           gender: _jenisKelamin,
+          birthDate: _birthDate,
+          checkDate: _checkDate,
           birthWeightKg: double.tryParse(_beratBadanLahir) ?? 2.9,
           birthHeightCm: double.tryParse(_tinggiBadanLahir) ?? 50.0,
           currentWeightKg: currentWeight,
           currentHeightCm: currentHeight,
           isExclusiveBreastfeeding: _isAsiEksklusif!,
         );
+
+        StuntingAnalysisResult result;
+        try {
+          final mlRes = await StuntingMlService.predict(inputData);
+          StuntingStatus status;
+          if (mlRes.status == StuntingStatusCategory.normal ||
+              mlRes.status == StuntingStatusCategory.tinggi) {
+            status = StuntingStatus.normal;
+          } else if (mlRes.status == StuntingStatusCategory.severelyStunted) {
+            status = StuntingStatus.severelyStunted;
+          } else {
+            status = StuntingStatus.berisikoStunting;
+          }
+
+          result = StuntingAnalysisResult(
+            status: status,
+            statusLabel: mlRes.statusLabel,
+            zScoreHeightForAge: mlRes.zScoreHeightForAge,
+            zScoreWeightForAge: mlRes.zScoreWeightForAge,
+            confidenceProbability: mlRes.confidenceProbability,
+            description: mlRes.description,
+            recommendations: mlRes.recommendations,
+          );
+        } catch (_) {
+          result = StuntingClassifier.classify(
+            ageInMonths: _calculatedAgeInMonths,
+            gender: _jenisKelamin,
+            birthWeightKg: double.tryParse(_beratBadanLahir) ?? 2.9,
+            birthHeightCm: double.tryParse(_tinggiBadanLahir) ?? 50.0,
+            currentWeightKg: currentWeight,
+            currentHeightCm: currentHeight,
+            isExclusiveBreastfeeding: _isAsiEksklusif!,
+          );
+        }
 
         // Simpan ke SQLite lokal bila tersedia
         try {
@@ -369,6 +398,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
         } catch (_) {}
 
         resultHolder = result;
+
+        // Catat satu sesi cek berhasil ke limit service
+        StuntingLimitService().recordCheck(childId);
       },
     );
 
@@ -1086,6 +1118,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
                                   .replaceAll(',', '.')),
                           isAsiEksklusif: _isAsiEksklusif ?? true,
                           tanggalPemeriksaan: _tanggalCek,
+                          tanggalLahir: _tanggalLahir,
+                          beratBadanLahir: _beratBadanLahir,
+                          tinggiBadanLahir: _tinggiBadanLahir,
                         ),
                       ),
                     );

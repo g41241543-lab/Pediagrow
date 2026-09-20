@@ -9,6 +9,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../auth/terms_page.dart';
 import '../beranda/beranda_page.dart';
 import '../beranda/notifikasi_page.dart';
@@ -18,6 +19,7 @@ import 'keluar_logout_dialog.dart';
 import 'profil_ibu_page.dart';
 import 'tentang_aplikasi_page.dart';
 import 'ubah_password_page.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Menu Profil Ibu PediaGrow.
 ///
@@ -55,9 +57,6 @@ class MenuProfilPage extends StatefulWidget {
 }
 
 class _MenuProfilPageState extends State<MenuProfilPage> {
-  // Indeks tab navigasi aktif (3 = Profil Ibu)
-  final int _selectedNavIndex = 3;
-
   final ImagePicker _picker = ImagePicker();
 
   String _successBannerMessage = 'Berhasil Memperbarui Profil';
@@ -120,27 +119,6 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
       } else if (result == true) {
         _triggerSuccessBanner(message: 'Berhasil Memperbarui Profil');
       }
-    }
-  }
-
-  void _onNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const BerandaPage()),
-          (route) => false,
-        );
-        break;
-      case 1:
-        _navigateTo(const DaftarDokterPage());
-        break;
-      case 2:
-        _navigateTo(const DaftarRiwayatPage());
-        break;
-      case 3:
-        // Sudah berada di Menu Profil Ibu
-        break;
     }
   }
 
@@ -256,15 +234,9 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal memilih gambar: $e',
-              style: GoogleFonts.lato(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal memilih gambar: $e',
         );
       }
     }
@@ -721,107 +693,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   // State tidak aktif: icon & label abu-abu #9E9E9E
   // -------------------------------------------------------------------------
   Widget _buildFixedNavBar() {
-    final navItems = [
-      _NavigationData(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavigationData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavigationData(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      _NavigationData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(navItems.length, (i) {
-          final isSelected = i == _selectedNavIndex;
-          final item = navItems[i];
-
-          return GestureDetector(
-            onTap: () => _onNavTap(i),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 80,
-              height: 68,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSelected) ...[
-                    // State aktif: lingkaran putih dengan icon biru #72A9F4
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x1A000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        item.icon,
-                        size: 24,
-                        color: const Color(0xFF72A9F4),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        color: const Color(0xFF1E293B),
-                      ),
-                    ),
-                  ] else ...[
-                    // State tidak aktif: icon & label abu-abu #9E9E9E
-                    Icon(item.icon, size: 24, color: const Color(0xFF9E9E9E)),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        color: const Color(0xFF9E9E9E),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
+    return const PediaBottomNavBar(selectedIndex: 3);
   }
 }
 
-class _NavigationData {
-  final IconData icon;
-  final String label;
-
-  const _NavigationData({required this.icon, required this.label});
-}

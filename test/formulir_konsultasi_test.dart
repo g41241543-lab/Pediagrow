@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pediagrow/core/services/child_service.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/chat_konsultasi_page.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/formulir_konsultasi_page.dart';
 import 'package:pediagrow/models/child_model.dart';
 
 void main() {
   group('FormulirKonsultasiPage Widget Tests', () {
+    setUp(() {
+      // Reset ChildService state before each test for full isolation
+      ChildService().clear();
+    });
+
+    tearDown(() {
+      ChildService().clear();
+    });
+
     testWidgets('Renders all visual sections according to design', (
       WidgetTester tester,
     ) async {
@@ -34,9 +44,8 @@ void main() {
         findsOneWidget,
       );
 
-      // Data Anak (default fallback)
+      // Data Anak (default fallback — no active child set → plain label)
       expect(find.text('Data Anak'), findsOneWidget);
-      expect(find.text('Perempuan, 1 tahun 3 bulan 3 hari'), findsOneWidget);
 
       // Card Berat Badan Saat Ini
       expect(find.text('Berat Badan Saat Ini'), findsOneWidget);
@@ -67,21 +76,15 @@ void main() {
 
       // Card Informasi Penting
       expect(find.text('Informasi Penting'), findsOneWidget);
-      expect(
-        find.text('Data yang anda berikan bersifat rahasia.'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('Pastikan data yang diisi sudah benar.'),
-        findsOneWidget,
-      );
+      expect(find.text('Data yang anda berikan bersifat rahasia.'), findsOneWidget);
+      expect(find.text('Pastikan data yang diisi sudah benar.'), findsOneWidget);
 
       // Button & Footer Keamanan
       expect(find.text('Lanjutkan Chat Dokter'), findsOneWidget);
       expect(find.text('Data Anda aman dan terlindungi'), findsOneWidget);
     });
 
-    testWidgets('Renders dynamic child data when provided', (
+    testWidgets('Renders dynamic child data when provided via widget param', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -104,8 +107,42 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Laki-laki, 2 tahun 1 bulan'), findsOneWidget);
-      expect(find.text('Perempuan, 1 tahun 3 bulan 3 hari'), findsNothing);
+      // Child name should appear in title
+      expect(find.text('Data Anak (Rafa)'), findsOneWidget);
     });
+
+    testWidgets(
+      'Defaults to active child from ChildService when no child parameter is passed',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        const activeChild = ChildModel(
+          id: 'child-active',
+          name: 'Budi Santoso',
+          gender: 'Laki-laki',
+          ageDescription: '3 tahun 2 bulan',
+        );
+
+        // Set the active child BEFORE opening the form (no child widget param)
+        ChildService().addChild(activeChild);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: FormulirKonsultasiPage(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Title must include active child's name
+        expect(find.text('Data Anak (Budi Santoso)'), findsOneWidget);
+
+        // Subtitle must reflect active child gender + age
+        expect(find.text('Laki-laki, 3 tahun 2 bulan'), findsOneWidget);
+      },
+    );
 
     testWidgets('Validates required fields and character counter updates', (
       WidgetTester tester,

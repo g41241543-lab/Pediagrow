@@ -6,6 +6,7 @@ import '../../../models/doctor_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../core/services/notification_service.dart';
+import '../beranda/beranda_page.dart';
 import '../beranda/notifikasi_page.dart';
 import 'profil_dokter_page.dart';
 
@@ -19,7 +20,7 @@ import 'profil_dokter_page.dart';
 ///    - Foto profil + status online badge (lingkaran hijau)
 ///    - Nama dokter, kategori spesialis, dan lama pengalaman kerja
 ///    - Divider pemisah abu-abu #E5E5E5
-///    - Tombol pill oranye "Detail Dokter" -> navigasi ke [ProfilDokterPage] dengan animasi halus
+///    - Tombol pill biru "Detail Dokter" -> navigasi ke [ProfilDokterPage] dengan animasi halus
 /// 5. Ilustrasi dekoratif pohon, rumput, dan tenda ([IllustrationForestFooter]) di bagian bawah konten
 /// 6. Navigation Bar Tetap (Scaffold bottomNavigationBar) dengan menu Konsultasi aktif
 class DaftarDokterPage extends StatefulWidget {
@@ -29,48 +30,20 @@ class DaftarDokterPage extends StatefulWidget {
   State<DaftarDokterPage> createState() => _DaftarDokterPageState();
 }
 
-class _DaftarDokterPageState extends State<DaftarDokterPage>
-    with SingleTickerProviderStateMixin {
+class _DaftarDokterPageState extends State<DaftarDokterPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
   String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Animasi halus saat halaman pertama kali dibuka
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.0, 0.04), end: Offset.zero).animate(
-          CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
-        );
-
-    _fadeController.forward();
-  }
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
-    _fadeController.dispose();
     super.dispose();
   }
 
+  /// Navigasi ke detail dokter dengan slide + fade transition (halaman sub, bukan tab)
   void _navigateToDetail(DoctorModel doctor) {
     _searchFocusNode.unfocus();
     Navigator.of(context).push(
@@ -100,130 +73,144 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        bottom: false,
-        child: GestureDetector(
-          onTap: () => _searchFocusNode.unfocus(),
-          behavior: HitTestBehavior.translucent,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // -------------------------------------------------------------
-              // 1. HEADER TETAP (56dp)
-              // -------------------------------------------------------------
-              _buildHeader(context),
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            // Kembali ke Beranda dengan FadeTransition (seragam dengan tab lain)
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const BerandaPage(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 200),
+              ),
+              (route) => false,
+            );
+          }
+        },
+        child: SafeArea(
+          bottom: false,
+          child: GestureDetector(
+            onTap: () => _searchFocusNode.unfocus(),
+            behavior: HitTestBehavior.translucent,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -------------------------------------------------------------
+                // 1. HEADER TETAP (56dp)
+                // -------------------------------------------------------------
+                _buildHeader(context),
 
-              // -------------------------------------------------------------
-              // 2. KONTEN SCROLLABLE
-              // Search Bar + Title + Doctor Cards + Landscape Illustration
-              // -------------------------------------------------------------
-              Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          physics: const ClampingScrollPhysics(),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: IntrinsicHeight(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  const SizedBox(height: 12),
+                // -------------------------------------------------------------
+                // 2. KONTEN SCROLLABLE
+                // Search Bar + Title + Doctor Cards + Landscape Illustration
+                // -------------------------------------------------------------
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: 12),
 
-                                  // Search Bar (Cari nama dokter)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0,
-                                    ),
-                                    child: _buildSearchBar(),
+                                // Search Bar (Cari nama dokter)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
                                   ),
+                                  child: _buildSearchBar(),
+                                ),
 
-                                  const SizedBox(height: 18),
+                                const SizedBox(height: 18),
 
-                                  // Judul Bagian "Daftar Dokter"
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0,
-                                    ),
-                                    child: Text(
-                                      'Daftar Dokter',
-                                      style: GoogleFonts.lato(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF000000),
-                                      ),
+                                // Judul Bagian "Daftar Dokter"
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
+                                  child: Text(
+                                    'Daftar Dokter',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF000000),
                                     ),
                                   ),
+                                ),
 
-                                  const SizedBox(height: 12),
+                                const SizedBox(height: 12),
 
-                                  // Daftar Dokter Dinamis (Reaktif terhadap database/PMIK)
-                                  ValueListenableBuilder<List<DoctorModel>>(
-                                    valueListenable:
-                                        DoctorService().doctorsNotifier,
-                                    builder: (context, allDoctors, _) {
-                                      final filteredDoctors =
-                                          _searchQuery.isEmpty
-                                          ? allDoctors
-                                          : DoctorService().filterDoctors(
-                                              _searchQuery,
-                                            );
+                                // Daftar Dokter Dinamis (Reaktif terhadap database/PMIK)
+                                ValueListenableBuilder<List<DoctorModel>>(
+                                  valueListenable:
+                                      DoctorService().doctorsNotifier,
+                                  builder: (context, allDoctors, _) {
+                                    final filteredDoctors =
+                                        _searchQuery.isEmpty
+                                        ? allDoctors
+                                        : DoctorService().filterDoctors(
+                                            _searchQuery,
+                                          );
 
-                                      if (filteredDoctors.isEmpty) {
-                                        return _buildEmptyState();
-                                      }
+                                    if (filteredDoctors.isEmpty) {
+                                      return _buildEmptyState();
+                                    }
 
-                                      return Column(
-                                        children: [
-                                          for (
-                                            int i = 0;
-                                            i < filteredDoctors.length;
-                                            i++
-                                          ) ...[
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16.0,
-                                                  ),
-                                              child: _buildDoctorCard(
-                                                filteredDoctors[i],
-                                              ),
+                                    return Column(
+                                      children: [
+                                        for (
+                                          int i = 0;
+                                          i < filteredDoctors.length;
+                                          i++
+                                        ) ...[
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0,
                                             ),
-                                            if (i != filteredDoctors.length - 1)
-                                              const SizedBox(height: 14),
-                                          ],
+                                            child: _buildDoctorCard(
+                                              filteredDoctors[i],
+                                            ),
+                                          ),
+                                          if (i != filteredDoctors.length - 1)
+                                            const SizedBox(height: 14),
                                         ],
-                                      );
-                                    },
-                                  ),
+                                      ],
+                                    );
+                                  },
+                                ),
 
-                                  // Spacer fleksibel agar ketika konten pendek/kosong, ilustrasi tetap menempel di bawah
-                                  const Spacer(),
+                                // Spacer fleksibel agar ilustrasi tetap menempel di bawah
+                                const Spacer(),
 
-                                  const SizedBox(height: 20),
+                                const SizedBox(height: 20),
 
-                                  // Ilustrasi Pemandangan Hutan, Rumput & Tenda (Reusable)
-                                  // Menutup halaman dan menempel tepat di bagian bawah konten sebelum Navigation Bar
-                                  const IllustrationForestFooter(
-                                    fit: BoxFit.fitWidth,
-                                  ),
-                                ],
-                              ),
+                                // Ilustrasi Pemandangan Hutan, Rumput & Tenda (Reusable)
+                                const IllustrationForestFooter(
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -590,7 +577,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                 // Divider
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12.0),
-                  child: Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                  child: Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFF1F5F9),
+                  ),
                 ),
 
                 // Sisi Bawah: Tombol "Detail Dokter" biru

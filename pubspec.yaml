@@ -43,6 +43,12 @@ dependencies:
   flutter_map: ^8.1.1
   latlong2: ^0.9.1
   youtube_player_flutter: ^10.0.1
+<<<<<<< HEAD
+  shared_preferences: ^2.5.5
+=======
+  pdf: ^3.13.1
+  printing: ^5.15.1
+>>>>>>> d062c98d5ac1004b9e5810fd3cb9bedd98cfa461
 
 dev_dependencies:
   flutter_test:

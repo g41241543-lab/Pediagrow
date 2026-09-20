@@ -399,7 +399,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => DetailResepPage(resep: _toDetailModel(recipe)),
+            builder: (_) => DetailResepPage(
+              resepModel: recipe,
+              resep: _toDetailModel(recipe),
+            ),
           ),
         );
       },
@@ -484,6 +487,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     const double borderRadius = 18;
 
     final displayImage = recipe.displayImage;
+    final isNetwork = recipe.isNetworkImage;
 
     return Container(
       width: thumbWidth,
@@ -501,16 +505,25 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: displayImage == null
+        child: displayImage == null || displayImage.isEmpty
             ? _buildThumbnailPlaceholder()
-            : Image.asset(
-                displayImage,
-                width: thumbWidth,
-                height: thumbHeight,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    _buildThumbnailPlaceholder(),
-              ),
+            : isNetwork
+                ? Image.network(
+                    displayImage,
+                    width: thumbWidth,
+                    height: thumbHeight,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildThumbnailPlaceholder(),
+                  )
+                : Image.asset(
+                    displayImage,
+                    width: thumbWidth,
+                    height: thumbHeight,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildThumbnailPlaceholder(),
+                  ),
       ),
     );
   }
@@ -624,21 +637,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // -------------------------------------------------------------------------
 
   ResepMpasi _toDetailModel(ResepMpasiModel m) {
-    return ResepMpasi(
-      id: m.id?.toString() ?? '',
-      title: m.judul,
-      author: m.penulis ?? '',
-      date: m.tanggal,
-      category: m.kategoriUsia,
-      assetImage: m.assetImagePath ?? '',
-      energi: m.energiKkal ?? 0,
-      lemak: m.lemakGr ?? 0,
-      protein: m.proteinGr ?? 0,
-      porsi: m.porsi ?? 0,
-      bahan: m.bahan,
-      bahanPelapis: m.bahanPelapis,
-      buah: m.buah,
-      caraMembuat: m.caraMembuat,
-    );
+    return ResepMpasi.fromModel(m);
   }
 }
