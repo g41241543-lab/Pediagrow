@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 import '../../models/resep_mpasi_model.dart';
+import 'api_service.dart';
 
 /// Service untuk mengelola data Resep MPASI di SQLite lokal.
 ///
@@ -200,6 +202,21 @@ class ResepMpasiService {
     String? kategoriUsia,
     String? searchQuery,
   }) async {
+    // 1. Coba ambil dari database MySQL via API
+    try {
+      final remoteList = await ApiService.getRecipes(query: searchQuery);
+      if (remoteList.isNotEmpty) {
+        var models = remoteList.map((m) => ResepMpasiModel.fromMap(m)).toList();
+        if (kategoriUsia != null && kategoriUsia != 'Semua') {
+          models = models.where((r) => r.kategoriUsia.toLowerCase().contains(kategoriUsia.toLowerCase())).toList();
+        }
+        return models;
+      }
+    } catch (e) {
+      debugPrint('ResepMpasiService: fallback to local database ($e)');
+    }
+
+    // 2. Fallback ke SQLite lokal
     final db = await _database;
 
     String where = '1=1';
@@ -224,6 +241,7 @@ class ResepMpasiService {
 
     return maps.map((m) => ResepMpasiModel.fromMap(m)).toList();
   }
+
 
   /// Ambil satu resep berdasarkan id.
   Future<ResepMpasiModel?> getResepById(int id) async {

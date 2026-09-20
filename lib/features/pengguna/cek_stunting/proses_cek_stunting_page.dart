@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/api_service.dart';
 import '../../../core/services/local_db_service.dart';
 import '../../../models/child_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
@@ -274,17 +276,40 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           // Menjalankan inferensi model Random Forest & GridSearchCV (REST API / Local Engine)
           resultHolder = await StuntingMlService.predict(inputData);
 
-          // Simpan ke database lokal SQLite jika tersedia
+          // Simpan ke database MySQL tabel data_pertumbuhan
+          final childIdInt = int.tryParse(widget.child?.id ?? '1') ?? 1;
+          final statusLabel = resultHolder?.status ?? 'Normal';
+          final formattedDate = _formatDate(_checkDate);
+
           try {
-            await LocalDbService().insertGrowthRecord({
-              'child_id': 1,
-              'tanggal': _formatDate(_checkDate),
+            final prefs = await SharedPreferences.getInstance();
+            final idAkun = prefs.getInt('id_akun');
+            await ApiService.addGrowthRecord({
+              'id_anak': childIdInt,
+              'tanggal': formattedDate,
               'berat_kg': currentWeight,
               'tinggi_cm': currentHeight,
               'lingkar_kepala_cm': 0.0,
-              'synced': 0,
+              'status_stunting': statusLabel,
+              'hasil_prediksi_ai': statusLabel,
+              'dicatat_oleh': idAkun,
+            });
+          } catch (e) {
+            debugPrint('Gagal simpan growth record ke MySQL: $e');
+          }
+
+          // Simpan ke database lokal SQLite jika tersedia
+          try {
+            await LocalDbService().insertGrowthRecord({
+              'child_id': childIdInt,
+              'tanggal': formattedDate,
+              'berat_kg': currentWeight,
+              'tinggi_cm': currentHeight,
+              'lingkar_kepala_cm': 0.0,
+              'synced': 1,
             }).catchError((_) => 0);
           } catch (_) {}
+
 
           // Catat ke GrowthService agar titik baru langsung muncul di Grafik Pertumbuhan
           try {

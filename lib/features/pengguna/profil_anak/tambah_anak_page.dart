@@ -6,8 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/api_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../beranda/beranda_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
@@ -891,8 +894,30 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           ? int.tryParse(_usiaKehamilanController.text.trim())
           : null;
 
+      final prefs = await SharedPreferences.getInstance();
+      final idOrangTua = prefs.getInt('id_akun') ?? int.tryParse(UserService().currentUser.id) ?? 1;
+
+      final tanggalLahirStr = _selectedBirthDate != null
+          ? "${_selectedBirthDate!.year.toString().padLeft(4, '0')}-${_selectedBirthDate!.month.toString().padLeft(2, '0')}-${_selectedBirthDate!.day.toString().padLeft(2, '0')}"
+          : DateTime.now().toIso8601String().substring(0, 10);
+
+      // Simpan ke database MySQL
+      final apiResult = await ApiService.addChild({
+        'id_orang_tua': idOrangTua,
+        'nama': _namaController.text.trim(),
+        'tanggal_lahir': tanggalLahirStr,
+        'jenis_kelamin': (_selectedGender == 'Laki-laki') ? 'L' : 'P',
+        'berat_lahir_kg': weight,
+        'asi_eksklusif': 1,
+        'foto_url': _fotoProfilPath,
+      });
+
+      final String childId = (apiResult['status'] == 'sukses' && apiResult['id'] != null)
+          ? apiResult['id'].toString()
+          : 'child_${DateTime.now().millisecondsSinceEpoch}';
+
       final newChild = ChildModel(
-        id: 'child_${DateTime.now().millisecondsSinceEpoch}',
+        id: childId,
         name: _namaController.text.trim(),
         gender: _selectedGender!,
         ageDescription: _calculatedAgeString ?? '0 bulan',
@@ -914,6 +939,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       if (!mounted) return;
 
       setState(() => _isSaving = false);
+
 
       // Arahkan ke Beranda dengan flag notifikasi sukses
       Navigator.of(context).pushAndRemoveUntil(
