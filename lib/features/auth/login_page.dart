@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
 import '../pengguna/beranda/beranda_page.dart';
+import '../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Masuk (Login Page) PediaGrow.
 ///
@@ -70,21 +71,10 @@ class _LoginPageState extends State<LoginPage> {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Berhasil masuk! Mengalihkan ke beranda...'),
-          backgroundColor: Color(0xFF3985E7),
-          duration: Duration(milliseconds: 1500),
-        ),
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const BerandaPage()),
+        (route) => false,
       );
-
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const BerandaPage()),
-          (route) => false,
-        );
-      });
     } else {
       setState(() {
         _autoValidateMode = AutovalidateMode.onUserInteraction;
@@ -229,21 +219,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _completeGoogleSignIn(String account) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Berhasil masuk dengan Google: $account'),
-        backgroundColor: const Color(0xFF3985E7),
-        duration: const Duration(milliseconds: 1500),
-      ),
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const BerandaPage()),
+      (route) => false,
     );
-
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const BerandaPage()),
-        (route) => false,
-      );
-    });
   }
 
   @override

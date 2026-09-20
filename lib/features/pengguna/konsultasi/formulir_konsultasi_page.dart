@@ -7,6 +7,7 @@ import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'chat_konsultasi_page.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman "Formulir Konsultasi" PediaGrow.
 ///
@@ -240,19 +241,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
     if (!_validateForm()) {
       // Tampilkan notifikasi singkat jika ada field yang belum diisi
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Mohon lengkapi seluruh data formulir terlebih dahulu.',
-            style: GoogleFonts.lato(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFFE53935),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
+      PediaBanner.showError(
+        context,
+        message: 'Mohon lengkapi seluruh data formulir terlebih dahulu.',
       );
       return;
     }

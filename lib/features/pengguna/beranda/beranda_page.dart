@@ -24,6 +24,7 @@ import '../detail/detail_artikel_page.dart';
 import '../../../core/services/youtube_service.dart';
 import '../../../models/youtube_video_model.dart';
 import 'widgets/youtube_player_sheet.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -60,22 +61,9 @@ class _BerandaPageState extends State<BerandaPage>
 
     if (widget.showAddSuccessSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Profil anak berhasil ditambahkan',
-              style: GoogleFonts.lato(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            duration: const Duration(seconds: 3),
-          ),
+        PediaBanner.showSuccess(
+          context,
+          message: 'Profil anak berhasil ditambahkan',
         );
       });
     }

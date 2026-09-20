@@ -9,6 +9,7 @@ import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'konfirmasi_selesai_dialog.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Chat Konsultasi Dokter PediaGrow.
 ///
@@ -1633,11 +1634,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih file: $e', style: GoogleFonts.lato()),
-            backgroundColor: Colors.red,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal memilih file: $e',
         );
       }
     }

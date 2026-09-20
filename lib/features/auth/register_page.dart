@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'auth_choice_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
+import '../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Pendaftaran Akun Baru (Register Page) PediaGrow.
 ///
@@ -86,14 +87,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (_formKey.currentState!.validate()) {
       // Validasi berhasil
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
+      PediaBanner.showSuccess(
+        context,
+        message:
             'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
-          ),
-          backgroundColor: Color(0xFF3985E7),
-          duration: Duration(seconds: 2),
-        ),
       );
 
       // Otomatis mengarahkan ke AuthChoicePage
@@ -246,12 +243,9 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _completeGoogleSignIn(String account) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Berhasil terhubung dengan Google: $account'),
-        backgroundColor: const Color(0xFF3985E7),
-        duration: const Duration(seconds: 2),
-      ),
+    PediaBanner.showSuccess(
+      context,
+      message: 'Berhasil terhubung dengan Google: $account',
     );
 
     Future.delayed(const Duration(milliseconds: 800), () {

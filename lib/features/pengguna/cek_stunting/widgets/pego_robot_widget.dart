@@ -384,22 +384,22 @@ class _PegoAnimatingWidgetState extends State<PegoAnimatingWidget>
     super.initState();
     _waveController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 380),
+      duration: const Duration(milliseconds: 650),
     );
 
-    // Lengan kanan melambaikan tangan ke atas ("dada-dada")
-    _rightWaveAnim = Tween<double>(begin: 1.95, end: 2.55).animate(
-      CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
+    // Lengan kanan melambaikan tangan ke atas ("dada-dada") dengan halus
+    _rightWaveAnim = Tween<double>(begin: 1.95, end: 2.50).animate(
+      CurvedAnimation(parent: _waveController, curve: Curves.easeInOutSine),
     );
 
-    // Lengan kiri bergoyang ceria
-    _leftWaveAnim = Tween<double>(begin: -0.2, end: 0.05).animate(
-      CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
+    // Lengan kiri bergoyang ceria secara halus
+    _leftWaveAnim = Tween<double>(begin: -0.15, end: 0.05).animate(
+      CurvedAnimation(parent: _waveController, curve: Curves.easeInOutSine),
     );
 
-    // Bounce ringan naik-turun seperti bernapas gembira
-    _bounceAnim = Tween<double>(begin: 0.0, end: -4.0).animate(
-      CurvedAnimation(parent: _waveController, curve: Curves.easeInOut),
+    // Bounce ringan naik-turun seperti bernapas gembira dan melayang
+    _bounceAnim = Tween<double>(begin: 0.0, end: -5.0).animate(
+      CurvedAnimation(parent: _waveController, curve: Curves.easeInOutSine),
     );
 
     if (widget.isWaving) {
@@ -413,8 +413,11 @@ class _PegoAnimatingWidgetState extends State<PegoAnimatingWidget>
     if (widget.isWaving && !oldWidget.isWaving) {
       _waveController.repeat(reverse: true);
     } else if (!widget.isWaving && oldWidget.isWaving) {
-      _waveController.stop();
-      _waveController.reset();
+      _waveController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
     }
   }
 

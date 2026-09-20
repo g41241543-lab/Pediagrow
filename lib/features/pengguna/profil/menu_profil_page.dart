@@ -18,6 +18,7 @@ import 'keluar_logout_dialog.dart';
 import 'profil_ibu_page.dart';
 import 'tentang_aplikasi_page.dart';
 import 'ubah_password_page.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Menu Profil Ibu PediaGrow.
 ///
@@ -256,15 +257,9 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal memilih gambar: $e',
-              style: GoogleFonts.lato(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal memilih gambar: $e',
         );
       }
     }
