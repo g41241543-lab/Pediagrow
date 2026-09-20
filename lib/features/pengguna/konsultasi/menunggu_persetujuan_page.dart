@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -325,7 +326,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
         builder: (_) => FormulirKonsultasiPage(
           doctor: _effectiveDoctor,
           consultation: _effectiveConsultation,
-          child: widget.child,
+          child: widget.child ?? ChildService().activeChild,
         ),
       ),
     );

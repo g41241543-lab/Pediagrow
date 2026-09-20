@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../core/services/local_db_service.dart';
 import '../../../models/child_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
@@ -166,10 +167,12 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     super.dispose();
   }
 
-  /// Inisialisasi data profil anak
+  /// Inisialisasi data profil anak — menggunakan widget.child, jika tidak ada
+  /// maka fallback ke anak aktif dari [ChildService].
   void _setupChildData() {
-    if (widget.child != null) {
-      _applyChildModel(widget.child!);
+    final effectiveChild = widget.child ?? ChildService().activeChild;
+    if (effectiveChild != null) {
+      _applyChildModel(effectiveChild);
     } else {
       // Default presisi sesuai Gambar 1, 2, 3
       _namaLengkap = 'Kaia Anastasya';

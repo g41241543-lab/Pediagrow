@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -129,9 +130,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _resolveChildData() {
-    _effectiveChildName = widget.child?.name ?? 'Ananda';
-    _effectiveChildGender = widget.child?.gender ?? 'Perempuan';
-    _effectiveChildAge = widget.child?.ageDescription ?? '1 tahun 3 bulan';
+    final active = widget.child ?? ChildService().activeChild;
+    _effectiveChildName = active?.name ?? 'Ananda';
+    _effectiveChildGender = active?.gender ?? 'Perempuan';
+    _effectiveChildAge = active?.ageDescription ?? '1 tahun 3 bulan';
   }
 
   void _initMessages() {

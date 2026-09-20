@@ -230,6 +230,9 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   void _onSelectChild(ChildModel child) async {
     setState(() => _tappedChildId = child.id);
 
+    // Set child yang dipilih sebagai active child di ChildService
+    ChildService().setActiveChild(child);
+
     // Feedback visual singkat
     await Future.delayed(const Duration(milliseconds: 140));
 
