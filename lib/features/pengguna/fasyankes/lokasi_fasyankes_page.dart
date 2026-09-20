@@ -49,8 +49,8 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   double _userLat = FasyankesService.defaultLat;
   double _userLng = FasyankesService.defaultLng;
 
-  // Navigasi Bottom Bar
-  final int _selectedNavIndex = 0;
+  // Navigasi Bottom Bar — -1 berarti tidak ada tab yang aktif
+  final int _selectedNavIndex = -1;
 
   @override
   void initState() {

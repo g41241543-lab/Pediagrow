@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/artikel_model.dart';
-import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+
 
 /// Halaman Detail Artikel untuk menampilkan konten lengkap artikel kesehatan
 /// yang dipilih pengguna dari [ArtikelKesehatanPage].
@@ -15,7 +15,7 @@ import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 /// 5. Judul artikel (Lato 18sp bold hitam).
 /// 6. Nama penulis PMIK ("Ditulis oleh Pego").
 /// 7. Bagian konten lengkap terstruktur (Deskripsi, Pengertian, dsb.) dengan tipografi nyaman dibaca.
-/// 8. Bottom Navigation Bar tetap di Scaffold.bottomNavigationBar (tidak ikut ter-scroll).
+/// 8. Konten lengkap terstruktur yang nyaman dibaca.
 class DetailArtikelPage extends StatefulWidget {
   final ArtikelModel artikel;
 
@@ -76,8 +76,6 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // Navigation Bar tetap di Scaffold bagian bawah layar
-      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
         child: Column(
           children: [
