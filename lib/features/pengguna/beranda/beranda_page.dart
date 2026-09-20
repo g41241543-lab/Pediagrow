@@ -18,6 +18,12 @@ import '../game_edukasi/game_mulai_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import '../profil/menu_profil_page.dart';
+import '../../../core/services/artikel_service.dart';
+import '../../../models/artikel_model.dart';
+import '../detail/detail_artikel_page.dart';
+import '../../../core/services/youtube_service.dart';
+import '../../../models/youtube_video_model.dart';
+import 'widgets/youtube_player_sheet.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -39,6 +45,14 @@ class _BerandaPageState extends State<BerandaPage>
   late Animation<double> _ellipsePulse;
   late Animation<double> _cloudDrift;
   late Animation<double> _cloudFloat;
+  late Animation<double> _sunPulse;
+  late Animation<double> _sunRotate;
+
+  List<ArtikelModel> _latestArticles = [];
+  bool _isLoadingArticles = true;
+
+  List<YoutubeVideoModel> _educationalVideos = [];
+  bool _isLoadingVideos = true;
 
   @override
   void initState() {
@@ -57,8 +71,9 @@ class _BerandaPageState extends State<BerandaPage>
             ),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -80,12 +95,73 @@ class _BerandaPageState extends State<BerandaPage>
     _cloudFloat = Tween<double>(begin: -3.0, end: 3.0).animate(
       CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOutSine),
     );
+
+    _sunPulse = Tween<double>(begin: 0.93, end: 1.07).animate(
+      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOutSine),
+    );
+    _sunRotate = Tween<double>(begin: -0.06, end: 0.06).animate(
+      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOut),
+    );
+
+    _loadLatestArticles();
+    _loadEducationalVideos();
+    ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
   }
 
   @override
   void dispose() {
+    ArtikelService().articlesNotifier.removeListener(_onArticlesUpdated);
     _ellipseController.dispose();
     super.dispose();
+  }
+
+  void _onArticlesUpdated() {
+    if (!mounted) return;
+    final all = ArtikelService().currentArticles;
+    final sorted = List<ArtikelModel>.from(all);
+    sorted.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
+    setState(() {
+      _latestArticles = sorted.take(8).toList();
+      _isLoadingArticles = false;
+    });
+  }
+
+  Future<void> _loadLatestArticles() async {
+    setState(() => _isLoadingArticles = true);
+    try {
+      final all = await ArtikelService().getAllArticles();
+      final sorted = List<ArtikelModel>.from(all);
+      sorted.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
+      if (!mounted) return;
+      setState(() {
+        _latestArticles = sorted.take(8).toList();
+        _isLoadingArticles = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _latestArticles = [];
+        _isLoadingArticles = false;
+      });
+    }
+  }
+
+  Future<void> _loadEducationalVideos() async {
+    setState(() => _isLoadingVideos = true);
+    try {
+      final videos = await YoutubeService().getEducationalVideos();
+      if (!mounted) return;
+      setState(() {
+        _educationalVideos = videos;
+        _isLoadingVideos = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _educationalVideos = YoutubeVideoModel.curatedFallbackVideos;
+        _isLoadingVideos = false;
+      });
+    }
   }
 
   void _navigateTo(Widget page) {
@@ -245,13 +321,17 @@ class _BerandaPageState extends State<BerandaPage>
                                           minHeight: 16,
                                         ),
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 4),
+                                          horizontal: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE53E3E),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
-                                              color: Colors.white, width: 1),
+                                            color: Colors.white,
+                                            width: 1,
+                                          ),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
@@ -356,43 +436,79 @@ class _BerandaPageState extends State<BerandaPage>
           ),
 
           // -----------------------------------------------------------
-          // DEKORASI AWAN BERGERAK / MENGAPUNG LEMBUT (Cloud Animations)
+          // DEKORASI MATAHARI DENGAN ANIMASI LEMBUT (Decorative Sun)
           // -----------------------------------------------------------
-          // Awan 1 di Kanan Atas (di samping/belakang ikon notifikasi)
           AnimatedBuilder(
             animation: _ellipseController,
             builder: (context, child) {
               return Positioned(
-                top: 24 + _cloudFloat.value,
+                top: 8 + (_cloudFloat.value * 0.7),
+                right: 48 + (_cloudDrift.value * 0.4),
+                child: IgnorePointer(
+                  child: _DecorativeSun(
+                    pulseValue: _sunPulse.value,
+                    rotateValue: _sunRotate.value,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // -----------------------------------------------------------
+          // DEKORASI AWAN BERGERAK / MENGAPUNG LEMBUT (Cloud Animations)
+          // -----------------------------------------------------------
+          // Awan 1 di Kanan Atas (di samping/belakang ikon notifikasi & matahari)
+          AnimatedBuilder(
+            animation: _ellipseController,
+            builder: (context, child) {
+              return Positioned(
+                top: 26 + _cloudFloat.value,
                 right: -10 + _cloudDrift.value,
                 child: IgnorePointer(
                   child: _PuffyCloud(
-                    width: 100,
-                    height: 46,
+                    width: 95,
+                    height: 44,
+                    color: Colors.white.withValues(alpha: 0.22),
+                  ),
+                ),
+              );
+            },
+          ),
+          // Awan 2 di Tengah Kiri (di bawah sapaan "Hai, Susanti")
+          AnimatedBuilder(
+            animation: _ellipseController,
+            builder: (context, child) {
+              return Positioned(
+                top: 65 - _cloudFloat.value,
+                left: 125 - (_cloudDrift.value * 0.75),
+                child: IgnorePointer(
+                  child: _PuffyCloud(
+                    width: 72,
+                    height: 32,
                     color: Colors.white.withValues(alpha: 0.18),
                   ),
                 ),
               );
             },
           ),
-          // Awan 2 di Tengah Kiri (di atas teks "Profil Anak")
+          // Awan 3 di Kiri Bawah (mengapung di belakang header Profil Anak)
           AnimatedBuilder(
             animation: _ellipseController,
             builder: (context, child) {
               return Positioned(
-                top: 70 - _cloudFloat.value,
-                left: 115 - (_cloudDrift.value * 0.75),
+                top: 105 + (_cloudFloat.value * 0.5),
+                left: -12 + (_cloudDrift.value * 0.6),
                 child: IgnorePointer(
                   child: _PuffyCloud(
-                    width: 76,
-                    height: 34,
-                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 80,
+                    height: 36,
+                    color: Colors.white.withValues(alpha: 0.14),
                   ),
                 ),
               );
             },
           ),
-          // Awan 3 di Kanan Bawah (mengapung lembut di belakang kartu)
+          // Awan 4 di Kanan Bawah (mengapung lembut di belakang kartu)
           AnimatedBuilder(
             animation: _ellipseController,
             builder: (context, child) {
@@ -403,7 +519,7 @@ class _BerandaPageState extends State<BerandaPage>
                   child: _PuffyCloud(
                     width: 88,
                     height: 40,
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: Colors.white.withValues(alpha: 0.16),
                   ),
                 ),
               );
@@ -518,7 +634,9 @@ class _BerandaPageState extends State<BerandaPage>
   // - Card terakhir adalah card "Tambah Profil Anak"
   // ===================================================================
   Widget _buildChildrenHorizontalList(
-      BuildContext context, List<ChildModel> children) {
+    BuildContext context,
+    List<ChildModel> children,
+  ) {
     final activeChild = ChildService().activeChild ?? children.first;
 
     return SizedBox(
@@ -544,17 +662,23 @@ class _BerandaPageState extends State<BerandaPage>
 
   /// Kartu profil per anak (Pink untuk Perempuan, Biru untuk Laki-laki)
   Widget _buildChildCard(
-      BuildContext context, ChildModel child, bool isActive) {
-    final hasPhoto = child.photoUrl != null &&
+    BuildContext context,
+    ChildModel child,
+    bool isActive,
+  ) {
+    final hasPhoto =
+        child.photoUrl != null &&
         child.photoUrl!.isNotEmpty &&
         File(child.photoUrl!).existsSync();
     final isMale = child.gender.toLowerCase().contains('laki');
 
     // Warna Banner & Avatar berdasarkan Jenis Kelamin
-    final bannerColor =
-        isMale ? const Color(0xFFDDF0FF) : const Color(0xFFFDE8E4);
-    final avatarBgColor =
-        isMale ? const Color(0xFFCFE8FF) : const Color(0xFFFFDFD9);
+    final bannerColor = isMale
+        ? const Color(0xFFDDF0FF)
+        : const Color(0xFFFDE8E4);
+    final avatarBgColor = isMale
+        ? const Color(0xFFCFE8FF)
+        : const Color(0xFFFFDFD9);
 
     return Container(
       width: 200,
@@ -597,8 +721,9 @@ class _BerandaPageState extends State<BerandaPage>
                   child: Container(
                     decoration: BoxDecoration(
                       color: bannerColor,
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(18)),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(18),
+                      ),
                     ),
                   ),
                 ),
@@ -613,10 +738,7 @@ class _BerandaPageState extends State<BerandaPage>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: avatarBgColor,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2.5,
-                      ),
+                      border: Border.all(color: Colors.white, width: 2.5),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.06),
@@ -627,10 +749,7 @@ class _BerandaPageState extends State<BerandaPage>
                     ),
                     child: ClipOval(
                       child: hasPhoto
-                          ? Image.file(
-                              File(child.photoUrl!),
-                              fit: BoxFit.cover,
-                            )
+                          ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
                           : Image.asset(
                               'assets/images/default_baby_avatar.png',
                               fit: BoxFit.cover,
@@ -813,7 +932,7 @@ class _BerandaPageState extends State<BerandaPage>
   }
 
   // ===================================================================
-  // 2. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
+  // 2. KONTEN PUTIH (6 Card Menu, Card PediaGrow, Artikel, Video Edukasi)
   // Margin 12dp dari sisi kiri & kanan layar
   // ===================================================================
   Widget _buildWhiteContentSection(BuildContext context) {
@@ -821,6 +940,7 @@ class _BerandaPageState extends State<BerandaPage>
       color: Colors.white,
       padding: const EdgeInsets.only(top: 24, bottom: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 6 Card Menu (lebar penuh sejajar margin 12dp)
           Padding(
@@ -835,6 +955,16 @@ class _BerandaPageState extends State<BerandaPage>
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: _buildPediaGrowCard(),
           ),
+
+          const SizedBox(height: 24),
+
+          // 3. Section Artikel Terbaru (Horizontal Scroll Carousel)
+          _buildLatestArticlesSection(context),
+
+          const SizedBox(height: 24),
+
+          // 4. Section Video Edukasi Anak (YouTube Carousel)
+          _buildEducationalVideosSection(context),
         ],
       ),
     );
@@ -947,13 +1077,26 @@ class _BerandaPageState extends State<BerandaPage>
                     ),
                   ],
                 ),
-                alignment: Alignment.center,
-                child: Transform.translate(
-                  offset: Offset(logoOffsetX, 0),
-                  child: Image.asset(
-                    imageAsset,
-                    height: imageSize,
-                    fit: BoxFit.contain,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Dekorasi ilustrasi/pola blob tematik halus di belakang icon
+                      _buildThematicTileDecoration(title),
+
+                      // Logo Icon Menu Utama
+                      Center(
+                        child: Transform.translate(
+                          offset: Offset(logoOffsetX, 0),
+                          child: Image.asset(
+                            imageAsset,
+                            height: imageSize,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1062,6 +1205,812 @@ class _BerandaPageState extends State<BerandaPage>
         ],
       ),
     );
+  }
+
+  // ===================================================================
+  // 3. SECTION ARTIKEL TERBARU (Horizontal Scroll Carousel)
+  // Menampilkan artikel kesehatan terbaru dari ArtikelService
+  // ===================================================================
+  Widget _buildLatestArticlesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Section: Judul & Tombol "Lihat Selengkapnya"
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Artikel Terbaru',
+                style: GoogleFonts.lato(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              InkWell(
+                onTap: () => _navigateTo(const ArtikelKesehatanPage()),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Lihat Selengkapnya',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF3985E7),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: Color(0xFF3985E7),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // Carousel Horizontal Kartu Artikel
+        SizedBox(
+          height: 205,
+          child: _isLoadingArticles
+              ? _buildArticleSkeletonList()
+              : _latestArticles.isEmpty
+              ? _buildEmptyArticleState()
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  itemCount: _latestArticles.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) {
+                    final artikel = _latestArticles[index];
+                    return _buildArticleCard(context, artikel);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Kartu item artikel kesehatan dalam carousel
+  Widget _buildArticleCard(BuildContext context, ArtikelModel artikel) {
+    final hasImage =
+        artikel.displayImage != null && artikel.displayImage!.isNotEmpty;
+    final isAsset = artikel.isAssetImage;
+    final categoryText = artikel.subKategori.isNotEmpty
+        ? artikel.subKategori.first
+        : artikel.kategori;
+
+    // Estimasi waktu baca
+    final wordCount = '${artikel.deskripsi ?? ''} ${artikel.pengertian ?? ''}'
+        .trim()
+        .split(RegExp(r'\s+'))
+        .length;
+    final readTimeMinutes = math.max(2, (wordCount / 50).ceil());
+
+    return Container(
+      width: 220,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _navigateTo(DetailArtikelPage(artikel: artikel)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail Gambar Artikel
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(13),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 102,
+                  child: hasImage
+                      ? (isAsset
+                            ? Image.asset(
+                                artikel.displayImage!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildFallbackArticleImage(),
+                              )
+                            : Image.network(
+                                artikel.displayImage!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildFallbackArticleImage(),
+                              ))
+                      : _buildFallbackArticleImage(),
+                ),
+              ),
+
+              // Info Teks Artikel
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 8.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Tag Kategori & Estimasi Waktu Baca
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECF6FF),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    categoryText,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF2563EB),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.access_time_rounded,
+                                    size: 11,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '$readTimeMinutes mnt',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10.5,
+                                      color: const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          // Judul Artikel
+                          Text(
+                            artikel.judul,
+                            style: GoogleFonts.lato(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0F172A),
+                              height: 1.25,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                      // Tanggal Publikasi
+                      Text(
+                        artikel.tanggal,
+                        style: GoogleFonts.lato(
+                          fontSize: 10.5,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArticleSkeletonList() {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      itemCount: 3,
+      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      itemBuilder: (_, __) => Container(
+        width: 220,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 102,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 65,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyArticleState() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Center(
+        child: Text(
+          'Belum ada artikel terbaru saat ini',
+          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackArticleImage() {
+    return Container(
+      color: const Color(0xFFEBF5FF),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.article_rounded,
+        size: 38,
+        color: Color(0xFF3985E7),
+      ),
+    );
+  }
+
+  // ===================================================================
+  // 4. SECTION VIDEO EDUKASI ANAK (YouTube Carousel)
+  // Menampilkan video edukasi anak (Cocomelon / animasi edukatif)
+  // ===================================================================
+  Widget _buildEducationalVideosSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Section: Ikon YouTube & Judul
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF0000).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.play_circle_filled_rounded,
+                  color: Color(0xFFFF0000),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Video Edukasi Anak',
+                style: GoogleFonts.lato(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // Carousel Horizontal Kartu Video
+        SizedBox(
+          height: 205,
+          child: _isLoadingVideos
+              ? _buildVideoSkeletonList()
+              : _educationalVideos.isEmpty
+              ? _buildEmptyVideoState()
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  itemCount: _educationalVideos.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) {
+                    final video = _educationalVideos[index];
+                    return _buildVideoCard(context, video);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Kartu item video YouTube
+  Widget _buildVideoCard(BuildContext context, YoutubeVideoModel video) {
+    return Container(
+      width: 220,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => YoutubePlayerSheet.show(context, video),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail Video + Play Overlay + Durasi
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(13),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 110,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.network(
+                        video.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFFE2E8F0),
+                          child: const Center(
+                            child: Icon(
+                              Icons.videocam_rounded,
+                              color: Color(0xFF94A3B8),
+                              size: 36,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Tombol Play Overlay di Tengah
+                      Center(
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.55),
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                      // Pill Durasi di Sudut Kanan Bawah
+                      Positioned(
+                        bottom: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            video.duration,
+                            style: GoogleFonts.lato(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Info Teks Video
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(9.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        video.title,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 11,
+                            color: Color(0xFF3985E7),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              video.channelTitle,
+                              style: GoogleFonts.lato(
+                                fontSize: 11,
+                                color: const Color(0xFF64748B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoSkeletonList() {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      itemCount: 3,
+      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      itemBuilder: (_, __) => Container(
+        width: 220,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 110,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 80,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyVideoState() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Center(
+        child: Text(
+          'Belum ada video edukasi saat ini',
+          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+        ),
+      ),
+    );
+  }
+
+  /// Dekorasi pola/blob tematik di dalam tile menu sesuai kategori
+  Widget _buildThematicTileDecoration(String title) {
+    final cleanTitle = title.replaceAll('\n', ' ').trim().toLowerCase();
+
+    Color blobColor = const Color(0xFF3985E7).withValues(alpha: 0.08);
+    Widget deco;
+
+    if (cleanTitle.contains('stunting')) {
+      // Aksen perisai & lingkaran kesehatan
+      blobColor = const Color(0xFF3B82F6).withValues(alpha: 0.09);
+      deco = Stack(
+        children: [
+          Positioned(
+            top: -12,
+            right: -12,
+            child: Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -8,
+            left: -8,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (cleanTitle.contains('grafik')) {
+      // Aksen kurva pertumbuhan
+      blobColor = const Color(0xFF2563EB).withValues(alpha: 0.09);
+      deco = Stack(
+        children: [
+          Positioned(
+            bottom: -15,
+            right: -10,
+            child: Container(
+              width: 55,
+              height: 55,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: blobColor,
+              ),
+            ),
+          ),
+          Positioned(
+            top: -6,
+            left: -6,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (cleanTitle.contains('mpasi')) {
+      // Aksen mangkuk bernutrisi organik
+      blobColor = const Color(0xFF10B981).withValues(alpha: 0.08);
+      deco = Stack(
+        children: [
+          Positioned(
+            top: -10,
+            left: -10,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  bottomRight: Radius.circular(30),
+                ),
+                color: blobColor,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -10,
+            right: -8,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (cleanTitle.contains('artikel')) {
+      // Aksen lembaran dokumen bacaan
+      blobColor = const Color(0xFF6366F1).withValues(alpha: 0.08);
+      deco = Stack(
+        children: [
+          Positioned(
+            top: -10,
+            right: -10,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(25),
+                ),
+                color: blobColor,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 6,
+            left: 6,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (cleanTitle.contains('fasyankes')) {
+      // Aksen radar lingkaran fasyankes
+      blobColor = const Color(0xFF0EA5E9).withValues(alpha: 0.09);
+      deco = Stack(
+        children: [
+          Positioned(
+            top: -15,
+            left: -15,
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -6,
+            right: -6,
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Permainan: Aksen ceria sparkle & bintang
+      blobColor = const Color(0xFFF59E0B).withValues(alpha: 0.09);
+      deco = Stack(
+        children: [
+          Positioned(
+            top: -10,
+            right: -10,
+            child: Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: blobColor,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -10,
+            left: -8,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return IgnorePointer(child: deco);
   }
 
   // ===================================================================
@@ -1290,9 +2239,18 @@ class _BabyFacePainter extends CustomPainter {
     hairPath.moveTo(cx - r * 0.85, cy - r * 0.2);
     hairPath.quadraticBezierTo(cx - r * 0.4, cy - r * 0.9, cx, cy - r * 0.3);
     hairPath.quadraticBezierTo(
-        cx + r * 0.4, cy - r * 0.9, cx + r * 0.85, cy - r * 0.2);
+      cx + r * 0.4,
+      cy - r * 0.9,
+      cx + r * 0.85,
+      cy - r * 0.2,
+    );
     hairPath.quadraticBezierTo(cx + r * 0.5, cy - r * 1.15, cx, cy - r * 1.05);
-    hairPath.quadraticBezierTo(cx - r * 0.5, cy - r * 1.15, cx - r * 0.85, cy - r * 0.2);
+    hairPath.quadraticBezierTo(
+      cx - r * 0.5,
+      cy - r * 1.15,
+      cx - r * 0.85,
+      cy - r * 0.2,
+    );
     hairPath.close();
     canvas.drawPath(hairPath, fill);
 
@@ -1353,10 +2311,7 @@ class _PuffyCloudPainter extends CustomPainter {
     final h = size.height;
 
     // Badan awan utama (ellips bawah)
-    canvas.drawOval(
-      Rect.fromLTWH(w * 0.1, h * 0.45, w * 0.8, h * 0.5),
-      paint,
-    );
+    canvas.drawOval(Rect.fromLTWH(w * 0.1, h * 0.45, w * 0.8, h * 0.5), paint);
 
     // Gundukan kiri
     canvas.drawOval(
@@ -1380,4 +2335,77 @@ class _PuffyCloudPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _PuffyCloudPainter oldDelegate) =>
       oldDelegate.color != color;
+}
+
+/// Widget matahari dekoratif dengan pendaran cahaya lembut dan animasi pulsing
+class _DecorativeSun extends StatelessWidget {
+  final double pulseValue;
+  final double rotateValue;
+
+  const _DecorativeSun({required this.pulseValue, required this.rotateValue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: rotateValue,
+      child: Transform.scale(
+        scale: pulseValue,
+        child: SizedBox(
+          width: 58,
+          height: 58,
+          child: CustomPaint(painter: _SunPainter()),
+        ),
+      ),
+    );
+  }
+}
+
+class _SunPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final center = Offset(cx, cy);
+
+    // 1. Halo pendaran luar (Glow effect lembut)
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFFF7C2).withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawCircle(center, size.width * 0.44, glowPaint);
+
+    // 2. Pancaran sinar matahari lembut (8 rays)
+    final rayPaint = Paint()
+      ..color = const Color(0xFFFFE082).withValues(alpha: 0.65)
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+
+    const numRays = 8;
+    final innerRayR = size.width * 0.32;
+    final outerRayR = size.width * 0.45;
+
+    for (int i = 0; i < numRays; i++) {
+      final angle = (i * 2 * math.pi) / numRays;
+      final x1 = cx + innerRayR * math.cos(angle);
+      final y1 = cy + innerRayR * math.sin(angle);
+      final x2 = cx + outerRayR * math.cos(angle);
+      final y2 = cy + outerRayR * math.sin(angle);
+      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), rayPaint);
+    }
+
+    // 3. Inti matahari dengan gradient hangat
+    const coreGradient = RadialGradient(
+      colors: [Color(0xFFFFFDE7), Color(0xFFFFF176), Color(0xFFFFB74D)],
+      stops: [0.0, 0.65, 1.0],
+    );
+
+    final corePaint = Paint()
+      ..shader = coreGradient.createShader(
+        Rect.fromCircle(center: center, radius: size.width * 0.26),
+      );
+
+    canvas.drawCircle(center, size.width * 0.26, corePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
