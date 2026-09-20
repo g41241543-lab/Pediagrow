@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/growth_record_model.dart';
-import '../services/who_growth_data.dart';
 import '../services/zscore_calculator.dart';
 
 /// Widget Grafik Pertumbuhan Anak interaktif dengan latar belakang
@@ -71,7 +70,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return GestureDetector(
-                  onTapUp: (details) => _handleTap(details, constraints.size),
+                  onTapUp: (details) => _handleTap(details, constraints.biggest),
                   child: CustomPaint(
                     size: constraints.biggest,
                     painter: _KmsChartPainter(

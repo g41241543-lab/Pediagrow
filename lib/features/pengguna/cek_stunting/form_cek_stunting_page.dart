@@ -7,6 +7,7 @@ import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'hasil_cek_stunting_page.dart';
+import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
 
@@ -330,19 +331,55 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
 
     await _pegoOverlayKey.currentState?.runSequence(
       performAnalysisTask: () async {
-        // Eksekusi Klasifikasi Stunting Data Mining
+        // Eksekusi Klasifikasi Stunting Data Mining menggunakan StuntingMlService
         final currentWeight = double.parse(rawBerat);
         final currentHeight = double.parse(rawTinggi);
 
-        final result = StuntingClassifier.classify(
-          ageInMonths: _calculatedAgeInMonths,
+        final inputData = StuntingInputData(
+          namaAnak: _namaLengkap,
           gender: _jenisKelamin,
+          birthDate: _birthDate,
+          checkDate: _checkDate,
           birthWeightKg: double.tryParse(_beratBadanLahir) ?? 2.9,
           birthHeightCm: double.tryParse(_tinggiBadanLahir) ?? 50.0,
           currentWeightKg: currentWeight,
           currentHeightCm: currentHeight,
           isExclusiveBreastfeeding: _isAsiEksklusif!,
         );
+
+        StuntingAnalysisResult result;
+        try {
+          final mlRes = await StuntingMlService.predict(inputData);
+          StuntingStatus status;
+          if (mlRes.status == StuntingStatusCategory.normal ||
+              mlRes.status == StuntingStatusCategory.tinggi) {
+            status = StuntingStatus.normal;
+          } else if (mlRes.status == StuntingStatusCategory.severelyStunted) {
+            status = StuntingStatus.severelyStunted;
+          } else {
+            status = StuntingStatus.berisikoStunting;
+          }
+
+          result = StuntingAnalysisResult(
+            status: status,
+            statusLabel: mlRes.statusLabel,
+            zScoreHeightForAge: mlRes.zScoreHeightForAge,
+            zScoreWeightForAge: mlRes.zScoreWeightForAge,
+            confidenceProbability: mlRes.confidenceProbability,
+            description: mlRes.description,
+            recommendations: mlRes.recommendations,
+          );
+        } catch (_) {
+          result = StuntingClassifier.classify(
+            ageInMonths: _calculatedAgeInMonths,
+            gender: _jenisKelamin,
+            birthWeightKg: double.tryParse(_beratBadanLahir) ?? 2.9,
+            birthHeightCm: double.tryParse(_tinggiBadanLahir) ?? 50.0,
+            currentWeightKg: currentWeight,
+            currentHeightCm: currentHeight,
+            isExclusiveBreastfeeding: _isAsiEksklusif!,
+          );
+        }
 
         // Simpan ke SQLite lokal bila tersedia
         try {
@@ -1086,6 +1123,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
                                   .replaceAll(',', '.')),
                           isAsiEksklusif: _isAsiEksklusif ?? true,
                           tanggalPemeriksaan: _tanggalCek,
+                          tanggalLahir: _tanggalLahir,
+                          beratBadanLahir: _beratBadanLahir,
+                          tinggiBadanLahir: _tinggiBadanLahir,
                         ),
                       ),
                     );

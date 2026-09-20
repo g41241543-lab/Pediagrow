@@ -1151,6 +1151,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                               _tinggiSekarangController.text.trim().replaceAll(',', '.')),
                           isAsiEksklusif: _isAsiEksklusif ?? true,
                           tanggalPemeriksaan: _formatDate(_checkDate),
+                          tanggalLahir: _formatDate(_birthDate),
+                          beratBadanLahir: _beratLahirController.text.trim(),
+                          tinggiBadanLahir: _tinggiLahirController.text.trim(),
                         ),
                       ),
                     );
