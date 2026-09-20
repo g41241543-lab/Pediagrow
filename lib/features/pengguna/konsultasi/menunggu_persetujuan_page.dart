@@ -283,7 +283,10 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
 
   /// Berpindah ke formulir konsultasi saat disetujui
   void _navigateToFormulir() {
+<<<<<<< HEAD
+=======
     _countdownTimer?.cancel();
+>>>>>>> 8ad24152613421bbc0878066cbe8fd3da78ef89c
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -837,13 +840,21 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // ===========================================================================
 
   Widget _buildConsultationTimeline() {
+<<<<<<< HEAD
+    // Expired: tahap 1 & 2 sudah dilalui → keduanya biru; tahap 3 merah (tidak diterima).
+    // Accepted: semua tahap biru.
+    // Waiting:  hanya tahap 1 biru, sisanya abu.
+    final isStage2Active = _status == ConsultationStatus.accepted ||
+        _status == ConsultationStatus.expired;
+=======
     final isStage2Active = _status == ConsultationStatus.accepted;
+>>>>>>> 8ad24152613421bbc0878066cbe8fd3da78ef89c
     final isStage3Active = _status == ConsultationStatus.accepted;
     final isStage3Expired = _status == ConsultationStatus.expired;
 
     return Column(
       children: [
-        // Tahap 1: Permintaan konsultasi dibuat (Aktif Biru)
+        // Tahap 1: Permintaan konsultasi dibuat (selalu biru)
         _buildTimelineStep(
           indicatorColor: colorPrimaryBlue,
           isFirst: true,
@@ -855,7 +866,8 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
           isTitleBold: false,
         ),
 
-        // Tahap 2: Menunggu persetujuan dokter (Abu saat waiting, Biru saat accepted)
+        // Tahap 2: Menunggu persetujuan dokter
+        // Biru saat accepted ATAU expired (tahap ini sudah dilewati), abu saat waiting
         _buildTimelineStep(
           indicatorColor: isStage2Active ? colorPrimaryBlue : colorGreyDark,
           isFirst: false,
@@ -867,7 +879,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
           isTitleBold: false,
         ),
 
-        // Tahap 3: Lanjut isi formulir (Abu saat waiting, Biru saat accepted, Merah saat expired)
+        // Tahap 3: Biru saat accepted, merah saat expired, abu saat waiting
         _buildTimelineStep(
           indicatorColor: isStage3Expired
               ? colorExpiredRed

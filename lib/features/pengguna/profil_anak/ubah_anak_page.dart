@@ -327,8 +327,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
         ChildService().deleteChild(widget.child.id);
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (_) => const BerandaPage(
-              successSnackbarMessage: 'Profil anak berhasil dihapus',
+            builder: (_) => BerandaPage(
+              showAddSuccessSnackbar: true,
+              addSuccessMessage: 'Profil anak berhasil dihapus',
             ),
           ),
           (route) => false,
@@ -656,7 +657,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => const BerandaPage(
-            successSnackbarMessage: 'Data profil anak berhasil diperbarui',
+            showAddSuccessSnackbar: true,
+            addSuccessMessage: 'Data profil anak berhasil diperbarui',
           ),
         ),
         (route) => false,
