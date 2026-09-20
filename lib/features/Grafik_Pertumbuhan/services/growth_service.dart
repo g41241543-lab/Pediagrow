@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:pediagrow/features/Grafik_Pertumbuhan/services/who_growth_data.dart';
 
-import '../../../core/services/api_service.dart';
 import '../../../core/services/child_service.dart';
-import '../../../core/services/local_db_service.dart';
 import '../../../models/child_model.dart';
 import '../models/growth_record_model.dart';
 import 'zscore_calculator.dart';
@@ -284,25 +282,6 @@ class GrowthService {
     return null;
   }
 
-  /// Memuat riwayat pengukuran dari database MySQL untuk anak tertentu
-  Future<void> loadRecordsFromApi(String childId) async {
-    final childIdInt = int.tryParse(childId);
-    if (childIdInt == null || childIdInt <= 0) return;
-
-    try {
-      final remoteRecords = await ApiService.getGrowthRecords(childIdInt);
-      if (remoteRecords.isNotEmpty) {
-        final models = remoteRecords.map((m) => GrowthRecordModel.fromMap(m)).toList();
-        final currentMap = Map<String, List<GrowthRecordModel>>.from(recordsNotifier.value);
-        currentMap[childId] = models;
-        recordsNotifier.value = currentMap;
-      }
-    } catch (e) {
-      debugPrint('GrowthService.loadRecordsFromApi error: $e');
-    }
-  }
-
-
   /// Menambahkan entri pertumbuhan baru
   void addRecord(GrowthRecordModel record) {
     final currentMap = Map<String, List<GrowthRecordModel>>.from(
@@ -315,20 +294,6 @@ class GrowthService {
     childList.add(record);
     currentMap[record.childId] = childList;
     recordsNotifier.value = currentMap;
-
-    // Simpan juga ke database lokal SQLite
-    try {
-      LocalDbService()
-          .insertGrowthRecord({
-            'child_id': record.childId.hashCode,
-            'tanggal': formatTanggalIndonesia(record.date),
-            'berat_kg': record.weightKg,
-            'tinggi_cm': record.heightCm,
-            'lingkar_kepala_cm': record.headCircumferenceCm,
-            'synced': 0,
-          })
-          .catchError((_) => 0);
-    } catch (_) {}
   }
 
   /// Menambahkan entri pengukuran yang didapat dari fitur Cek Stunting

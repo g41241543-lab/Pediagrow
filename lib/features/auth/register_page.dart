@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../core/services/api_service.dart';
+
 import 'auth_choice_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
@@ -82,39 +82,31 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
+  void _handleRegister() {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
-      final hasil = await ApiService.register(
-        _nameController.text.trim(),
-        _emailController.text.trim(),
-        _passwordController.text,
-        'orang_tua',
+      // Validasi berhasil
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
+          ),
+          backgroundColor: Color(0xFF3985E7),
+          duration: Duration(seconds: 2),
+        ),
       );
 
-      if (!mounted) return;
-
-      if (hasil['status'] == 'sukses') {
-        PediaBanner.showSuccess(
-          context,
-          message: 'Pendaftaran berhasil! Silakan masuk.',
+      // Otomatis mengarahkan ke AuthChoicePage
+      Future.delayed(const Duration(milliseconds: 900), () {
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthChoicePage()),
+          (route) => false,
         );
-
-        Future.delayed(const Duration(milliseconds: 900), () {
-          if (!mounted) return;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const LoginPage()),
-            (route) => false,
-          );
-        });
-      } else {
-        PediaBanner.showError(
-          context,
-          message: hasil['pesan'] ?? 'Pendaftaran gagal, coba lagi.',
-        );
-      }
+      });
     } else {
+      // Aktifkan validasi interaktif saat pengguna mengoreksi isian
       setState(() {
         _autoValidateMode = AutovalidateMode.onUserInteraction;
       });
