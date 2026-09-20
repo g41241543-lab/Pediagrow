@@ -88,7 +88,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     if (_selectedBirthDate != null) {
       final d = _selectedBirthDate!;
       _birthDateController = TextEditingController(
-        text: '${d.day.toString().padLeft(2, "0")}/${d.month.toString().padLeft(2, "0")}/${d.year}',
+        text:
+            '${d.day.toString().padLeft(2, "0")}/${d.month.toString().padLeft(2, "0")}/${d.year}',
       );
       _calculatedAgeString = widget.child.ageDescription.isNotEmpty
           ? widget.child.ageDescription
@@ -100,16 +101,24 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           : null;
     }
 
-    _selectedGender = widget.child.gender.isNotEmpty ? widget.child.gender : 'Laki-laki';
+    _selectedGender = widget.child.gender.isNotEmpty
+        ? widget.child.gender
+        : 'Laki-laki';
     _beratBadanController = TextEditingController(
-      text: widget.child.weightKg != null ? widget.child.weightKg.toString() : '',
+      text: widget.child.weightKg != null
+          ? widget.child.weightKg.toString()
+          : '',
     );
     _tinggiBadanController = TextEditingController(
-      text: widget.child.heightCm != null ? widget.child.heightCm.toString() : '',
+      text: widget.child.heightCm != null
+          ? widget.child.heightCm.toString()
+          : '',
     );
 
     _hasAllergies = widget.child.hasAllergies;
-    _alergiController = TextEditingController(text: widget.child.allergies ?? '');
+    _alergiController = TextEditingController(
+      text: widget.child.allergies ?? '',
+    );
 
     _fotoProfilPath = widget.child.photoUrl;
     _fotoKelahiranPath = widget.child.birthPhotoUrl;
@@ -147,7 +156,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     final val = double.tryParse(text);
     if (val != null && (val < 2.5 || val > 4.5)) {
       if (_beratBadanWarning == null) {
-        setState(() => _beratBadanWarning = 'Rentang wajar bayi baru lahir: 2.5 - 4.5 kg');
+        setState(
+          () => _beratBadanWarning =
+              'Rentang wajar bayi baru lahir: 2.5 - 4.5 kg',
+        );
       }
     } else {
       if (_beratBadanWarning != null) setState(() => _beratBadanWarning = null);
@@ -157,16 +169,21 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   void _checkTinggiBadanRange() {
     final text = _tinggiBadanController.text.trim();
     if (text.isEmpty) {
-      if (_tinggiBadanWarning != null) setState(() => _tinggiBadanWarning = null);
+      if (_tinggiBadanWarning != null)
+        setState(() => _tinggiBadanWarning = null);
       return;
     }
     final val = double.tryParse(text);
     if (val != null && (val < 45.0 || val > 55.0)) {
       if (_tinggiBadanWarning == null) {
-        setState(() => _tinggiBadanWarning = 'Rentang wajar bayi baru lahir: 45 - 55 cm');
+        setState(
+          () =>
+              _tinggiBadanWarning = 'Rentang wajar bayi baru lahir: 45 - 55 cm',
+        );
       }
     } else {
-      if (_tinggiBadanWarning != null) setState(() => _tinggiBadanWarning = null);
+      if (_tinggiBadanWarning != null)
+        setState(() => _tinggiBadanWarning = null);
     }
   }
 
@@ -176,10 +193,14 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     if (_selectedBirthDate != widget.child.birthDate) return true;
     if (_selectedGender != widget.child.gender) return true;
 
-    final origWeight = widget.child.weightKg != null ? widget.child.weightKg.toString() : '';
+    final origWeight = widget.child.weightKg != null
+        ? widget.child.weightKg.toString()
+        : '';
     if (_beratBadanController.text.trim() != origWeight) return true;
 
-    final origHeight = widget.child.heightCm != null ? widget.child.heightCm.toString() : '';
+    final origHeight = widget.child.heightCm != null
+        ? widget.child.heightCm.toString()
+        : '';
     if (_tinggiBadanController.text.trim() != origHeight) return true;
 
     if (_hasAllergies != widget.child.hasAllergies) return true;
@@ -207,7 +228,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
       barrierDismissible: false,
       builder: (dialogCtx) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -304,8 +327,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
         ChildService().deleteChild(widget.child.id);
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (_) => const BerandaPage(
-              successSnackbarMessage: 'Profil anak berhasil dihapus',
+            builder: (_) => BerandaPage(
+              showAddSuccessSnackbar: true,
+              addSuccessMessage: 'Profil anak berhasil dihapus',
             ),
           ),
           (route) => false,
@@ -315,7 +339,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   }
 
   // Pemilih foto (Kamera / Galeri)
-  Future<void> _pickImage(ImageSource source, {required bool isBirthPhoto}) async {
+  Future<void> _pickImage(
+    ImageSource source, {
+    required bool isBirthPhoto,
+  }) async {
     try {
       final picker = ImagePicker();
       final picked = await picker.pickImage(
@@ -363,16 +390,28 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                 ),
                 const SizedBox(height: 16),
                 ListTile(
-                  leading: const Icon(Icons.camera_alt_outlined, color: Color(0xFF3985E7)),
-                  title: Text('Kamera', style: GoogleFonts.lato(fontWeight: FontWeight.w600)),
+                  leading: const Icon(
+                    Icons.camera_alt_outlined,
+                    color: Color(0xFF3985E7),
+                  ),
+                  title: Text(
+                    'Kamera',
+                    style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.camera, isBirthPhoto: isBirthPhoto);
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_library_outlined, color: Color(0xFF3985E7)),
-                  title: Text('Galeri', style: GoogleFonts.lato(fontWeight: FontWeight.w600)),
+                  leading: const Icon(
+                    Icons.photo_library_outlined,
+                    color: Color(0xFF3985E7),
+                  ),
+                  title: Text(
+                    'Galeri',
+                    style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(ImageSource.gallery, isBirthPhoto: isBirthPhoto);
@@ -409,11 +448,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Image.asset(
                                 'assets/images/default_baby_avatar.png',
                                 fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => const Icon(
-                                  Icons.child_care,
-                                  size: 100,
-                                  color: Colors.white,
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(
+                                      Icons.child_care,
+                                      size: 100,
+                                      color: Colors.white,
+                                    ),
                               ),
                       ),
                     ),
@@ -617,7 +657,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => const BerandaPage(
-            successSnackbarMessage: 'Data profil anak berhasil diperbarui',
+            showAddSuccessSnackbar: true,
+            addSuccessMessage: 'Data profil anak berhasil diperbarui',
           ),
         ),
         (route) => false,
@@ -639,7 +680,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: isError ? const Color(0xFFDC2626) : const Color(0xFF10B981),
+        backgroundColor: isError
+            ? const Color(0xFFDC2626)
+            : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 3),
@@ -769,10 +812,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   Widget _buildHeader(double topPadding) {
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.only(
-        top: math.max(topPadding, 56.0),
-        bottom: 12.0,
-      ),
+      padding: EdgeInsets.only(top: math.max(topPadding, 56.0), bottom: 12.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
         child: Row(
@@ -808,7 +848,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               onTap: _showDeleteConfirmationDialog,
               behavior: HitTestBehavior.opaque,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4.0,
+                  vertical: 8.0,
+                ),
                 child: Text(
                   'Hapus',
                   style: GoogleFonts.lato(
@@ -863,25 +906,27 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     child: ClipOval(
                       child: hasPhoto
                           ? (isLocal
-                              ? Image.file(
-                                  File(_fotoProfilPath!),
-                                  fit: BoxFit.cover,
-                                  width: 100,
-                                  height: 100,
-                                )
-                              : Image.asset(
-                                  'assets/images/default_baby_avatar.png',
-                                  fit: BoxFit.cover,
-                                  width: 100,
-                                  height: 100,
-                                  errorBuilder: (context, error, stackTrace) => const Center(
-                                    child: Icon(
-                                      Icons.child_care,
-                                      size: 44,
-                                      color: Color(0xFF3985E7),
-                                    ),
-                                  ),
-                                ))
+                                ? Image.file(
+                                    File(_fotoProfilPath!),
+                                    fit: BoxFit.cover,
+                                    width: 100,
+                                    height: 100,
+                                  )
+                                : Image.asset(
+                                    'assets/images/default_baby_avatar.png',
+                                    fit: BoxFit.cover,
+                                    width: 100,
+                                    height: 100,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Center(
+                                              child: Icon(
+                                                Icons.child_care,
+                                                size: 44,
+                                                color: Color(0xFF3985E7),
+                                              ),
+                                            ),
+                                  ))
                           : const Center(
                               child: Icon(
                                 Icons.person_add_alt_1_rounded,
@@ -1061,7 +1106,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     color: isLaki ? const Color(0xFFEFF6FF) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isLaki ? const Color(0xFF3985E7) : const Color(0xFFC5C5C5),
+                      color: isLaki
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
                       width: isLaki ? 1.5 : 1.0,
                     ),
                   ),
@@ -1069,8 +1116,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        isLaki ? Icons.radio_button_checked : Icons.radio_button_off,
-                        color: isLaki ? const Color(0xFF3985E7) : const Color(0xFF94A3B8),
+                        isLaki
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isLaki
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1078,8 +1129,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         'Laki-laki',
                         style: GoogleFonts.lato(
                           fontSize: 14,
-                          fontWeight: isLaki ? FontWeight.bold : FontWeight.w500,
-                          color: isLaki ? const Color(0xFF3985E7) : const Color(0xFF475569),
+                          fontWeight: isLaki
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isLaki
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ],
@@ -1103,7 +1158,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     color: isPerempuan ? const Color(0xFFFDF2F8) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isPerempuan ? const Color(0xFFEC4899) : const Color(0xFFC5C5C5),
+                      color: isPerempuan
+                          ? const Color(0xFFEC4899)
+                          : const Color(0xFFC5C5C5),
                       width: isPerempuan ? 1.5 : 1.0,
                     ),
                   ),
@@ -1111,8 +1168,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        isPerempuan ? Icons.radio_button_checked : Icons.radio_button_off,
-                        color: isPerempuan ? const Color(0xFFEC4899) : const Color(0xFF94A3B8),
+                        isPerempuan
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isPerempuan
+                            ? const Color(0xFFEC4899)
+                            : const Color(0xFF94A3B8),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1120,8 +1181,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         'Perempuan',
                         style: GoogleFonts.lato(
                           fontSize: 14,
-                          fontWeight: isPerempuan ? FontWeight.bold : FontWeight.w500,
-                          color: isPerempuan ? const Color(0xFFEC4899) : const Color(0xFF475569),
+                          fontWeight: isPerempuan
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isPerempuan
+                              ? const Color(0xFFEC4899)
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ],
@@ -1216,7 +1281,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FOTO SI KECIL (DATA KELAHIRAN)
   // ---------------------------------------------------------------------------
   Widget _buildFotoSiKecilSection() {
-    final hasBirthPhoto = _fotoKelahiranPath != null && _fotoKelahiranPath!.isNotEmpty;
+    final hasBirthPhoto =
+        _fotoKelahiranPath != null && _fotoKelahiranPath!.isNotEmpty;
     final isLocal = hasBirthPhoto && File(_fotoKelahiranPath!).existsSync();
 
     return GestureDetector(
@@ -1256,17 +1322,26 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                           : Image.asset(
                               'assets/images/default_baby_avatar.png',
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const Center(
-                                child: Icon(Icons.photo, size: 48, color: Color(0xFF94A3B8)),
-                              ),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Center(
+                                    child: Icon(
+                                      Icons.photo,
+                                      size: 48,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  ),
                             ),
                       Positioned(
                         bottom: 8,
                         right: 8,
                         child: GestureDetector(
-                          onTap: () => _showImagePickerModal(isBirthPhoto: true),
+                          onTap: () =>
+                              _showImagePickerModal(isBirthPhoto: true),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(6),
@@ -1274,11 +1349,18 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.edit, color: Colors.white, size: 14),
+                                const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Ganti',
-                                  style: GoogleFonts.lato(color: Colors.white, fontSize: 12),
+                                  style: GoogleFonts.lato(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -1351,7 +1433,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     color: hasAllergy ? const Color(0xFFEFF6FF) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: hasAllergy ? const Color(0xFF3985E7) : const Color(0xFFC5C5C5),
+                      color: hasAllergy
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
                       width: hasAllergy ? 1.5 : 1.0,
                     ),
                   ),
@@ -1359,8 +1443,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        hasAllergy ? Icons.radio_button_checked : Icons.radio_button_off,
-                        color: hasAllergy ? const Color(0xFF3985E7) : const Color(0xFF94A3B8),
+                        hasAllergy
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: hasAllergy
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1368,8 +1456,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         'Ada',
                         style: GoogleFonts.lato(
                           fontSize: 14,
-                          fontWeight: hasAllergy ? FontWeight.bold : FontWeight.w500,
-                          color: hasAllergy ? const Color(0xFF3985E7) : const Color(0xFF475569),
+                          fontWeight: hasAllergy
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: hasAllergy
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ],
@@ -1395,7 +1487,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     color: noAllergy ? const Color(0xFFEFF6FF) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: noAllergy ? const Color(0xFF3985E7) : const Color(0xFFC5C5C5),
+                      color: noAllergy
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
                       width: noAllergy ? 1.5 : 1.0,
                     ),
                   ),
@@ -1403,8 +1497,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        noAllergy ? Icons.radio_button_checked : Icons.radio_button_off,
-                        color: noAllergy ? const Color(0xFF3985E7) : const Color(0xFF94A3B8),
+                        noAllergy
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: noAllergy
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1412,8 +1510,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         'Tidak',
                         style: GoogleFonts.lato(
                           fontSize: 14,
-                          fontWeight: noAllergy ? FontWeight.bold : FontWeight.w500,
-                          color: noAllergy ? const Color(0xFF3985E7) : const Color(0xFF475569),
+                          fontWeight: noAllergy
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: noAllergy
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ],
@@ -1577,7 +1679,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
             Icon(
               icon,
               size: 24,
-              color: isSelected ? const Color(0xFF3985E7) : const Color(0xFF94A3B8),
+              color: isSelected
+                  ? const Color(0xFF3985E7)
+                  : const Color(0xFF94A3B8),
             ),
             const SizedBox(height: 4),
             Text(
@@ -1585,7 +1689,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               style: GoogleFonts.lato(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? const Color(0xFF3985E7) : const Color(0xFF64748B),
+                color: isSelected
+                    ? const Color(0xFF3985E7)
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -1627,14 +1733,13 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     String? suffixText,
     bool hasError = false,
   }) {
-    final borderColor = hasError ? const Color(0xFFEF4444) : const Color(0xFFC5C5C5);
+    final borderColor = hasError
+        ? const Color(0xFFEF4444)
+        : const Color(0xFFC5C5C5);
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.lato(
-        fontSize: 14,
-        color: const Color(0xFFC5C5C5),
-      ),
+      hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFFC5C5C5)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       suffixIcon: suffixIcon != null
           ? Icon(suffixIcon, size: 20, color: const Color(0xFF94A3B8))
@@ -1732,7 +1837,8 @@ class _DashedCirclePainter extends CustomPainter {
     final totalDash = dashLength + dashSpace;
     final count = (circumference / totalDash).floor();
     if (count <= 0) return;
-    final adjustedDashLength = (circumference / count) * (dashLength / totalDash);
+    final adjustedDashLength =
+        (circumference / count) * (dashLength / totalDash);
     final adjustedDashSpace = (circumference / count) * (dashSpace / totalDash);
 
     double currentAngle = 0;

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/resep_mpasi_model.dart';
+<<<<<<< HEAD
+
+=======
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
+>>>>>>> 8ad24152613421bbc0878066cbe8fd3da78ef89c
 
 /// Model data untuk Resep MPASI pada halaman detail.
 /// Kompatibel dengan [ResepMpasiModel] dari database PMIK Superadmin.
@@ -82,7 +86,6 @@ class ResepMpasi {
 /// - Daftar Bahan Pelapis (opsional, jika ada)
 /// - Rekomendasi Buah pendamping (opsional, jika ada)
 /// - Langkah-langkah Cara Membuat (Numbered list rapi)
-/// - Bottom Navigation FIXED
 class DetailResepPage extends StatefulWidget {
   final ResepMpasi? resep;
   final ResepMpasiModel? resepModel;
@@ -132,7 +135,6 @@ class _DetailResepPageState extends State<DetailResepPage> {
 
     return Scaffold(
       backgroundColor: colorWhite,
-      bottomNavigationBar: _buildBottomNavigation(),
       body: SafeArea(
         child: Column(
           children: [
@@ -571,117 +573,4 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // ===========================================================================
-  // BOTTOM NAVIGATION BAR FIXED (4 Menu)
-  // ===========================================================================
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      height: 58,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: colorWhite,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 6,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // 1. Beranda
-          _buildNavItem(
-            icon: Icons.home_outlined,
-            label: 'Beranda',
-            isActive: false,
-            onTap: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-          // 2. Konsultasi
-          _buildNavItem(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'Konsultasi',
-            isActive: false,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const DaftarDokterPage(),
-                ),
-              );
-            },
-          ),
-          // 3. Riwayat Konsultasi
-          _buildNavItem(
-            icon: Icons.assignment_outlined,
-            label: 'Riwayat Konsultasi',
-            isActive: false,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const DaftarRiwayatPage(),
-                ),
-              );
-            },
-          ),
-          // 4. Profil Ibu
-          _buildNavItem(
-            icon: Icons.person_outline_rounded,
-            label: 'Profil Ibu',
-            isActive: false,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const MenuProfilPage(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    final color = isActive ? colorPrimaryBlue : colorTextMuted;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 75,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: GoogleFonts.lato(
-                  fontSize: 10.5,
-                  color: color,
-                  fontWeight:
-                      isActive ? FontWeight.bold : FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

@@ -32,11 +32,13 @@ import '../../../shared/widgets/pedia_banner.dart';
 /// Halaman scrollable secara penuh dengan Navigation Bar tetap (fixed di Scaffold).
 class BerandaPage extends StatefulWidget {
   final bool showAddSuccessSnackbar;
+  final String? addSuccessMessage;
   final bool showLengkapiProfilBanner;
 
   const BerandaPage({
     super.key,
     this.showAddSuccessSnackbar = false,
+    this.addSuccessMessage,
     this.showLengkapiProfilBanner = false,
   });
 
@@ -46,7 +48,6 @@ class BerandaPage extends StatefulWidget {
 
 class _BerandaPageState extends State<BerandaPage>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _ellipseController;
   late Animation<double> _ellipsePulse;
   late Animation<double> _cloudDrift;
@@ -78,7 +79,8 @@ class _BerandaPageState extends State<BerandaPage>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         PediaBanner.showSuccess(
           context,
-          message: 'Profil anak berhasil ditambahkan',
+          message:
+              widget.addSuccessMessage ?? 'Profil anak berhasil ditambahkan',
         );
       });
     }
@@ -204,7 +206,6 @@ class _BerandaPageState extends State<BerandaPage>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,7 +230,9 @@ class _BerandaPageState extends State<BerandaPage>
                 // -------------------------------------------------------------
                 _buildWhiteContentSection(context),
 
-                const SizedBox(height: 20), // jarak kecil sebelum ilustrasi footer
+                const SizedBox(
+                  height: 20,
+                ), // jarak kecil sebelum ilustrasi footer
                 // -------------------------------------------------------------
                 // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
                 // -------------------------------------------------------------
@@ -284,9 +287,7 @@ class _BerandaPageState extends State<BerandaPage>
               onTap: () {
                 _hideLengkapiProfilBanner();
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ProfilIbuPage(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const ProfilIbuPage()),
                 );
               },
               borderRadius: BorderRadius.circular(17),
@@ -2148,8 +2149,6 @@ class _BerandaPageState extends State<BerandaPage>
 // =====================================================================
 // DATA MODELS & HELPER WIDGETS
 // =====================================================================
-
-
 
 /// Widget elips dekoratif dengan efek Gaussian blur
 class _BlurredEllipse extends StatelessWidget {
