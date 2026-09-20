@@ -3,8 +3,13 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  cloud_firestore
   file_selector_windows
+<<<<<<< HEAD
+  firebase_core
+=======
   printing
+>>>>>>> 7e57e7ab9ceb4eb2352799a5200f15f46a478e0f
   url_launcher_windows
 )
 
