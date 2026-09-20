@@ -81,7 +81,9 @@ class _LoginPageState extends State<LoginPage> {
       Future.delayed(const Duration(milliseconds: 600), () {
         if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const BerandaPage()),
+          MaterialPageRoute(
+            builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+          ),
           (route) => false,
         );
       });
@@ -240,7 +242,9 @@ class _LoginPageState extends State<LoginPage> {
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const BerandaPage()),
+        MaterialPageRoute(
+          builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+        ),
         (route) => false,
       );
     });
