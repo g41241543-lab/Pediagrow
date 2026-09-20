@@ -9,6 +9,7 @@ import '../../../models/child_model.dart';
 import 'notifikasi_page.dart';
 import '../../../core/services/notification_service.dart';
 import '../profil_anak/tambah_anak_page.dart';
+import '../profil_anak/ubah_anak_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
 import '../grafik_pertumbuhan/pilih_anak_grafik_page.dart';
 import '../mpasi/daftar_resep_page.dart';
@@ -31,7 +32,13 @@ import 'widgets/youtube_player_sheet.dart';
 /// Halaman scrollable secara penuh dengan Navigation Bar tetap (fixed di Scaffold).
 class BerandaPage extends StatefulWidget {
   final bool showAddSuccessSnackbar;
-  const BerandaPage({super.key, this.showAddSuccessSnackbar = false});
+  final String? successSnackbarMessage;
+
+  const BerandaPage({
+    super.key,
+    this.showAddSuccessSnackbar = false,
+    this.successSnackbarMessage,
+  });
 
   @override
   State<BerandaPage> createState() => _BerandaPageState();
@@ -58,12 +65,16 @@ class _BerandaPageState extends State<BerandaPage>
   void initState() {
     super.initState();
 
-    if (widget.showAddSuccessSnackbar) {
+    final snackMessage = widget.successSnackbarMessage ??
+        (widget.showAddSuccessSnackbar
+            ? 'Profil anak berhasil ditambahkan'
+            : null);
+    if (snackMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Profil anak berhasil ditambahkan',
+              snackMessage,
               style: GoogleFonts.lato(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -709,6 +720,11 @@ class _BerandaPageState extends State<BerandaPage>
           child: InkWell(
             onTap: () {
               ChildService().setActiveChild(child);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => UbahAnakPage(child: child),
+                ),
+              );
             },
             child: Stack(
               children: [
@@ -732,33 +748,43 @@ class _BerandaPageState extends State<BerandaPage>
                 Positioned(
                   top: 14,
                   left: 14,
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: avatarBgColor,
-                      border: Border.all(color: Colors.white, width: 2.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: hasPhoto
-                          ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
-                          : Image.asset(
-                              'assets/images/default_baby_avatar.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const CustomPaint(
-                                painter: _BabyFacePainter(
-                                  outlineColor: Color(0xFF1E293B),
-                                ),
-                              ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      ChildService().setActiveChild(child);
+                      _openFullScreenAvatar(context, child);
+                    },
+                    child: Hero(
+                      tag: 'avatar_card_${child.id}',
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: avatarBgColor,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
                             ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: hasPhoto
+                              ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
+                              : Image.asset(
+                                  'assets/images/default_baby_avatar.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -899,6 +925,101 @@ class _BerandaPageState extends State<BerandaPage>
         ),
       ),
     );
+  }
+
+  /// Menampilkan foto bulat (avatar) anak secara layar penuh dengan animasi zoom in.
+  /// Menutup tampilan ini (tombol back layar atau tombol kembali sistem) akan langsung
+  /// mengarahkan pengguna ke halaman Ubah Data Profil untuk anak tersebut.
+  void _openFullScreenAvatar(BuildContext context, ChildModel child) {
+    final hasPhoto = child.photoUrl != null &&
+        child.photoUrl!.isNotEmpty &&
+        File(child.photoUrl!).existsSync();
+
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.95),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
+        pageBuilder: (ctx, anim, secAnim) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  Center(
+                    child: InteractiveViewer(
+                      minScale: 0.8,
+                      maxScale: 3.5,
+                      child: Hero(
+                        tag: 'avatar_card_${child.id}',
+                        child: hasPhoto
+                            ? Image.file(
+                                File(child.photoUrl!),
+                                fit: BoxFit.contain,
+                              )
+                            : Image.asset(
+                                'assets/images/default_baby_avatar.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 240,
+                                  height: 240,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFFCFE8FF),
+                                  ),
+                                  child: const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(ctx).pop(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ).then((_) {
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => UbahAnakPage(child: child),
+          ),
+        );
+      }
+    });
   }
 
   /// Memformat deskripsi usia anak agar ringkas (misal: "1 tahun 3 bulan", "0 tahun 4 bulan")
