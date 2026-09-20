@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'konfirmasi_selesai_dialog.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Chat Konsultasi Dokter PediaGrow.
 ///
@@ -129,9 +131,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _resolveChildData() {
-    _effectiveChildName = widget.child?.name ?? 'Ananda';
-    _effectiveChildGender = widget.child?.gender ?? 'Perempuan';
-    _effectiveChildAge = widget.child?.ageDescription ?? '1 tahun 3 bulan';
+    final active = widget.child ?? ChildService().activeChild;
+    _effectiveChildName = active?.name ?? 'Ananda';
+    _effectiveChildGender = active?.gender ?? 'Perempuan';
+    _effectiveChildAge = active?.ageDescription ?? '1 tahun 3 bulan';
   }
 
   void _initMessages() {
@@ -1006,7 +1009,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -1025,12 +1028,14 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                         color: Color(0xFF2D3748),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        item['title'] ?? 'Formulir Keluhan Pasien',
-                        style: GoogleFonts.lato(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: colorTextPrimary,
+                      Flexible(
+                        child: Text(
+                          item['title'] ?? 'Formulir Keluhan Pasien',
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorTextPrimary,
+                          ),
                         ),
                       ),
                     ],
@@ -1435,7 +1440,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  /// Menampilkan menu pemilihan sumber lampiran (File Manager / Galeri / Kamera)
+  /// Menampilkan menu pemilihan sumber lampiran (Kamera / Galeri)
   void _showAttachmentPickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -1460,11 +1465,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Kirim Lampiran',
+                  'Kirim Foto',
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: colorTextPrimary,
+                    color: const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1472,80 +1477,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: colorSoftBlue,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.folder_open_rounded,
-                      color: colorPrimaryBlue,
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    'Pilih Dokumen / File Manager',
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: colorTextPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Pilih file atau berkas dari penyimpanan HP / Google Drive',
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      color: colorTextSecondary,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _pickAttachment(ImageSource.gallery);
-                  },
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.photo_library_outlined,
-                      color: Color(0xFF2E7D32),
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    'Galeri Foto',
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: colorTextPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Pilih gambar dari galeri HP',
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      color: colorTextSecondary,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _pickAttachment(ImageSource.gallery);
-                  },
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3E0),
+                      color: const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.camera_alt_outlined,
-                      color: Color(0xFFE65100),
+                      color: Color(0xFF3985E7),
                       size: 24,
                     ),
                   ),
@@ -1554,19 +1491,39 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: colorTextPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Ambil foto kondisi anak atau obat secara langsung',
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      color: colorTextSecondary,
+                      color: const Color(0xFF0F172A),
                     ),
                   ),
                   onTap: () {
                     Navigator.of(ctx).pop();
                     _pickAttachment(ImageSource.camera);
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: Color(0xFF3985E7),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Pilih Foto dari Galeri',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickAttachment(ImageSource.gallery);
                   },
                 ),
               ],
@@ -1633,11 +1590,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih file: $e', style: GoogleFonts.lato()),
-            backgroundColor: Colors.red,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal memilih file: $e',
         );
       }
     }

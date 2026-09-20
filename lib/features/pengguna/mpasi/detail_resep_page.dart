@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../beranda/beranda_page.dart';
+import '../../../models/resep_mpasi_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 
-/// Model sederhana untuk data Resep MPASI.
-/// Nantinya dapat diganti dengan model dari backend PMIK/Superadmin.
+/// Model data untuk Resep MPASI pada halaman detail.
+/// Kompatibel dengan [ResepMpasiModel] dari database PMIK Superadmin.
 class ResepMpasi {
   final String id;
   final String title;
@@ -15,6 +15,7 @@ class ResepMpasi {
   final String date;
   final String category;
   final String assetImage;
+  final String? imageUrl;
   final double energi;
   final double lemak;
   final double protein;
@@ -31,6 +32,7 @@ class ResepMpasi {
     required this.date,
     required this.category,
     required this.assetImage,
+    this.imageUrl,
     required this.energi,
     required this.lemak,
     required this.protein,
@@ -40,46 +42,81 @@ class ResepMpasi {
     this.buah = const [],
     required this.caraMembuat,
   });
+
+  /// Factory untuk konversi dari [ResepMpasiModel] data service PMIK Superadmin
+  factory ResepMpasi.fromModel(ResepMpasiModel m) {
+    return ResepMpasi(
+      id: m.id?.toString() ?? '',
+      title: m.judul,
+      author: (m.penulis == null || m.penulis!.trim().isEmpty)
+          ? 'Pego'
+          : m.penulis!,
+      date: m.tanggal,
+      category: m.kategoriUsia,
+      assetImage: m.assetImagePath ?? '',
+      imageUrl: m.imageUrl,
+      energi: m.energiKkal ?? 0,
+      lemak: m.lemakGr ?? 0,
+      protein: m.proteinGr ?? 0,
+      porsi: m.porsi ?? 1,
+      bahan: m.bahan,
+      bahanPelapis: m.bahanPelapis,
+      buah: m.buah,
+      caraMembuat: m.caraMembuat,
+    );
+  }
 }
 
 /// Halaman "Detail Resep MPASI" PediaGrow.
 ///
-/// Data resep bersumber sepenuhnya dari [widget.resep] yang dikirim oleh
-/// halaman "Daftar Resep MPASI" (hasil query ke SQLite lokal yang dikelola
-/// PMIK/Superadmin). Halaman ini TIDAK memiliki dummy data hardcoded
-/// sebagai sumber data utama — konsisten dengan daftar_resep_page.dart.
+/// Data resep bersumber secara dinamis dari [resepModel] atau [resep] yang
+/// dikirim oleh halaman "Daftar Resep MPASI" (hasil query database yang diinput
+/// oleh PMIK/Superadmin).
 ///
-/// Jika [widget.resep] null (mis. halaman dibuka tanpa data resep yang
-/// valid), halaman menampilkan empty state alih-alih data palsu.
-///
-/// Struktur scrolling:
-/// - Header FIXED (back button + judul "Detail Resep")
-/// - Konten resep SCROLLABLE (gambar, tanggal, judul, penulis, nutrisi, bahan, cara membuat)
+/// Fitur:
+/// - Header FIXED (back button 12dp dari kiri + judul "Detail Resep")
+/// - Gambar Resep proporsional (16:9), mendukung asset lokal & URL remote PMIK
+/// - Metadata Tanggal, Judul, Penulis ("Ditulis oleh Pego" / "PMIK Superadmin")
+/// - 4 Kartu Nutrisi (Energi, Protein, Lemak, Porsi)
+/// - Daftar Bahan (Bullet list)
+/// - Daftar Bahan Pelapis (opsional, jika ada)
+/// - Rekomendasi Buah pendamping (opsional, jika ada)
+/// - Langkah-langkah Cara Membuat (Numbered list rapi)
 /// - Bottom Navigation FIXED
 class DetailResepPage extends StatefulWidget {
   final ResepMpasi? resep;
+  final ResepMpasiModel? resepModel;
 
-  const DetailResepPage({super.key, this.resep});
+  const DetailResepPage({
+    super.key,
+    this.resep,
+    this.resepModel,
+  });
 
   @override
   State<DetailResepPage> createState() => _DetailResepPageState();
 }
 
 class _DetailResepPageState extends State<DetailResepPage> {
-  // Design Tokens PediaGrow (konsisten dengan daftar_resep_page.dart)
+  // Design Tokens PediaGrow
   static const Color colorPrimaryBlue = Color(0xFF2A85FF);
   static const Color colorSoftBlue = Color(0xFFEBF5FF);
   static const Color colorWhite = Color(0xFFFFFFFF);
   static const Color colorTextPrimary = Color(0xFF1A202C);
-  // Design tokens resmi — abu tua & abu muda
-  static const Color colorGreyDark = Color(0xFF7F7F7F); // abu tua
-  static const Color colorGreyLight = Color(0xFFC5C5C5); // abu muda
+  static const Color colorGreyDark = Color(0xFF7F7F7F); // Abu tua
+  static const Color colorGreyLight = Color(0xFFC5C5C5); // Abu muda
 
-  // Alias agar konsisten dengan pemakaian sebelumnya di file ini
   static const Color colorTextSecondary = colorGreyDark;
   static const Color colorTextMuted = colorGreyDark;
   static const Color colorSearchBg = Color(0xFFF1F5F9);
   static const Color colorBorder = colorGreyLight;
+
+  ResepMpasi? get _effectiveResep {
+    if (widget.resepModel != null) {
+      return ResepMpasi.fromModel(widget.resepModel!);
+    }
+    return widget.resep;
+  }
 
   void _onBackPressed() {
     Navigator.of(context).maybePop();
@@ -91,11 +128,10 @@ class _DetailResepPageState extends State<DetailResepPage> {
 
   @override
   Widget build(BuildContext context) {
-    final resep = widget.resep;
+    final resep = _effectiveResep;
 
     return Scaffold(
       backgroundColor: colorWhite,
-      // Bottom navigation fixed di Scaffold.bottomNavigationBar
       bottomNavigationBar: _buildBottomNavigation(),
       body: SafeArea(
         child: Column(
@@ -119,8 +155,8 @@ class _DetailResepPageState extends State<DetailResepPage> {
   }
 
   // ===========================================================================
-  // 1. HEADER FIXED — tinggi PERSIS 56dp
-  //    Back Button 12dp dari kiri layar + Judul "Detail Resep" 12dp setelahnya
+  // 1. HEADER FIXED — tinggi 56dp
+  //    Back Button 12dp dari pinggir layar + Judul "Detail Resep"
   // ===========================================================================
 
   Widget _buildHeader() {
@@ -152,7 +188,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
             ),
           ),
           const SizedBox(width: 12),
-          // Judul "Detail Resep" berjarak 12dp dari tombol back
+          // Judul "Detail Resep"
           Text(
             'Detail Resep',
             style: GoogleFonts.lato(
@@ -261,7 +297,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
               const SizedBox(height: 20),
 
               // Divider tipis
-              Divider(color: colorBorder, thickness: 1, height: 1),
+              const Divider(color: colorBorder, thickness: 1, height: 1),
               const SizedBox(height: 16),
 
               // Bagian Bahan
@@ -272,7 +308,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 const SizedBox(height: 16),
               ],
 
-              // Bagian Bahan Pelapis
+              // Bagian Bahan Pelapis (opsional jika ada)
               if (resep.bahanPelapis.isNotEmpty) ...[
                 _buildSectionTitle('Bahan Pelapis'),
                 const SizedBox(height: 8),
@@ -280,7 +316,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 const SizedBox(height: 16),
               ],
 
-              // Bagian Buah
+              // Bagian Buah (opsional jika ada)
               if (resep.buah.isNotEmpty) ...[
                 _buildSectionTitle('Buah'),
                 const SizedBox(height: 8),
@@ -302,29 +338,49 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // Gambar Resep — full width dengan margin horizontal dan border radius
+  // Gambar Resep — mendukung asset lokal maupun remote URL dari PMIK Superadmin
   Widget _buildRecipeImage(ResepMpasi resep) {
+    final imagePath =
+        resep.assetImage.isNotEmpty ? resep.assetImage : (resep.imageUrl ?? '');
+    final isNetwork =
+        imagePath.startsWith('http://') || imagePath.startsWith('https://');
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
         child: AspectRatio(
           aspectRatio: 16 / 9,
-          child: Image.asset(
-            resep.assetImage,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: colorSoftBlue,
-              child: const Center(
-                child: Icon(
-                  Icons.restaurant_menu_rounded,
-                  color: colorPrimaryBlue,
-                  size: 48,
-                ),
-              ),
-            ),
-          ),
+          child: imagePath.isEmpty
+              ? _buildImagePlaceholder()
+              : isNetwork
+                  ? Image.network(
+                      imagePath,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildImagePlaceholder(),
+                    )
+                  : Image.asset(
+                      imagePath,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildImagePlaceholder(),
+                    ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: colorSoftBlue,
+      child: const Center(
+        child: Icon(
+          Icons.restaurant_menu_rounded,
+          color: colorPrimaryBlue,
+          size: 48,
         ),
       ),
     );
@@ -442,7 +498,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items.map((item) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.only(bottom: 5),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -517,7 +573,6 @@ class _DetailResepPageState extends State<DetailResepPage> {
 
   // ===========================================================================
   // BOTTOM NAVIGATION BAR FIXED (4 Menu)
-  // Diletakkan di Scaffold.bottomNavigationBar agar selalu fixed di bawah.
   // ===========================================================================
 
   Widget _buildBottomNavigation() {

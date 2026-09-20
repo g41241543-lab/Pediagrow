@@ -107,8 +107,48 @@ class FasyankesModel {
     return 'geo:$latitude,$longitude?q=$latitude,$longitude($encodedName)';
   }
 
+  /// Parsing data dari database MySQL (Tabel fasyankes)
+  factory FasyankesModel.fromDbMap(
+    Map<String, dynamic> map, {
+    double userLat = -8.1585,
+    double userLng = 113.7225,
+  }) {
+    final lat = double.tryParse(map['latitude']?.toString() ?? '') ?? userLat;
+    final lng = double.tryParse(map['longitude']?.toString() ?? '') ?? userLng;
+    final name = (map['nama'] ?? map['name'] ?? 'Fasyankes').toString();
+    final address = (map['alamat'] ?? map['address'] ?? 'Alamat tidak tersedia').toString();
+    final phone = (map['telepon'] ?? map['phone'] ?? '-').toString();
+
+    String cat = 'Klinik';
+    final lowerName = name.toLowerCase();
+    if (lowerName.contains('puskesmas')) {
+      cat = 'Puskesmas';
+    } else if (lowerName.contains('rs') || lowerName.contains('rumah sakit')) {
+      cat = 'Rumah Sakit';
+    } else if (lowerName.contains('apotek')) {
+      cat = 'Apotek';
+    }
+
+    final model = FasyankesModel(
+      id: (map['id'] ?? 'db_$name').toString(),
+      name: name,
+      address: address,
+      phone: phone,
+      rating: 4.5,
+      userRatingsTotal: 80,
+      latitude: lat,
+      longitude: lng,
+      category: cat,
+      isOpenNow: true,
+    );
+
+    return model.copyWith(distanceKm: model.calculateDistance(userLat, userLng));
+  }
+
+
   /// Parsing data dari Google Places API (baik format legacy maupun New Places API)
   factory FasyankesModel.fromGooglePlace(Map<String, dynamic> json, {double? userLat, double? userLng}) {
+
     // Menangani format Google Places API (New) vs Legacy
     final id = json['id'] ?? json['place_id'] ?? '';
     

@@ -38,7 +38,7 @@ void main() {
     expect(find.text('dr. Ahmad Nuri, Sp. A'), findsOneWidget);
     expect(find.text('dr. Ririn Esterina, Sp.A'), findsOneWidget);
     expect(find.text('Spesialis Anak'), findsWidgets);
-    expect(find.text('35 tahun'), findsOneWidget);
+    expect(find.text('35 tahun pengalaman'), findsOneWidget);
 
     // 4. Verify Detail Dokter buttons
     expect(find.text('Detail Dokter'), findsWidgets);
@@ -111,6 +111,6 @@ void main() {
 
     expect(find.byType(ProfilDokterPage), findsOneWidget);
     expect(find.text('Profil Dokter Anak'), findsOneWidget);
-    expect(find.text('Chat Dokter'), findsOneWidget);
+    expect(find.text('Konsultasi Sekarang'), findsOneWidget);
   });
 }

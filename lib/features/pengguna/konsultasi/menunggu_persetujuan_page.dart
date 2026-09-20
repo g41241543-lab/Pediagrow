@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -52,27 +53,21 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   static const int _initialCountdownSeconds = 300;
   int _remainingSeconds = _initialCountdownSeconds;
   Timer? _countdownTimer;
-  Timer? _approvalSimulationTimer;
-  Timer? _autoNavTimer;
-
-  // Timer & State untuk Fase 1 (10 Detik di Tengah)
-  static const int _tenSecInitial = 10;
-  int _tenSecCountdown = _tenSecInitial;
-  Timer? _tenSecTimer;
-  Timer? _tenSecTickTimer;
 
   // Animation Controllers:
-  // 1. Slow, calm breathing/pulsing animation loop (3000ms)
+  // 1. Slow, calm breathing/pulsing animation loop (2800ms)
   late AnimationController _breathingController;
   late Animation<double> _breathingScaleAnimation;
   late Animation<double> _breathingAuraAnimation;
 
-  // 2. Upward push transition controller (1200ms, Curves.easeInOutCubic)
+  // 2. Upward push transition controller (1100ms, Curves.easeInOutCubic)
   late AnimationController _pushUpController;
   late Animation<double> _pushUpAnimation;
   late Animation<Offset> _cardSlideAnimation;
   late Animation<double> _cardFadeAnimation;
-  late Animation<double> _centerHintFadeAnimation;
+
+  // 3. Dots pulsing animation controller (1200ms, silih berganti)
+  late AnimationController _dotsController;
 
   @override
   void initState() {
@@ -84,7 +79,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     // Resolve data dokter & konsultasi awal
     _resolveData();
 
-    // 1. Inisialisasi animasi breathing yang santai & slow (2800ms)
+    // 1. Inisialisasi animasi breathing santai & halus (2800ms)
     _breathingController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
@@ -110,10 +105,10 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
       _breathingController.repeat(reverse: true);
     }
 
-    // 2. Inisialisasi controller pendorong ke atas (1200ms, Curves.easeInOutCubic)
+    // 2. Inisialisasi controller dorong ke atas yang smooth (1100ms)
     _pushUpController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1100),
     );
 
     _pushUpAnimation = CurvedAnimation(
@@ -129,49 +124,34 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     _cardFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _pushUpController,
-        curve: const Interval(0.20, 1.0, curve: Curves.easeOut),
+        curve: const Interval(0.15, 1.0, curve: Curves.easeOut),
       ),
     );
 
-    _centerHintFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _pushUpController,
-        curve: const Interval(0.0, 0.45, curve: Curves.easeOut),
-      ),
+    // 3. Inisialisasi controller titik bergantian (silih berganti)
+    _dotsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
     );
+
+    if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+      _dotsController.forward();
+    } else {
+      _dotsController.repeat();
+    }
 
     // Mulai countdown jika dalam kondisi waiting
     if (_status == ConsultationStatus.waiting) {
       _startCountdownTimer();
 
-      // Countdown 10 detik di tengah layar
-      _tenSecTickTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-        if (_tenSecCountdown > 1) {
-          setState(() {
-            _tenSecCountdown--;
-          });
-        } else {
-          timer.cancel();
-        }
-      });
-
-      // Pemicu pendorongan ke atas tepat setelah 10 detik
-      _tenSecTimer = Timer(const Duration(seconds: 10), () {
+      // Transisi lebih halus: setelah jeda singkat (500ms), ilustrasi tergeser mulus ke atas
+      // dan kartu persetujuan dokter dengan timer 5 menit muncul dari bawah
+      Future.delayed(const Duration(milliseconds: 500), () {
         if (!mounted || _status != ConsultationStatus.waiting) return;
         _triggerPushUp();
       });
-
-      // Simulasi persetujuan dokter otomatis (dijadwalkan di detik 18 agar ada jeda setelah card naik)
-      _approvalSimulationTimer = Timer(const Duration(seconds: 18), () {
-        if (!mounted || _status != ConsultationStatus.waiting) return;
-        simulateDoctorAccept();
-      });
     } else {
-      // Jika langsung accepted / expired dari awal, langsung posisikan card di atas
+      // Jika sudah accepted / expired dari awal, langsung posisikan card di atas
       _pushUpController.value = 1.0;
     }
   }
@@ -237,7 +217,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
           _remainingSeconds--;
         });
       } else {
-        // Waktu habis -> otomatis masuk kondisi expired
+        // Waktu 5 menit habis tanpa konfirmasi dokter -> konsultasi dianggap tidak disetujui
         timer.cancel();
         setState(() {
           _status = ConsultationStatus.expired;
@@ -250,12 +230,9 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   void dispose() {
     // Membersihkan timer dan animation controller untuk mencegah memory leak
     _countdownTimer?.cancel();
-    _approvalSimulationTimer?.cancel();
-    _autoNavTimer?.cancel();
-    _tenSecTimer?.cancel();
-    _tenSecTickTimer?.cancel();
     _breathingController.dispose();
     _pushUpController.dispose();
+    _dotsController.dispose();
     super.dispose();
   }
 
@@ -263,15 +240,14 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // FUNGSI TESTING & DEVELOPMENT (Sesuai spesifikasi prompt)
   // ===========================================================================
 
-  /// Mensimulasikan dokter menyetujui konsultasi secara instan.
+  /// Mensimulasikan dokter menyetujui konsultasi.
   /// Menghentikan countdown timer dan mengubah state menjadi `accepted`.
-  /// Secara otomatis beralih ke formulir konsultasi.
+  /// Sesuai permintaan pengguna: TIDAK otomatis berpindah halaman, melainkan
+  /// menampilkan titik beranimasi silih berganti dan tombol "Isi Formulir"
+  /// agar pengguna dapat melanjutkannya sendiri secara manual.
   void simulateDoctorAccept() {
     if (!mounted) return;
     _countdownTimer?.cancel();
-    _approvalSimulationTimer?.cancel();
-    _tenSecTimer?.cancel();
-    _tenSecTickTimer?.cancel();
 
     // Selesaikan animasi dorong ke atas secara instan jika belum selesai
     if (_pushUpController.value < 1.0) {
@@ -281,25 +257,15 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
     setState(() {
       _status = ConsultationStatus.accepted;
     });
-
-    // Otomatis beralih ke halaman isi formulir setelah dokter menyetujui
-    _autoNavTimer?.cancel();
-    _autoNavTimer = Timer(const Duration(milliseconds: 1200), () {
-      if (!mounted || _status != ConsultationStatus.accepted) return;
-      _navigateToFormulir();
-    });
   }
 
   /// [DEV/TESTING METHOD]
-  /// Mensimulasikan dokter menolak konsultasi atau waktu konfirmasi habis.
-  /// Menghentikan countdown timer dan mengubah state menjadi `expired`.
+  /// Mensimulasikan dokter menolak konsultasi atau waktu konfirmasi 5 menit habis.
+  /// Menghentikan countdown timer dan mengubah state menjadi `expired`
+  /// dengan status 'Konsultasi tidak diterima'.
   void simulateDoctorReject() {
     if (!mounted) return;
     _countdownTimer?.cancel();
-    _approvalSimulationTimer?.cancel();
-    _autoNavTimer?.cancel();
-    _tenSecTimer?.cancel();
-    _tenSecTickTimer?.cancel();
 
     if (_pushUpController.value < 1.0) {
       _pushUpController.value = 1.0;
@@ -317,15 +283,14 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
 
   /// Berpindah ke formulir konsultasi saat disetujui
   void _navigateToFormulir() {
-    _autoNavTimer?.cancel();
-    _approvalSimulationTimer?.cancel();
+    _countdownTimer?.cancel();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => FormulirKonsultasiPage(
           doctor: _effectiveDoctor,
           consultation: _effectiveConsultation,
-          child: widget.child,
+          child: widget.child ?? ChildService().activeChild,
         ),
       ),
     );
@@ -362,7 +327,6 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
-    final topPadding = mediaQuery.padding.top;
     final isCompactScreen = screenHeight < 700;
 
     return Scaffold(
@@ -395,40 +359,28 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
 
                       // Tinggi proporsional ilustrasi dokter
                       final double illustrationHeight = isCompactScreen
-                          ? (totalHeight * 0.28).clamp(100.0, 150.0)
-                          : (totalHeight * 0.34).clamp(130.0, 200.0);
+                          ? (totalHeight * 0.25).clamp(100.0, 140.0)
+                          : (totalHeight * 0.30).clamp(120.0, 180.0);
 
                       return Stack(
                         clipBehavior: Clip.none,
                         children: [
                           // 1. ILUSTRASI DOKTER DENGAN GERAKAN DARI TENGAH KE ATAS
-                          // Pada t = 0 (10 detik awal): tampil tenang di tengah layar
-                          // Pada t = 1 (setelah 10 detik): terdorong mulus ke atas menyesuaikan card
+                          // Transisi mulus: ilustrasi tergeser ke atas secara proporsional (-0.65)
+                          // sehingga posisinya tidak terlalu ke atas dan seimbang dengan kartu
                           Positioned.fill(
                             child: Align(
                               alignment: Alignment.lerp(
-                                const Alignment(0.0, -0.15),
-                                const Alignment(0.0, -0.92),
+                                const Alignment(0.0, -0.05),
+                                const Alignment(0.0, -0.65),
                                 t,
                               )!,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Transform.scale(
-                                    scale: _breathingScaleAnimation.value,
-                                    child: _buildDoctorIllustration(
-                                      illustrationHeight,
-                                      _breathingAuraAnimation.value,
-                                    ),
-                                  ),
-                                  if (t < 0.95) ...[
-                                    const SizedBox(height: 14),
-                                    Opacity(
-                                      opacity: (1.0 - (t * 1.5)).clamp(0.0, 1.0),
-                                      child: _buildCenterHint(),
-                                    ),
-                                  ],
-                                ],
+                              child: Transform.scale(
+                                scale: _breathingScaleAnimation.value,
+                                child: _buildDoctorIllustration(
+                                  illustrationHeight,
+                                  _breathingAuraAnimation.value,
+                                ),
                               ),
                             ),
                           ),
@@ -576,54 +528,6 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
                 size: 17,
               ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCenterHint() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Menghubungkan ke dokter...',
-          style: GoogleFonts.lato(
-            fontSize: 16.5,
-            fontWeight: FontWeight.bold,
-            color: colorTextDark,
-            letterSpacing: -0.2,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEBF5FF),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFC7E2FE)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(colorPrimaryBlue),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Mohon tunggu sebentar (00:${_tenSecCountdown.toString().padLeft(2, '0')})',
-                style: GoogleFonts.lato(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: colorPrimaryBlue,
-                ),
-              ),
-            ],
           ),
         ),
       ],
@@ -779,19 +683,59 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
         textColor = colorPrimaryBlue;
         break;
       case ConsultationStatus.expired:
-        text = 'Waktu persetujuan telah habis';
+        text = 'Konsultasi tidak diterima';
         textColor = colorExpiredRed;
         break;
     }
 
-    return Text(
-      text,
-      style: GoogleFonts.lato(
-        fontSize: 17,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-        letterSpacing: -0.2,
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.lato(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+        if (_status == ConsultationStatus.waiting)
+          _buildPulsingDots(color: colorPrimaryBlue)
+        else if (_status == ConsultationStatus.accepted)
+          _buildPulsingDots(color: const Color(0xFF10B981)),
+      ],
+    );
+  }
+
+  /// Indikator animasi titik bergantian (silih berganti)
+  Widget _buildPulsingDots({required Color color}) {
+    return AnimatedBuilder(
+      animation: _dotsController,
+      builder: (context, child) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (index) {
+            final delay = index * 0.25;
+            final progress = (_dotsController.value - delay) % 1.0;
+            final opacity =
+                (progress < 0.5 ? progress * 2 : (1.0 - progress) * 2)
+                    .clamp(0.25, 1.0);
+            final scale = 0.75 + (opacity * 0.25);
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 2.5),
+              width: 7 * scale,
+              height: 7 * scale,
+              decoration: BoxDecoration(
+                color: color.withOpacity(opacity),
+                shape: BoxShape.circle,
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 
@@ -893,7 +837,6 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
   // ===========================================================================
 
   Widget _buildConsultationTimeline() {
-    final isStage1Active = true; // Selalu aktif karena permintaan telah dibuat
     final isStage2Active = _status == ConsultationStatus.accepted;
     final isStage3Active = _status == ConsultationStatus.accepted;
     final isStage3Expired = _status == ConsultationStatus.expired;
@@ -934,10 +877,14 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
           showLineDown: false,
           lineColor: colorGreyLight,
           title: isStage3Expired
-              ? 'Waktu persetujuan habis'
+              ? 'Konsultasi tidak diterima'
               : 'Lanjut isi formulir',
-          subtitle: null,
-          isTitleBold: false,
+          subtitle: isStage3Expired
+              ? 'Waktu konfirmasi 5 menit telah habis'
+              : (isStage3Active
+                  ? 'Dokter menyetujui, silakan isi formulir'
+                  : null),
+          isTitleBold: isStage3Active,
           titleColor: isStage3Expired ? colorExpiredRed : null,
         ),
       ],

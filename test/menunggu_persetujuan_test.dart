@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/daftar_dokter_page.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/formulir_konsultasi_page.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/menunggu_persetujuan_page.dart';
-import 'package:pediagrow/models/consultation_model.dart';
 import 'package:pediagrow/models/doctor_model.dart';
 
 void main() {
@@ -131,7 +130,7 @@ void main() {
 
       // Verify expired UI
       expect(find.text('Kembali ke Daftar Dokter'), findsOneWidget);
-      expect(find.text('Waktu persetujuan telah habis'), findsWidgets);
+      expect(find.text('Konsultasi tidak diterima'), findsWidgets);
 
       // Tap "Kembali ke Daftar Dokter"
       await tester.tap(find.text('Kembali ke Daftar Dokter'));

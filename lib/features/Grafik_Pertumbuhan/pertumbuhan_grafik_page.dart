@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/services/stunting_limit_service.dart';
 import '../../models/child_model.dart';
 import '../../shared/widgets/illustration_forest_footer.dart';
+import '../../shared/widgets/pedia_banner.dart';
 import '../pengguna/konsultasi/daftar_dokter_page.dart';
 import '../pengguna/cek_stunting/form_cek_stunting_page.dart';
 import 'models/growth_record_model.dart';
@@ -429,6 +431,16 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
   // 3. NAVIGASI INPUT DATA PERTUMBUHAN BARU (CEK STUNTING / FORM INPUT)
   // ===========================================================================
   void _openAddMeasurement(BuildContext context) {
+    // ── Cek Batas 2x per Bulan per Anak ───────────────────────────────────
+    if (!StuntingLimitService().canCheck(widget.child.id)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Batas input data pertumbuhan 2x per bulan sudah tercapai untuk anak ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FormCekStuntingPage(child: widget.child),

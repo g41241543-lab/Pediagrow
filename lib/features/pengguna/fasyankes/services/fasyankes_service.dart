@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/services/api_service.dart';
 import '../models/fasyankes_model.dart';
 
 /// Status izin lokasi pengguna
@@ -47,7 +48,7 @@ class FasyankesService {
 
     List<FasyankesModel> list = [];
 
-    // 1. Jika API Key tersedia, coba ambil dari Google Places API (New)
+    // 1. Jika API Key Google Maps tersedia, ambil data live via Google Places API
     if (apiKey.isNotEmpty) {
       try {
         list = await _fetchFromGooglePlaces(
@@ -56,14 +57,33 @@ class FasyankesService {
           query: query,
         );
       } catch (e) {
-        debugPrint('Google Places API request error: $e. Using verified local dataset.');
+        debugPrint('Google Places API error: $e');
       }
     }
 
-    // 2. Jika list kosong atau API Key belum diset, gunakan dataset fasyankes lokal terverifikasi
+    // 2. Ambil dari database MySQL tabel fasyankes via ApiService
+    if (list.isEmpty) {
+      try {
+        final dbList = await ApiService.getFasyankes();
+        if (dbList.isNotEmpty) {
+          list = dbList
+              .map((m) => FasyankesModel.fromDbMap(
+                    m,
+                    userLat: userLat,
+                    userLng: userLng,
+                  ))
+              .toList();
+        }
+      } catch (e) {
+        debugPrint('Fasyankes database API error: $e');
+      }
+    }
+
+    // 3. Jika list masih kosong atau offline, gunakan dataset fasyankes lokal terverifikasi
     if (list.isEmpty) {
       list = _getVerifiedLocalFasyankes(userLat: userLat, userLng: userLng);
     }
+
 
     // 3. Filter berdasarkan Kata Kunci Pencarian (Search Query)
     if (query.trim().isNotEmpty) {

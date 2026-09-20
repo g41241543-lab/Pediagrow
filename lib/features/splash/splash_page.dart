@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../auth/auth_choice_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/child_service.dart';
+import '../../core/services/user_service.dart';
+import '../../models/user_model.dart';
+import '../pengguna/beranda/beranda_page.dart';
 
 /// Halaman Splash Screen PediaGrow.
 ///
@@ -141,14 +146,38 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 
-  void _navigateToAuthChoice() {
+  Future<void> _navigateToAuthChoice() async {
     if (!mounted || _hasNavigated) return;
     _hasNavigated = true;
 
+    Widget targetPage = const AuthChoicePage();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final idAkun = prefs.getInt('id_akun');
+      final nama = prefs.getString('nama');
+      final email = prefs.getString('email') ?? '';
+      final fotoUrl = prefs.getString('foto_url');
+
+      if (token != null && token.isNotEmpty && idAkun != null && idAkun > 0) {
+        UserService().currentUserNotifier.value = UserModel(
+          id: idAkun.toString(),
+          name: nama ?? 'Pengguna',
+          email: email,
+          avatarPath: fotoUrl,
+        );
+        // Sinkronisasi data anak milik pengguna dari database MySQL
+        await ChildService().loadChildrenFromApi(idAkun);
+        targetPage = const BerandaPage();
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const AuthChoicePage(),
+        pageBuilder: (context, animation, secondaryAnimation) => targetPage,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -156,6 +185,7 @@ class _SplashPageState extends State<SplashPage>
       ),
     );
   }
+
 
   void _skipToEnd() {
     if (widget.enableTapToSkip && !_hasNavigated) {
