@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -32,7 +33,8 @@ class PediaBanner {
     final overlay = Overlay.maybeOf(context);
     if (overlay == null) return;
 
-    final bannerColor = backgroundColor ??
+    final bannerColor =
+        backgroundColor ??
         (isError ? const Color(0xFFE53E3E) : const Color(0xFF3985E7));
 
     late OverlayEntry entry;
@@ -139,9 +141,10 @@ class _PediaBannerWidgetState extends State<_PediaBannerWidget>
       CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
 
     _animController.forward();
 
@@ -176,8 +179,9 @@ class _PediaBannerWidgetState extends State<_PediaBannerWidget>
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
     return Positioned(
-      top: 62.0,
+      top: topInset + 62.0,
       left: 16.0,
       right: 16.0,
       child: AnimatedBuilder(
