@@ -8,9 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/user_service.dart';
 import '../../core/services/child_service.dart';
+import '../../core/services/google_auth_service.dart';
 import '../../models/user_model.dart';
 
-import '../../core/services/google_auth_service.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
 import 'widgets/google_auth_dialog.dart';
@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
   // Toggle visibilitas kata sandi
   bool _obscurePassword = true;
 
-  // Loading state saat Google Sign-In sedang diproses
+  // Loading state untuk tombol Google Sign-In (cegah double-tap)
   bool _isGoogleLoading = false;
 
   // Mode validasi otomatis setelah tombol Masuk pertama kali ditekan
