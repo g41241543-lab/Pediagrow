@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/soal_model.dart';
-import '../../../shared/widgets/illustration_forest_footer.dart';
+import 'widgets/game_forest_silhouette_footer.dart';
 import 'game_controller.dart';
 import 'game_mulai_page.dart';
 
@@ -14,7 +14,11 @@ import 'game_mulai_page.dart';
 /// - Judul "Kuis Selesai" + ringkasan skor + poin
 /// - Daftar rincian 10 soal scrollable (kartu putih)
 /// - Tombol "Ulangi Kuis" (outline) dan "Selesai" (solid)
-/// - Ilustrasi footer hutan
+/// - Ilustrasi siluet hutan FIXED di bottom screen (tidak ikut scroll)
+///
+/// [REVISI 4]: Ilustrasi ditempatkan sebagai Positioned layer di Stack,
+/// terpisah dari area scrollable sehingga tidak bergerak saat scroll.
+/// [REVISI 5]: Ilustrasi menggunakan IllustrationForestFooter (CustomPainter siluet).
 class GameSkorAkhirPage extends StatelessWidget {
   final List<SoalModel> soalList;
   final List<HasilSoal> hasilList;
@@ -63,9 +67,8 @@ class GameSkorAkhirPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF5BA4F5),
-                      Color(0xFF4592F0),
-                      Color(0xFF2872E5),
+                      Color(0xFF5B9BF5),
+                      Color(0xFF6FA8E8),
                     ],
                   ),
                 ),
@@ -77,7 +80,18 @@ class GameSkorAkhirPage extends StatelessWidget {
               child: IgnorePointer(child: _SkorBgDecoration()),
             ),
 
-            // ── Konten ───────────────────────────────────────────
+            // ── [REVISI 4+5] Ilustrasi siluet: FIXED di bottom ───
+            // Ditempatkan SEBELUM konten scrollable agar konten tampil di atas
+            const Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: GameForestSilhouetteFooter(height: 160),
+              ),
+            ),
+
+            // ── Konten scrollable (layer di atas ilustrasi) ───────
             SafeArea(
               top: false,
               bottom: false,
@@ -152,10 +166,9 @@ class GameSkorAkhirPage extends StatelessWidget {
                           child: _buildTombolBawah(context),
                         ),
 
-                        const SizedBox(height: 20),
-
-                        // ── Ilustrasi Footer ─────────────────────────
-                        const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                        // ── Padding bottom agar tombol tidak tertutup ilustrasi
+                        // 160px (tinggi ilustrasi) + 20px extra
+                        const SizedBox(height: 180),
                       ],
                     ),
                   ),
@@ -168,29 +181,34 @@ class GameSkorAkhirPage extends StatelessWidget {
     );
   }
 
-
-
-  // ── MEDALI SECTION ─────────────────────────────────────────────
+  // ── MEDALI / BINTANG SECTION ─────────────────────────────────────
   Widget _buildMedaliSection() {
-    final Color medaliColor = _getMedaliColor();
+    const Color goldColor = Color(0xFFFFD700);
 
     return Column(
       children: [
         Container(
-          width: 100,
-          height: 100,
+          width: 96,
+          height: 96,
           decoration: BoxDecoration(
-            color: medaliColor.withValues(alpha: 0.20),
+            color: goldColor.withValues(alpha: 0.20),
             shape: BoxShape.circle,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: goldColor.withValues(alpha: 0.70),
               width: 2.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: goldColor.withValues(alpha: 0.35),
+                blurRadius: 18,
+                spreadRadius: 2,
+              ),
+            ],
           ),
-          child: Icon(
-            _getMedaliIcon(),
-            size: 54,
-            color: medaliColor,
+          child: const Icon(
+            Icons.star_rounded,
+            size: 58,
+            color: goldColor,
           ),
         ),
 
@@ -219,20 +237,6 @@ class GameSkorAkhirPage extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Color _getMedaliColor() {
-    final pct = _jumlahBenar / _totalSoal;
-    if (pct >= 0.8) return const Color(0xFFFFB300); // emas
-    if (pct >= 0.5) return const Color(0xFF3985E7); // biru
-    return const Color(0xFF94A3B8); // abu
-  }
-
-  IconData _getMedaliIcon() {
-    final pct = _jumlahBenar / _totalSoal;
-    if (pct >= 0.8) return Icons.emoji_events_rounded;
-    if (pct >= 0.5) return Icons.star_rounded;
-    return Icons.military_tech_rounded;
   }
 
   String _getPesan() {

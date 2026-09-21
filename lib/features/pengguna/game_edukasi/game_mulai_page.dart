@@ -1,9 +1,9 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/soal_model.dart';
-import '../../../shared/widgets/illustration_forest_footer.dart';
+import 'widgets/game_forest_silhouette_footer.dart';
 import 'game_controller.dart';
 import 'game_soal_page.dart';
 
@@ -12,6 +12,10 @@ import 'game_soal_page.dart';
 /// Menampilkan info kuis (10 soal, 30 detik/soal, 250 poin maks),
 /// dan tombol "Mulai Kuis" yang men-generate 10 soal unik secara acak.
 /// Background: gradient biru dengan elemen dekoratif sesuai desain Figma.
+///
+/// Semua elemen (ikon, badge, judul, deskripsi, statistik) ditampilkan
+/// LANGSUNG di atas background biru — tanpa card/container putih pembungkus.
+/// Ilustrasi siluet hutan dipasang fixed di bagian bawah layar (tidak scroll).
 class GameMulaiPage extends StatefulWidget {
   const GameMulaiPage({super.key});
 
@@ -35,7 +39,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
       if (!mounted) return;
       Navigator.of(context).push(
-        MaterialPageRoute(
+        _FadeSlideRoute(
           builder: (_) => GameSoalPage(
             soalList: soalList,
             currentIndex: 0,
@@ -72,9 +76,8 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF5BA4F5),
-                    Color(0xFF4592F0),
-                    Color(0xFF2872E5),
+                    Color(0xFF5B9BF5),
+                    Color(0xFF6FA8E8),
                   ],
                 ),
               ),
@@ -86,7 +89,17 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
             child: IgnorePointer(child: _FigmaDecoration()),
           ),
 
-          // ── Konten utama ──────────────────────────────────────────
+          // ── Ilustrasi siluet hutan: FIXED di bagian bawah ─────────
+          const Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: GameForestSilhouetteFooter(height: 160),
+            ),
+          ),
+
+          // ── Konten utama (scrollable, tidak mempengaruhi ilustrasi)
           SafeArea(
             top: false,
             bottom: false,
@@ -96,15 +109,17 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 32),
-                        _buildKuisInfoCard(),
-                        const SizedBox(height: 32),
-                        _buildMulaiButton(),
-                        const SizedBox(height: 24),
-                        const IllustrationForestFooter(fit: BoxFit.fitWidth),
-                      ],
+                    child: Padding(
+                      // Padding bottom agar konten tidak tertutup ilustrasi
+                      padding: const EdgeInsets.only(bottom: 180),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildKuisInfoDirect(),
+                          const SizedBox(height: 36),
+                          _buildMulaiButton(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -157,114 +172,105 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // KARTU INFO KUIS
+  // INFO KUIS — LANGSUNG DI ATAS BACKGROUND BIRU (tanpa card putih)
   // ──────────────────────────────────────────────────────────────────
-  Widget _buildKuisInfoCard() {
+  Widget _buildKuisInfoDirect() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
-        child: Column(
-          children: [
-            // ── Ikon Otak dalam Lingkaran ───────────────────────────
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFFECF6FF),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFF3985E7).withValues(alpha: 0.25),
-                  width: 2,
-                ),
-              ),
-              child: const Icon(
-                Icons.psychology_rounded,
-                size: 44,
-                color: Color(0xFF3985E7),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        children: [
+          // ── Ikon Otak dalam Lingkaran ─────────────────────────────
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.40),
+                width: 2,
               ),
             ),
+            child: const Icon(
+              Icons.psychology_rounded,
+              size: 48,
+              color: Colors.white,
+            ),
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-            // ── Pill Kategori ───────────────────────────────────────
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3985E7),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Text(
-                'Kuis Parenting',
-                style: GoogleFonts.lato(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.3,
-                ),
+          // ── Pill Kategori ─────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.20),
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.40),
+                width: 1,
               ),
             ),
-
-            const SizedBox(height: 14),
-
-            // ── Judul Kuis ──────────────────────────────────────────
-            Text(
-              'Tumbuh Kembang Anak',
-              textAlign: TextAlign.center,
+            child: Text(
+              'Kuis Parenting',
               style: GoogleFonts.lato(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
-                letterSpacing: -0.3,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.5,
               ),
             ),
+          ),
 
-            const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
-            // ── Deskripsi ───────────────────────────────────────────
-            Text(
-              '10 soal benar salah seputar tumbuh kembang\nsi kecil. Yuk uji seberapa paham kamu!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                height: 1.55,
-                color: const Color(0xFF64748B),
-              ),
+          // ── Judul Kuis ────────────────────────────────────────────
+          Text(
+            'Tumbuh Kembang Anak',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: -0.3,
             ),
+          ),
 
-            const SizedBox(height: 24),
+          const SizedBox(height: 10),
 
-            // ── Divider tipis ───────────────────────────────────────
-            const Divider(color: Color(0xFFE2E8F0), thickness: 1),
-
-            const SizedBox(height: 20),
-
-            // ── 3 Statistik Berdampingan ────────────────────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildStatItem('10', 'Soal'),
-                _buildVerticalDivider(),
-                _buildStatItem('30 detik', 'Per soal'),
-                _buildVerticalDivider(),
-                _buildStatItem('250 poin', 'Maksimal'),
-              ],
+          // ── Deskripsi ─────────────────────────────────────────────
+          Text(
+            '10 soal benar salah seputar tumbuh kembang\nsi kecil. Yuk uji seberapa paham kamu!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              height: 1.6,
+              color: Colors.white.withValues(alpha: 0.85),
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // ── Divider tipis semi-transparan ─────────────────────────
+          Divider(
+            color: Colors.white.withValues(alpha: 0.25),
+            thickness: 1,
+          ),
+
+          const SizedBox(height: 22),
+
+          // ── 3 Statistik Berdampingan ──────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatItem('10', 'Soal'),
+              _buildVerticalDivider(),
+              _buildStatItem('30 detik', 'Per soal'),
+              _buildVerticalDivider(),
+              _buildStatItem('250 poin', 'Maksimal'),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -278,15 +284,15 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: Colors.white,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           label,
           style: GoogleFonts.lato(
             fontSize: 12,
-            color: const Color(0xFF7F7F7F),
+            color: Colors.white.withValues(alpha: 0.70),
           ),
         ),
       ],
@@ -295,9 +301,9 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
   Widget _buildVerticalDivider() {
     return Container(
-      height: 32,
+      height: 36,
       width: 1,
-      color: const Color(0xFFE2E8F0),
+      color: Colors.white.withValues(alpha: 0.25),
     );
   }
 
@@ -306,7 +312,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
   // ──────────────────────────────────────────────────────────────────
   Widget _buildMulaiButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: SizedBox(
         width: double.infinity,
         height: 52,
@@ -316,8 +322,8 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
             backgroundColor: Colors.white,
             foregroundColor: const Color(0xFF3985E7),
             disabledBackgroundColor: Colors.white.withValues(alpha: 0.6),
-            elevation: 4,
-            shadowColor: Colors.black.withValues(alpha: 0.2),
+            elevation: 6,
+            shadowColor: Colors.black.withValues(alpha: 0.25),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(17),
             ),
@@ -432,4 +438,35 @@ class _FigmaDecorationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CUSTOM PAGE ROUTE — Fade + Slide halus (shared dengan game_soal_page)
+// ════════════════════════════════════════════════════════════════════
+class _FadeSlideRoute<T> extends PageRouteBuilder<T> {
+  final WidgetBuilder builder;
+
+  _FadeSlideRoute({required this.builder})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              builder(context),
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.03),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }

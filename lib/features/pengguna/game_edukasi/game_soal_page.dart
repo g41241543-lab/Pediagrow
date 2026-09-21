@@ -6,21 +6,24 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/soal_model.dart';
 import 'game_controller.dart';
-import 'game_feedback_page.dart';
 import 'game_mulai_page.dart';
 import 'game_skor_akhir_page.dart';
 
-/// Halaman Soal — menampilkan satu soal kuis sekaligus mengelola timer.
+/// Halaman Soal — mengelola satu sesi kuis dari Soal 1 hingga Soal 10.
 ///
-/// Parameter:
-/// - [soalList]: daftar 10 soal unik putaran ini
-/// - [currentIndex]: indeks soal yang sedang ditampilkan (0–9)
-/// - [hasilSebelumnya]: akumulasi hasil soal-soal sebelumnya
+/// [REVISI 6]: Background biru gradasi konsisten penuh sepanjang kuis
+/// (Mulai → Soal → Feedback Jawaban).
 ///
-/// Perilaku:
-/// - Back button sistem dinonaktifkan via [PopScope].
-/// - Timer hitung mundur 30 detik; jika habis → soal di-skip otomatis.
-/// - Saat pengguna memilih jawaban → timer berhenti → navigasi ke Feedback.
+/// [REVISI 7]: Progress bar kuning beserta header atas dijadikan elemen PERSISTEN
+/// di luar area konten yang bertransisi (Column tetap).
+/// - Posisi Y progress bar terkunci dengan fixed padding dari atas layar.
+/// - Timer pill hanya muncul saat Soal (hitung mundur).
+/// - Saat Feedback Jawaban, timer pill digantikan placeholder tak terlihat
+///   setinggi 38dp sehingga progress bar di atasnya TIDAK BERGESER sama sekali.
+/// - Satu-satunya animasi pada progress bar adalah perubahan width/fill-nya
+///   (TweenAnimationBuilder) ketika berpindah antar soal.
+/// - Area konten (kartu soal, tombol jawaban, feedback panel) bertransisi
+///   secara halus menggunakan AnimatedSwitcher tanpa me-render ulang header.
 class GameSoalPage extends StatefulWidget {
   final List<SoalModel> soalList;
   final int currentIndex;
@@ -29,8 +32,8 @@ class GameSoalPage extends StatefulWidget {
   const GameSoalPage({
     super.key,
     required this.soalList,
-    required this.currentIndex,
-    required this.hasilSebelumnya,
+    this.currentIndex = 0,
+    this.hasilSebelumnya = const [],
   });
 
   @override
@@ -38,12 +41,20 @@ class GameSoalPage extends StatefulWidget {
 }
 
 class _GameSoalPageState extends State<GameSoalPage> {
+  late int _currentIndex;
+  late List<HasilSoal> _hasilList;
   late int _sisaDetik;
   Timer? _timer;
-  bool _sudahJawab = false;
 
-  SoalModel get _soalSekarang => widget.soalList[widget.currentIndex];
-  int get _nomorSoal => widget.currentIndex + 1; // 1-based
+  // State tampilan kuis
+  bool _isShowingFeedback = false;
+  bool? _pilihanPengguna;
+  bool _isBenar = false;
+  late double _previousProgress;
+
+  SoalModel get _soalSekarang => widget.soalList[_currentIndex];
+  int get _nomorSoal => _currentIndex + 1; // 1-based
+  bool get _isLast => _currentIndex >= widget.soalList.length - 1;
 
   // ──────────────────────────────────────────────────────────────────
   // LIFECYCLE
@@ -51,7 +62,11 @@ class _GameSoalPageState extends State<GameSoalPage> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.currentIndex;
+    _hasilList = List<HasilSoal>.from(widget.hasilSebelumnya);
     _sisaDetik = GameController.detikPerSoal;
+    _previousProgress =
+        _currentIndex == 0 ? 0.0 : (_currentIndex / widget.soalList.length);
     _mulaiTimer();
   }
 
@@ -65,6 +80,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
   // TIMER
   // ──────────────────────────────────────────────────────────────────
   void _mulaiTimer() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
         t.cancel();
@@ -81,74 +97,81 @@ class _GameSoalPageState extends State<GameSoalPage> {
   }
 
   void _onTimerHabis() {
-    if (_sudahJawab) return;
-    _sudahJawab = true;
+    if (_isShowingFeedback) return;
+    _timer?.cancel();
 
     // Soal di-skip: tambahkan hasil dengan pilihanPengguna = null
-    final hasilBaru = List<HasilSoal>.from(widget.hasilSebelumnya)
-      ..add(HasilSoal(soal: _soalSekarang, pilihanPengguna: null));
+    _hasilList.add(HasilSoal(soal: _soalSekarang, pilihanPengguna: null));
 
-    _navigasiBerikutnya(hasilBaru);
+    if (_isLast) {
+      _keSkorAkhir();
+    } else {
+      setState(() {
+        _previousProgress = (_currentIndex + 1) / widget.soalList.length;
+        _currentIndex++;
+        _sisaDetik = GameController.detikPerSoal;
+        _isShowingFeedback = false;
+        _pilihanPengguna = null;
+      });
+      _mulaiTimer();
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // JAWAB
+  // USER ACTION: PILIH JAWABAN
   // ──────────────────────────────────────────────────────────────────
   void _pilihJawaban(bool pilihanBenar) {
-    if (_sudahJawab) return;
-    _sudahJawab = true;
+    if (_isShowingFeedback) return;
     _timer?.cancel();
-
     HapticFeedback.lightImpact();
 
     final bool isBenar = pilihanBenar == _soalSekarang.jawabanBenar;
 
+    setState(() {
+      _isShowingFeedback = true;
+      _pilihanPengguna = pilihanBenar;
+      _isBenar = isBenar;
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // USER ACTION: LANJUT KE SOAL BERIKUTNYA / LIHAT SKOR
+  // ──────────────────────────────────────────────────────────────────
+  void _onLanjut() {
+    // Catat hasil jawaban soal ini
+    _hasilList.add(HasilSoal(
+      soal: _soalSekarang,
+      pilihanPengguna: _pilihanPengguna,
+    ));
+
+    if (_isLast) {
+      _keSkorAkhir();
+    } else {
+      setState(() {
+        _previousProgress = (_currentIndex + 1) / widget.soalList.length;
+        _currentIndex++;
+        _isShowingFeedback = false;
+        _pilihanPengguna = null;
+        _sisaDetik = GameController.detikPerSoal;
+      });
+      _mulaiTimer();
+    }
+  }
+
+  void _keSkorAkhir() {
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => GameFeedbackPage(
+    Navigator.of(context).pushReplacement(
+      _FadeSlideRoute(
+        builder: (_) => GameSkorAkhirPage(
           soalList: widget.soalList,
-          currentIndex: widget.currentIndex,
-          pilihanPengguna: pilihanBenar,
-          isBenar: isBenar,
-          hasilSebelumnya: widget.hasilSebelumnya,
+          hasilList: _hasilList,
         ),
       ),
     );
   }
 
-  void _navigasiBerikutnya(List<HasilSoal> hasilBaru) {
-    if (!mounted) return;
-
-    final bool isLast =
-        widget.currentIndex >= widget.soalList.length - 1;
-
-    if (isLast) {
-      // Soal terakhir → Skor Akhir
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => GameSkorAkhirPage(
-            soalList: widget.soalList,
-            hasilList: hasilBaru,
-          ),
-        ),
-      );
-    } else {
-      // Soal berikutnya
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => GameSoalPage(
-            soalList: widget.soalList,
-            currentIndex: widget.currentIndex + 1,
-            hasilSebelumnya: hasilBaru,
-          ),
-        ),
-      );
-    }
-  }
-
   // ──────────────────────────────────────────────────────────────────
-  // HELPER: format timer
+  // HELPER TIMER & PROGRESS
   // ──────────────────────────────────────────────────────────────────
   String get _timerLabel {
     final menit = _sisaDetik ~/ 60;
@@ -156,18 +179,16 @@ class _GameSoalPageState extends State<GameSoalPage> {
     return '${menit.toString().padLeft(2, '0')}:${detik.toString().padLeft(2, '0')}';
   }
 
-  double get _progressValue =>
-      _nomorSoal / widget.soalList.length;
+  double get _targetProgress => _nomorSoal / widget.soalList.length;
 
   Color get _timerColor =>
       _sisaDetik <= 10 ? const Color(0xFFEF4444) : const Color(0xFF3985E7);
 
   // ──────────────────────────────────────────────────────────────────
-  // KONFIRMASI KELUAR: back button → kembali ke GameMulaiPage
+  // KONFIRMASI KELUAR
   // ──────────────────────────────────────────────────────────────────
   void _konfirmasiKeluar(BuildContext context) {
     _timer?.cancel();
-    // Langsung kembali ke GameMulaiPage tanpa dialog, hapus semua progress
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const GameMulaiPage()),
       (route) => route.isFirst,
@@ -189,7 +210,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            // ── Background Gradient Biru (Figma) ──────────────────
+            // ── Background Gradient Biru Figma (Konsisten Sepanjang Kuis) ──
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
@@ -197,42 +218,53 @@ class _GameSoalPageState extends State<GameSoalPage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF5BA4F5),
-                      Color(0xFF4592F0),
-                      Color(0xFF2872E5),
+                      Color(0xFF5B9BF5),
+                      Color(0xFF6FA8E8),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // ── Dekorasi Figma ────────────────────────────────────
+            // ── Dekorasi Figma (bintik & lingkaran putih) ───────────
             const Positioned.fill(
               child: IgnorePointer(child: _SoalBgDecoration()),
             ),
 
-            // ── Konten ────────────────────────────────────────────
+            // ── Layout Struktur Utama ──────────────────────────────
             SafeArea(
               top: false,
               bottom: false,
               child: Column(
                 children: [
-                  // ── Progress Bar & Timer ──────────────────────
-                  _buildProgressArea(),
+                  // ── [REVISI 7] PERSISTENT HEADER (TIDAK IKUT TRANSIISI) ──
+                  // Posisi Y tetap, progress bar kuning di luar AnimatedSwitcher
+                  _buildPersistentHeader(),
 
-                  // ── Kartu Soal & Tombol Jawaban ───────────────
+                  // ── KONTEN DINAMIS BERTRANSIISI (Kartu Soal / Feedback) ──
                   Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 20),
-                      child: Column(
-                        children: [
-                          _buildKartuSoal(),
-                          const SizedBox(height: 20),
-                          _buildTombolJawaban(),
-                        ],
-                      ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 280),
+                      switchInCurve: Curves.easeInOut,
+                      switchOutCurve: Curves.easeInOut,
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.0, 0.02),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _isShowingFeedback
+                          ? _buildFeedbackContent(
+                              key: ValueKey('feedback_$_currentIndex'))
+                          : _buildSoalContent(
+                              key: ValueKey('soal_$_currentIndex')),
                     ),
                   ),
                 ],
@@ -244,18 +276,19 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── AREA PROGRESS & TIMER ─────────────────────────────────────────
-  Widget _buildProgressArea() {
+  // ── [REVISI 7] HEADER & PROGRESS BAR PERSISTEN ───────────────────────
+  Widget _buildPersistentHeader() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.15),
       ),
       padding: const EdgeInsets.only(
-          top: 56, left: 16, right: 16, bottom: 16),
+          top: 56, left: 16, right: 16, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Nomor soal
+          // Nomor Soal
           Row(
             children: [
               Text(
@@ -269,65 +302,86 @@ class _GameSoalPageState extends State<GameSoalPage> {
             ],
           ),
           const SizedBox(height: 8),
-          // Progress Bar kuning
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: _progressValue,
-              minHeight: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.25),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFFFFD600),
-              ),
+
+          // [REVISI 3 & REVISI 7]: Progress Bar Kuning Animasi Lebar
+          // Wadah bar tidak pernah berpindah posisi, hanya nilai lebarnya yang berubah
+          TweenAnimationBuilder<double>(
+            key: const ValueKey('persistent_linear_progress'),
+            tween: Tween<double>(
+              begin: _previousProgress,
+              end: _targetProgress,
             ),
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            builder: (context, value, child) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: value,
+                  minHeight: 8,
+                  backgroundColor: Colors.white.withValues(alpha: 0.25),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFFFFD600),
+                  ),
+                ),
+              );
+            },
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
-          // Pill Timer
-          Align(
-            alignment: Alignment.center,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 7),
-              decoration: BoxDecoration(
-                color: _sisaDetik <= 10
-                    ? const Color(0xFFFEF2F2)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(
-                  color: _timerColor.withValues(alpha: 0.35),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: _timerColor.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.timer_rounded,
-                    size: 16,
-                    color: _timerColor,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _timerLabel,
-                    style: GoogleFonts.lato(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: _timerColor,
-                      letterSpacing: 1.5,
+          // [REVISI 7]: Pill Timer / Placeholder Area
+          // Tinggi tetap 38dp: HANYA muncul saat Soal (hitung mundur),
+          // otomatis hilang saat Feedback Jawaban (waktu berhenti).
+          // Placeholder tak terlihat setinggi 38dp menjamin progress bar di atasnya
+          // TIDAK BERGESER sama sekali.
+          SizedBox(
+            height: 38,
+            child: Center(
+              child: _isShowingFeedback
+                  ? const SizedBox.shrink()
+                  : AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: _sisaDetik <= 10
+                            ? const Color(0xFFFEF2F2)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(
+                          color: _timerColor.withValues(alpha: 0.35),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _timerColor.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.timer_rounded,
+                            size: 16,
+                            color: _timerColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _timerLabel,
+                            style: GoogleFonts.lato(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: _timerColor,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
@@ -335,7 +389,73 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── KARTU SOAL ─────────────────────────────────────────────────
+  // ── KONTEN SOAL ────────────────────────────────────────────────────
+  Widget _buildSoalContent({required Key key}) {
+    return LayoutBuilder(
+      key: key,
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    // Ruang atas lebih ramping (flex: 2) sehingga posisi kartu dan tombol
+                    // terangkat sedikit (agak naik) dan terlihat pas/center di layar HP
+                    const Spacer(flex: 2),
+                    _buildKartuSoal(),
+                    const SizedBox(height: 20),
+                    _buildTombolJawaban(),
+                    const Spacer(flex: 3),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ── KONTEN FEEDBACK ────────────────────────────────────────────────
+  Widget _buildFeedbackContent({required Key key}) {
+    return SingleChildScrollView(
+      key: key,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
+      child: Column(
+        children: [
+          // Kartu soal (putih, read-only)
+          _buildKartuSoal(),
+
+          const SizedBox(height: 16),
+
+          // Tombol hasil (state warna jawaban)
+          _buildTombolHasil(),
+
+          const SizedBox(height: 16),
+
+          // Bar status "✓ Jawaban Benar" / "✗ Jawaban Salah"
+          _buildBarStatus(),
+
+          const SizedBox(height: 16),
+
+          // Kartu penjelasan (putih)
+          _buildKartuPenjelasan(),
+
+          const SizedBox(height: 24),
+
+          // Tombol Lanjut / Lihat Skor (putih kontras)
+          _buildTombolLanjut(),
+        ],
+      ),
+    );
+  }
+
+  // ── KARTU SOAL (Putih) ─────────────────────────────────────────────
   Widget _buildKartuSoal() {
     return Container(
       width: double.infinity,
@@ -354,7 +474,6 @@ class _GameSoalPageState extends State<GameSoalPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nomor soal kontinu
           Text(
             'Soal $_nomorSoal dari ${widget.soalList.length}',
             style: GoogleFonts.lato(
@@ -363,10 +482,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
               color: const Color(0xFF7F7F7F),
             ),
           ),
-
           const SizedBox(height: 14),
-
-          // Teks pertanyaan
           Text(
             _soalSekarang.pertanyaan,
             style: GoogleFonts.lato(
@@ -376,13 +492,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
               height: 1.55,
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Chip kategori kecil
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFFECF6FF),
               borderRadius: BorderRadius.circular(50),
@@ -401,11 +513,10 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── TOMBOL JAWABAN ─────────────────────────────────────────────
+  // ── TOMBOL JAWABAN (Mode Soal: Interaktif) ──────────────────────────
   Widget _buildTombolJawaban() {
     return Row(
       children: [
-        // Tombol BENAR
         Expanded(
           child: _TombolJawaban(
             label: 'Benar',
@@ -414,7 +525,6 @@ class _GameSoalPageState extends State<GameSoalPage> {
           ),
         ),
         const SizedBox(width: 16),
-        // Tombol SALAH
         Expanded(
           child: _TombolJawaban(
             label: 'Salah',
@@ -425,10 +535,168 @@ class _GameSoalPageState extends State<GameSoalPage> {
       ],
     );
   }
+
+  // ── TOMBOL HASIL (Mode Feedback: State Warna) ──────────────────────
+  Widget _buildTombolHasil() {
+    final Color warnaBenar = _colorForTombolHasil(pilihan: true);
+    final Color warnaSalah = _colorForTombolHasil(pilihan: false);
+
+    return Row(
+      children: [
+        Expanded(
+          child: _TombolHasilBadge(
+            label: 'Benar',
+            icon: Icons.check_rounded,
+            bgColor: warnaBenar,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _TombolHasilBadge(
+            label: 'Salah',
+            icon: Icons.close_rounded,
+            bgColor: warnaSalah,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _colorForTombolHasil({required bool pilihan}) {
+    if (_pilihanPengguna == pilihan) {
+      return _isBenar
+          ? const Color(0xFF10B981) // Hijau, sama dengan pernyataan Jawaban Benar
+          : const Color(0xFFEF4444); // Merah, sama dengan pernyataan Jawaban Salah
+    }
+    return const Color(0xFFECF6FF); // Netral terang
+  }
+
+  // ── BAR STATUS (Mode Feedback) ─────────────────────────────────────
+  Widget _buildBarStatus() {
+    final Color bgColor = _isBenar
+        ? const Color(0xFF10B981) // Hijau
+        : const Color(0xFFEF4444); // Merah
+    final String label = _isBenar ? '✓  Jawaban Benar' : '✗  Jawaban Salah';
+
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: [
+          BoxShadow(
+            color: bgColor.withValues(alpha: 0.30),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: GoogleFonts.lato(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  // ── KARTU PENJELASAN (Mode Feedback) ──────────────────────────────
+  Widget _buildKartuPenjelasan() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: Color(0xFF3985E7),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Penjelasan',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF3985E7),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _soalSekarang.penjelasan,
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              height: 1.6,
+              color: const Color(0xFF475569),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── TOMBOL LANJUT / LIHAT SKOR (Mode Feedback) ─────────────────────
+  Widget _buildTombolLanjut() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _onLanjut,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF3985E7),
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(17),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _isLast ? 'Lihat Skor' : 'Lanjut',
+              style: GoogleFonts.lato(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF3985E7),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              _isLast ? Icons.emoji_events_rounded : Icons.arrow_forward_rounded,
+              size: 18,
+              color: const Color(0xFF3985E7),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
-// WIDGET TOMBOL JAWABAN (default state: biru muda)
+// WIDGET TOMBOL JAWABAN (Interaktif dengan feedback tap)
 // ════════════════════════════════════════════════════════════════════
 class _TombolJawaban extends StatefulWidget {
   final String label;
@@ -481,9 +749,7 @@ class _TombolJawabanState extends State<_TombolJawaban> {
               Icon(
                 widget.icon,
                 size: 20,
-                color: _pressed
-                    ? Colors.white
-                    : const Color(0xFF3985E7),
+                color: _pressed ? Colors.white : const Color(0xFF3985E7),
               ),
               const SizedBox(width: 6),
               Text(
@@ -491,14 +757,70 @@ class _TombolJawabanState extends State<_TombolJawaban> {
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: _pressed
-                      ? Colors.white
-                      : const Color(0xFF3985E7),
+                  color: _pressed ? Colors.white : const Color(0xFF3985E7),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// WIDGET TOMBOL HASIL (Non-interaktif untuk Feedback)
+// ════════════════════════════════════════════════════════════════════
+class _TombolHasilBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color bgColor;
+
+  const _TombolHasilBadge({
+    required this.label,
+    required this.icon,
+    required this.bgColor,
+  });
+
+  bool get _isHighlighted =>
+      bgColor == const Color(0xFF3985E7) ||
+      bgColor == const Color(0xFFEF4444);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: _isHighlighted
+            ? [
+                BoxShadow(
+                  color: bgColor.withValues(alpha: 0.35),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: _isHighlighted ? Colors.white : const Color(0xFF94A3B8),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.lato(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: _isHighlighted ? Colors.white : const Color(0xFF94A3B8),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -552,4 +874,35 @@ class _SoalBgPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CUSTOM PAGE ROUTE — Fade + Slide halus (easeInOut, 300ms)
+// ════════════════════════════════════════════════════════════════════
+class _FadeSlideRoute<T> extends PageRouteBuilder<T> {
+  final WidgetBuilder builder;
+
+  _FadeSlideRoute({required this.builder})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              builder(context),
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.03),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }

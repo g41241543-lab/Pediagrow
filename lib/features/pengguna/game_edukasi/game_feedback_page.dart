@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,12 +10,16 @@ import 'game_skor_akhir_page.dart';
 ///
 /// Muncul setelah pengguna memilih jawaban (tidak muncul jika di-skip).
 /// Menampilkan:
-/// - Progress bar sesuai posisi soal saat ini
-/// - Kartu soal yang sama (read-only)
+/// - Background biru gradasi Figma yang SAMA PERSIS dengan halaman Soal
+/// - Progress bar pada header persisten (posisi tetap, placeholder timer 38dp)
+/// - Kartu soal (putih, read-only)
 /// - Tombol Benar/Salah dengan state warna hasil
 /// - Bar status "Jawaban Benar" (hijau) / "Jawaban Salah" (merah)
-/// - Kartu Penjelasan
-/// - Tombol "Lanjut" atau "Lihat Skor"
+/// - Kartu Penjelasan (putih)
+/// - Tombol "Lanjut" atau "Lihat Skor" (putih kontras di atas background biru)
+///
+/// [REVISI 6]: Background biru konsisten penuh sepanjang kuis.
+/// [REVISI 7]: Header & progress bar dengan layout tetap dan placeholder timer.
 class GameFeedbackPage extends StatelessWidget {
   final List<SoalModel> soalList;
   final int currentIndex;
@@ -26,6 +31,7 @@ class GameFeedbackPage extends StatelessWidget {
   final bool isBenar;
 
   final List<HasilSoal> hasilSebelumnya;
+  final VoidCallback? onLanjut;
 
   const GameFeedbackPage({
     super.key,
@@ -34,6 +40,7 @@ class GameFeedbackPage extends StatelessWidget {
     required this.pilihanPengguna,
     required this.isBenar,
     required this.hasilSebelumnya,
+    this.onLanjut,
   });
 
   SoalModel get _soal => soalList[currentIndex];
@@ -44,12 +51,17 @@ class GameFeedbackPage extends StatelessWidget {
   // NAVIGASI
   // ──────────────────────────────────────────────────────────────────
   void _lanjut(BuildContext context) {
+    if (onLanjut != null) {
+      onLanjut!();
+      return;
+    }
+
     final hasilBaru = List<HasilSoal>.from(hasilSebelumnya)
       ..add(HasilSoal(soal: _soal, pilihanPengguna: pilihanPengguna));
 
     if (_isLast) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
+        _FadeSlideRoute(
           builder: (_) => GameSkorAkhirPage(
             soalList: soalList,
             hasilList: hasilBaru,
@@ -58,7 +70,7 @@ class GameFeedbackPage extends StatelessWidget {
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
+        _FadeSlideRoute(
           builder: (_) => GameSoalPage(
             soalList: soalList,
             currentIndex: currentIndex + 1,
@@ -77,78 +89,147 @@ class GameFeedbackPage extends StatelessWidget {
     return PopScope(
       canPop: false, // nonaktifkan back selama kuis
       child: Scaffold(
-        backgroundColor: const Color(0xFFF0F6FF),
-        body: SafeArea(
-          top: false,
-          bottom: false,
-          child: Column(
-            children: [
-              // ── Progress Bar (posisi soal saat ini) ──────────────
-              _buildProgressArea(),
-
-              // ── Konten scrollable ─────────────────────────────────
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 20),
-                  child: Column(
-                    children: [
-                      // Kartu soal (sama seperti di GameSoalPage)
-                      _buildKartuSoal(),
-
-                      const SizedBox(height: 16),
-
-                      // Tombol jawaban dengan state hasil warna
-                      _buildTombolHasil(),
-
-                      const SizedBox(height: 16),
-
-                      // Bar status Benar / Salah
-                      _buildBarStatus(),
-
-                      const SizedBox(height: 16),
-
-                      // Kartu penjelasan
-                      _buildKartuPenjelasan(),
-
-                      const SizedBox(height: 24),
-
-                      // Tombol Lanjut / Lihat Skor
-                      _buildTombolLanjut(context),
+        body: Stack(
+          children: [
+            // ── Background Gradient Biru (Figma) ──────────────────
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF5B9BF5),
+                      Color(0xFF6FA8E8),
                     ],
                   ),
                 ),
               ),
+            ),
+
+            // ── Dekorasi Figma (bintik & lingkaran putih) ─────────
+            const Positioned.fill(
+              child: IgnorePointer(child: _FeedbackBgDecoration()),
+            ),
+
+            // ── Konten Utama ──────────────────────────────────────
+            SafeArea(
+              top: false,
+              bottom: false,
+              child: Column(
+                children: [
+                  // ── Persistent Header & Progress Bar ─────────────
+                  _buildProgressArea(),
+
+                  // ── Konten scrollable (Kartu & Tombol) ───────────
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 20),
+                      child: Column(
+                        children: [
+                          // Kartu soal (putih)
+                          _buildKartuSoal(),
+
+                          const SizedBox(height: 16),
+
+                          // Tombol jawaban dengan state hasil warna
+                          _buildTombolHasil(),
+
+                          const SizedBox(height: 16),
+
+                          // Bar status Benar / Salah
+                          _buildBarStatus(),
+
+                          const SizedBox(height: 16),
+
+                          // Kartu penjelasan (putih)
+                          _buildKartuPenjelasan(),
+
+                          const SizedBox(height: 24),
+
+                          // Tombol Lanjut / Lihat Skor
+                          _buildTombolLanjut(context),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── AREA PROGRESS HEADER PERSISTEN ─────────────────────────────
+  // [REVISI 7]: Layout dan koordinat Y persis sama dengan GameSoalPage,
+  // dengan placeholder timer setinggi 38dp sehingga bar tidak bergeser.
+  Widget _buildProgressArea() {
+    final double progress = _nomorSoal / soalList.length;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+      ),
+      padding: const EdgeInsets.only(
+          top: 56, left: 16, right: 16, bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Nomor Soal
+          Row(
+            children: [
+              Text(
+                'Soal $_nomorSoal / ${soalList.length}',
+                style: GoogleFonts.lato(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
             ],
           ),
-        ),
-      ),
-    );
-  }
+          const SizedBox(height: 8),
 
-  // ── AREA PROGRESS ──────────────────────────────────────────────
-  Widget _buildProgressArea() {
-    final progress = _nomorSoal / soalList.length;
-    return Container(
-      color: const Color(0xFFF0F6FF),
-      padding: const EdgeInsets.only(
-          top: 56, left: 16, right: 16, bottom: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: LinearProgressIndicator(
-          value: progress,
-          minHeight: 8,
-          backgroundColor: const Color(0xFFE2E8F0),
-          valueColor: const AlwaysStoppedAnimation<Color>(
-            Color(0xFFFFD600),
+          // Progress Bar kuning
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: progress, end: progress),
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            builder: (context, value, child) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: value,
+                  minHeight: 8,
+                  backgroundColor: Colors.white.withValues(alpha: 0.25),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFFFFD600),
+                  ),
+                ),
+              );
+            },
           ),
-        ),
+
+          const SizedBox(height: 12),
+
+          // [REVISI 7]: Placeholder tak terlihat setinggi 38dp pengganti timer pill
+          // Menjamin posisi progress bar di atasnya tidak bergeser sama sekali.
+          const SizedBox(
+            height: 38,
+            child: Center(
+              child: SizedBox.shrink(),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // ── KARTU SOAL (read-only, sama kontennya) ──────────────────────
+  // ── KARTU SOAL (read-only, kartu putih di atas background biru) ──
   Widget _buildKartuSoal() {
     return Container(
       width: double.infinity,
@@ -209,9 +290,6 @@ class GameFeedbackPage extends StatelessWidget {
 
   // ── TOMBOL JAWABAN (state warna hasil) ─────────────────────────
   Widget _buildTombolHasil() {
-    // Menentukan warna masing-masing tombol
-    // Tombol "Benar": dipilih dan benar → biru; dipilih dan salah → merah
-    // Tombol "Salah": dipilih dan benar → biru; dipilih dan salah → merah
     final Color warnaTombolBenar = _colorForTombol(pilihan: true);
     final Color warnaTombolSalah = _colorForTombol(pilihan: false);
 
@@ -236,17 +314,14 @@ class GameFeedbackPage extends StatelessWidget {
     );
   }
 
-  /// Mengembalikan warna background tombol berdasarkan apakah tombol ini
-  /// dipilih pengguna dan apakah pilihannya benar.
+  /// Mengembalikan warna background tombol berdasarkan pilihan pengguna.
   Color _colorForTombol({required bool pilihan}) {
     if (pilihanPengguna == pilihan) {
-      // Tombol ini yang dipilih pengguna
       return isBenar
-          ? const Color(0xFF3985E7) // biru → benar
+          ? const Color(0xFF10B981) // hijau → sama dengan pernyataan Jawaban Benar
           : const Color(0xFFEF4444); // merah → salah
     }
-    // Tombol yang tidak dipilih → abu netral
-    return const Color(0xFFE2E8F0);
+    return const Color(0xFFECF6FF); // netral terang
   }
 
   // ── BAR STATUS (Jawaban Benar / Jawaban Salah) ──────────────────
@@ -263,6 +338,13 @@ class GameFeedbackPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(17),
+        boxShadow: [
+          BoxShadow(
+            color: bgColor.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       alignment: Alignment.center,
       child: Text(
@@ -276,7 +358,7 @@ class GameFeedbackPage extends StatelessWidget {
     );
   }
 
-  // ── KARTU PENJELASAN ─────────────────────────────────────────────
+  // ── KARTU PENJELASAN (kartu putih di atas background biru) ─────
   Widget _buildKartuPenjelasan() {
     return Container(
       width: double.infinity,
@@ -327,28 +409,40 @@ class GameFeedbackPage extends StatelessWidget {
     );
   }
 
-  // ── TOMBOL LANJUT / LIHAT SKOR ──────────────────────────────────
+  // ── TOMBOL LANJUT / LIHAT SKOR (Putih kontras) ─────────────────
   Widget _buildTombolLanjut(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: 50,
       child: ElevatedButton(
         onPressed: () => _lanjut(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3985E7),
-          foregroundColor: Colors.white,
-          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF3985E7),
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(17),
           ),
         ),
-        child: Text(
-          _isLast ? 'Lihat Skor' : 'Lanjut',
-          style: GoogleFonts.lato(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _isLast ? 'Lihat Skor' : 'Lanjut',
+              style: GoogleFonts.lato(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF3985E7),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              _isLast ? Icons.emoji_events_rounded : Icons.arrow_forward_rounded,
+              size: 18,
+              color: const Color(0xFF3985E7),
+            ),
+          ],
         ),
       ),
     );
@@ -380,6 +474,15 @@ class _TombolHasilWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(17),
+        boxShadow: _isHighlighted
+            ? [
+                BoxShadow(
+                  color: bgColor.withValues(alpha: 0.35),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -402,4 +505,85 @@ class _TombolHasilWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DEKORASI BACKGROUND FEEDBACK (Figma - sama persis dengan Soal)
+// ════════════════════════════════════════════════════════════════════
+class _FeedbackBgDecoration extends StatelessWidget {
+  const _FeedbackBgDecoration();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _FeedbackBgPainter());
+  }
+}
+
+class _FeedbackBgPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Lingkaran semi-transparan kanan atas
+    canvas.drawCircle(
+      Offset(size.width + 30, -30),
+      120,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.08)
+        ..style = PaintingStyle.fill,
+    );
+    // Lingkaran kiri atas
+    canvas.drawCircle(
+      Offset(-40, size.height * 0.15),
+      90,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.06)
+        ..style = PaintingStyle.fill,
+    );
+    // Bintik kecil area atas
+    final rnd = Random(77);
+    final dotPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18)
+      ..style = PaintingStyle.fill;
+    for (int i = 0; i < 30; i++) {
+      canvas.drawCircle(
+        Offset(rnd.nextDouble() * size.width,
+            rnd.nextDouble() * size.height * 0.40),
+        rnd.nextDouble() * 3 + 1,
+        dotPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CUSTOM PAGE ROUTE — Fade + Slide halus (easeInOut, 300ms)
+// ════════════════════════════════════════════════════════════════════
+class _FadeSlideRoute<T> extends PageRouteBuilder<T> {
+  final WidgetBuilder builder;
+
+  _FadeSlideRoute({required this.builder})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              builder(context),
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.03),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }
