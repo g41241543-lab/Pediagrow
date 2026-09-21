@@ -92,13 +92,17 @@ class _LoginPageState extends State<LoginPage> {
       if (hasil['status'] == 'sukses') {
         final int idAkun = int.tryParse(hasil['id']?.toString() ?? '0') ?? 0;
         final String namaUser = hasil['nama']?.toString() ?? 'Pengguna';
-        final String emailUser = (hasil['email']?.toString() ?? _emailController.text).trim();
+        final String emailUser =
+            (hasil['email']?.toString() ?? _emailController.text).trim();
         final String? fotoUrl = hasil['foto_url']?.toString();
 
         // Simpan token & profil pengguna ke SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', hasil['token']?.toString() ?? '');
-        await prefs.setString('peran', hasil['peran']?.toString() ?? 'orang_tua');
+        await prefs.setString(
+          'peran',
+          hasil['peran']?.toString() ?? 'orang_tua',
+        );
         await prefs.setInt('id_akun', idAkun);
         await prefs.setString('nama', namaUser);
         await prefs.setString('email', emailUser);
@@ -135,7 +139,6 @@ class _LoginPageState extends State<LoginPage> {
             (route) => false,
           );
         });
-
       } else {
         PediaBanner.showError(
           context,
@@ -438,8 +441,9 @@ class _LoginPageState extends State<LoginPage> {
                             child: OutlinedButton(
                               key: const Key('google_login_button'),
                               // Gunakan _handleGoogleSignIn() yang real; nonaktifkan saat loading
-                              onPressed:
-                                  _isGoogleLoading ? null : _handleGoogleSignIn,
+                              onPressed: _isGoogleLoading
+                                  ? null
+                                  : _handleGoogleSignIn,
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
@@ -462,9 +466,10 @@ class _LoginPageState extends State<LoginPage> {
                                       height: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Color(0xFF3985E7),
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Color(0xFF3985E7),
+                                            ),
                                       ),
                                     )
                                   : FittedBox(
