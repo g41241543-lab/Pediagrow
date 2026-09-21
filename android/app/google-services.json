@@ -12,7 +12,20 @@
           "package_name": "com.example.pediagrow"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "174123262665-5gaoaavnp15jqqfm8ji20gc0obsus1it.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pediagrow",
+            "certificate_hash": "7e29689e2681deaca044eae38e20e06b7cf2398d"
+          }
+        },
+        {
+          "client_id": "174123262665-shn3fiqdqlt88oaoingeoetsi4l4af7k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAb-Z55X4EqFZkKES8YIJHSViqk3tKJ1DU"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "174123262665-59ru0tim2kl1q5jggtpem3hfnrp7qmoi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
