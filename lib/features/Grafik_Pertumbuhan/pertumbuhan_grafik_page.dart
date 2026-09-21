@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/child_model.dart';
 import '../../shared/widgets/illustration_forest_footer.dart';
+import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../pengguna/konsultasi/daftar_dokter_page.dart';
 import '../pengguna/cek_stunting/form_cek_stunting_page.dart';
 import 'models/growth_record_model.dart';
@@ -37,6 +38,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -175,24 +177,22 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                             child: SizedBox(
                               width: 350,
                               height: 48,
-                              child: ElevatedButton.icon(
+                              child: ElevatedButton(
                                 onPressed: () => _openAddMeasurement(context),
-                                icon: const Icon(Icons.add,
-                                    color: Colors.white, size: 20),
-                                label: Text(
-                                  '+ Data Pertumbuhan Baru',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF3985E7),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(17),
+                                  ),
+                                ),
+                                child: Text(
+                                  '+ Data Pertumbuhan Baru',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -206,8 +206,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                         // 5. ILUSTRASI DEKORATIF FOOTER (Pohon, Rumput, Tenda)
                         // -----------------------------------------------------
                         const IllustrationForestFooter(
-                          height: 110,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fitWidth,
                         ),
                       ],
                     ),
@@ -325,12 +324,12 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: statusBgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(color: statusColor.withValues(alpha: 0.35), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: statusColor.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -398,26 +397,15 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
               );
             },
             behavior: HitTestBehavior.opaque,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Konsultasikan dengan dokter',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF3985E7),
-                    decoration: TextDecoration.underline,
-                    decorationColor: const Color(0xFF3985E7),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 14,
-                  color: Color(0xFF3985E7),
-                ),
-              ],
+            child: Text(
+              'Konsultasikan dengan dokter',
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF3985E7),
+                decoration: TextDecoration.underline,
+                decorationColor: const Color(0xFF3985E7),
+              ),
             ),
           ),
         ],

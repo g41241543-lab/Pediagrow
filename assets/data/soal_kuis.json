@@ -1,0 +1,177 @@
+[
+  {
+    "id": 1,
+    "kategori": "Nutrisi",
+    "pertanyaan": "ASI eksklusif diberikan kepada bayi selama 6 bulan pertama tanpa makanan atau minuman tambahan apapun.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. WHO dan Kemenkes RI merekomendasikan ASI eksklusif selama 6 bulan pertama kehidupan bayi. ASI mengandung semua nutrisi yang dibutuhkan bayi dan memberikan perlindungan imunologis yang optimal."
+  },
+  {
+    "id": 2,
+    "kategori": "Nutrisi",
+    "pertanyaan": "Bayi berusia 3 bulan sudah boleh diberikan bubur sebagai makanan pendamping ASI.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. MPASI (Makanan Pendamping ASI) baru boleh diberikan setelah bayi berusia 6 bulan. Sistem pencernaan bayi belum siap menerima makanan padat sebelum usia tersebut."
+  },
+  {
+    "id": 3,
+    "kategori": "Imunisasi",
+    "pertanyaan": "Vaksin BCG diberikan untuk mencegah penyakit tuberkulosis (TBC) pada anak.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Vaksin BCG (Bacillus Calmette-Guérin) adalah vaksin yang diberikan untuk memberikan perlindungan terhadap infeksi tuberkulosis, terutama bentuk TB yang berat pada anak-anak."
+  },
+  {
+    "id": 4,
+    "kategori": "Imunisasi",
+    "pertanyaan": "Imunisasi dapat menyebabkan anak menderita penyakit yang ingin dicegah oleh vaksin tersebut.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Vaksin menggunakan virus/bakteri yang sudah dilemahkan atau dimatikan, sehingga tidak bisa menyebabkan penyakit. Efek samping ringan seperti demam adalah respons normal sistem imun."
+  },
+  {
+    "id": 5,
+    "kategori": "Stunting",
+    "pertanyaan": "Stunting adalah kondisi gagal tumbuh pada anak akibat kekurangan gizi kronis yang ditandai dengan tinggi badan di bawah rata-rata.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Stunting terjadi ketika anak memiliki tinggi badan lebih dari 2 standar deviasi di bawah median WHO. Penyebab utamanya adalah kekurangan gizi kronis pada 1000 Hari Pertama Kehidupan."
+  },
+  {
+    "id": 6,
+    "kategori": "Stunting",
+    "pertanyaan": "Stunting hanya berdampak pada pertumbuhan fisik anak dan tidak mempengaruhi kecerdasan.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Stunting berdampak ganda: selain menghambat pertumbuhan fisik, juga mengganggu perkembangan otak sehingga menurunkan kecerdasan, kemampuan belajar, dan produktivitas di masa dewasa."
+  },
+  {
+    "id": 7,
+    "kategori": "Perkembangan",
+    "pertanyaan": "Bayi normal umumnya mulai bisa berjalan secara mandiri pada usia 9-15 bulan.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Sebagian besar bayi mulai berjalan antara usia 9-15 bulan. Variasi ini adalah normal, karena setiap anak berkembang dengan kecepatan yang berbeda-beda."
+  },
+  {
+    "id": 8,
+    "kategori": "Perkembangan",
+    "pertanyaan": "Anak usia 2 tahun sudah seharusnya bisa berbicara dengan kalimat lengkap dan jelas seperti orang dewasa.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Pada usia 2 tahun, anak umumnya mampu mengucapkan sekitar 50 kata dan mulai menggabungkan 2 kata. Kemampuan berbicara seperti orang dewasa berkembang bertahap hingga usia 5-6 tahun."
+  },
+  {
+    "id": 9,
+    "kategori": "Nutrisi",
+    "pertanyaan": "Zat besi sangat penting untuk mencegah anemia dan mendukung perkembangan otak anak.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Zat besi berperan dalam pembentukan hemoglobin yang membawa oksigen ke otak. Kekurangan zat besi dapat menyebabkan anemia dan menghambat perkembangan kognitif anak."
+  },
+  {
+    "id": 10,
+    "kategori": "Kebersihan",
+    "pertanyaan": "Mencuci tangan dengan sabun cukup dilakukan setelah buang air besar saja.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Cuci tangan dengan sabun harus dilakukan di berbagai momen penting: sebelum dan sesudah makan, setelah BAB/BAK, setelah bermain, setelah batuk/bersin, dan setelah memegang hewan."
+  },
+  {
+    "id": 11,
+    "kategori": "Perkembangan",
+    "pertanyaan": "Bermain adalah cara utama anak belajar dan mengembangkan kemampuan kognitif, sosial, dan emosionalnya.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Bermain merupakan 'pekerjaan' anak. Melalui bermain, anak mengembangkan kemampuan berpikir, kreativitas, kemampuan sosial, serta regulasi emosi yang sangat penting untuk tumbuh kembangnya."
+  },
+  {
+    "id": 12,
+    "kategori": "Imunisasi",
+    "pertanyaan": "Anak yang sudah pernah terkena campak tidak perlu mendapatkan vaksin campak.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Vaksinasi tetap dianjurkan untuk memastikan perlindungan penuh. Selain itu, dalam program imunisasi nasional, vaksin MMR (campak, gondongan, rubella) penting untuk mencegah komplikasi serius."
+  },
+  {
+    "id": 13,
+    "kategori": "Gizi",
+    "pertanyaan": "Vitamin A berperan penting dalam menjaga kesehatan mata dan meningkatkan kekebalan tubuh anak.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Vitamin A sangat penting untuk kesehatan mata (mencegah rabun senja dan kebutaan), menjaga kesehatan kulit dan selaput lendir, serta meningkatkan sistem imun anak."
+  },
+  {
+    "id": 14,
+    "kategori": "Gizi",
+    "pertanyaan": "Anak yang gemuk pasti memiliki status gizi yang baik dan sehat.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Kegemukan (obesitas) pada anak justru merupakan masalah gizi lebih yang berbahaya. Anak gemuk bisa mengalami malnutrisi tersembunyi karena kekurangan vitamin dan mineral meski kalorinya berlebih."
+  },
+  {
+    "id": 15,
+    "kategori": "Kesehatan",
+    "pertanyaan": "Oralit (larutan gula-garam) dapat diberikan kepada anak yang mengalami diare untuk mencegah dehidrasi.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Oralit adalah pertolongan pertama yang efektif untuk diare. Larutan gula-garam membantu menggantikan cairan dan elektrolit yang hilang sehingga mencegah dehidrasi yang berbahaya."
+  },
+  {
+    "id": 16,
+    "kategori": "Kesehatan",
+    "pertanyaan": "Demam pada anak selalu berbahaya dan harus langsung diobati dengan antibiotik.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Sebagian besar demam pada anak disebabkan oleh infeksi virus yang tidak memerlukan antibiotik. Antibiotik hanya efektif untuk infeksi bakteri. Demam ringan bisa ditangani dengan kompres dan banyak minum."
+  },
+  {
+    "id": 17,
+    "kategori": "Nutrisi",
+    "pertanyaan": "Kalsium penting untuk pembentukan tulang dan gigi yang kuat pada anak.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Kalsium adalah mineral utama pembentuk tulang dan gigi. Konsumsi kalsium yang cukup pada masa anak-anak sangat penting untuk mencapai kepadatan tulang maksimal dan mencegah osteoporosis di masa dewasa."
+  },
+  {
+    "id": 18,
+    "kategori": "Perkembangan",
+    "pertanyaan": "Anak yang terlambat bicara pasti memiliki masalah intelektual atau keterlambatan perkembangan serius.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Keterlambatan bicara memiliki banyak penyebab, seperti kurang stimulasi, gangguan pendengaran, atau faktor lingkungan. Banyak anak terlambat bicara yang berkembang normal setelah mendapat intervensi yang tepat."
+  },
+  {
+    "id": 19,
+    "kategori": "Kebersihan",
+    "pertanyaan": "Gosok gigi sebaiknya dimulai sejak gigi pertama anak tumbuh, bahkan sebelum gigi tumbuh pun kebersihan gusi perlu dijaga.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Kebersihan mulut perlu dijaga sejak dini. Sebelum gigi tumbuh, gusi bayi dibersihkan dengan kain lembab. Setelah gigi pertama tumbuh, sikat dengan sikat bayi dan pasta gigi khusus tanpa fluoride."
+  },
+  {
+    "id": 20,
+    "kategori": "Stunting",
+    "pertanyaan": "Stunting hanya bisa terjadi pada anak dari keluarga miskin yang kekurangan pangan.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Stunting dapat terjadi pada keluarga dari semua kalangan ekonomi. Pola asuh yang kurang tepat, sanitasi buruk, dan kurangnya pengetahuan gizi bisa menjadi penyebab stunting meski keluarga mampu secara ekonomi."
+  },
+  {
+    "id": 21,
+    "kategori": "Imunisasi",
+    "pertanyaan": "Posyandu merupakan salah satu fasilitas kesehatan komunitas tempat anak bisa mendapatkan imunisasi secara gratis.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Posyandu (Pos Pelayanan Terpadu) menyediakan layanan imunisasi dasar gratis, pemantauan tumbuh kembang, dan konseling gizi bagi balita. Ini adalah ujung tombak kesehatan masyarakat di Indonesia."
+  },
+  {
+    "id": 22,
+    "kategori": "Gizi",
+    "pertanyaan": "Anak tidak perlu makan sayur dan buah jika sudah minum susu formula setiap hari.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Susu formula tidak bisa menggantikan semua manfaat sayur dan buah. Sayur dan buah mengandung serat, vitamin, mineral, dan fitokimia yang tidak bisa sepenuhnya disediakan oleh susu formula."
+  },
+  {
+    "id": 23,
+    "kategori": "Perkembangan",
+    "pertanyaan": "Stimulasi melalui sentuhan, suara, dan penglihatan sangat penting untuk perkembangan otak bayi di usia 0-3 tahun.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Usia 0-3 tahun adalah periode emas perkembangan otak yang paling pesat. Stimulasi sensoris yang kaya seperti pelukan, bicara, menyanyi, dan mainan warna-warni sangat mendukung pembentukan koneksi saraf otak."
+  },
+  {
+    "id": 24,
+    "kategori": "Kesehatan",
+    "pertanyaan": "Memberikan madu kepada bayi di bawah usia 1 tahun aman dilakukan karena madu alami dan bergizi.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Madu tidak boleh diberikan kepada bayi di bawah 1 tahun karena berisiko menyebabkan botulisme bayi — infeksi serius akibat spora bakteri Clostridium botulinum yang bisa ada dalam madu mentah."
+  },
+  {
+    "id": 25,
+    "kategori": "Kebersihan",
+    "pertanyaan": "Air minum yang aman untuk anak adalah air yang sudah dimasak hingga mendidih atau air minum kemasan yang terjamin kualitasnya.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Air minum yang aman harus bebas dari patogen berbahaya. Merebus air hingga mendidih membunuh kuman, virus, dan bakteri. Air kemasan bersertifikat juga merupakan pilihan aman untuk anak."
+  }
+]
