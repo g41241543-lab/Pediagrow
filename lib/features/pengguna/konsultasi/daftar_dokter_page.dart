@@ -49,10 +49,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            ProfilDokterPage(
-              doctor: doctor,
-              child: ChildService().activeChild,
-            ),
+            ProfilDokterPage(doctor: doctor, child: ChildService().activeChild),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curvedAnimation = CurvedAnimation(
             parent: animation,
@@ -88,9 +85,12 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     const BerandaPage(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) =>
-                        FadeTransition(opacity: animation, child: child),
+                transitionsBuilder: (
+                  context,
+                  animation,
+                  secondaryAnimation,
+                  child,
+                ) => FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),
               (route) => false,
@@ -161,8 +161,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                                   valueListenable:
                                       DoctorService().doctorsNotifier,
                                   builder: (context, allDoctors, _) {
-                                    final filteredDoctors =
-                                        _searchQuery.isEmpty
+                                    final filteredDoctors = _searchQuery.isEmpty
                                         ? allDoctors
                                         : DoctorService().filterDoctors(
                                             _searchQuery,
@@ -476,10 +475,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                               border: Border.all(color: Colors.white, width: 2),
                               boxShadow: [
                                 BoxShadow(
-                                  color: (doctor.isOnline
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFF94A3B8))
-                                      .withValues(alpha: 0.4),
+                                  color:
+                                      (doctor.isOnline
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFF94A3B8))
+                                          .withValues(alpha: 0.4),
                                   blurRadius: 4,
                                   offset: const Offset(0, 1),
                                 ),
