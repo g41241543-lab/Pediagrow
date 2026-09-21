@@ -162,7 +162,7 @@ class StuntingMlService {
   /// HARUS SAMA dengan ApiService.defaultDeviceIp di
   /// lib/core/services/api_service.dart, karena server Python (serve.py)
   /// dan backend PHP diasumsikan berjalan di laptop yang sama.
-  static const String defaultDeviceIp = '192.168.110.107';
+  static const String defaultDeviceIp = '10.125.160.76';
 
   /// Override manual (opsional) -- isi lewat halaman pengaturan developer
   /// kalau perlu menunjuk ke server ML di alamat lain.

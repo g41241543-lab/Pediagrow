@@ -294,23 +294,6 @@ class GrowthService {
     childList.add(record);
     currentMap[record.childId] = childList;
     recordsNotifier.value = currentMap;
-<<<<<<< HEAD
-
-    // Simpan juga ke database lokal SQLite
-    try {
-      LocalDbService()
-          .insertGrowthRecord({
-            'child_id': record.childId.hashCode,
-            'tanggal': formatTanggalIndonesia(record.date),
-            'berat_kg': record.weightKg,
-            'tinggi_cm': record.heightCm,
-            'lingkar_kepala_cm': record.headCircumferenceCm,
-            'synced': 0,
-          })
-          .catchError((_) => 0);
-    } catch (_) {}
-=======
->>>>>>> cefdb48a7664907e9cf2147cad7a9239336ef033
   }
 
   /// Menambahkan entri pengukuran yang didapat dari fitur Cek Stunting
