@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../../models/child_model.dart';
 import 'api_service.dart';
 
@@ -39,7 +40,8 @@ class ChildService {
 
   /// Menambahkan profil anak baru
   void addChild(ChildModel child) {
-    final updatedList = List<ChildModel>.from(childrenNotifier.value)..add(child);
+    final updatedList = List<ChildModel>.from(childrenNotifier.value)
+      ..add(child);
     childrenNotifier.value = updatedList;
 
     // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
@@ -68,8 +70,9 @@ class ChildService {
     childrenNotifier.value = updatedList;
 
     if (activeChildNotifier.value?.id == id) {
-      activeChildNotifier.value =
-          updatedList.isNotEmpty ? updatedList.first : null;
+      activeChildNotifier.value = updatedList.isNotEmpty
+          ? updatedList.first
+          : null;
     }
   }
 
@@ -78,17 +81,25 @@ class ChildService {
     activeChildNotifier.value = child;
   }
 
-  /// Memuat profil anak dari database MySQL via [ApiService]
-  Future<void> loadChildrenFromApi(int parentId) async {
+  /// Mengambil daftar profil anak dari database MySQL via API,
+  /// lalu memperbarui [childrenNotifier] secara reaktif.
+  Future<void> loadChildrenFromApi(int idOrangTua) async {
     try {
-      final list = await ApiService.getChildren(parentId);
-      final models = list.map((m) => ChildModel.fromMap(m)).toList();
-      childrenNotifier.value = models;
-      if (models.isNotEmpty) {
-        if (activeChildNotifier.value == null ||
-            !models.any((c) => c.id == activeChildNotifier.value?.id)) {
-          activeChildNotifier.value = models.first;
-        }
+      final rawList = await ApiService.getChildren(idOrangTua);
+      final loadedChildren = rawList
+          .map((map) => ChildModel.fromMap(map))
+          .toList();
+
+      childrenNotifier.value = loadedChildren;
+
+      // Pertahankan anak aktif jika masih ada di daftar baru,
+      // kalau tidak, pilih anak pertama sebagai default.
+      if (loadedChildren.isNotEmpty) {
+        final currentActiveId = activeChildNotifier.value?.id;
+        final stillExists = loadedChildren.any((c) => c.id == currentActiveId);
+        activeChildNotifier.value = stillExists
+            ? activeChildNotifier.value
+            : loadedChildren.first;
       } else {
         activeChildNotifier.value = null;
       }
@@ -103,4 +114,3 @@ class ChildService {
     activeChildNotifier.value = null;
   }
 }
-
