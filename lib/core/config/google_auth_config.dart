@@ -12,10 +12,10 @@ class GoogleAuthConfig {
 
   /// SHA-256 Debug Certificate Fingerprint
   static const String debugSha256 =
-      'B0:9F:F7:9A:F1:83:EC:A3:81:18:D0:9A:F2:36:C8:59:DB:A7:96:D0:51:AB:68:73:73:DF:C5:FE:47:8C:DE:3D';
+      '06:27:7E:E7:5C:E4:54:DC:95:03:B5:EC:CB:A9:54:64:21:6A:A5:A8:2B:F1:96:46:CC:D6:9F:57:A4:81:4C:CF';
 
   /// Web Client ID (OAuth 2.0 Web Application) dari Google Cloud Console.
   /// Isi ini jika Anda sudah membuat Web Client ID di Google Cloud Console.
   static const String webClientId =
-      '1025789904190-539nj9eokon8sfbnkvd4nh5iugngv0ss.apps.googleusercontent.com';
+      '174123262665-shn3fiqdqlt88oaoingeoetsi4l4af7k.apps.googleusercontent.com';
 }

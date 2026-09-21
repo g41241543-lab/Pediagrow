@@ -3,12 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-<<<<<<< HEAD
 
-=======
 import '../../core/services/api_service.dart';
 import '../../core/services/google_auth_service.dart';
->>>>>>> c72fab9d773bc4354f724515067df8c0e4827420
+import '../../core/services/user_service.dart';
+
 import 'auth_choice_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
@@ -65,6 +64,9 @@ class _RegisterPageState extends State<RegisterPage> {
   // Loading state untuk tombol Google Sign-In (cegah double-tap)
   bool _isGoogleLoading = false;
 
+  // Loading state saat proses daftar email/password
+  bool _isLoading = false;
+
   // Mode validasi otomatis setelah tombol Daftar pertama kali ditekan
   AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
 
@@ -92,35 +94,54 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  Future<void> _handleRegister() async {
     FocusScope.of(context).unfocus();
 
-    if (_formKey.currentState!.validate()) {
-      // Validasi berhasil
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
-          ),
-          backgroundColor: Color(0xFF3985E7),
-          duration: Duration(seconds: 2),
-        ),
-      );
-
-      // Otomatis mengarahkan ke AuthChoicePage
-      Future.delayed(const Duration(milliseconds: 900), () {
-        if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AuthChoicePage()),
-          (route) => false,
-        );
-      });
-    } else {
-      // Aktifkan validasi interaktif saat pengguna mengoreksi isian
+    if (!_formKey.currentState!.validate()) {
       setState(() {
         _autoValidateMode = AutovalidateMode.onUserInteraction;
       });
+      return;
     }
+
+    setState(() => _isLoading = true);
+
+    final result = await UserService().registerWithEmail(
+      name: _nameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (!result.isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.errorMessage ?? 'Gagal mendaftar.'),
+          backgroundColor: const Color(0xFFB13535),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
+        ),
+        backgroundColor: Color(0xFF3985E7),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    await Future.delayed(const Duration(milliseconds: 900));
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthChoicePage()),
+      (route) => false,
+    );
   }
 
   /// Memulai alur Google Sign-In menggunakan [GoogleAuthService].
@@ -421,7 +442,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             height: 46.0,
                             child: ElevatedButton(
                               key: const Key('register_button'),
-                              onPressed: _handleRegister,
+                              onPressed: _isLoading ? null : _handleRegister,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF3985E7),
                                 foregroundColor: Colors.white,
@@ -499,8 +520,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             child: OutlinedButton(
                               key: const Key('google_register_button'),
                               // Gunakan _handleGoogleSignIn() yang real; nonaktifkan saat loading
-                              onPressed:
-                                  _isGoogleLoading ? null : _handleGoogleSignIn,
+                              onPressed: _isGoogleLoading
+                                  ? null
+                                  : _handleGoogleSignIn,
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
@@ -523,9 +545,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                       height: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Color(0xFF3985E7),
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Color(0xFF3985E7),
+                                            ),
                                       ),
                                     )
                                   : FittedBox(
