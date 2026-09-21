@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/child_service.dart';
-import '../../../core/services/local_db_service.dart';
 import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
@@ -372,18 +371,6 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
             isExclusiveBreastfeeding: _isAsiEksklusif!,
           );
         }
-
-        // Simpan ke SQLite lokal bila tersedia
-        try {
-          LocalDbService().insertGrowthRecord({
-            'child_id': 1,
-            'tanggal': _tanggalCek,
-            'berat_kg': currentWeight,
-            'tinggi_cm': currentHeight,
-            'lingkar_kepala_cm': 0.0,
-            'synced': 0,
-          });
-        } catch (_) {}
 
         // Catat ke GrowthService agar titik baru langsung muncul di Grafik Pertumbuhan
         try {
