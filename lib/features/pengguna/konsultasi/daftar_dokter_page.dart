@@ -49,7 +49,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            ProfilDokterPage(doctor: doctor),
+            ProfilDokterPage(
+              doctor: doctor,
+              child: ChildService().activeChild,
+            ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curvedAnimation = CurvedAnimation(
             parent: animation,

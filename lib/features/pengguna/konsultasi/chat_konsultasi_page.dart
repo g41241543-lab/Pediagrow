@@ -733,8 +733,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           // 1. Header Dokter Fixed (Biru #2A85FF, meluas menutupi status bar)
           _buildHeader(),
 
-          // 2. Disclaimer Medis Fixed (Bisa ditutup, sudut atas melengkung)
-          if (_showDisclaimer) _buildDisclaimer(),
+          // 2. Disclaimer Medis Fixed (Stay, sudut kotak tidak melengkung, tanpa tombol X)
+          _buildDisclaimer(),
 
           // 3. Area Chat List (Scrollable)
           Expanded(child: _buildChatList()),
@@ -884,7 +884,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   // ===========================================================================
-  // 2. DISCLAIMER MEDIS (Soft Blue #EBF5FF, Top Radius Melengkung)
+  // 2. DISCLAIMER MEDIS (Soft Blue #EBF5FF, Tepi Datar Tidak Lengkung, Stay Tanpa Button X)
   // ===========================================================================
 
   Widget _buildDisclaimer() {
@@ -892,7 +892,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       width: double.infinity,
       decoration: const BoxDecoration(
         color: colorSoftBlue,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.zero,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -911,20 +911,6 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 fontSize: 12,
                 color: const Color(0xFF4A5568),
                 height: 1.35,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                setState(() => _showDisclaimer = false);
-              },
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
-                child: Icon(Icons.close, size: 18, color: Color(0xFF4A5568)),
               ),
             ),
           ),
