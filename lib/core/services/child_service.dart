@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+
 import '../../models/child_model.dart';
+import 'api_service.dart';
 
 /// Service singleton untuk mengelola data profil anak-anak pada aplikasi PediaGrow.
 ///
@@ -38,7 +40,8 @@ class ChildService {
 
   /// Menambahkan profil anak baru
   void addChild(ChildModel child) {
-    final updatedList = List<ChildModel>.from(childrenNotifier.value)..add(child);
+    final updatedList = List<ChildModel>.from(childrenNotifier.value)
+      ..add(child);
     childrenNotifier.value = updatedList;
 
     // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
@@ -67,8 +70,9 @@ class ChildService {
     childrenNotifier.value = updatedList;
 
     if (activeChildNotifier.value?.id == id) {
-      activeChildNotifier.value =
-          updatedList.isNotEmpty ? updatedList.first : null;
+      activeChildNotifier.value = updatedList.isNotEmpty
+          ? updatedList.first
+          : null;
     }
   }
 
@@ -77,7 +81,32 @@ class ChildService {
     activeChildNotifier.value = child;
   }
 
+  /// Mengambil daftar profil anak dari database MySQL via API,
+  /// lalu memperbarui [childrenNotifier] secara reaktif.
+  Future<void> loadChildrenFromApi(int idOrangTua) async {
+    try {
+      final rawList = await ApiService.getChildren(idOrangTua);
+      final loadedChildren = rawList
+          .map((map) => ChildModel.fromMap(map))
+          .toList();
 
+      childrenNotifier.value = loadedChildren;
+
+      // Pertahankan anak aktif jika masih ada di daftar baru,
+      // kalau tidak, pilih anak pertama sebagai default.
+      if (loadedChildren.isNotEmpty) {
+        final currentActiveId = activeChildNotifier.value?.id;
+        final stillExists = loadedChildren.any((c) => c.id == currentActiveId);
+        activeChildNotifier.value = stillExists
+            ? activeChildNotifier.value
+            : loadedChildren.first;
+      } else {
+        activeChildNotifier.value = null;
+      }
+    } catch (e) {
+      debugPrint('ChildService.loadChildrenFromApi error: $e');
+    }
+  }
 
   /// Mengatur ulang daftar anak (misal saat logout atau inisialisasi)
   void clear() {
@@ -85,4 +114,3 @@ class ChildService {
     activeChildNotifier.value = null;
   }
 }
-
