@@ -3,12 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-<<<<<<< HEAD
 
-=======
 import '../../core/services/api_service.dart';
 import '../../core/services/google_auth_service.dart';
->>>>>>> c72fab9d773bc4354f724515067df8c0e4827420
 import 'auth_choice_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
@@ -499,8 +496,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             child: OutlinedButton(
                               key: const Key('google_register_button'),
                               // Gunakan _handleGoogleSignIn() yang real; nonaktifkan saat loading
-                              onPressed:
-                                  _isGoogleLoading ? null : _handleGoogleSignIn,
+                              onPressed: _isGoogleLoading
+                                  ? null
+                                  : _handleGoogleSignIn,
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
@@ -523,9 +521,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                       height: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Color(0xFF3985E7),
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Color(0xFF3985E7),
+                                            ),
                                       ),
                                     )
                                   : FittedBox(
