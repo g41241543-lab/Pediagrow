@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'chat_konsultasi_page.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman "Formulir Konsultasi" PediaGrow.
 ///
@@ -45,7 +47,6 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   static const Color colorTextMuted = Color(0xFF718096);
   static const Color colorBorder = Color(0xFFE2E8F0);
   static const Color colorGreenSuccess = Color(0xFF48BB78);
-  static const Color colorPeachAvatar = Color(0xFFFFEDEB);
   static const Color colorAmberTip = Color(0xFFFFB300);
 
   // Controllers untuk input form
@@ -65,6 +66,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   int _complaintCharCount = 0;
   static const int _maxComplaintChars = 500;
 
+  // Profil anak yang sedang aktif (dari ChildService atau parameter)
+  ChildModel? _activeChild;
+
   // Data anak teresolusi (dinamis dengan fallback aman)
   late String _effectiveGender;
   late String _effectiveAge;
@@ -75,17 +79,27 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     super.initState();
 
     _resolveChildData();
+    ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
 
-    final initWeight = widget.child?.weightKg != null && widget.child!.weightKg! > 0
-        ? (widget.child!.weightKg! % 1 == 0
-            ? widget.child!.weightKg!.toInt().toString()
-            : widget.child!.weightKg!.toString())
-        : '';
-    final initHeight = widget.child?.heightCm != null && widget.child!.heightCm! > 0
-        ? (widget.child!.heightCm! % 1 == 0
-            ? widget.child!.heightCm!.toInt().toString()
-            : widget.child!.heightCm!.toString())
-        : '';
+    final selectedChild = _activeChild ?? widget.child;
+    final initWeight = selectedChild?.weightKg != null && selectedChild!.weightKg! > 0
+        ? (selectedChild.weightKg! % 1 == 0
+            ? selectedChild.weightKg!.toInt().toString()
+            : selectedChild.weightKg!.toString())
+        : (selectedChild?.birthWeightKg != null && selectedChild!.birthWeightKg! > 0
+            ? (selectedChild.birthWeightKg! % 1 == 0
+                ? selectedChild.birthWeightKg!.toInt().toString()
+                : selectedChild.birthWeightKg!.toString())
+            : '');
+    final initHeight = selectedChild?.heightCm != null && selectedChild!.heightCm! > 0
+        ? (selectedChild.heightCm! % 1 == 0
+            ? selectedChild.heightCm!.toInt().toString()
+            : selectedChild.heightCm!.toString())
+        : (selectedChild?.birthHeightCm != null && selectedChild!.birthHeightCm! > 0
+            ? (selectedChild.birthHeightCm! % 1 == 0
+                ? selectedChild.birthHeightCm!.toInt().toString()
+                : selectedChild.birthHeightCm!.toString())
+            : '');
 
     _weightController = TextEditingController(text: initWeight);
     _heightController = TextEditingController(text: initHeight);
@@ -104,29 +118,20 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     });
   }
 
+  void _onActiveChildChanged() {
+    final active = ChildService().activeChild;
+    if (active != null && mounted) {
+      _applyChildModel(active);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Mendukung penerimaan argumen navigasi via RouteSettings jika ada
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is ChildModel) {
-      setState(() {
-        _effectiveName = args.name;
-        _effectiveGender = args.gender;
-        _effectiveAge = args.birthDate != null
-            ? _calculateChildAge(args.birthDate!)
-            : args.ageDescription;
-        if (args.weightKg != null && args.weightKg! > 0 && _weightController.text.isEmpty) {
-          _weightController.text = args.weightKg! % 1 == 0
-              ? args.weightKg!.toInt().toString()
-              : args.weightKg!.toString();
-        }
-        if (args.heightCm != null && args.heightCm! > 0 && _heightController.text.isEmpty) {
-          _heightController.text = args.heightCm! % 1 == 0
-              ? args.heightCm!.toInt().toString()
-              : args.heightCm!.toString();
-        }
-      });
+      _applyChildModel(args);
     } else if (args is Map<String, dynamic>) {
       setState(() {
         if (args['namaAnak'] != null) _effectiveName = args['namaAnak'];
@@ -136,19 +141,52 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     }
   }
 
-  /// Menyiapkan data anak secara dinamis dari parameter atau fallback aman
+  void _applyChildModel(ChildModel model) {
+    setState(() {
+      _activeChild = model;
+      _effectiveName = model.name;
+      _effectiveGender = model.gender;
+      _effectiveAge = _formatChildAge(model);
+      if (model.weightKg != null && model.weightKg! > 0 && _weightController.text.isEmpty) {
+        _weightController.text = model.weightKg! % 1 == 0
+            ? model.weightKg!.toInt().toString()
+            : model.weightKg!.toString();
+      }
+      if (model.heightCm != null && model.heightCm! > 0 && _heightController.text.isEmpty) {
+        _heightController.text = model.heightCm! % 1 == 0
+            ? model.heightCm!.toInt().toString()
+            : model.heightCm!.toString();
+      }
+    });
+  }
+
+  /// Menyiapkan data anak secara default menyesuaikan profil anak di ChildService
   void _resolveChildData() {
-    if (widget.child != null) {
-      _effectiveName = widget.child!.name;
-      _effectiveGender = widget.child!.gender;
-      _effectiveAge = widget.child!.birthDate != null
-          ? _calculateChildAge(widget.child!.birthDate!)
-          : widget.child!.ageDescription;
-    } else {
-      _effectiveName = widget.namaAnak ?? 'Kaia Anastasya';
+    _activeChild = widget.child ?? ChildService().activeChild;
+
+    if (_activeChild != null) {
+      _effectiveName = _activeChild!.name;
+      _effectiveGender = _activeChild!.gender;
+      _effectiveAge = _formatChildAge(_activeChild!);
+    } else if (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty) {
+      _effectiveName = widget.namaAnak!;
       _effectiveGender = widget.jenisKelamin ?? 'Perempuan';
-      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan 3 hari';
+      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan';
+    } else {
+      _effectiveName = 'Kaia Anastasya';
+      _effectiveGender = widget.jenisKelamin ?? 'Perempuan';
+      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan';
     }
+  }
+
+  String _formatChildAge(ChildModel child) {
+    if (child.ageDescription.trim().isNotEmpty) {
+      return child.ageDescription.trim();
+    }
+    if (child.birthDate != null) {
+      return _calculateChildAge(child.birthDate!);
+    }
+    return '1 tahun 3 bulan';
   }
 
   String _calculateChildAge(DateTime birthDate) {
@@ -158,8 +196,6 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     int days = now.day - birthDate.day;
 
     if (days < 0) {
-      final prevMonth = DateTime(now.year, now.month, 0);
-      days += prevMonth.day;
       months -= 1;
     }
     if (months < 0) {
@@ -167,10 +203,12 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       months += 12;
     }
 
-    if (years > 0) {
-      return '$years tahun $months bulan $days hari';
+    if (years > 0 && months > 0) {
+      return '$years tahun $months bulan';
+    } else if (years > 0) {
+      return '$years tahun';
     } else if (months > 0) {
-      return '$months bulan $days hari';
+      return '$months bulan';
     } else {
       return '$days hari';
     }
@@ -178,6 +216,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
   @override
   void dispose() {
+    ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
     _weightController.dispose();
     _heightController.dispose();
     _complaintController.dispose();
@@ -240,19 +279,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
     if (!_validateForm()) {
       // Tampilkan notifikasi singkat jika ada field yang belum diisi
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Mohon lengkapi seluruh data formulir terlebih dahulu.',
-            style: GoogleFonts.lato(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFFE53935),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
+      PediaBanner.showError(
+        context,
+        message: 'Mohon lengkapi seluruh data formulir terlebih dahulu.',
       );
       return;
     }
@@ -266,7 +295,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     );
     final String complaint = _complaintController.text.trim();
 
-    final childData = widget.child ??
+    final childData = _activeChild?.copyWith(
+          weightKg: weight,
+          heightCm: height,
+        ) ??
+        widget.child?.copyWith(
+          weightKg: weight,
+          heightCm: height,
+        ) ??
         ChildModel(
           id: 'child-${DateTime.now().millisecondsSinceEpoch}',
           name: _effectiveName,
@@ -489,47 +525,198 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // ===========================================================================
 
   Widget _buildChildInfoSection() {
-    final hasCustomName =
-        _effectiveName.isNotEmpty && _effectiveName.toLowerCase() != 'anak';
+    final hasCustomName = _activeChild != null ||
+        (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty);
+    final allChildren = ChildService().children;
+    final canSwitchChild = allChildren.length > 1;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Avatar Anak Lingkaran Proporsional (Anti-peyang)
-        _buildChildAvatar(),
-        const SizedBox(width: 14),
+    return InkWell(
+      onTap: canSwitchChild ? _showChildPickerBottomSheet : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Avatar Anak Lingkaran Proporsional (Anti-peyang)
+            _buildChildAvatar(),
+            const SizedBox(width: 14),
 
-        // Teks "Data Anak" dan Subtitle Dinamis
-        Expanded(
+            // Teks "Data Anak" dan Subtitle Dinamis
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: colorTextPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$_effectiveGender, $_effectiveAge',
+                    style: GoogleFonts.lato(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                      color: colorTextSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (canSwitchChild)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: colorSoftBlue,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Ganti',
+                      style: GoogleFonts.lato(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: colorPrimaryBlue,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 16,
+                      color: colorPrimaryBlue,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChildPickerBottomSheet() {
+    final allChildren = ChildService().children;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
-                hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
+                'Pilih Anak untuk Konsultasi',
                 style: GoogleFonts.lato(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: colorTextPrimary,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
-              Text(
-                '$_effectiveGender, $_effectiveAge',
-                style: GoogleFonts.lato(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  color: colorTextSecondary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              const SizedBox(height: 12),
+              ...allChildren.map((child) {
+                final isSelected = child.id == _activeChild?.id;
+                final isGirl = child.gender.toLowerCase().contains('perempuan');
+                return InkWell(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _applyChildModel(child);
+                    ChildService().setActiveChild(child);
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? colorSoftBlue : colorCardBg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? colorPrimaryBlue : colorBorder,
+                        width: isSelected ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: isGirl
+                              ? const Color(0xFFFFD1DC)
+                              : const Color(0xFFCCE4FF),
+                          child: Icon(
+                            Icons.child_care_rounded,
+                            color: isGirl
+                                ? const Color(0xFFF687B3)
+                                : const Color(0xFF63B3ED),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                child.name,
+                                style: GoogleFonts.lato(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorTextPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${child.gender}, ${child.ageDescription}',
+                                style: GoogleFonts.lato(
+                                  fontSize: 12,
+                                  color: colorTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            color: colorPrimaryBlue,
+                            size: 22,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -542,7 +729,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     final borderColor =
         isGirl ? const Color(0xFFF687B3) : const Color(0xFF63B3ED);
 
-    final photoUrl = widget.child?.photoUrl;
+    final photoUrl = _activeChild?.photoUrl ?? widget.child?.photoUrl;
     final hasPhoto = photoUrl != null &&
         photoUrl.isNotEmpty &&
         (photoUrl.startsWith('assets/') || File(photoUrl).existsSync());
@@ -1163,24 +1350,28 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           ),
           elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.near_me_rounded,
-              size: 20,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Lanjutkan Chat Dokter',
-              style: GoogleFonts.lato(
-                fontSize: 15.5,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.2,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.near_me_rounded,
+                size: 20,
+                color: Colors.white,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Text(
+                'Lanjutkan Chat Dokter',
+                style: GoogleFonts.lato(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1191,24 +1382,28 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // ===========================================================================
 
   Widget _buildSecurityFooter() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.lock_outline_rounded,
-          size: 16,
-          color: colorTextMuted,
-        ),
-        const SizedBox(width: 6),
-        Text(
-          'Data Anda aman dan terlindungi',
-          style: GoogleFonts.lato(
-            fontSize: 12.5,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.lock_outline_rounded,
+            size: 16,
             color: colorTextMuted,
-            fontWeight: FontWeight.w500,
           ),
-        ),
-      ],
+          const SizedBox(width: 6),
+          Text(
+            'Data Anda aman dan terlindungi',
+            style: GoogleFonts.lato(
+              fontSize: 12.5,
+              color: colorTextMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

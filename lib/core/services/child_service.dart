@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+
 import '../../models/child_model.dart';
+import 'api_service.dart';
 
 /// Service singleton untuk mengelola data profil anak-anak pada aplikasi PediaGrow.
 ///
@@ -38,13 +40,12 @@ class ChildService {
 
   /// Menambahkan profil anak baru
   void addChild(ChildModel child) {
-    final updatedList = List<ChildModel>.from(childrenNotifier.value)..add(child);
+    final updatedList = List<ChildModel>.from(childrenNotifier.value)
+      ..add(child);
     childrenNotifier.value = updatedList;
 
-    // Jika belum ada anak yang aktif, otomatis jadikan anak baru ini sebagai yang aktif
-    if (activeChildNotifier.value == null) {
-      activeChildNotifier.value = child;
-    }
+    // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
+    activeChildNotifier.value = child;
   }
 
   /// Memperbarui data profil anak yang sudah ada
@@ -69,14 +70,42 @@ class ChildService {
     childrenNotifier.value = updatedList;
 
     if (activeChildNotifier.value?.id == id) {
-      activeChildNotifier.value =
-          updatedList.isNotEmpty ? updatedList.first : null;
+      activeChildNotifier.value = updatedList.isNotEmpty
+          ? updatedList.first
+          : null;
     }
   }
 
   /// Mengganti anak yang sedang aktif dipilih
   void setActiveChild(ChildModel child) {
     activeChildNotifier.value = child;
+  }
+
+  /// Mengambil daftar profil anak dari database MySQL via API,
+  /// lalu memperbarui [childrenNotifier] secara reaktif.
+  Future<void> loadChildrenFromApi(int idOrangTua) async {
+    try {
+      final rawList = await ApiService.getChildren(idOrangTua);
+      final loadedChildren = rawList
+          .map((map) => ChildModel.fromMap(map))
+          .toList();
+
+      childrenNotifier.value = loadedChildren;
+
+      // Pertahankan anak aktif jika masih ada di daftar baru,
+      // kalau tidak, pilih anak pertama sebagai default.
+      if (loadedChildren.isNotEmpty) {
+        final currentActiveId = activeChildNotifier.value?.id;
+        final stillExists = loadedChildren.any((c) => c.id == currentActiveId);
+        activeChildNotifier.value = stillExists
+            ? activeChildNotifier.value
+            : loadedChildren.first;
+      } else {
+        activeChildNotifier.value = null;
+      }
+    } catch (e) {
+      debugPrint('ChildService.loadChildrenFromApi error: $e');
+    }
   }
 
   /// Mengatur ulang daftar anak (misal saat logout atau inisialisasi)

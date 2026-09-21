@@ -10,6 +10,7 @@ class UserModel {
   final String? city;
   final String? district;
   final String? subDistrict;
+  final String? passwordHash;
 
   const UserModel({
     required this.id,
@@ -23,6 +24,7 @@ class UserModel {
     this.city,
     this.district,
     this.subDistrict,
+    this.passwordHash,
   });
 
   UserModel copyWith({
@@ -37,6 +39,7 @@ class UserModel {
     String? city,
     String? district,
     String? subDistrict,
+    String? passwordHash,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -50,6 +53,7 @@ class UserModel {
       city: city ?? this.city,
       district: district ?? this.district,
       subDistrict: subDistrict ?? this.subDistrict,
+      passwordHash: passwordHash ?? this.passwordHash,
     );
   }
 
@@ -66,6 +70,7 @@ class UserModel {
       'city': city,
       'district': district,
       'subDistrict': subDistrict,
+      'passwordHash': passwordHash,
     };
   }
 
@@ -82,6 +87,7 @@ class UserModel {
       city: map['city'] as String?,
       district: map['district'] as String?,
       subDistrict: map['subDistrict'] as String?,
+      passwordHash: map['passwordHash'] as String?,
     );
   }
 }

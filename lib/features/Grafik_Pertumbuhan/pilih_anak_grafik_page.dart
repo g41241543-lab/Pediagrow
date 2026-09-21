@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/child_service.dart';
 import '../../models/child_model.dart';
 import 'pertumbuhan_grafik_page.dart';
+import '../../shared/widgets/pedia_banner.dart';
 
 /// Helper function global untuk menghitung umur anak secara presisi kalender
 /// dalam format lengkap "X tahun Y bulan Z hari".
@@ -42,39 +43,11 @@ class PilihAnakGrafikPage extends StatefulWidget {
     this.onCancel,
   });
 
-  /// Menampilkan snackbar peringatan jika belum ada profil anak
+  /// Menampilkan banner peringatan jika belum ada profil anak
   static void showWarningNoChild(BuildContext context) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Silahkan isi profil anak terlebih dahulu!',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFFB13535),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
+    PediaBanner.showError(
+      context,
+      message: 'Silahkan isi profil anak terlebih dahulu!',
     );
   }
 
@@ -195,6 +168,9 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
 
   void _onSelectChild(ChildModel child) async {
     setState(() => _tappedChildId = child.id);
+
+    // Set child yang dipilih sebagai active child di ChildService
+    ChildService().setActiveChild(child);
 
     // Efek feedback singkat
     await Future.delayed(const Duration(milliseconds: 120));

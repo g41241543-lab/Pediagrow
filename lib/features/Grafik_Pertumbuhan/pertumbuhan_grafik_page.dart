@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/services/stunting_limit_service.dart';
 import '../../models/child_model.dart';
 import '../../shared/widgets/illustration_forest_footer.dart';
-import '../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../shared/widgets/pedia_banner.dart';
 import '../pengguna/konsultasi/daftar_dokter_page.dart';
 import '../pengguna/cek_stunting/form_cek_stunting_page.dart';
 import 'models/growth_record_model.dart';
@@ -38,7 +39,6 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -177,22 +177,24 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                             child: SizedBox(
                               width: 350,
                               height: 48,
-                              child: ElevatedButton(
+                              child: ElevatedButton.icon(
                                 onPressed: () => _openAddMeasurement(context),
+                                icon: const Icon(Icons.add,
+                                    color: Colors.white, size: 20),
+                                label: Text(
+                                  '+ Data Pertumbuhan Baru',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF3985E7),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(17),
-                                  ),
-                                ),
-                                child: Text(
-                                  '+ Data Pertumbuhan Baru',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -206,7 +208,8 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                         // 5. ILUSTRASI DEKORATIF FOOTER (Pohon, Rumput, Tenda)
                         // -----------------------------------------------------
                         const IllustrationForestFooter(
-                          fit: BoxFit.fitWidth,
+                          height: 110,
+                          fit: BoxFit.cover,
                         ),
                       ],
                     ),
@@ -324,12 +327,12 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: statusBgColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withValues(alpha: 0.35), width: 1.5),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -397,15 +400,26 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
               );
             },
             behavior: HitTestBehavior.opaque,
-            child: Text(
-              'Konsultasikan dengan dokter',
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF3985E7),
-                decoration: TextDecoration.underline,
-                decorationColor: const Color(0xFF3985E7),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Konsultasikan dengan dokter',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3985E7),
+                    decoration: TextDecoration.underline,
+                    decorationColor: const Color(0xFF3985E7),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 14,
+                  color: Color(0xFF3985E7),
+                ),
+              ],
             ),
           ),
         ],
@@ -417,6 +431,16 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
   // 3. NAVIGASI INPUT DATA PERTUMBUHAN BARU (CEK STUNTING / FORM INPUT)
   // ===========================================================================
   void _openAddMeasurement(BuildContext context) {
+    // ── Cek Batas 2x per Bulan per Anak ───────────────────────────────────
+    if (!StuntingLimitService().canCheck(widget.child.id)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Batas input data pertumbuhan 2x per bulan sudah tercapai untuk anak ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FormCekStuntingPage(child: widget.child),

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../beranda/beranda_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
+import '../../../models/resep_mpasi_model.dart';
 
-/// Model sederhana untuk data Resep MPASI.
-/// Nantinya dapat diganti dengan model dari backend PMIK/Superadmin.
+
+/// Model data untuk Resep MPASI pada halaman detail.
+/// Kompatibel dengan [ResepMpasiModel] dari database PMIK Superadmin.
 class ResepMpasi {
   final String id;
   final String title;
@@ -15,6 +13,7 @@ class ResepMpasi {
   final String date;
   final String category;
   final String assetImage;
+  final String? imageUrl;
   final double energi;
   final double lemak;
   final double protein;
@@ -31,6 +30,7 @@ class ResepMpasi {
     required this.date,
     required this.category,
     required this.assetImage,
+    this.imageUrl,
     required this.energi,
     required this.lemak,
     required this.protein,
@@ -40,46 +40,78 @@ class ResepMpasi {
     this.buah = const [],
     required this.caraMembuat,
   });
+
+  /// Factory untuk konversi dari [ResepMpasiModel] data service PMIK Superadmin
+  factory ResepMpasi.fromModel(ResepMpasiModel m) {
+    return ResepMpasi(
+      id: m.id?.toString() ?? '',
+      title: m.judul,
+      author: (m.penulis == null || m.penulis!.trim().isEmpty)
+          ? 'Pego'
+          : m.penulis!,
+      date: m.tanggal,
+      category: m.kategoriUsia,
+      assetImage: m.assetImagePath ?? '',
+      imageUrl: m.imageUrl,
+      energi: m.energiKkal ?? 0,
+      lemak: m.lemakGr ?? 0,
+      protein: m.proteinGr ?? 0,
+      porsi: m.porsi ?? 1,
+      bahan: m.bahan,
+      bahanPelapis: m.bahanPelapis,
+      buah: m.buah,
+      caraMembuat: m.caraMembuat,
+    );
+  }
 }
 
 /// Halaman "Detail Resep MPASI" PediaGrow.
 ///
-/// Data resep bersumber sepenuhnya dari [widget.resep] yang dikirim oleh
-/// halaman "Daftar Resep MPASI" (hasil query ke SQLite lokal yang dikelola
-/// PMIK/Superadmin). Halaman ini TIDAK memiliki dummy data hardcoded
-/// sebagai sumber data utama — konsisten dengan daftar_resep_page.dart.
+/// Data resep bersumber secara dinamis dari [resepModel] atau [resep] yang
+/// dikirim oleh halaman "Daftar Resep MPASI" (hasil query database yang diinput
+/// oleh PMIK/Superadmin).
 ///
-/// Jika [widget.resep] null (mis. halaman dibuka tanpa data resep yang
-/// valid), halaman menampilkan empty state alih-alih data palsu.
-///
-/// Struktur scrolling:
-/// - Header FIXED (back button + judul "Detail Resep")
-/// - Konten resep SCROLLABLE (gambar, tanggal, judul, penulis, nutrisi, bahan, cara membuat)
-/// - Bottom Navigation FIXED
+/// Fitur:
+/// - Header FIXED (back button 12dp dari kiri + judul "Detail Resep")
+/// - Gambar Resep proporsional (16:9), mendukung asset lokal & URL remote PMIK
+/// - Metadata Tanggal, Judul, Penulis ("Ditulis oleh Pego" / "PMIK Superadmin")
+/// - 4 Kartu Nutrisi (Energi, Protein, Lemak, Porsi)
+/// - Daftar Bahan (Bullet list)
+/// - Daftar Bahan Pelapis (opsional, jika ada)
+/// - Rekomendasi Buah pendamping (opsional, jika ada)
+/// - Langkah-langkah Cara Membuat (Numbered list rapi)
 class DetailResepPage extends StatefulWidget {
   final ResepMpasi? resep;
+  final ResepMpasiModel? resepModel;
 
-  const DetailResepPage({super.key, this.resep});
+  const DetailResepPage({
+    super.key,
+    this.resep,
+    this.resepModel,
+  });
 
   @override
   State<DetailResepPage> createState() => _DetailResepPageState();
 }
 
 class _DetailResepPageState extends State<DetailResepPage> {
-  // Design Tokens PediaGrow (konsisten dengan daftar_resep_page.dart)
+  // Design Tokens PediaGrow — Diselaraskan 100% dengan Detail Artikel
   static const Color colorPrimaryBlue = Color(0xFF2A85FF);
   static const Color colorSoftBlue = Color(0xFFEBF5FF);
   static const Color colorWhite = Color(0xFFFFFFFF);
-  static const Color colorTextPrimary = Color(0xFF1A202C);
-  // Design tokens resmi — abu tua & abu muda
-  static const Color colorGreyDark = Color(0xFF7F7F7F); // abu tua
-  static const Color colorGreyLight = Color(0xFFC5C5C5); // abu muda
+  static const Color colorTextPrimary = Color(0xFF000000); // Hitam murni sesuai detail artikel
+  static const Color colorTextBody = Color(0xFF262626); // Warna teks isi artikel #262626
+  static const Color colorTextMuted = Color(0xFF8E8E93); // Abu-abu metadata tanggal/penulis #8E8E93
+  static const Color colorDivider = Color(0xFFF1F2F6); // Garis pemisah halus #F1F2F6
+  static const Color colorPlaceholderBg = Color(0xFFEEEEEE); // Placeholder abu-abu terang
+  static const Color colorPlaceholderIcon = Color(0xFFBDBDBD); // Icon placeholder #BDBDBD
 
-  // Alias agar konsisten dengan pemakaian sebelumnya di file ini
-  static const Color colorTextSecondary = colorGreyDark;
-  static const Color colorTextMuted = colorGreyDark;
-  static const Color colorSearchBg = Color(0xFFF1F5F9);
-  static const Color colorBorder = colorGreyLight;
+  ResepMpasi? get _effectiveResep {
+    if (widget.resepModel != null) {
+      return ResepMpasi.fromModel(widget.resepModel!);
+    }
+    return widget.resep;
+  }
 
   void _onBackPressed() {
     Navigator.of(context).maybePop();
@@ -91,12 +123,10 @@ class _DetailResepPageState extends State<DetailResepPage> {
 
   @override
   Widget build(BuildContext context) {
-    final resep = widget.resep;
+    final resep = _effectiveResep;
 
     return Scaffold(
       backgroundColor: colorWhite,
-      // Bottom navigation fixed di Scaffold.bottomNavigationBar
-      bottomNavigationBar: _buildBottomNavigation(),
       body: SafeArea(
         child: Column(
           children: [
@@ -119,46 +149,47 @@ class _DetailResepPageState extends State<DetailResepPage> {
   }
 
   // ===========================================================================
-  // 1. HEADER FIXED — tinggi PERSIS 56dp
-  //    Back Button 12dp dari kiri layar + Judul "Detail Resep" 12dp setelahnya
+  // 1. HEADER FIXED — tinggi 56dp
+  //    Back Button 12dp dari pinggir layar + Judul "Detail Resep" (Lato 20 bold #000000)
   // ===========================================================================
 
   Widget _buildHeader() {
     return Container(
       height: 56,
       width: double.infinity,
-      color: colorWhite,
-      padding: const EdgeInsets.only(left: 12, right: 16),
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Tombol back
+          // Tombol Kembali
           Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(20),
               onTap: _onBackPressed,
-              child: const SizedBox(
-                width: 36,
-                height: 36,
-                child: Center(
-                  child: Icon(
-                    Icons.arrow_back_rounded,
-                    color: colorTextPrimary,
-                    size: 22,
-                  ),
+              borderRadius: BorderRadius.circular(24),
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(
+                  Icons.arrow_back,
+                  size: 24,
+                  color: Color(0xFF000000),
                 ),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          // Judul "Detail Resep" berjarak 12dp dari tombol back
-          Text(
-            'Detail Resep',
-            style: GoogleFonts.lato(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorTextPrimary,
+          // Judul Halaman
+          Expanded(
+            child: Text(
+              'Detail Resep',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.lato(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF000000),
+              ),
             ),
           ),
         ],
@@ -180,7 +211,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
             const Icon(
               Icons.restaurant_menu_outlined,
               size: 52,
-              color: Color(0xFFCBD5E1),
+              color: Color(0xFFBDBDBD),
             ),
             const SizedBox(height: 14),
             Text(
@@ -188,7 +219,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: colorTextMuted,
+                color: const Color(0xFF000000),
               ),
             ),
             const SizedBox(height: 6),
@@ -196,7 +227,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
               'Silakan kembali ke daftar resep\ndan pilih resep yang tersedia.',
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: colorTextMuted,
+                color: const Color(0xFF8E8E93),
               ),
               textAlign: TextAlign.center,
             ),
@@ -208,50 +239,51 @@ class _DetailResepPageState extends State<DetailResepPage> {
 
   // ===========================================================================
   // 2. KONTEN RESEP (Scrollable — gambar, tanggal, judul, nutrisi, bahan, cara)
+  //    Padding horizontal 20dp konsisten dengan Detail Artikel
   // ===========================================================================
 
   Widget _buildRecipeContent(ResepMpasi resep) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Gambar Resep full-width dengan border radius
+        // Gambar Resep Hero Utama
         _buildRecipeImage(resep),
 
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
-
-              // Tanggal
+              // Tanggal Publikasi (Lato 16sp abu-abu lembut #8E8E93 sesuai detail artikel)
               Text(
                 resep.date,
                 style: GoogleFonts.lato(
-                  fontSize: 12,
-                  color: colorTextMuted,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF8E8E93),
                 ),
               ),
               const SizedBox(height: 6),
 
-              // Judul Resep
+              // Judul Resep (Lato 18sp bold hitam #000000 sesuai detail artikel)
               Text(
                 resep.title,
                 style: GoogleFonts.lato(
-                  fontSize: 17,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: colorTextPrimary,
+                  color: const Color(0xFF000000),
                   height: 1.3,
                 ),
               ),
               const SizedBox(height: 4),
 
-              // Penulis
+              // Penulis PMIK (Lato 14sp abu-abu #8E8E93 sesuai detail artikel)
               Text(
                 'Ditulis oleh ${resep.author}',
                 style: GoogleFonts.lato(
-                  fontSize: 12,
-                  color: colorTextMuted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF8E8E93),
                 ),
               ),
               const SizedBox(height: 16),
@@ -260,32 +292,36 @@ class _DetailResepPageState extends State<DetailResepPage> {
               _buildNutritionInfo(resep),
               const SizedBox(height: 20),
 
-              // Divider tipis
-              Divider(color: colorBorder, thickness: 1, height: 1),
-              const SizedBox(height: 16),
+              // Garis pemisah halus (#F1F2F6 sesuai detail artikel)
+              const Divider(
+                color: Color(0xFFF1F2F6),
+                thickness: 1,
+                height: 1,
+              ),
+              const SizedBox(height: 20),
 
               // Bagian Bahan
               if (resep.bahan.isNotEmpty) ...[
                 _buildSectionTitle('Bahan'),
                 const SizedBox(height: 8),
                 _buildBulletList(resep.bahan),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
               ],
 
-              // Bagian Bahan Pelapis
+              // Bagian Bahan Pelapis (opsional jika ada)
               if (resep.bahanPelapis.isNotEmpty) ...[
                 _buildSectionTitle('Bahan Pelapis'),
                 const SizedBox(height: 8),
                 _buildBulletList(resep.bahanPelapis),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
               ],
 
-              // Bagian Buah
+              // Bagian Buah (opsional jika ada)
               if (resep.buah.isNotEmpty) ...[
                 _buildSectionTitle('Buah'),
                 const SizedBox(height: 8),
                 _buildBulletList(resep.buah),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
               ],
 
               // Cara Membuat
@@ -295,6 +331,9 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 _buildNumberedList(resep.caraMembuat),
                 const SizedBox(height: 24),
               ],
+
+              // Padding ekstra bawah agar nyaman dibaca
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -302,41 +341,91 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // Gambar Resep — full width dengan margin horizontal dan border radius
+  // Gambar Resep — sudut membulat modern 18dp sesuai Detail Artikel
   Widget _buildRecipeImage(ResepMpasi resep) {
+    final imagePath =
+        resep.assetImage.isNotEmpty ? resep.assetImage : (resep.imageUrl ?? '');
+    final isNetwork =
+        imagePath.startsWith('http://') || imagePath.startsWith('https://');
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Image.asset(
-            resep.assetImage,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: colorSoftBlue,
-              child: const Center(
-                child: Icon(
-                  Icons.restaurant_menu_rounded,
-                  color: colorPrimaryBlue,
-                  size: 48,
-                ),
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F2F6),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 10,
+              offset: Offset(0, 4),
             ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: imagePath.isEmpty
+                ? _buildImagePlaceholder()
+                : isNetwork
+                    ? Image.network(
+                        imagePath,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImagePlaceholder(),
+                      )
+                    : Image.asset(
+                        imagePath,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImagePlaceholder(),
+                      ),
           ),
         ),
       ),
     );
   }
 
-  // Informasi Nutrisi — 2 kolom (Energi+Protein | Lemak+Porsi)
+  // Placeholder abu-abu terang sesuai detail artikel
+  Widget _buildImagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: const Color(0xFFEEEEEE),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.restaurant_menu_rounded,
+              size: 52,
+              color: Color(0xFFBDBDBD),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tidak ada gambar resep',
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: const Color(0xFF9E9E9E),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Informasi Nutrisi — 2 kolom (Energi+Protein | Lemak+Porsi) dengan latar #F1F2F6
   Widget _buildNutritionInfo(ResepMpasi resep) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: colorSearchBg,
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFF1F2F6),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
@@ -359,7 +448,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
               ],
             ),
           ),
-          Container(width: 1, height: 64, color: colorBorder),
+          Container(width: 1, height: 64, color: const Color(0xFFE2E8F0)),
           Expanded(
             child: Column(
               children: [
@@ -391,7 +480,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
     required String value,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -405,15 +494,15 @@ class _DetailResepPageState extends State<DetailResepPage> {
                   label,
                   style: GoogleFonts.lato(
                     fontSize: 11,
-                    color: colorTextMuted,
+                    color: const Color(0xFF8E8E93),
                   ),
                 ),
                 Text(
                   value,
                   style: GoogleFonts.lato(
-                    fontSize: 13,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.bold,
-                    color: colorTextPrimary,
+                    color: const Color(0xFF000000),
                   ),
                 ),
               ],
@@ -424,35 +513,35 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // Judul section (Bahan, Bahan Pelapis, Buah, Cara Membuat)
+  // Judul section (Bahan, Bahan Pelapis, Buah, Cara Membuat - Lato 16sp bold #000000 sesuai detail artikel)
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
       style: GoogleFonts.lato(
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: colorTextPrimary,
+        color: const Color(0xFF000000),
       ),
     );
   }
 
-  // Daftar dengan bullet point (lingkaran kecil)
+  // Daftar dengan bullet point (Lato 15sp regular #262626 line-height 1.6 sesuai detail artikel)
   Widget _buildBulletList(List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items.map((item) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.only(bottom: 6),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 6, right: 8),
+                padding: const EdgeInsets.only(top: 8, right: 10),
                 child: Container(
                   width: 5,
                   height: 5,
                   decoration: const BoxDecoration(
-                    color: colorTextSecondary,
+                    color: Color(0xFF262626),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -461,9 +550,10 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 child: Text(
                   item,
                   style: GoogleFonts.lato(
-                    fontSize: 13,
-                    color: colorTextSecondary,
-                    height: 1.5,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF262626),
+                    height: 1.6,
                   ),
                 ),
               ),
@@ -474,7 +564,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // Daftar dengan nomor urut (1. 2. 3. ...)
+  // Daftar dengan nomor urut (Lato 15sp #262626 line-height 1.6 sesuai detail artikel)
   Widget _buildNumberedList(List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,14 +577,14 @@ class _DetailResepPageState extends State<DetailResepPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 22,
+                width: 24,
                 child: Text(
                   '$index.',
                   style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colorTextSecondary,
-                    height: 1.5,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF262626),
+                    height: 1.6,
                   ),
                 ),
               ),
@@ -502,9 +592,10 @@ class _DetailResepPageState extends State<DetailResepPage> {
                 child: Text(
                   item,
                   style: GoogleFonts.lato(
-                    fontSize: 13,
-                    color: colorTextSecondary,
-                    height: 1.5,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF262626),
+                    height: 1.6,
                   ),
                 ),
               ),
@@ -515,118 +606,4 @@ class _DetailResepPageState extends State<DetailResepPage> {
     );
   }
 
-  // ===========================================================================
-  // BOTTOM NAVIGATION BAR FIXED (4 Menu)
-  // Diletakkan di Scaffold.bottomNavigationBar agar selalu fixed di bawah.
-  // ===========================================================================
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      height: 58,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: colorWhite,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 6,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // 1. Beranda
-          _buildNavItem(
-            icon: Icons.home_outlined,
-            label: 'Beranda',
-            isActive: false,
-            onTap: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-          // 2. Konsultasi
-          _buildNavItem(
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'Konsultasi',
-            isActive: false,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const DaftarDokterPage(),
-                ),
-              );
-            },
-          ),
-          // 3. Riwayat Konsultasi
-          _buildNavItem(
-            icon: Icons.assignment_outlined,
-            label: 'Riwayat Konsultasi',
-            isActive: false,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const DaftarRiwayatPage(),
-                ),
-              );
-            },
-          ),
-          // 4. Profil Ibu
-          _buildNavItem(
-            icon: Icons.person_outline_rounded,
-            label: 'Profil Ibu',
-            isActive: false,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const MenuProfilPage(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    final color = isActive ? colorPrimaryBlue : colorTextMuted;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 75,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 22),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: GoogleFonts.lato(
-                  fontSize: 10.5,
-                  color: color,
-                  fontWeight:
-                      isActive ? FontWeight.bold : FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

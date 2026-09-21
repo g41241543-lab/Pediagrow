@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
 import 'form_cek_stunting_page.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Helper function global untuk menghitung umur anak secara presisi kalender
 /// (tahun, bulan, hari). Tidak membagi selisih hari dengan 365 agar
@@ -56,39 +58,11 @@ class PilihAnakPage extends StatefulWidget {
     this.onCancel,
   });
 
-  /// Menampilkan snackbar warning merah jika pengguna belum memiliki profil anak.
+  /// Menampilkan banner warning merah jika pengguna belum memiliki profil anak.
   static void showWarningNoChild(BuildContext context) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Silahkan isi profil anak terlebih dahulu!',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFFB13535),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
+    PediaBanner.showError(
+      context,
+      message: 'Silahkan isi profil anak terlebih dahulu!',
     );
   }
 
@@ -228,7 +202,22 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   /// Memilih profil anak, memberikan feedback visual singkat,
   /// lalu menutup card ke bawah dengan animasi 350 ms dan berpindah ke form_cek_stunting_page.dart
   void _onSelectChild(ChildModel child) async {
+    // ── Cek Batas 2x per Bulan per Anak ───────────────────────────────────
+    if (widget.onChildSelected == null &&
+        !StuntingLimitService().canCheck(child.id)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Batas Cek Stunting untuk ${child.name} sudah mencapai 2 kali pada bulan ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     setState(() => _tappedChildId = child.id);
+
+    // Set child yang dipilih sebagai active child di ChildService
+    ChildService().setActiveChild(child);
 
     // Feedback visual singkat
     await Future.delayed(const Duration(milliseconds: 140));
@@ -499,6 +488,39 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (widget.onChildSelected == null) ...[
+                        const SizedBox(height: 5),
+                        Builder(
+                          builder: (context) {
+                            final rem = StuntingLimitService().remaining(child.id);
+                            final isFull = rem <= 0;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isFull
+                                    ? const Color(0xFFFDE8E8)
+                                    : const Color(0xFFEBF5FF),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                isFull
+                                    ? 'Batas ${StuntingLimitService.maxPerMonth}x/bulan tercapai'
+                                    : 'Sisa kuota: $rem/${StuntingLimitService.maxPerMonth} bulan ini',
+                                style: GoogleFonts.lato(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isFull
+                                      ? const Color(0xFFC53030)
+                                      : const Color(0xFF2B7AE8),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),

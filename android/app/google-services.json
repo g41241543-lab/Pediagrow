@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "174123262665",
+    "project_id": "pediagrow-4f285",
+    "storage_bucket": "pediagrow-4f285.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:174123262665:android:1288819ffcb385440e2318",
+        "android_client_info": {
+          "package_name": "com.example.pediagrow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "174123262665-5gaoaavnp15jqqfm8ji20gc0obsus1it.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pediagrow",
+            "certificate_hash": "7e29689e2681deaca044eae38e20e06b7cf2398d"
+          }
+        },
+        {
+          "client_id": "174123262665-shn3fiqdqlt88oaoingeoetsi4l4af7k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAb-Z55X4EqFZkKES8YIJHSViqk3tKJ1DU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "174123262665-59ru0tim2kl1q5jggtpem3hfnrp7qmoi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

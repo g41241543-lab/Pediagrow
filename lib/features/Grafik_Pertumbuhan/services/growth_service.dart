@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:pediagrow/features/Grafik_Pertumbuhan/services/who_growth_data.dart';
 
 import '../../../core/services/child_service.dart';
-import '../../../core/services/local_db_service.dart';
 import '../../../models/child_model.dart';
 import '../models/growth_record_model.dart';
 import 'zscore_calculator.dart';
@@ -295,6 +294,7 @@ class GrowthService {
     childList.add(record);
     currentMap[record.childId] = childList;
     recordsNotifier.value = currentMap;
+<<<<<<< HEAD
 
     // Simpan juga ke database lokal SQLite
     try {
@@ -309,6 +309,8 @@ class GrowthService {
           })
           .catchError((_) => 0);
     } catch (_) {}
+=======
+>>>>>>> cefdb48a7664907e9cf2147cad7a9239336ef033
   }
 
   /// Menambahkan entri pengukuran yang didapat dari fitur Cek Stunting

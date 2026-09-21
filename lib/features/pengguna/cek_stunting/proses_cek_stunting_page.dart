@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/services/local_db_service.dart';
+import '../../../core/services/child_service.dart';
+import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
@@ -11,6 +12,7 @@ import 'hasil_cek_stunting_page.dart';
 import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Proses Cek Stunting PediaGrow
 ///
@@ -65,7 +67,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // State Nilai
   String _jenisKelamin = 'Perempuan';
   DateTime _birthDate = DateTime(2025, 5, 22);
-  DateTime _checkDate = DateTime(2026, 8, 26);
+  DateTime _checkDate = DateTime.now();
   bool? _isAsiEksklusif = true; // Sesuai Gambar Referensi 1 ("Ya" terpilih)
 
   // Error Messages
@@ -89,6 +91,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   @override
   void initState() {
     super.initState();
+    _checkDate = DateTime.now();
     _setupInitialData();
     _calculateAge();
 
@@ -129,19 +132,22 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     super.dispose();
   }
 
+  /// Inisialisasi data form dari widget.child; jika null fallback ke
+  /// anak aktif di [ChildService].
   void _setupInitialData() {
-    if (widget.child != null) {
-      _namaController.text = widget.child!.name;
-      _jenisKelamin = widget.child!.gender;
-      if (widget.child!.birthDate != null) {
-        _birthDate = widget.child!.birthDate!;
+    final effectiveChild = widget.child ?? ChildService().activeChild;
+    if (effectiveChild != null) {
+      _namaController.text = effectiveChild.name;
+      _jenisKelamin = effectiveChild.gender;
+      if (effectiveChild.birthDate != null) {
+        _birthDate = effectiveChild.birthDate!;
       }
-      if (widget.child!.weightKg != null) {
-        _beratLahirController.text = widget.child!.weightKg.toString();
+      if (effectiveChild.weightKg != null) {
+        _beratLahirController.text = effectiveChild.weightKg.toString();
       }
-      if (widget.child!.heightCm != null) {
+      if (effectiveChild.heightCm != null) {
         _tinggiLahirController.text =
-            widget.child!.heightCm.toString().replaceAll('.0', '');
+            effectiveChild.heightCm.toString().replaceAll('.0', '');
       }
     }
   }
@@ -179,6 +185,18 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   void _onCekSekarangPressed() {
     if (_isAnalyzing) return;
     FocusScope.of(context).unfocus();
+
+    // ── Cek Batas 2x per Bulan per Anak ───────────────────────────────────
+    final childId = widget.child?.id ?? 'default';
+    if (!StuntingLimitService().canCheck(childId)) {
+      PediaBanner.showError(
+        context,
+        message:
+            'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
+      );
+      return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     bool isValid = true;
     String? bErr;
@@ -225,17 +243,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     });
 
     if (!isValid) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
-            style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: colorDangerRed,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      PediaBanner.showError(
+        context,
+        message: 'Mohon lengkapi seluruh isian wajib sebelum mengecek!',
       );
       return;
     }
@@ -252,6 +262,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     required double currentHeight,
   }) async {
     setState(() => _isAnalyzing = true);
+    final childId = widget.child?.id ?? 'default';
 
     final inputData = StuntingInputData(
       namaAnak: _namaController.text.trim(),
@@ -274,18 +285,6 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           // Menjalankan inferensi model Random Forest & GridSearchCV (REST API / Local Engine)
           resultHolder = await StuntingMlService.predict(inputData);
 
-          // Simpan ke database lokal SQLite jika tersedia
-          try {
-            await LocalDbService().insertGrowthRecord({
-              'child_id': 1,
-              'tanggal': _formatDate(_checkDate),
-              'berat_kg': currentWeight,
-              'tinggi_cm': currentHeight,
-              'lingkar_kepala_cm': 0.0,
-              'synced': 0,
-            }).catchError((_) => 0);
-          } catch (_) {}
-
           // Catat ke GrowthService agar titik baru langsung muncul di Grafik Pertumbuhan
           try {
             if (widget.child != null) {
@@ -297,6 +296,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               );
             }
           } catch (_) {}
+
+          // Catat satu sesi cek berhasil ke limit service
+          StuntingLimitService().recordCheck(childId);
         } catch (e) {
           debugPrint('Error saat prediksi: $e');
         }
@@ -1151,6 +1153,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                               _tinggiSekarangController.text.trim().replaceAll(',', '.')),
                           isAsiEksklusif: _isAsiEksklusif ?? true,
                           tanggalPemeriksaan: _formatDate(_checkDate),
+                          tanggalLahir: _formatDate(_birthDate),
+                          beratBadanLahir: _beratLahirController.text.trim(),
+                          tinggiBadanLahir: _tinggiLahirController.text.trim(),
                         ),
                       ),
                     );

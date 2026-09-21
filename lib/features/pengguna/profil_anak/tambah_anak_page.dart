@@ -12,6 +12,7 @@ import '../beranda/beranda_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
 import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Tambah Profil Anak PediaGrow.
 ///
@@ -480,14 +481,14 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
       // Validasi ukuran > 5MB
       if (bytes > 5 * 1024 * 1024) {
-        _showSnackBar('Ukuran foto terlalu besar, maksimal 5MB', isError: true);
+        _showBanner('Ukuran foto terlalu besar, maksimal 5MB', isError: true);
         return;
       }
 
       // Validasi format file (jpg, jpeg, png)
       final ext = pickedFile.path.split('.').last.toLowerCase();
       if (!['jpg', 'jpeg', 'png'].contains(ext)) {
-        _showSnackBar('Format foto tidak didukung, gunakan JPG atau PNG',
+        _showBanner('Format foto tidak didukung, gunakan JPG atau PNG',
             isError: true);
         return;
       }
@@ -502,12 +503,12 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       }
     } on PlatformException catch (e) {
       if (e.code.contains('access_denied') || e.code.contains('permission')) {
-        _showSnackBar('Izin akses diperlukan untuk memilih foto', isError: true);
+        _showBanner('Izin akses diperlukan untuk memilih foto', isError: true);
       } else {
-        _showSnackBar('Gagal mengakses foto: ${e.message}', isError: true);
+        _showBanner('Gagal mengakses foto: ${e.message}', isError: true);
       }
     } catch (e) {
-      _showSnackBar('Gagal memilih foto: $e', isError: true);
+      _showBanner('Gagal memilih foto: $e', isError: true);
     }
   }
 
@@ -915,6 +916,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
       setState(() => _isSaving = false);
 
+
       // Arahkan ke Beranda dengan flag notifikasi sukses
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
@@ -925,26 +927,15 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      _showSnackBar('Gagal menyimpan data, coba lagi', isError: true);
+      _showBanner('Gagal menyimpan data, coba lagi', isError: true);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: GoogleFonts.lato(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor:
-            isError ? const Color(0xFFDC2626) : const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
+  void _showBanner(String message, {bool isError = false}) {
+    PediaBanner.show(
+      context,
+      message: message,
+      isError: isError,
     );
   }
 

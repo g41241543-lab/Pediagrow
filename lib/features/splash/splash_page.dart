@@ -157,6 +157,7 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 
+
   void _skipToEnd() {
     if (widget.enableTapToSkip && !_hasNavigated) {
       _navigateToAuthChoice();

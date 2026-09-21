@@ -106,6 +106,7 @@ class ArtikelService {
     return list;
   }
 
+
   /// Mengambil satu artikel berdasarkan ID
   Future<ArtikelModel?> getArticleById(int id) async {
     final db = await _database;
