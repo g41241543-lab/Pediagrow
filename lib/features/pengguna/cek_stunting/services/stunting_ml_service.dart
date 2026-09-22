@@ -162,7 +162,7 @@ class StuntingMlService {
   /// HARUS SAMA dengan ApiService.defaultDeviceIp di
   /// lib/core/services/api_service.dart, karena server Python (serve.py)
   /// dan backend PHP diasumsikan berjalan di laptop yang sama.
-  static const String defaultDeviceIp = '10.125.160.76';
+  static const String defaultDeviceIp = '10.125.173.83';
 
   /// Override manual (opsional) -- isi lewat halaman pengaturan developer
   /// kalau perlu menunjuk ke server ML di alamat lain.
@@ -182,7 +182,7 @@ class StuntingMlService {
         return ['http://127.0.0.1:5000'];
       } else if (Platform.isAndroid) {
         // Coba emulator dulu (10.0.2.2), baru IP WiFi LAN untuk HP fisik
-        return ['http://10.0.2.2:5000', 'http://$defaultDeviceIp:5000'];
+        return ['http://$defaultDeviceIp:5000'];
       }
     } catch (_) {}
     return ['http://$defaultDeviceIp:5000'];
