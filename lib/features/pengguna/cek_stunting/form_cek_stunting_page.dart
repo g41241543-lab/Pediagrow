@@ -62,12 +62,12 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
   String _namaLengkap = 'Kaia Anastasya';
   String _jenisKelamin = 'Perempuan';
   String _tanggalLahir = '22/05/2025';
-  String _tanggalCek = '26/08/2026';
+  late String _tanggalCek;
   String _beratBadanLahir = '2.9';
   String _tinggiBadanLahir = '50';
 
   DateTime _birthDate = DateTime(2025, 5, 22);
-  final DateTime _checkDate = DateTime(2026, 8, 26);
+  late DateTime _checkDate;
 
   // Status Pilihan ASI Eksklusif (null: belum dipilih, true: Ya, false: Tidak)
   bool? _isAsiEksklusif;
@@ -95,6 +95,10 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
   @override
   void initState() {
     super.initState();
+
+    final now = DateTime.now();
+    _checkDate = now;
+    _tanggalCek = _formatDate(now);
 
     _setupChildData();
     _calculateAge();
@@ -180,7 +184,6 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
       _jenisKelamin = 'Perempuan';
       _tanggalLahir = '22/05/2025';
       _birthDate = DateTime(2025, 5, 22);
-      _tanggalCek = '26/08/2026';
       _beratBadanLahir = '2.9';
       _tinggiBadanLahir = '50';
     }

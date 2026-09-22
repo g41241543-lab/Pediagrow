@@ -79,6 +79,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     super.initState();
 
     _resolveChildData();
+    ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
 
     final selectedChild = _activeChild ?? widget.child;
     final initWeight = selectedChild?.weightKg != null && selectedChild!.weightKg! > 0
@@ -117,6 +118,13 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     });
   }
 
+  void _onActiveChildChanged() {
+    final active = ChildService().activeChild;
+    if (active != null && mounted) {
+      _applyChildModel(active);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -138,9 +146,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       _activeChild = model;
       _effectiveName = model.name;
       _effectiveGender = model.gender;
-      _effectiveAge = model.birthDate != null
-          ? _calculateChildAge(model.birthDate!)
-          : model.ageDescription;
+      _effectiveAge = _formatChildAge(model);
       if (model.weightKg != null && model.weightKg! > 0 && _weightController.text.isEmpty) {
         _weightController.text = model.weightKg! % 1 == 0
             ? model.weightKg!.toInt().toString()
@@ -161,18 +167,26 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     if (_activeChild != null) {
       _effectiveName = _activeChild!.name;
       _effectiveGender = _activeChild!.gender;
-      _effectiveAge = _activeChild!.birthDate != null
-          ? _calculateChildAge(_activeChild!.birthDate!)
-          : _activeChild!.ageDescription;
+      _effectiveAge = _formatChildAge(_activeChild!);
     } else if (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty) {
       _effectiveName = widget.namaAnak!;
       _effectiveGender = widget.jenisKelamin ?? 'Perempuan';
-      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan 3 hari';
+      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan';
     } else {
       _effectiveName = 'Kaia Anastasya';
       _effectiveGender = widget.jenisKelamin ?? 'Perempuan';
-      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan 3 hari';
+      _effectiveAge = widget.usiaAnak ?? '1 tahun 3 bulan';
     }
+  }
+
+  String _formatChildAge(ChildModel child) {
+    if (child.ageDescription.trim().isNotEmpty) {
+      return child.ageDescription.trim();
+    }
+    if (child.birthDate != null) {
+      return _calculateChildAge(child.birthDate!);
+    }
+    return '1 tahun 3 bulan';
   }
 
   String _calculateChildAge(DateTime birthDate) {
@@ -182,8 +196,6 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     int days = now.day - birthDate.day;
 
     if (days < 0) {
-      final prevMonth = DateTime(now.year, now.month, 0);
-      days += prevMonth.day;
       months -= 1;
     }
     if (months < 0) {
@@ -191,10 +203,12 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       months += 12;
     }
 
-    if (years > 0) {
-      return '$years tahun $months bulan $days hari';
+    if (years > 0 && months > 0) {
+      return '$years tahun $months bulan';
+    } else if (years > 0) {
+      return '$years tahun';
     } else if (months > 0) {
-      return '$months bulan $days hari';
+      return '$months bulan';
     } else {
       return '$days hari';
     }
@@ -202,6 +216,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
   @override
   void dispose() {
+    ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
     _weightController.dispose();
     _heightController.dispose();
     _complaintController.dispose();

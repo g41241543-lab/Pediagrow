@@ -11,7 +11,7 @@ void main() {
   group('ArtikelModel Unit Tests', () {
     test('Serialisasi dan Deserialisasi ArtikelModel', () {
       const artikel = ArtikelModel(
-        id: 10,
+        id: '10',
         judul: 'Uji Coba Stunting',
         kategori: 'Artikel',
         subKategori: ['Pencegahan', 'Gizi'],
@@ -23,12 +23,12 @@ void main() {
       );
 
       final map = artikel.toMap();
-      expect(map['id'], 10);
+      expect(map['id'], '10');
       expect(map['judul'], 'Uji Coba Stunting');
       expect(map['penulis'], 'Admin PMIK');
 
       final fromMap = ArtikelModel.fromMap(map);
-      expect(fromMap.id, 10);
+      expect(fromMap.id, '10');
       expect(fromMap.judul, 'Uji Coba Stunting');
       expect(fromMap.subKategori, ['Pencegahan', 'Gizi']);
       expect(fromMap.isAssetImage, true);
@@ -36,36 +36,35 @@ void main() {
   });
 
   group('ArtikelKesehatanPage Widget Tests', () {
-    testWidgets('Merender Header, Search Bar, Card Artikel, Footer, dan NavBar', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'Merender Header, Search Bar, Card Artikel, Footer, dan NavBar',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ArtikelKesehatanPage(),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          const MaterialApp(home: ArtikelKesehatanPage()),
+        );
+        await tester.pumpAndSettle();
 
-      // 1. Verifikasi Header
-      expect(find.text('Artikel Kesehatan'), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+        // 1. Verifikasi Header
+        expect(find.text('Artikel Kesehatan'), findsOneWidget);
+        expect(find.byIcon(Icons.arrow_back), findsOneWidget);
 
-      // 2. Verifikasi Search Bar
-      expect(find.text('Cari Artikel'), findsOneWidget);
-      expect(find.byIcon(Icons.search_rounded), findsOneWidget);
+        // 2. Verifikasi Search Bar
+        expect(find.text('Cari Artikel'), findsOneWidget);
+        expect(find.byIcon(Icons.search_rounded), findsOneWidget);
 
-      // 3. Verifikasi Bottom Navigation Bar
-      expect(find.byType(PediaBottomNavBar), findsOneWidget);
-      expect(find.text('Beranda'), findsOneWidget);
-      expect(find.text('Konsultasi'), findsOneWidget);
-      expect(find.text('Riwayat Konsultasi'), findsOneWidget);
-      expect(find.text('Profil Ibu'), findsOneWidget);
-    });
+        // 3. Verifikasi Bottom Navigation Bar
+        expect(find.byType(PediaBottomNavBar), findsOneWidget);
+        expect(find.text('Beranda'), findsOneWidget);
+        expect(find.text('Konsultasi'), findsOneWidget);
+        expect(find.text('Riwayat Konsultasi'), findsOneWidget);
+        expect(find.text('Profil Ibu'), findsOneWidget);
+      },
+    );
 
     testWidgets('Pencarian dinamis menyaring artikel berdasarkan kata kunci', (
       WidgetTester tester,
@@ -75,11 +74,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ArtikelKesehatanPage(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ArtikelKesehatanPage()));
       await tester.pumpAndSettle();
 
       final searchField = find.byType(TextField);
@@ -99,39 +94,41 @@ void main() {
   });
 
   group('DetailArtikelPage Widget Tests', () {
-    testWidgets('Merender Detail Artikel lengkap dengan deskripsi dan pengertian', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'Merender Detail Artikel lengkap dengan deskripsi dan pengertian',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      final artikelTest = ArtikelModel.seedArticles.first;
+        final artikelTest = ArtikelModel.seedArticles.first;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: DetailArtikelPage(artikel: artikelTest),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          MaterialApp(home: DetailArtikelPage(artikel: artikelTest)),
+        );
+        await tester.pumpAndSettle();
 
-      // 1. Header
-      expect(find.text('Detail Artikel'), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+        // 1. Header
+        expect(find.text('Detail Artikel'), findsOneWidget);
+        expect(find.byIcon(Icons.arrow_back), findsOneWidget);
 
-      // 2. Info Utama
-      expect(find.text('Stunting'), findsOneWidget);
-      expect(find.text('26 Agustus 2026'), findsOneWidget);
-      expect(find.text('Ditulis oleh Pego'), findsOneWidget);
+        // 2. Info Utama
+        expect(find.text('Stunting'), findsOneWidget);
+        expect(find.text('26 Agustus 2026'), findsOneWidget);
+        expect(find.text('Ditulis oleh Pego'), findsOneWidget);
 
-      // 3. Sections
-      expect(find.text('Deskripsi'), findsOneWidget);
-      expect(find.text('Pengertian'), findsOneWidget);
-      expect(find.textContaining('Stunting merupakan suatu keadaan'), findsOneWidget);
+        // 3. Sections
+        expect(find.text('Deskripsi'), findsOneWidget);
+        expect(find.text('Pengertian'), findsOneWidget);
+        expect(
+          find.textContaining('Stunting merupakan suatu keadaan'),
+          findsOneWidget,
+        );
 
-      // 4. Fixed Nav Bar
-      expect(find.byType(PediaBottomNavBar), findsOneWidget);
-    });
+        // 4. Fixed Nav Bar
+        expect(find.byType(PediaBottomNavBar), findsOneWidget);
+      },
+    );
   });
 }

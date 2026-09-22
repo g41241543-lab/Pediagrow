@@ -67,7 +67,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // State Nilai
   String _jenisKelamin = 'Perempuan';
   DateTime _birthDate = DateTime(2025, 5, 22);
-  DateTime _checkDate = DateTime(2026, 8, 26);
+  DateTime _checkDate = DateTime.now();
   bool? _isAsiEksklusif = true; // Sesuai Gambar Referensi 1 ("Ya" terpilih)
 
   // Error Messages
@@ -91,6 +91,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   @override
   void initState() {
     super.initState();
+    _checkDate = DateTime.now();
     _setupInitialData();
     _calculateAge();
 

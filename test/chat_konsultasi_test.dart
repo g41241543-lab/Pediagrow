@@ -45,7 +45,7 @@ void main() {
       expect(find.byIcon(Icons.send_rounded), findsOneWidget);
     });
 
-    testWidgets('Dismissing disclaimer hides it from view', (
+    testWidgets('Disclaimer stays persistent and has no close button', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -60,15 +60,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.close), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
+      // No close button in disclaimer
+      expect(find.byIcon(Icons.close), findsNothing);
 
+      // Disclaimer stays displayed
       expect(
         find.text(
           'Chat ini bersifat konsultasi umum dan bukan pengganti pemeriksaan langsung.',
         ),
-        findsNothing,
+        findsOneWidget,
       );
     });
 
