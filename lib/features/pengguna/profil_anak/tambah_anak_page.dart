@@ -2088,7 +2088,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
       _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
+      _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
     ];
 
     return Container(

@@ -2147,7 +2147,7 @@ class _BerandaPageState extends State<BerandaPage> {
     return SizedBox(
       width: double.infinity,
       child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
+        'assets/images/beranda_landscape_footer_fiks.png',
         width: double.infinity,
         fit: BoxFit.fitWidth,
         alignment: Alignment.bottomCenter,

@@ -6,30 +6,31 @@ import 'package:pediagrow/features/splash/splash_page.dart';
 import 'package:pediagrow/main.dart';
 
 void main() {
-  testWidgets('SplashPage smoke test - renders MyApp and reaches AuthChoicePage', (
-    WidgetTester tester,
-  ) async {
-    // Set a typical compact Android phone viewport (360x640)
-    tester.view.physicalSize = const Size(360, 640);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'SplashPage smoke test - renders MyApp and reaches AuthChoicePage',
+    (WidgetTester tester) async {
+      // Set a typical compact Android phone viewport (360x640)
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MyApp());
-    expect(find.byType(SplashPage), findsOneWidget);
+      await tester.pumpWidget(const MyApp());
+      expect(find.byType(SplashPage), findsOneWidget);
 
-    // Pump through the entire animation duration (3800ms)
-    await tester.pumpAndSettle(const Duration(milliseconds: 4500));
+      // Pump through the entire animation duration (3800ms)
+      await tester.pumpAndSettle(const Duration(milliseconds: 4500));
 
-    // Verify AuthChoicePage elements are present and visible
-    expect(find.byType(AuthChoicePage), findsOneWidget);
-    expect(find.text('Masuk'), findsOneWidget);
-    expect(find.text('Daftar Akun Baru'), findsOneWidget);
-    expect(
-      find.text('Pantau Pertumbuhan, Cegah Stunting\nUntuk Masa Depan'),
-      findsOneWidget,
-    );
-  });
+      // Verify AuthChoicePage elements are present and visible
+      expect(find.byType(AuthChoicePage), findsOneWidget);
+      expect(find.text('Masuk'), findsOneWidget);
+      expect(find.text('Daftar Akun Baru'), findsOneWidget);
+      expect(
+        find.text('Pantau Pertumbuhan, Cegah Stunting\nUntuk Masa Depan'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets(
     'AuthChoicePage buttons trigger onLoginPressed and onRegisterPressed',
@@ -94,11 +95,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: RegisterPage(),
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
     // Verify pinned header
     expect(find.text('Daftar Akun Baru'), findsOneWidget);
@@ -124,11 +121,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: RegisterPage(),
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
     final registerBtn = find.byKey(const Key('register_button'));
     final nameField = find.byKey(const Key('name_field'));
@@ -149,34 +142,49 @@ void main() {
     await tester.enterText(nameField, 'User123');
     await tester.tap(registerBtn);
     await tester.pumpAndSettle();
-    expect(find.text('Nama pengguna harus diisikan dengan huruf saja'), findsOneWidget);
+    expect(
+      find.text('Nama pengguna harus diisikan dengan huruf saja'),
+      findsOneWidget,
+    );
 
     // 3. Test Email with non-gmail (invalid)
     await tester.enterText(nameField, 'Budi Santoso');
     await tester.enterText(emailField, 'test@yahoo.com');
     await tester.tap(registerBtn);
     await tester.pumpAndSettle();
-    expect(find.text('Email harus berupa akun Gmail yang valid (@gmail.com)'), findsOneWidget);
+    expect(
+      find.text('Email harus berupa akun Gmail yang valid (@gmail.com)'),
+      findsOneWidget,
+    );
 
     // 4. Test Password without symbol / combination
     await tester.enterText(emailField, 'budi.santoso@gmail.com');
     await tester.enterText(passField, '123456');
     await tester.tap(registerBtn);
     await tester.pumpAndSettle();
-    expect(find.text('Kata sandi harus kombinasi huruf, angka, dan simbol'), findsOneWidget);
+    expect(
+      find.text('Kata sandi harus kombinasi huruf, angka, dan simbol'),
+      findsOneWidget,
+    );
 
     // 5. Test Password mismatch
     await tester.enterText(passField, 'PediaGrow123!');
     await tester.enterText(confirmField, 'DifferentPass123!');
     await tester.tap(registerBtn);
     await tester.pumpAndSettle();
-    expect(find.text('Konfirmasi kata sandi tidak cocok dengan kata sandi'), findsOneWidget);
+    expect(
+      find.text('Konfirmasi kata sandi tidak cocok dengan kata sandi'),
+      findsOneWidget,
+    );
 
     // 6. Test valid submission
     await tester.enterText(confirmField, 'PediaGrow123!');
     await tester.tap(registerBtn);
     await tester.pump();
-    expect(find.text('Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...'), findsOneWidget);
+    expect(
+      find.text('Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...'),
+      findsOneWidget,
+    );
     await tester.pumpAndSettle(const Duration(milliseconds: 1200));
   });
 
@@ -188,11 +196,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: RegisterPage(),
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
     // Scroll to and click Daftar dengan Google
     final googleBtn = find.byKey(const Key('google_register_button'));

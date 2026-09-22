@@ -30,10 +30,7 @@ class DaftarRiwayatPage extends StatefulWidget {
   /// Opsional: daftar data awal untuk kemudahan pengujian state kosong maupun terisi
   final List<RiwayatKonsultasiModel>? initialRiwayatList;
 
-  const DaftarRiwayatPage({
-    super.key,
-    this.initialRiwayatList,
-  });
+  const DaftarRiwayatPage({super.key, this.initialRiwayatList});
 
   @override
   State<DaftarRiwayatPage> createState() => _DaftarRiwayatPageState();
@@ -67,10 +64,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               begin: const Offset(0.05, 0.0),
               end: Offset.zero,
             ).animate(curved),
-            child: FadeTransition(
-              opacity: curved,
-              child: child,
-            ),
+            child: FadeTransition(opacity: curved, child: child),
           );
         },
         transitionDuration: const Duration(milliseconds: 250),
@@ -108,13 +102,12 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
         body: SafeArea(
           top: false,
           bottom: false,
-          child:
-              _riwayatList.isEmpty ? _buildEmptyView() : _buildPopulatedView(),
+          child: _riwayatList.isEmpty
+              ? _buildEmptyView()
+              : _buildPopulatedView(),
         ),
         // 3. Bottom Navigation Bar permanen
-        bottomNavigationBar: const PediaBottomNavBar(
-          selectedIndex: 2,
-        ),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 2),
       ),
     );
   }
@@ -131,11 +124,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               child: Column(
                 children: [
                   // Area Tengah: Ilustrasi Folder & Teks Keterangan
-                  const Expanded(
-                    child: Center(
-                      child: RiwayatEmptyState(),
-                    ),
-                  ),
+                  const Expanded(child: Center(child: RiwayatEmptyState())),
 
                   // Ilustrasi Lanskap Hutan & Tenda (desain & peletakan persis beranda_page.dart)
                   _buildFooterIllustration(),
@@ -196,7 +185,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     return SizedBox(
       width: double.infinity,
       child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
+        'assets/images/beranda_landscape_footer_fiks.png',
         width: double.infinity,
         fit: BoxFit.fitWidth,
         alignment: Alignment.bottomCenter,
