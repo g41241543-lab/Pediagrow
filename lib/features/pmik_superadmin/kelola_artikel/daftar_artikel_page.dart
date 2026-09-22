@@ -1,1 +1,0 @@
-// halaman daftar artikel

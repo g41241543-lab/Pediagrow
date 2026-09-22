@@ -38,30 +38,31 @@ class YoutubeService {
 
     try {
       final apiKey = YoutubeConfig.apiKey;
-      final playlistId = YoutubeConfig.defaultPlaylistId;
 
-      // 1. Ambil daftar video dari playlist
-      final playlistUri = Uri.parse(
-        'https://www.googleapis.com/youtube/v3/playlistItems'
+      // 1. Ambil video anak & balita/bayi edukatif (kartun, stimulasi sensorik, lagu anak)
+      final searchUri = Uri.parse(
+        'https://www.googleapis.com/youtube/v3/search'
         '?part=snippet'
-        '&playlistId=$playlistId'
+        '&q=lagu+edukasi+anak+balita+bayi+kartun'
+        '&type=video'
+        '&videoEmbeddable=true'
         '&maxResults=$maxResults'
         '&key=$apiKey',
       );
 
-      final playlistResponse = await http.get(playlistUri).timeout(
+      final searchResponse = await http.get(searchUri).timeout(
         const Duration(seconds: 8),
       );
 
-      if (playlistResponse.statusCode != 200) {
-        // Fallback jika playlist query gagal (misal kuota habis atau playlist tidak ditemukan)
-        debugPrint('YouTube API playlist error: ${playlistResponse.body}');
+      if (searchResponse.statusCode != 200) {
+        // Fallback ke video terkurasi jika kuota API habis / error
+        debugPrint('YouTube API query fallback: ${searchResponse.body}');
         _cachedVideos = YoutubeVideoModel.curatedFallbackVideos;
         return _cachedVideos!;
       }
 
-      final playlistData = jsonDecode(playlistResponse.body) as Map<String, dynamic>;
-      final items = playlistData['items'] as List<dynamic>? ?? [];
+      final searchData = jsonDecode(searchResponse.body) as Map<String, dynamic>;
+      final items = searchData['items'] as List<dynamic>? ?? [];
 
       if (items.isEmpty) {
         _cachedVideos = YoutubeVideoModel.curatedFallbackVideos;

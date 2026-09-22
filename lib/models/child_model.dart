@@ -1,6 +1,7 @@
 /// Model data untuk anak pada aplikasi PediaGrow.
 class ChildModel {
   final String id;
+  final String ownerId; // ID pengguna (Firestore 'users') pemilik profil ini
   final String name;
   final String gender; // 'Perempuan' atau 'Laki-laki'
   final String ageDescription; // e.g. '1 tahun 3 bulan 3 hari'
@@ -19,6 +20,7 @@ class ChildModel {
 
   const ChildModel({
     required this.id,
+    this.ownerId = '',
     required this.name,
     this.gender = 'Perempuan',
     this.ageDescription = '1 tahun 3 bulan 3 hari',
@@ -36,10 +38,12 @@ class ChildModel {
     this.allergies,
   });
 
-  /// Factory dari Map/JSON (Mendukung skema MySQL dan model lokal)
+  /// Factory dari Map/JSON (Mendukung skema MySQL, Firestore, dan model lokal)
   factory ChildModel.fromMap(Map<String, dynamic> map) {
     final rawBirth = map['birth_date'] ?? map['tanggal_lahir'];
-    final parsedBirth = rawBirth != null ? DateTime.tryParse(rawBirth.toString()) : null;
+    final parsedBirth = rawBirth != null
+        ? DateTime.tryParse(rawBirth.toString())
+        : null;
 
     String desc = map['age_description'] ?? '';
     if (desc.isEmpty && parsedBirth != null) {
@@ -70,22 +74,36 @@ class ChildModel {
     }
 
     final rawWeight = map['weight_kg'] ?? map['berat_lahir_kg'];
-    final parsedWeight = rawWeight != null ? double.tryParse(rawWeight.toString()) : null;
+    final parsedWeight = rawWeight != null
+        ? double.tryParse(rawWeight.toString())
+        : null;
 
     final rawHeight = map['height_cm'];
-    final parsedHeight = rawHeight != null ? double.tryParse(rawHeight.toString()) : null;
+    final parsedHeight = rawHeight != null
+        ? double.tryParse(rawHeight.toString())
+        : null;
 
     final rawHead = map['head_circumference_cm'];
-    final parsedHead = rawHead != null ? double.tryParse(rawHead.toString()) : null;
+    final parsedHead = rawHead != null
+        ? double.tryParse(rawHead.toString())
+        : null;
 
     final rawBirthWeight = map['birth_weight_kg'] ?? map['berat_lahir_kg'];
-    final parsedBirthWeight = rawBirthWeight != null ? double.tryParse(rawBirthWeight.toString()) : null;
+    final parsedBirthWeight = rawBirthWeight != null
+        ? double.tryParse(rawBirthWeight.toString())
+        : null;
 
-    final rawBirthHeight = map['birth_height_cm'] ?? map['panjang_lahir_cm'] ?? map['tinggi_lahir_cm'];
-    final parsedBirthHeight = rawBirthHeight != null ? double.tryParse(rawBirthHeight.toString()) : null;
+    final rawBirthHeight =
+        map['birth_height_cm'] ??
+        map['panjang_lahir_cm'] ??
+        map['tinggi_lahir_cm'];
+    final parsedBirthHeight = rawBirthHeight != null
+        ? double.tryParse(rawBirthHeight.toString())
+        : null;
 
     return ChildModel(
       id: map['id']?.toString() ?? '',
+      ownerId: (map['owner_id'] ?? map['ownerId'] ?? '').toString(),
       name: (map['name'] ?? map['nama'] ?? '').toString(),
       gender: genderStr,
       ageDescription: desc,
@@ -95,21 +113,27 @@ class ChildModel {
       headCircumferenceCm: parsedHead,
       birthWeightKg: parsedBirthWeight,
       birthHeightCm: parsedBirthHeight,
-      photoUrl: (map['photo_url'] ?? map['foto_url'] ?? map['avatar'])?.toString(),
+      photoUrl: (map['photo_url'] ?? map['foto_url'] ?? map['avatar'])
+          ?.toString(),
       birthPhotoUrl: map['birth_photo_url']?.toString(),
       isPremature: map['is_premature'] == null
           ? null
-          : (map['is_premature'] == 1 || map['is_premature'] == true || map['is_premature'] == '1'),
+          : (map['is_premature'] == 1 ||
+                map['is_premature'] == true ||
+                map['is_premature'] == '1'),
       gestationalAgeWeeks: (map['gestational_age_weeks'] as num?)?.toInt(),
       hasAllergies: map['has_allergies'] == null
           ? null
-          : (map['has_allergies'] == 1 || map['has_allergies'] == true || map['has_allergies'] == '1'),
+          : (map['has_allergies'] == 1 ||
+                map['has_allergies'] == true ||
+                map['has_allergies'] == '1'),
       allergies: map['allergies']?.toString(),
     );
   }
 
   ChildModel copyWith({
     String? id,
+    String? ownerId,
     String? name,
     String? gender,
     String? ageDescription,
@@ -128,6 +152,7 @@ class ChildModel {
   }) {
     return ChildModel(
       id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
       name: name ?? this.name,
       gender: gender ?? this.gender,
       ageDescription: ageDescription ?? this.ageDescription,
@@ -149,6 +174,7 @@ class ChildModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'owner_id': ownerId,
       'name': name,
       'gender': gender,
       'age_description': ageDescription,
@@ -160,9 +186,13 @@ class ChildModel {
       'birth_height_cm': birthHeightCm,
       'photo_url': photoUrl,
       'birth_photo_url': birthPhotoUrl,
-      'is_premature': isPremature == true ? 1 : (isPremature == false ? 0 : null),
+      'is_premature': isPremature == true
+          ? 1
+          : (isPremature == false ? 0 : null),
       'gestational_age_weeks': gestationalAgeWeeks,
-      'has_allergies': hasAllergies == true ? 1 : (hasAllergies == false ? 0 : null),
+      'has_allergies': hasAllergies == true
+          ? 1
+          : (hasAllergies == false ? 0 : null),
       'allergies': allergies,
     };
   }

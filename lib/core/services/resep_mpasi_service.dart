@@ -1,253 +1,204 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../../models/resep_mpasi_model.dart';
 
-/// Service untuk mengelola data Resep MPASI di SQLite lokal.
+/// Service untuk mengelola data Resep MPASI di Cloud Firestore
+/// (collection `resep_mpasi`).
 ///
-/// Bertindak sebagai single source of truth yang digunakan oleh:
-/// - Halaman Pengguna: [DaftarResepPage], [DetailResepPage]
-/// - Halaman PMIK/Superadmin: Untuk input, edit, dan pengelolaan resep
+/// Dipakai oleh:
+/// - Halaman Pengguna/Dokter: [DaftarResepPage], [DetailResepPage] (baca saja)
+/// - Halaman PMIK/Superadmin: input, edit, dan hapus resep
 ///
-/// Fitur:
-/// 1. Data awal (seed) memuat 7 resep resmi Kemenkes RI secara utuh (termasuk
-///    resep ke-5 "Mie Kukus Telur Puyuh") dengan bahan dan langkah lengkap.
-/// 2. Pembaruan reaktif melalui [recipesNotifier] sehingga setiap perubahan
-///    oleh PMIK Superadmin langsung tercermin di halaman pengguna.
-/// 3. Mekanisme pemulihan integritas data otomatis (_ensureDataIntegrity)
-///    untuk memastikan perangkat dengan basis data lama langsung diperbarui.
+/// Cara kerja:
+/// 1. Service memasang satu listener `snapshots()` ke Firestore dan menyimpan
+///    hasilnya di memori. Pencarian dan filter usia dilakukan di memori,
+///    jadi mengetik di kolom cari tidak menambah jumlah baca Firestore.
+/// 2. Perubahan dari perangkat lain (PMIK menambah/mengubah resep) langsung
+///    masuk lewat listener dan tercermin di [recipesNotifier].
+/// 3. Jika collection masih kosong, 7 resep default Kemenkes di
+///    [ResepMpasiModel.defaultKemenkesRecipes] diisikan otomatis.
 class ResepMpasiService {
   static final ResepMpasiService _instance = ResepMpasiService._internal();
   factory ResepMpasiService() => _instance;
   ResepMpasiService._internal();
 
-  static const String _dbName = 'pediagrow_resep.db';
-  static const int _dbVersion = 3; // v3: tambah resep 8-10 (Kacang Hijau, Labu Salmon, Perkedel)
-  static const String _tableName = 'resep_mpasi';
+  static const String _collectionName = 'resep_mpasi';
 
-  Database? _db;
+  CollectionReference<Map<String, dynamic>> get _col =>
+      FirebaseFirestore.instance.collection(_collectionName);
 
-  /// Notifier reaktif untuk mendengarkan perubahan daftar resep secara real-time
+  /// Notifier reaktif untuk mendengarkan perubahan daftar resep.
   final ValueNotifier<List<ResepMpasiModel>> _recipesNotifier =
       ValueNotifier<List<ResepMpasiModel>>([]);
   ValueListenable<List<ResepMpasiModel>> get recipesNotifier =>
       _recipesNotifier;
 
-  /// Ambil daftar resep terkini di memori
+  /// Daftar resep terkini di memori.
   List<ResepMpasiModel> get currentRecipes =>
       List<ResepMpasiModel>.unmodifiable(_recipesNotifier.value);
 
-  Future<Database> get _database async {
-    if (_db != null) return _db!;
-    _db = await _initDb();
-    return _db!;
-  }
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
+  Completer<void>? _ready;
 
-  Future<Database> _initDb() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, _dbName);
+  // ---------------------------------------------------------------------------
+  // LISTENER & SEED
+  // ---------------------------------------------------------------------------
 
-    final db = await openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+  /// Memastikan listener aktif dan data pertama sudah diterima.
+  Future<void> _ensureListening() {
+    final existing = _ready;
+    if (existing != null) return existing.future;
 
-    // Pastikan integritas data: jika resep lama memiliki bahan/langkah kosong, perbaiki
-    await _ensureDataIntegrity(db);
+    final completer = Completer<void>();
+    _ready = completer;
 
-    return db;
-  }
+    () async {
+      await _seedIfEmpty();
 
-  Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE $_tableName (
-        id               INTEGER PRIMARY KEY AUTOINCREMENT,
-        judul            TEXT    NOT NULL,
-        kategori_usia    TEXT    NOT NULL DEFAULT 'Semua',
-        tanggal          TEXT    NOT NULL DEFAULT '',
-        asset_image_path TEXT,
-        image_url        TEXT,
-        penulis          TEXT,
-        energi_kkal      REAL,
-        lemak_gr         REAL,
-        protein_gr       REAL,
-        porsi            INTEGER,
-        bahan            TEXT    DEFAULT '',
-        bahan_pelapis    TEXT    DEFAULT '',
-        buah             TEXT    DEFAULT '',
-        cara_membuat     TEXT    DEFAULT ''
-      )
-    ''');
-
-    // Seed data awal dari PMIK/Superadmin (7 resep default Kemenkes)
-    await _seedDefaultRecipes(db);
-  }
-
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await _ensureDataIntegrity(db);
-    }
-  }
-
-  /// Memastikan 7 resep default Kemenkes memiliki bahan dan cara membuat yang lengkap.
-  /// Jika database lokal sebelumnya memiliki data resep yang kosong atau rumpang,
-  /// fungsi ini akan memperbaruinya secara otomatis.
-  Future<void> _ensureDataIntegrity(Database db) async {
-    for (final defaultRecipe in ResepMpasiModel.defaultKemenkesRecipes) {
-      final existing = await db.query(
-        _tableName,
-        where: 'id = ? OR judul = ?',
-        whereArgs: [defaultRecipe.id, defaultRecipe.judul],
-        limit: 1,
+      _subscription = _col.snapshots().listen(
+        (snap) {
+          // Dokumen yang timestamp-nya belum terisi dianggap paling baru.
+          final now = DateTime.now();
+          final docs = snap.docs.toList()
+            ..sort((a, b) {
+              final ta =
+                  (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+              final tb =
+                  (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+              return ta.compareTo(tb);
+            });
+          _recipesNotifier.value =
+              docs.map(ResepMpasiModel.fromFirestore).toList();
+          if (!completer.isCompleted) completer.complete();
+        },
+        onError: (Object e) {
+          debugPrint('Listener resep_mpasi error: $e');
+          if (!completer.isCompleted) completer.completeError(e);
+          // Reset supaya pemanggilan berikutnya (tombol "Coba Lagi") mencoba ulang.
+          _subscription?.cancel();
+          _subscription = null;
+          _ready = null;
+        },
       );
+    }();
 
-      if (existing.isEmpty) {
-        // Belum ada di database, tambahkan
-        await db.insert(_tableName, defaultRecipe.toMap());
-      } else {
-        final currentBahan = existing.first['bahan'] as String?;
-        final currentCara = existing.first['cara_membuat'] as String?;
+    return completer.future;
+  }
 
-        // Jika bahan atau cara membuat kosong/rumpang, perbarui dengan data resmi
-        if (currentBahan == null ||
-            currentBahan.trim().isEmpty ||
-            currentCara == null ||
-            currentCara.trim().isEmpty ||
-            (defaultRecipe.id == 1 && currentBahan.contains('nugget'))) {
-          await db.update(
-            _tableName,
-            defaultRecipe.toMap(),
-            where: 'id = ?',
-            whereArgs: [existing.first['id']],
-          );
-        }
-      }
+  /// Isi 7 resep default jika collection masih kosong.
+  /// ID dokumen dibuat tetap (resep_1 ... resep_7) sehingga aman jika
+  /// dijalankan dua perangkat bersamaan (tidak menghasilkan duplikat).
+  Future<void> _seedIfEmpty() async {
+    try {
+      final check = await _col.limit(1).get();
+      if (check.docs.isNotEmpty) return;
+
+      final batch = FirebaseFirestore.instance.batch();
+      _addSeedToBatch(batch);
+      await batch.commit();
+    } catch (e) {
+      // Jangan menggagalkan pemuatan daftar hanya karena seed gagal
+      // (misalnya pengguna tidak punya izin tulis).
+      debugPrint('Seed resep_mpasi dilewati: $e');
     }
   }
 
-  /// Seed 7 resep default resmi Kemenkes RI ke SQLite.
-  Future<void> _seedDefaultRecipes(Database db) async {
+  void _addSeedToBatch(WriteBatch batch) {
+    // createdAt dibuat berurutan agar urutan resep 1..7 tetap terjaga.
+    final base = DateTime(2026, 8, 26);
+    var i = 0;
     for (final recipe in ResepMpasiModel.defaultKemenkesRecipes) {
-      await db.insert(
-        _tableName,
-        recipe.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      final stamp = Timestamp.fromDate(base.add(Duration(minutes: i++)));
+      batch.set(_col.doc(recipe.id), {
+        ...recipe.toFirestore(),
+        'createdAt': stamp,
+        'updatedAt': stamp,
+      });
     }
   }
 
   // ---------------------------------------------------------------------------
-  // PUBLIC API (digunakan oleh pengguna maupun PMIK/Superadmin)
+  // PUBLIC API (dipakai pengguna maupun PMIK/Superadmin)
   // ---------------------------------------------------------------------------
 
-  /// Ambil semua resep dengan filter kategoriUsia dan/atau kata kunci pencarian.
+  /// Ambil semua resep dengan filter kategoriUsia dan/atau kata kunci judul.
+  /// Tanda tangan fungsi sama dengan versi SQLite sebelumnya.
   Future<List<ResepMpasiModel>> getAllResep({
     String? kategoriUsia,
     String? searchQuery,
   }) async {
-    final db = await _database;
+    await _ensureListening();
 
-    String where = '1=1';
-    final whereArgs = <dynamic>[];
+    final query = searchQuery?.trim().toLowerCase() ?? '';
+    final filterUsia = kategoriUsia != null && kategoriUsia != 'Semua';
 
-    if (kategoriUsia != null && kategoriUsia != 'Semua') {
-      where += ' AND kategori_usia = ?';
-      whereArgs.add(kategoriUsia);
-    }
-
-    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-      where += ' AND LOWER(judul) LIKE ?';
-      whereArgs.add('%${searchQuery.trim().toLowerCase()}%');
-    }
-
-    final maps = await db.query(
-      _tableName,
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'id ASC',
-    );
-
-    final results = maps.map((m) => ResepMpasiModel.fromMap(m)).toList();
-
-    // Perbarui notifier jika query tanpa filter
-    if ((kategoriUsia == null || kategoriUsia == 'Semua') &&
-        (searchQuery == null || searchQuery.trim().isEmpty)) {
-      _recipesNotifier.value = results;
-    }
-
-    return results;
+    return _recipesNotifier.value.where((r) {
+      if (filterUsia && r.kategoriUsia != kategoriUsia) return false;
+      if (query.isNotEmpty && !r.judul.toLowerCase().contains(query)) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 
-  /// Ambil satu resep berdasarkan ID secara spesifik.
-  Future<ResepMpasiModel?> getResepById(int id) async {
-    final db = await _database;
-    final maps = await db.query(
-      _tableName,
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-    if (maps.isEmpty) return null;
-    return ResepMpasiModel.fromMap(maps.first);
+  /// Ambil satu resep berdasarkan ID dokumen.
+  Future<ResepMpasiModel?> getResepById(String id) async {
+    final doc = await _col.doc(id).get();
+    return doc.exists ? ResepMpasiModel.fromFirestore(doc) : null;
   }
 
-  /// Tambah resep baru (digunakan oleh PMIK/Superadmin).
-  Future<int> insertResep(ResepMpasiModel resep) async {
-    final db = await _database;
-    final id = await db.insert(
-      _tableName,
-      resep.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    await _refreshNotifier();
-    return id;
+  /// Tambah resep baru (PMIK/Superadmin). Mengembalikan ID dokumen.
+  Future<String> insertResep(ResepMpasiModel resep) async {
+    final Map<String, dynamic> data = {
+      ...resep.toFirestore(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (resep.id != null && resep.id!.isNotEmpty) {
+      await _col.doc(resep.id).set(data);
+      return resep.id!;
+    }
+    final ref = await _col.add(data);
+    return ref.id;
   }
 
-  /// Update resep yang sudah ada (digunakan oleh PMIK/Superadmin).
+  /// Ubah resep yang sudah ada (PMIK/Superadmin). Mengembalikan 1 jika berhasil,
+  /// 0 jika resep tidak punya ID.
   Future<int> updateResep(ResepMpasiModel resep) async {
-    final db = await _database;
-    final count = await db.update(
-      _tableName,
-      resep.toMap(),
-      where: 'id = ?',
-      whereArgs: [resep.id],
-    );
-    await _refreshNotifier();
-    return count;
+    final id = resep.id;
+    if (id == null || id.isEmpty) return 0;
+    await _col.doc(id).update({
+      ...resep.toFirestore(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    return 1;
   }
 
-  /// Hapus resep (digunakan oleh PMIK/Superadmin).
-  Future<int> deleteResep(int id) async {
-    final db = await _database;
-    final count = await db.delete(_tableName, where: 'id = ?', whereArgs: [id]);
-    await _refreshNotifier();
-    return count;
+  /// Hapus resep (PMIK/Superadmin). Mengembalikan 1 jika berhasil.
+  Future<int> deleteResep(String id) async {
+    await _col.doc(id).delete();
+    return 1;
   }
 
-  /// Segarkan cache notifier di memori
-  Future<void> _refreshNotifier() async {
-    final db = await _database;
-    final maps = await db.query(_tableName, orderBy: 'id ASC');
-    _recipesNotifier.value =
-        maps.map((m) => ResepMpasiModel.fromMap(m)).toList();
-  }
-
-  /// Reset data kembali ke 7 resep default Kemenkes
+  /// Hapus semua resep lalu isi ulang dengan 7 resep default Kemenkes.
   Future<void> resetToDefault() async {
-    final db = await _database;
-    await db.delete(_tableName);
-    await _seedDefaultRecipes(db);
-    await _refreshNotifier();
+    final existing = await _col.get();
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in existing.docs) {
+      batch.delete(doc.reference);
+    }
+    _addSeedToBatch(batch);
+    await batch.commit();
   }
 
-  /// Tutup koneksi database.
+  /// Hentikan listener (dipanggil jika perlu, misalnya saat logout).
   Future<void> close() async {
-    if (_db != null) {
-      await _db!.close();
-      _db = null;
-    }
+    await _subscription?.cancel();
+    _subscription = null;
+    _ready = null;
   }
 }

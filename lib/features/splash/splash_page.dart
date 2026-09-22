@@ -40,7 +40,9 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
   // Palet Warna Resmi PediaGrow
-  static const Color colorPrimaryBlue = Color(0xFF295EA3); // Gambar 1 Background
+  static const Color colorPrimaryBlue = Color(
+    0xFF295EA3,
+  ); // Gambar 1 Background
   static const Color colorPediaBlue = Color(0xFF4B83D6); // Pedia & Left Leaf
   static const Color colorGrowGreen = Color(0xFF3CC3A6); // Grow & Right Leaf
 
@@ -48,7 +50,8 @@ class _SplashPageState extends State<SplashPage>
 
   // Animasi Tahap 1 & 2: Lingkaran putih jatuh (droplet bounce) & expand
   late Animation<double> _dropAnim; // Dari atas ke tengah (bouncing)
-  late Animation<double> _circleExpandAnim; // Dari ukuran 100 membesar ke seluruh layar
+  late Animation<double>
+  _circleExpandAnim; // Dari ukuran 100 membesar ke seluruh layar
 
   // Animasi Tahap 4: Kemunculan logo bertahap (daun -> arch -> bayi -> bintang)
   late Animation<double> _logoLeavesAnim;
@@ -96,7 +99,6 @@ class _SplashPageState extends State<SplashPage>
       parent: _controller,
       curve: const Interval(0.19, 0.32, curve: Curves.easeInOutCubic),
     );
-
     // -------------------------------------------------------------------------
     // 2. TAHAP 4: Logo Timbul Bertahap per Elemen (0.35 -> 0.65)
     // -------------------------------------------------------------------------
@@ -156,7 +158,6 @@ class _SplashPageState extends State<SplashPage>
       ),
     );
   }
-
 
   void _skipToEnd() {
     if (widget.enableTapToSkip && !_hasNavigated) {

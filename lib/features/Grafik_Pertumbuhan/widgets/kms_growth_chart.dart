@@ -501,7 +501,10 @@ class _KmsChartPainter extends CustomPainter {
     )..layout();
     xLabelPainter.paint(
       canvas,
-      Offset(chartRight - xLabelPainter.width, chartBottom + 16),
+      Offset(
+        chartLeft + (chartWidth / 2) - (xLabelPainter.width / 2),
+        chartBottom + 16,
+      ),
     );
 
     // -------------------------------------------------------------------------

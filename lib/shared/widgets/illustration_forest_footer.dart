@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 /// Widget reusable untuk menampilkan ilustrasi pemandangan lanskap hutan,
-/// rumput, gunung, dan tenda sebagai penutup footer halaman (misalnya di Beranda dan Profil Ibu).
+/// rumput, gunung, dan tenda sebagai penutup footer halaman (misalnya di Beranda,
+/// Grafik Pertumbuhan, Resep MPASI, dan Menu Profil).
 ///
-/// Menggunakan aset terpusat: `assets/images/beranda_landscape_footer.jpg`.
+/// Menggunakan aset terpusat: `assets/images/beranda_landscape_footer_fiks.png`
+/// persis sama seperti yang digunakan pada halaman Beranda.
 class IllustrationForestFooter extends StatelessWidget {
   /// Tinggi kustom opsional, jika null akan mengikuti rasio lebar layar (fitWidth)
   final double? height;
@@ -23,17 +25,18 @@ class IllustrationForestFooter extends StatelessWidget {
       width: double.infinity,
       height: height,
       child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
+        'assets/images/beranda_landscape_footer_fiks.png',
+        width: double.infinity,
         fit: fit,
+        alignment: Alignment.bottomCenter,
         errorBuilder: (context, error, stackTrace) => Container(
-          height: height ?? 110,
+          height: height ?? 100,
           color: const Color(0xFFD1FAE5),
-          child: const Center(
-            child: Icon(
-              Icons.park_outlined,
-              size: 48,
-              color: Color(0xFF3985E7),
-            ),
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.park_outlined,
+            size: 44,
+            color: Color(0xFF34D399),
           ),
         ),
       ),

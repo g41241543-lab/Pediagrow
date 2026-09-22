@@ -12,7 +12,7 @@ import '../../features/pengguna/riwayat_konsultasi/daftar_riwayat_page.dart';
 /// - Index 0: Beranda (Icons.home_rounded)
 /// - Index 1: Konsultasi (Icons.question_answer_rounded)
 /// - Index 2: Riwayat Konsultasi (Icons.manage_search_rounded)
-/// - Index 3: Profil Ibu (Icons.person_outline_rounded)
+/// - Index 3: Profil (Icons.person_outline_rounded)
 ///
 /// Mempertahankan warna background #F2EDED, tinggi 68dp, serta efek lingkaran putih
 /// timbul dengan ikon biru #72A9F4 untuk menu yang sedang aktif.
@@ -85,7 +85,7 @@ class PediaBottomNavBar extends StatelessWidget {
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
       _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
+      _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
     ];
 
     return Container(

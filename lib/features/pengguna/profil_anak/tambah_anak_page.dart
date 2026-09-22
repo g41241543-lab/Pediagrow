@@ -23,7 +23,6 @@ import '../../../shared/widgets/pedia_banner.dart';
 /// - Validasi Nama Lengkap (hanya huruf, kapitalisasi otomatis tiap kata)
 /// - Date Picker visual dengan rentang 0-5 tahun & kalkulasi usia otomatis
 /// - Radio Jenis Kelamin (Laki-laki = Biru, Perempuan = Pink)
-/// - Foto Si Kecil (Data Kelahiran) dengan dashed rounded box
 /// - Radio Status Prematur (Ya/Tidak) dengan field usia kehamilan dinamis
 /// - Input numerik desimal: Berat Badan, Tinggi Badan, Lingkar Kepala lahir
 /// - Peringatan rentang wajar (warning amber) non-blocking
@@ -81,7 +80,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
   // State foto
   String? _fotoProfilPath;
-  String? _fotoKelahiranPath;
 
   // State error message manual untuk radio / date
   String? _namaError;
@@ -225,7 +223,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         _selectedBirthDate == null &&
         _selectedGender == null &&
         _fotoProfilPath == null &&
-        _fotoKelahiranPath == null &&
         _isPremature == null &&
         _usiaKehamilanController.text.trim().isEmpty &&
         _beratBadanController.text.trim().isEmpty &&
@@ -579,11 +576,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         onPressed: () {
                           Navigator.of(ctx).pop();
                           setState(() {
-                            if (isBirthPhoto) {
-                              _fotoKelahiranPath = file.path;
-                            } else {
-                              _fotoProfilPath = file.path;
-                            }
+                            _fotoProfilPath = file.path;
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -902,7 +895,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         heightCm: height,
         headCircumferenceCm: headCirc,
         photoUrl: _fotoProfilPath,
-        birthPhotoUrl: _fotoKelahiranPath,
         isPremature: _isPremature,
         gestationalAgeWeeks: gestWeeks,
         hasAllergies: _hasAllergies,
@@ -997,25 +989,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         Container(key: _genderKey),
                         _buildJenisKelaminSection(),
                         const SizedBox(height: 18),
-
-                        // Divider tipis pemisah data kelahiran
-                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                        const SizedBox(height: 18),
-
-                        // Section: Data Kelahiran
-                        Text(
-                          'Data Kelahiran',
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Foto Si Kecil
-                        _buildFotoSiKecilSection(),
-                        const SizedBox(height: 14),
 
                         // Apakah Anak Anda Lahir Prematur?*
                         Container(key: _prematurKey),
@@ -1329,9 +1302,12 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // FIELD: JENIS KELAMIN* (Laki-laki = Biru, Perempuan = Pink)
+  // FIELD: JENIS KELAMIN* (Laki-laki = Biru #3985E7, Perempuan = Pink)
   // ---------------------------------------------------------------------------
   Widget _buildJenisKelaminSection() {
+    final isLaki = _selectedGender == 'Laki-laki';
+    final isPerempuan = _selectedGender == 'Perempuan';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1339,9 +1315,109 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildGenderOption('Laki-laki', const Color(0xFF3985E7)),
-            const SizedBox(width: 24),
-            _buildGenderOption('Perempuan', const Color(0xFFEC4899)),
+            // Opsi Laki-laki
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = 'Laki-laki';
+                    _genderError = null;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isLaki ? const Color(0xFFEFF6FF) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isLaki
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
+                      width: isLaki ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isLaki
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isLaki
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Laki-laki',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: isLaki
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isLaki
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Opsi Perempuan
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = 'Perempuan';
+                    _genderError = null;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isPerempuan ? const Color(0xFFFDF2F8) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isPerempuan
+                          ? const Color(0xFFEC4899)
+                          : const Color(0xFFC5C5C5),
+                      width: isPerempuan ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isPerempuan
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isPerempuan
+                            ? const Color(0xFFEC4899)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Perempuan',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: isPerempuan
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isPerempuan
+                              ? const Color(0xFFEC4899)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
         if (_genderError != null) ...[
@@ -1358,173 +1434,13 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     );
   }
 
-  Widget _buildGenderOption(String value, Color activeColor) {
-    final isSelected = _selectedGender == value;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedGender = value;
-          _genderError = null;
-        });
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? activeColor : const Color(0xFFCBD5E1),
-                  width: isSelected ? 6 : 1.5,
-                ),
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              value,
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF475569),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // FOTO SI KECIL (DATA KELAHIRAN)
-  // ---------------------------------------------------------------------------
-  Widget _buildFotoSiKecilSection() {
-    final hasPhoto = _fotoKelahiranPath != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Foto Si Kecil',
-          style: GoogleFonts.lato(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 6),
-        if (!hasPhoto)
-          GestureDetector(
-            onTap: () => _showImagePickerModal(isBirthPhoto: true),
-            child: CustomPaint(
-              painter: _DashedRRectPainter(
-                color: const Color(0xFF3985E7),
-                radius: 10,
-                strokeWidth: 1.5,
-                dashLength: 6,
-                dashSpace: 4,
-              ),
-              child: Container(
-                width: double.infinity,
-                height: 48,
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add, color: Color(0xFF3985E7), size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      '+ Unggah Foto',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3985E7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        else
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _openFullScreenPhoto(
-                      _fotoKelahiranPath!, 'foto_si_kecil_preview'),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Hero(
-                      tag: 'foto_si_kecil_preview',
-                      child: Image.file(
-                        File(_fotoKelahiranPath!),
-                        width: 44,
-                        height: 44,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Foto Kelahiran Terpilih',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      Text(
-                        'Ketuk untuk melihat ukuran penuh',
-                        style: GoogleFonts.lato(
-                          fontSize: 11,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _showImagePickerModal(isBirthPhoto: true),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  child: Text(
-                    'Ubah',
-                    style: GoogleFonts.lato(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3985E7),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
   // ---------------------------------------------------------------------------
   // FIELD: APAKAH LAHIR PREMATUR?*
   // ---------------------------------------------------------------------------
   Widget _buildPrematurSection() {
+    final isPrematur = _isPremature == true;
+    final isNotPrematur = _isPremature == false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1532,29 +1448,113 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildNeutralRadioOption(
-              label: 'Ya',
-              isSelected: _isPremature == true,
-              onTap: () {
-                setState(() {
-                  _isPremature = true;
-                  _prematurError = null;
-                });
-              },
+            // Opsi Ya
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isPremature = true;
+                    _prematurError = null;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isPrematur ? const Color(0xFFEFF6FF) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isPrematur
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
+                      width: isPrematur ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isPrematur
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isPrematur
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ya',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: isPrematur
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isPrematur
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(width: 32),
-            _buildNeutralRadioOption(
-              label: 'Tidak',
-              isSelected: _isPremature == false,
-              onTap: () {
-                setState(() {
-                  _isPremature = false;
-                  _prematurError = null;
-                  _usiaKehamilanController.clear();
-                  _usiaKehamilanError = null;
-                  _usiaKehamilanWarning = null;
-                });
-              },
+            const SizedBox(width: 12),
+            // Opsi Tidak
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isPremature = false;
+                    _prematurError = null;
+                    _usiaKehamilanController.clear();
+                    _usiaKehamilanError = null;
+                    _usiaKehamilanWarning = null;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isNotPrematur
+                        ? const Color(0xFFEFF6FF)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isNotPrematur
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
+                      width: isNotPrematur ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isNotPrematur
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: isNotPrematur
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Tidak',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: isNotPrematur
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isNotPrematur
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -1731,6 +1731,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: ALERGI*
   // ---------------------------------------------------------------------------
   Widget _buildAlergiSection() {
+    final hasAllergy = _hasAllergies == true;
+    final noAllergy = _hasAllergies == false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1738,28 +1741,110 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildNeutralRadioOption(
-              label: 'Ada',
-              isSelected: _hasAllergies == true,
-              onTap: () {
-                setState(() {
-                  _hasAllergies = true;
-                  _alergiError = null;
-                });
-              },
+            // Opsi Ada
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _hasAllergies = true;
+                    _alergiError = null;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: hasAllergy ? const Color(0xFFEFF6FF) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: hasAllergy
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
+                      width: hasAllergy ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        hasAllergy
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: hasAllergy
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ada',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: hasAllergy
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: hasAllergy
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(width: 32),
-            _buildNeutralRadioOption(
-              label: 'Tidak',
-              isSelected: _hasAllergies == false,
-              onTap: () {
-                setState(() {
-                  _hasAllergies = false;
-                  _alergiError = null;
-                  _alergiController.clear();
-                  _alergiDetailError = null;
-                });
-              },
+            const SizedBox(width: 12),
+            // Opsi Tidak
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _hasAllergies = false;
+                    _alergiError = null;
+                    _alergiController.clear();
+                    _alergiDetailError = null;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: noAllergy ? const Color(0xFFEFF6FF) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: noAllergy
+                          ? const Color(0xFF3985E7)
+                          : const Color(0xFFC5C5C5),
+                      width: noAllergy ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        noAllergy
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: noAllergy
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Tidak',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: noAllergy
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: noAllergy
+                              ? const Color(0xFF3985E7)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -1856,7 +1941,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
       _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
+      _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
     ];
 
     return Container(
@@ -1936,49 +2021,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // ---------------------------------------------------------------------------
   // HELPER WIDGETS
   // ---------------------------------------------------------------------------
-  Widget _buildNeutralRadioOption({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF3985E7)
-                      : const Color(0xFFCBD5E1),
-                  width: isSelected ? 6 : 1.5,
-                ),
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected
-                    ? const Color(0xFF0F172A)
-                    : const Color(0xFF475569),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildLabel(String label, {bool isRequired = false}) {
     return Text.rich(
@@ -2132,57 +2174,4 @@ class _DashedCirclePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
-}
-
-// ---------------------------------------------------------------------------
-// CUSTOM PAINTER: DASHED ROUNDED RECTANGLE BORDER
-// ---------------------------------------------------------------------------
-class _DashedRRectPainter extends CustomPainter {
-  final Color color;
-  final double radius;
-  final double strokeWidth;
-  final double dashLength;
-  final double dashSpace;
-
-  _DashedRRectPainter({
-    required this.color,
-    required this.radius,
-    required this.strokeWidth,
-    required this.dashLength,
-    required this.dashSpace,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2,
-          size.width - strokeWidth, size.height - strokeWidth),
-      Radius.circular(radius),
-    );
-
-    final path = Path()..addRRect(rrect);
-    final pathMetrics = path.computeMetrics();
-
-    for (final metric in pathMetrics) {
-      double distance = 0.0;
-      while (distance < metric.length) {
-        final nextDistance = distance + dashLength;
-        final extractPath = metric.extractPath(
-          distance,
-          nextDistance > metric.length ? metric.length : nextDistance,
-        );
-        canvas.drawPath(extractPath, paint);
-        distance += dashLength + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
 }

@@ -3,12 +3,14 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import '../config/google_auth_config.dart';
 import '../../models/user_model.dart';
+import 'staff_auth_service.dart';
 import 'user_service.dart';
 
 /// Hasil dari proses Google Authentication.
 class GoogleAuthResult {
   final bool isSuccess;
   final bool isCancelled;
+  final bool isStaffBlocked;
   final String? errorMessage;
   final int? statusCode;
   final GoogleSignInAccount? account;
@@ -16,6 +18,7 @@ class GoogleAuthResult {
   const GoogleAuthResult._({
     required this.isSuccess,
     this.isCancelled = false,
+    this.isStaffBlocked = false,
     this.errorMessage,
     this.statusCode,
     this.account,
@@ -27,6 +30,16 @@ class GoogleAuthResult {
 
   factory GoogleAuthResult.cancelled() {
     return const GoogleAuthResult._(isSuccess: false, isCancelled: true);
+  }
+
+  /// Email Google ini milik akun staf — staf wajib masuk dengan email + password.
+  factory GoogleAuthResult.staffBlocked() {
+    return const GoogleAuthResult._(
+      isSuccess: false,
+      isStaffBlocked: true,
+      errorMessage:
+          'Akun ini adalah akun staf. Silakan masuk dengan email dan kata sandi.',
+    );
   }
 
   factory GoogleAuthResult.failure(String message, {int? statusCode}) {
@@ -74,7 +87,14 @@ class GoogleAuthService {
       }
 
       // Simpan data akun Google ke UserService agar tersedia di seluruh app
-      UserService().loginWithGoogle(account);
+      // Akun staf tidak boleh masuk lewat Google
+      if (await StaffAuthService().isStaffEmail(account.email)) {
+        await _googleSignIn.signOut();
+        return GoogleAuthResult.staffBlocked();
+      }
+
+      // Simpan data akun Google ke UserService (ditunggu sampai selesai)
+      await UserService().loginWithGoogle(account);
 
       return GoogleAuthResult.success(account);
     } catch (e) {
@@ -140,7 +160,11 @@ class GoogleAuthService {
     try {
       final account = await _googleSignIn.signInSilently();
       if (account != null) {
-        UserService().loginWithGoogle(account);
+        if (await StaffAuthService().isStaffEmail(account.email)) {
+          await _googleSignIn.signOut();
+          return null;
+        }
+        await UserService().loginWithGoogle(account);
       }
       return account;
     } catch (_) {
