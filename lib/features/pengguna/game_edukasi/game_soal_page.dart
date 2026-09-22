@@ -45,6 +45,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
   late List<HasilSoal> _hasilList;
   late int _sisaDetik;
   Timer? _timer;
+  final ScrollController _scrollController = ScrollController();
 
   // State tampilan kuis
   bool _isShowingFeedback = false;
@@ -73,6 +74,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -113,6 +115,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
         _isShowingFeedback = false;
         _pilihanPengguna = null;
       });
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0.0);
+      }
       _mulaiTimer();
     }
   }
@@ -154,6 +159,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
         _pilihanPengguna = null;
         _sisaDetik = GameController.detikPerSoal;
       });
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0.0);
+      }
       _mulaiTimer();
     }
   }
@@ -215,9 +223,10 @@ class _GameSoalPageState extends State<GameSoalPage> {
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                     colors: [
+                      Color(0xFF4E92F0),
                       Color(0xFF5B9BF5),
                       Color(0xFF6FA8E8),
                     ],
@@ -236,35 +245,44 @@ class _GameSoalPageState extends State<GameSoalPage> {
               top: false,
               bottom: false,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── [REVISI 7] PERSISTENT HEADER (TIDAK IKUT TRANSIISI) ──
-                  // Posisi Y tetap, progress bar kuning di luar AnimatedSwitcher
+                  // Posisi Y tetap, progress bar kuning di luar area scroll
                   _buildPersistentHeader(),
 
-                  // ── KONTEN DINAMIS BERTRANSIISI (Kartu Soal / Feedback) ──
+                  // ── KONTEN TOP-ANCHORED (KARTU SOAL & FEEDBACK) ─────────
+                  // Kartu soal selalu dimulai pada jarak tetap (24dp) dari header di atasnya.
+                  // Konten tambahan mengalir ke bawah kartu tanpa mendorong kartu ke atas.
                   Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 280),
-                      switchInCurve: Curves.easeInOut,
-                      switchOutCurve: Curves.easeInOut,
-                      transitionBuilder:
-                          (Widget child, Animation<double> animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0.0, 0.02),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: _isShowingFeedback
-                          ? _buildFeedbackContent(
-                              key: ValueKey('feedback_$_currentIndex'))
-                          : _buildSoalContent(
-                              key: ValueKey('soal_$_currentIndex')),
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 32.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. Kartu Soal (posisi TOP fixed 24dp dari header, tidak bergeser sama sekali)
+                          _buildKartuSoal(),
+
+                          const SizedBox(height: 16),
+
+                          // 2. Tombol Jawaban (Benar / Salah)
+                          _isShowingFeedback
+                              ? _buildTombolHasil()
+                              : _buildTombolJawaban(),
+
+                          // 3. Konten Tambahan Feedback (mengalir ke BAWAH kartu)
+                          if (_isShowingFeedback) ...[
+                            const SizedBox(height: 16),
+                            _buildBarStatus(),
+                            const SizedBox(height: 16),
+                            _buildKartuPenjelasan(),
+                            const SizedBox(height: 24),
+                            _buildTombolLanjut(),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -280,31 +298,89 @@ class _GameSoalPageState extends State<GameSoalPage> {
   Widget _buildPersistentHeader() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.18),
+            Colors.white.withValues(alpha: 0.0),
+          ],
+        ),
       ),
       padding: const EdgeInsets.only(
-          top: 56, left: 16, right: 16, bottom: 12),
+          top: 50, left: 16, right: 16, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Nomor Soal
+          // Baris 1: Nomor Soal di kiri, Pill Timer di kanan
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 'Soal $_nomorSoal / ${widget.soalList.length}',
                 style: GoogleFonts.lato(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              // Pill Timer / Placeholder Area
+              SizedBox(
+                height: 32,
+                child: Center(
+                  child: _isShowingFeedback
+                      ? const SizedBox.shrink()
+                      : AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: _sisaDetik <= 10
+                                ? const Color(0xFFFEF2F2)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(50),
+                            border: Border.all(
+                              color: _timerColor.withValues(alpha: 0.35),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _timerColor.withValues(alpha: 0.15),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.timer_rounded,
+                                size: 14,
+                                color: _timerColor,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                _timerLabel,
+                                style: GoogleFonts.lato(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: _timerColor,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
           // [REVISI 3 & REVISI 7]: Progress Bar Kuning Animasi Lebar
-          // Wadah bar tidak pernah berpindah posisi, hanya nilai lebarnya yang berubah
           TweenAnimationBuilder<double>(
             key: const ValueKey('persistent_linear_progress'),
             tween: Tween<double>(
@@ -327,129 +403,6 @@ class _GameSoalPageState extends State<GameSoalPage> {
               );
             },
           ),
-
-          const SizedBox(height: 12),
-
-          // [REVISI 7]: Pill Timer / Placeholder Area
-          // Tinggi tetap 38dp: HANYA muncul saat Soal (hitung mundur),
-          // otomatis hilang saat Feedback Jawaban (waktu berhenti).
-          // Placeholder tak terlihat setinggi 38dp menjamin progress bar di atasnya
-          // TIDAK BERGESER sama sekali.
-          SizedBox(
-            height: 38,
-            child: Center(
-              child: _isShowingFeedback
-                  ? const SizedBox.shrink()
-                  : AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: _sisaDetik <= 10
-                            ? const Color(0xFFFEF2F2)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(
-                          color: _timerColor.withValues(alpha: 0.35),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _timerColor.withValues(alpha: 0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.timer_rounded,
-                            size: 16,
-                            color: _timerColor,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _timerLabel,
-                            style: GoogleFonts.lato(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: _timerColor,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── KONTEN SOAL ────────────────────────────────────────────────────
-  Widget _buildSoalContent({required Key key}) {
-    return LayoutBuilder(
-      key: key,
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: [
-                    // Ruang atas lebih ramping (flex: 2) sehingga posisi kartu dan tombol
-                    // terangkat sedikit (agak naik) dan terlihat pas/center di layar HP
-                    const Spacer(flex: 2),
-                    _buildKartuSoal(),
-                    const SizedBox(height: 20),
-                    _buildTombolJawaban(),
-                    const Spacer(flex: 3),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // ── KONTEN FEEDBACK ────────────────────────────────────────────────
-  Widget _buildFeedbackContent({required Key key}) {
-    return SingleChildScrollView(
-      key: key,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
-      child: Column(
-        children: [
-          // Kartu soal (putih, read-only)
-          _buildKartuSoal(),
-
-          const SizedBox(height: 16),
-
-          // Tombol hasil (state warna jawaban)
-          _buildTombolHasil(),
-
-          const SizedBox(height: 16),
-
-          // Bar status "✓ Jawaban Benar" / "✗ Jawaban Salah"
-          _buildBarStatus(),
-
-          const SizedBox(height: 16),
-
-          // Kartu penjelasan (putih)
-          _buildKartuPenjelasan(),
-
-          const SizedBox(height: 24),
-
-          // Tombol Lanjut / Lihat Skor (putih kontras)
-          _buildTombolLanjut(),
         ],
       ),
     );

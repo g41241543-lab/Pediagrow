@@ -96,9 +96,10 @@ class GameFeedbackPage extends StatelessWidget {
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                     colors: [
+                      Color(0xFF4E92F0),
                       Color(0xFF5B9BF5),
                       Color(0xFF6FA8E8),
                     ],
@@ -125,8 +126,8 @@ class GameFeedbackPage extends StatelessWidget {
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 20),
+                      padding: const EdgeInsets.fromLTRB(
+                          16.0, 24.0, 16.0, 32.0),
                       child: Column(
                         children: [
                           // Kartu soal (putih)
@@ -165,34 +166,42 @@ class GameFeedbackPage extends StatelessWidget {
   }
 
   // ── AREA PROGRESS HEADER PERSISTEN ─────────────────────────────
-  // [REVISI 7]: Layout dan koordinat Y persis sama dengan GameSoalPage,
-  // dengan placeholder timer setinggi 38dp sehingga bar tidak bergeser.
   Widget _buildProgressArea() {
     final double progress = _nomorSoal / soalList.length;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.18),
+            Colors.white.withValues(alpha: 0.0),
+          ],
+        ),
       ),
       padding: const EdgeInsets.only(
-          top: 56, left: 16, right: 16, bottom: 12),
+          top: 50, left: 16, right: 16, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Nomor Soal
+          // Baris 1: Nomor Soal & Placeholder Timer (tinggi sama persis)
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 'Soal $_nomorSoal / ${soalList.length}',
                 style: GoogleFonts.lato(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
+              const SizedBox(height: 32),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
           // Progress Bar kuning
           TweenAnimationBuilder<double>(
@@ -212,17 +221,6 @@ class GameFeedbackPage extends StatelessWidget {
                 ),
               );
             },
-          ),
-
-          const SizedBox(height: 12),
-
-          // [REVISI 7]: Placeholder tak terlihat setinggi 38dp pengganti timer pill
-          // Menjamin posisi progress bar di atasnya tidak bergeser sama sekali.
-          const SizedBox(
-            height: 38,
-            child: Center(
-              child: SizedBox.shrink(),
-            ),
           ),
         ],
       ),
