@@ -73,9 +73,19 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
   }
 
   Future<void> _launchExternalYoutube() async {
-    final uri = Uri.parse(widget.video.youtubeUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // Coba buka langsung ke aplikasi YouTube lewat deep link native
+    final deepLinkUri = Uri.parse('vnd.youtube:${widget.video.id}');
+    final webUri = Uri.parse(widget.video.youtubeUrl);
+    try {
+      if (await canLaunchUrl(deepLinkUri)) {
+        await launchUrl(deepLinkUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback ke aplikasi YouTube / browser eksternal
+    if (await canLaunchUrl(webUri)) {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -106,7 +116,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
             ),
           ),
 
-          // Header: Judul & tombol tutup
+          // Header: Judul, Tampilkan Selengkapnya & tombol tutup
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: Row(
@@ -128,16 +138,52 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                   child: Text(
                     'Video Edukasi Anak',
                     style: GoogleFonts.lato(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 6),
+                // Tombol Selengkapnya (ke aplikasi YouTube)
+                InkWell(
+                  onTap: _launchExternalYoutube,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Selengkapnya',
+                          style: GoogleFonts.lato(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF3985E7),
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 18,
+                          color: Color(0xFF3985E7),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 2),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
                   onPressed: () => Navigator.of(context).pop(),
                   tooltip: 'Tutup',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
               ],
             ),
@@ -270,9 +316,16 @@ class _DesktopFallbackDialog extends StatelessWidget {
   const _DesktopFallbackDialog({required this.video});
 
   Future<void> _launch() async {
-    final uri = Uri.parse(video.youtubeUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final deepLinkUri = Uri.parse('vnd.youtube:${video.id}');
+    final webUri = Uri.parse(video.youtubeUrl);
+    try {
+      if (await canLaunchUrl(deepLinkUri)) {
+        await launchUrl(deepLinkUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    } catch (_) {}
+    if (await canLaunchUrl(webUri)) {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -287,7 +340,39 @@ class _DesktopFallbackDialog extends StatelessWidget {
           Expanded(
             child: Text(
               'Video Edukasi Anak',
-              style: GoogleFonts.lato(fontSize: 18, fontWeight: FontWeight.bold),
+              style: GoogleFonts.lato(fontSize: 17, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              _launch();
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Selengkapnya',
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF3985E7),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: Color(0xFF3985E7),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

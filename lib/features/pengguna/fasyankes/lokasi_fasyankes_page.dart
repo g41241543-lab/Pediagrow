@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,7 +23,7 @@ import 'widgets/fasyankes_map_widget.dart';
 ///   nama Lato 18sp bold, telepon, rating bintang kuning, dan aksi "Buka di Maps".
 /// - Penanganan state komprehensif (loading, empty, error).
 /// - Ilustrasi landscape pepohonan & tenda di footer menempel ke nav bar.
-/// - Bottom Navigation Bar fixed (Beranda, Konsultasi, Riwayat Konsultasi, Profil Ibu).
+/// - Bottom Navigation Bar fixed (Beranda, Konsultasi, Riwayat Konsultasi, Profil).
 class LokasiFasyankesPage extends StatefulWidget {
   const LokasiFasyankesPage({super.key});
 
@@ -128,19 +129,16 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
         );
         break;
       case 1:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-        );
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const DaftarDokterPage()));
         break;
       case 2:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-        );
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()));
         break;
       case 3:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-        );
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const MenuProfilPage()));
         break;
     }
   }
@@ -235,11 +233,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: Color(0xFF000000),
-                size: 24,
-              ),
+              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
             ),
           ),
 
@@ -359,8 +353,11 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: Color(0xFFEF4444)),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Color(0xFFEF4444),
+              ),
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
@@ -401,8 +398,11 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.location_off_outlined,
-                  size: 50, color: Color(0xFF94A3B8)),
+              const Icon(
+                Icons.location_off_outlined,
+                size: 50,
+                color: Color(0xFF94A3B8),
+              ),
               const SizedBox(height: 12),
               Text(
                 'Tidak ada fasilitas kesehatan ditemukan',
@@ -454,7 +454,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
     return SizedBox(
       width: double.infinity,
       child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
+        'assets/images/beranda_landscape_footer_fiks.png',
         width: double.infinity,
         fit: BoxFit.fitWidth,
         alignment: Alignment.bottomCenter,
@@ -479,8 +479,11 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
     final navItems = [
       const _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      const _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
+      const _NavData(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
+      const _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
     ];
 
     return Container(

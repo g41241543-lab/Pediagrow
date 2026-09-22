@@ -3,17 +3,14 @@ import 'package:flutter/material.dart';
 /// Widget ilustrasi footer khusus untuk Halaman Permainan (Start Kuis & Skor Akhir).
 ///
 /// Menggunakan gambar lanskap pemandangan yang SAMA PERSIS dengan Halaman Beranda
-/// (`assets/images/beranda_landscape_footer.jpg`), diposisikan tetap (fixed) di bagian bawah,
+/// (`assets/images/beranda_landscape_footer_fiks.png`), diposisikan tetap (fixed) di bagian bawah,
 /// dengan gradasi warna atas yang disesuaikan secara ultra-halus dengan warna background biru
 /// kuis (#5B9BF5 & #6FA8E8) agar transisinya menyatu sempurna tanpa batas kasar.
 class GameForestSilhouetteFooter extends StatelessWidget {
   /// Tinggi ilustrasi footer. Default 160dp.
   final double height;
 
-  const GameForestSilhouetteFooter({
-    super.key,
-    this.height = 160,
-  });
+  const GameForestSilhouetteFooter({super.key, this.height = 160});
 
   @override
   Widget build(BuildContext context) {
@@ -29,17 +26,13 @@ class GameForestSilhouetteFooter extends StatelessWidget {
               return const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Color(0x80FFFFFF),
-                  Colors.white,
-                ],
+                colors: [Colors.transparent, Color(0x80FFFFFF), Colors.white],
                 stops: [0.0, 0.18, 0.40],
               ).createShader(bounds);
             },
             blendMode: BlendMode.dstIn,
             child: Image.asset(
-              'assets/images/beranda_landscape_footer.jpg',
+              'assets/images/beranda_landscape_footer_fiks.png',
               width: double.infinity,
               height: height,
               fit: BoxFit.fitWidth,
