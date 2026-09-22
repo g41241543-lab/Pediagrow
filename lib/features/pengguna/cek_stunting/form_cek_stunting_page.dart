@@ -258,8 +258,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     if (!StuntingLimitService().canCheck(childId)) {
       PediaBanner.showError(
         context,
-        message:
-            'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
+        message: 'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
       );
       return;
     }
@@ -270,10 +269,14 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     String? tinggiErr;
     String? asiErr;
 
-    final rawBerat =
-        _beratBadanSekarangController.text.trim().replaceAll(',', '.');
-    final rawTinggi =
-        _tinggiBadanSekarangController.text.trim().replaceAll(',', '.');
+    final rawBerat = _beratBadanSekarangController.text.trim().replaceAll(
+      ',',
+      '.',
+    );
+    final rawTinggi = _tinggiBadanSekarangController.text.trim().replaceAll(
+      ',',
+      '.',
+    );
 
     // 1. Validasi Berat Badan Sekarang
     if (rawBerat.isEmpty) {
@@ -702,10 +705,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
       decoration: BoxDecoration(
         color: colorReadOnlyBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorBorderGrey,
-          width: 1.0,
-        ),
+        border: Border.all(color: colorBorderGrey, width: 1.0),
       ),
       child: Text(
         value,
@@ -902,7 +902,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     return SizedBox(
       width: double.infinity,
       child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
+        'assets/images/beranda_landscape_footer_fiks.png',
         fit: BoxFit.fitWidth,
         errorBuilder: (context, error, stackTrace) => Container(
           height: 90,
@@ -926,8 +926,9 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     final res = _currentResult!;
     final isNormal = res.status == StuntingStatus.normal;
     final statusColor = isNormal ? const Color(0xFF2E7D32) : colorDangerRed;
-    final statusBgColor =
-        isNormal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final statusBgColor = isNormal
+        ? const Color(0xFFE8F5E9)
+        : const Color(0xFFFFEBEE);
 
     return Container(
       decoration: const BoxDecoration(
@@ -1050,12 +1051,18 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildSummaryCol('Umur Anak', _calculatedAgeText),
-                _buildSummaryCol('BB Sekarang',
-                    '${_beratBadanSekarangController.text.trim()} kg'),
-                _buildSummaryCol('TB Sekarang',
-                    '${_tinggiBadanSekarangController.text.trim()} cm'),
                 _buildSummaryCol(
-                    'ASI', _isAsiEksklusif == true ? 'Penuh' : 'Tidak'),
+                  'BB Sekarang',
+                  '${_beratBadanSekarangController.text.trim()} kg',
+                ),
+                _buildSummaryCol(
+                  'TB Sekarang',
+                  '${_tinggiBadanSekarangController.text.trim()} cm',
+                ),
+                _buildSummaryCol(
+                  'ASI',
+                  _isAsiEksklusif == true ? 'Penuh' : 'Tidak',
+                ),
               ],
             ),
           ),
@@ -1099,13 +1106,15 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
                           jenisKelamin: _jenisKelamin,
                           usiaDeskripsi: _calculatedAgeText,
                           beratBadanSekarang: double.parse(
-                              _beratBadanSekarangController.text
-                                  .trim()
-                                  .replaceAll(',', '.')),
+                            _beratBadanSekarangController.text
+                                .trim()
+                                .replaceAll(',', '.'),
+                          ),
                           tinggiBadanSekarang: double.parse(
-                              _tinggiBadanSekarangController.text
-                                  .trim()
-                                  .replaceAll(',', '.')),
+                            _tinggiBadanSekarangController.text
+                                .trim()
+                                .replaceAll(',', '.'),
+                          ),
                           isAsiEksklusif: _isAsiEksklusif ?? true,
                           tanggalPemeriksaan: _tanggalCek,
                           tanggalLahir: _tanggalLahir,
@@ -1144,10 +1153,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
       children: [
         Text(
           title,
-          style: GoogleFonts.lato(
-            fontSize: 11,
-            color: Colors.grey.shade600,
-          ),
+          style: GoogleFonts.lato(fontSize: 11, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 3),
         Text(
@@ -1186,7 +1192,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
         children: [
           // 1. Beranda
           _buildNavItem(
-            icon: Icons.home_outlined,
+            icon: Icons.home_rounded,
             label: 'Beranda',
             isActive: false,
             onTap: () {
@@ -1195,7 +1201,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
           ),
           // 2. Konsultasi
           _buildNavItem(
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: Icons.question_answer_rounded,
             label: 'Konsultasi',
             isActive: false,
             onTap: () {
@@ -1207,7 +1213,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
           ),
           // 3. Riwayat Konsultasi
           _buildNavItem(
-            icon: Icons.assignment_outlined,
+            icon: Icons.manage_search_rounded,
             label: 'Riwayat Konsultasi',
             isActive: false,
             onTap: () {
@@ -1220,7 +1226,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
           // 4. Profil Ibu
           _buildNavItem(
             icon: Icons.person_outline_rounded,
-            label: 'Profil Ibu',
+            label: 'Profil',
             isActive: false,
             onTap: () {
               Navigator.push(
@@ -1277,12 +1283,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
 // MODEL & ALGORITMA KLASIFIKASI DATA MINING (RANDOM FOREST & GRID SEARCH CV)
 // =============================================================================
 
-enum StuntingStatus {
-  normal,
-  berisikoStunting,
-  severelyStunted,
-  tinggi,
-}
+enum StuntingStatus { normal, berisikoStunting, severelyStunted, tinggi }
 
 class StuntingAnalysisResult {
   final StuntingStatus status;
@@ -1349,8 +1350,7 @@ class StuntingClassifier {
     if (haz < -3.0) {
       status = StuntingStatus.severelyStunted;
       statusLabel = 'Sangat Pendek (Severely Stunted)';
-      desc =
-          'Pertumbuhan tinggi si Kecil berada di bawah standar deviasi -3 SD WHO. Diperlukan penanganan intensif bersama dokter spesialis anak.';
+      desc = 'Pertumbuhan tinggi si Kecil berada di bawah standar deviasi -3 SD WHO. Diperlukan penanganan intensif bersama dokter spesialis anak.';
       recs = [
         'Konsultasikan segera dengan Dokter Spesialis Anak atau Puskesmas setempat.',
         'Evaluasi asupan protein hewani harian (telur, ikan, daging, susu).',
@@ -1360,8 +1360,7 @@ class StuntingClassifier {
     } else if (haz < -2.0) {
       status = StuntingStatus.berisikoStunting;
       statusLabel = 'Berisiko Stunting (Pendek)';
-      desc =
-          'Tinggi badan si Kecil berada di bawah batas normal (-2 SD WHO). Intervensi gizi dini dapat mengejar ketertinggalan pertumbuhan.';
+      desc = 'Tinggi badan si Kecil berada di bawah batas normal (-2 SD WHO). Intervensi gizi dini dapat mengejar ketertinggalan pertumbuhan.';
       recs = [
         'Tingkatkan konsumsi makanan bergizi kaya protein hewani dan zat besi.',
         'Lakukan pemantauan pertumbuhan berkala setiap bulan di Posyandu/Fasyankes.',
@@ -1371,8 +1370,7 @@ class StuntingClassifier {
     } else {
       status = StuntingStatus.normal;
       statusLabel = 'Normal (Pertumbuhan Optimal)';
-      desc =
-          'Selamat! Pertumbuhan tinggi dan berat badan si Kecil berada dalam batas standar WHO yang sangat baik.';
+      desc = 'Selamat! Pertumbuhan tinggi dan berat badan si Kecil berada dalam batas standar WHO yang sangat baik.';
       recs = [
         'Pertahankan pola makan seimbang dengan gizi hewani dan nabati yang cukup.',
         'Lanjutkan stimulasi motorik dan pemantauan tumbuh kembang bulanan.',

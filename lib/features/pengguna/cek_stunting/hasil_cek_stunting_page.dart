@@ -652,7 +652,7 @@ class HasilCekStuntingPage extends StatelessWidget {
         children: [
           _buildNavItem(
             context: context,
-            icon: Icons.home_outlined,
+            icon: Icons.home_rounded,
             label: 'Beranda',
             onTap: () => Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => const BerandaPage()),
@@ -661,7 +661,7 @@ class HasilCekStuntingPage extends StatelessWidget {
           ),
           _buildNavItem(
             context: context,
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: Icons.question_answer_rounded,
             label: 'Konsultasi',
             onTap: () => Navigator.push(
               context,
@@ -670,7 +670,7 @@ class HasilCekStuntingPage extends StatelessWidget {
           ),
           _buildNavItem(
             context: context,
-            icon: Icons.assignment_outlined,
+            icon: Icons.manage_search_rounded,
             label: 'Riwayat Konsultasi',
             onTap: () => Navigator.push(
               context,
@@ -680,7 +680,7 @@ class HasilCekStuntingPage extends StatelessWidget {
           _buildNavItem(
             context: context,
             icon: Icons.person_outline_rounded,
-            label: 'Profil Ibu',
+            label: 'Profil',
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MenuProfilPage()),

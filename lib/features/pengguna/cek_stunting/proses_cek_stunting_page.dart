@@ -55,11 +55,21 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   static const Color colorNavBarBg = Color(0xFFF2EDED);
 
   // Controllers Form
-  final TextEditingController _namaController = TextEditingController(text: 'Kaia Anastasya');
-  final TextEditingController _beratLahirController = TextEditingController(text: '2.9');
-  final TextEditingController _tinggiLahirController = TextEditingController(text: '50');
-  final TextEditingController _beratSekarangController = TextEditingController(text: '9.1');
-  final TextEditingController _tinggiSekarangController = TextEditingController(text: '77');
+  final TextEditingController _namaController = TextEditingController(
+    text: 'Kaia Anastasya',
+  );
+  final TextEditingController _beratLahirController = TextEditingController(
+    text: '2.9',
+  );
+  final TextEditingController _tinggiLahirController = TextEditingController(
+    text: '50',
+  );
+  final TextEditingController _beratSekarangController = TextEditingController(
+    text: '9.1',
+  );
+  final TextEditingController _tinggiSekarangController = TextEditingController(
+    text: '77',
+  );
 
   final FocusNode _beratSekarangFocus = FocusNode();
   final FocusNode _tinggiSekarangFocus = FocusNode();
@@ -80,7 +90,8 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
 
   // State Animasi & Analisis
   bool _isAnalyzing = false;
-  final GlobalKey<PegoAnalysisOverlayState> _overlayKey = GlobalKey<PegoAnalysisOverlayState>();
+  final GlobalKey<PegoAnalysisOverlayState> _overlayKey =
+      GlobalKey<PegoAnalysisOverlayState>();
 
   // Bottom Sheet Hasil State
   bool _showResultSheet = false;
@@ -107,13 +118,15 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
 
     // Listener validasi real-time
     _beratSekarangController.addListener(() {
-      if (_beratError != null && _beratSekarangController.text.trim().isNotEmpty) {
+      if (_beratError != null &&
+          _beratSekarangController.text.trim().isNotEmpty) {
         setState(() => _beratError = null);
       }
     });
 
     _tinggiSekarangController.addListener(() {
-      if (_tinggiError != null && _tinggiSekarangController.text.trim().isNotEmpty) {
+      if (_tinggiError != null &&
+          _tinggiSekarangController.text.trim().isNotEmpty) {
         setState(() => _tinggiError = null);
       }
     });
@@ -146,8 +159,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
         _beratLahirController.text = effectiveChild.weightKg.toString();
       }
       if (effectiveChild.heightCm != null) {
-        _tinggiLahirController.text =
-            effectiveChild.heightCm.toString().replaceAll('.0', '');
+        _tinggiLahirController.text = effectiveChild.heightCm
+            .toString()
+            .replaceAll('.0', '');
       }
     }
   }
@@ -191,8 +205,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     if (!StuntingLimitService().canCheck(childId)) {
       PediaBanner.showError(
         context,
-        message:
-            'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
+        message: 'Cek Stunting sudah mencapai batas 2x bulan ini untuk profil anak ini. Coba lagi bulan depan.',
       );
       return;
     }
@@ -204,7 +217,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     String? aErr;
 
     final rawBerat = _beratSekarangController.text.trim().replaceAll(',', '.');
-    final rawTinggi = _tinggiSekarangController.text.trim().replaceAll(',', '.');
+    final rawTinggi = _tinggiSekarangController.text.trim().replaceAll(
+      ',',
+      '.',
+    );
 
     // 1. Validasi Berat Badan Sekarang
     if (rawBerat.isEmpty) {
@@ -270,7 +286,8 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
       birthDate: _birthDate,
       checkDate: _checkDate,
       birthWeightKg: double.tryParse(_beratLahirController.text.trim()) ?? 2.9,
-      birthHeightCm: double.tryParse(_tinggiLahirController.text.trim()) ?? 50.0,
+      birthHeightCm:
+          double.tryParse(_tinggiLahirController.text.trim()) ?? 50.0,
       currentWeightKg: currentWeight,
       currentHeightCm: currentHeight,
       isExclusiveBreastfeeding: _isAsiEksklusif ?? true,
@@ -572,13 +589,19 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           // 3. Tanggal Lahir
           _buildFieldTitle('Tanggal Lahir'),
           const SizedBox(height: 5),
-          _buildDateField(dateText: _formatDate(_birthDate), onTap: _pickBirthDate),
+          _buildDateField(
+            dateText: _formatDate(_birthDate),
+            onTap: _pickBirthDate,
+          ),
           const SizedBox(height: 9),
 
           // 4. Tanggal Cek Stunting
           _buildFieldTitle('Tanggal Cek Stunting'),
           const SizedBox(height: 5),
-          _buildDateField(dateText: _formatDate(_checkDate), onTap: _pickCheckDate),
+          _buildDateField(
+            dateText: _formatDate(_checkDate),
+            onTap: _pickCheckDate,
+          ),
           const SizedBox(height: 9),
 
           // 5. Berat Badan Saat Lahir
@@ -590,7 +613,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           // 6. Tinggi Badan Saat Lahir
           _buildFieldTitle('Tinggi Badan Saat Lahir'),
           const SizedBox(height: 5),
-          _buildInputField(controller: _tinggiLahirController, isReadOnly: true),
+          _buildInputField(
+            controller: _tinggiLahirController,
+            isReadOnly: true,
+          ),
           const SizedBox(height: 9),
 
           // 7. Berat Badan Sekarang
@@ -706,7 +732,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           ? TextField(
               controller: controller,
               readOnly: isReadOnly,
-              style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF757575)),
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: const Color(0xFF757575),
+              ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
@@ -715,12 +744,18 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             )
           : Text(
               text ?? '',
-              style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF757575)),
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: const Color(0xFF757575),
+              ),
             ),
     );
   }
 
-  Widget _buildDateField({required String dateText, required VoidCallback onTap}) {
+  Widget _buildDateField({
+    required String dateText,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: _isAnalyzing ? null : onTap,
       borderRadius: BorderRadius.circular(10),
@@ -739,7 +774,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           children: [
             Text(
               dateText,
-              style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF757575)),
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: const Color(0xFF757575),
+              ),
             ),
             const Icon(
               Icons.calendar_today_outlined,
@@ -785,7 +823,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               border: InputBorder.none,
               isDense: true,
               hintText: focusNode.hasFocus ? '' : hint,
-              hintStyle: GoogleFonts.lato(fontSize: 13, color: Colors.grey.shade400),
+              hintStyle: GoogleFonts.lato(
+                fontSize: 13,
+                color: Colors.grey.shade400,
+              ),
               contentPadding: EdgeInsets.zero,
             ),
           ),
@@ -873,7 +914,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
       child: Opacity(
         opacity: 0.85,
         child: Image.asset(
-          'assets/images/beranda_landscape_footer.jpg',
+          'assets/images/beranda_landscape_footer_fiks.png',
           width: double.infinity,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
@@ -904,7 +945,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(
-            icon: Icons.home_outlined,
+            icon: Icons.home_rounded,
             label: 'Beranda',
             isActive: false,
             onTap: () {
@@ -914,7 +955,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             },
           ),
           _buildNavItem(
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: Icons.question_answer_rounded,
             label: 'Konsultasi',
             isActive: false,
             onTap: () {
@@ -927,7 +968,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             },
           ),
           _buildNavItem(
-            icon: Icons.assignment_outlined,
+            icon: Icons.manage_search_rounded,
             label: 'Riwayat Konsultasi',
             isActive: false,
             onTap: () {
@@ -941,7 +982,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           ),
           _buildNavItem(
             icon: Icons.person_outline_rounded,
-            label: 'Profil Ibu',
+            label: 'Profil',
             isActive: false,
             onTap: () {
               if (!_isAnalyzing) {
@@ -1003,7 +1044,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     final res = _predictionResult!;
     final isNormal = res.status == StuntingStatusCategory.normal;
     final statusColor = isNormal ? const Color(0xFF2E7D32) : colorDangerRed;
-    final statusBgColor = isNormal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final statusBgColor = isNormal
+        ? const Color(0xFFE8F5E9)
+        : const Color(0xFFFFEBEE);
 
     return Container(
       width: double.infinity,
@@ -1090,10 +1133,27 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             ),
             child: Row(
               children: [
-                Expanded(child: _buildSummaryInfo('Umur Anak', _calculatedAgeText)),
-                Expanded(child: _buildSummaryInfo('BB Sekarang', '${_beratSekarangController.text.trim()} kg')),
-                Expanded(child: _buildSummaryInfo('TB Sekarang', '${_tinggiSekarangController.text.trim()} cm')),
-                Expanded(child: _buildSummaryInfo('ASI', _isAsiEksklusif == true ? 'Penuh' : 'Tidak')),
+                Expanded(
+                  child: _buildSummaryInfo('Umur Anak', _calculatedAgeText),
+                ),
+                Expanded(
+                  child: _buildSummaryInfo(
+                    'BB Sekarang',
+                    '${_beratSekarangController.text.trim()} kg',
+                  ),
+                ),
+                Expanded(
+                  child: _buildSummaryInfo(
+                    'TB Sekarang',
+                    '${_tinggiSekarangController.text.trim()} cm',
+                  ),
+                ),
+                Expanded(
+                  child: _buildSummaryInfo(
+                    'ASI',
+                    _isAsiEksklusif == true ? 'Penuh' : 'Tidak',
+                  ),
+                ),
               ],
             ),
           ),
@@ -1148,9 +1208,17 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                           jenisKelamin: _jenisKelamin,
                           usiaDeskripsi: _calculatedAgeText,
                           beratBadanSekarang: double.parse(
-                              _beratSekarangController.text.trim().replaceAll(',', '.')),
+                            _beratSekarangController.text.trim().replaceAll(
+                              ',',
+                              '.',
+                            ),
+                          ),
                           tinggiBadanSekarang: double.parse(
-                              _tinggiSekarangController.text.trim().replaceAll(',', '.')),
+                            _tinggiSekarangController.text.trim().replaceAll(
+                              ',',
+                              '.',
+                            ),
+                          ),
                           isAsiEksklusif: _isAsiEksklusif ?? true,
                           tanggalPemeriksaan: _formatDate(_checkDate),
                           tanggalLahir: _formatDate(_birthDate),

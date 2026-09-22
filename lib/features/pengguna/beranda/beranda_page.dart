@@ -676,9 +676,7 @@ class _BerandaPageState extends State<BerandaPage> {
             onTap: () {
               ChildService().setActiveChild(child);
               Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => UbahAnakPage(child: child),
-                ),
+                MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
               );
             },
             child: Stack(
@@ -733,15 +731,19 @@ class _BerandaPageState extends State<BerandaPage> {
                         ),
                         child: ClipOval(
                           child: hasPhoto
-                              ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
+                              ? Image.file(
+                                  File(child.photoUrl!),
+                                  fit: BoxFit.cover,
+                                )
                               : Image.asset(
                                   'assets/images/default_baby_avatar.png',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const CustomPaint(
-                                    painter: _BabyFacePainter(
-                                      outlineColor: Color(0xFF1E293B),
-                                    ),
-                                  ),
+                                  errorBuilder: (_, __, ___) =>
+                                      const CustomPaint(
+                                        painter: _BabyFacePainter(
+                                          outlineColor: Color(0xFF1E293B),
+                                        ),
+                                      ),
                                 ),
                         ),
                       ),
@@ -862,11 +864,12 @@ class _BerandaPageState extends State<BerandaPage> {
                                         width: 260,
                                         height: 260,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
-                                          Icons.child_care,
-                                          size: 120,
-                                          color: Colors.white,
-                                        ),
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(
+                                              Icons.child_care,
+                                              size: 120,
+                                              color: Colors.white,
+                                            ),
                                       ),
                               ),
                             ),
@@ -905,9 +908,7 @@ class _BerandaPageState extends State<BerandaPage> {
           if (mounted) {
             ChildService().setActiveChild(child);
             navigator.push(
-              MaterialPageRoute(
-                builder: (_) => UbahAnakPage(child: child),
-              ),
+              MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
             );
           }
         });
@@ -2107,7 +2108,7 @@ class _BerandaPageState extends State<BerandaPage> {
     return SizedBox(
       width: double.infinity,
       child: Image.asset(
-        'assets/images/beranda_landscape_footer.jpg',
+        'assets/images/beranda_landscape_footer_fiks.png',
         width: double.infinity,
         fit: BoxFit.fitWidth,
         alignment: Alignment.bottomCenter,
