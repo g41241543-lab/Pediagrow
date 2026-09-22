@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
@@ -676,9 +677,7 @@ class _BerandaPageState extends State<BerandaPage> {
             onTap: () {
               ChildService().setActiveChild(child);
               Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => UbahAnakPage(child: child),
-                ),
+                MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
               );
             },
             child: Stack(
@@ -733,15 +732,19 @@ class _BerandaPageState extends State<BerandaPage> {
                         ),
                         child: ClipOval(
                           child: hasPhoto
-                              ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
+                              ? Image.file(
+                                  File(child.photoUrl!),
+                                  fit: BoxFit.cover,
+                                )
                               : Image.asset(
                                   'assets/images/default_baby_avatar.png',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const CustomPaint(
-                                    painter: _BabyFacePainter(
-                                      outlineColor: Color(0xFF1E293B),
-                                    ),
-                                  ),
+                                  errorBuilder: (_, __, ___) =>
+                                      const CustomPaint(
+                                        painter: _BabyFacePainter(
+                                          outlineColor: Color(0xFF1E293B),
+                                        ),
+                                      ),
                                 ),
                         ),
                       ),
@@ -862,11 +865,12 @@ class _BerandaPageState extends State<BerandaPage> {
                                         width: 260,
                                         height: 260,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
-                                          Icons.child_care,
-                                          size: 120,
-                                          color: Colors.white,
-                                        ),
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(
+                                              Icons.child_care,
+                                              size: 120,
+                                              color: Colors.white,
+                                            ),
                                       ),
                               ),
                             ),
@@ -905,9 +909,7 @@ class _BerandaPageState extends State<BerandaPage> {
           if (mounted) {
             ChildService().setActiveChild(child);
             navigator.push(
-              MaterialPageRoute(
-                builder: (_) => UbahAnakPage(child: child),
-              ),
+              MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
             );
           }
         });
@@ -1328,7 +1330,7 @@ class _BerandaPageState extends State<BerandaPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Lihat Selengkapnya',
+                        'Selengkapnya',
                         style: GoogleFonts.lato(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1621,34 +1623,72 @@ class _BerandaPageState extends State<BerandaPage> {
   // 4. SECTION VIDEO EDUKASI ANAK (YouTube Carousel)
   // Menampilkan video edukasi anak (Cocomelon / animasi edukatif)
   // ===================================================================
+  Future<void> _launchYoutubeApp() async {
+    final deepLinkUri = Uri.parse('vnd.youtube:');
+    final webUri = Uri.parse(
+      'https://www.youtube.com/results?search_query=lagu+edukasi+anak+balita+bayi+kartun',
+    );
+    try {
+      if (await canLaunchUrl(deepLinkUri)) {
+        await launchUrl(deepLinkUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    } catch (_) {}
+    if (await canLaunchUrl(webUri)) {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Widget _buildEducationalVideosSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Section: Ikon YouTube & Judul
+        // Header Section: Ikon YouTube, Judul & Tombol "Tampilkan Selengkapnya"
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF0000).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.play_circle_filled_rounded,
-                  color: Color(0xFFFF0000),
-                  size: 20,
-                ),
+              Row(
+                children: [
+                  Text(
+                    'Video Edukasi Anak',
+                    style: GoogleFonts.lato(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Video Edukasi Anak',
-                style: GoogleFonts.lato(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+              InkWell(
+                onTap: _launchYoutubeApp,
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Selengkapnya',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF3985E7),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: Color(0xFF3985E7),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
