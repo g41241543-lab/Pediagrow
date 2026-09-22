@@ -167,15 +167,29 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
             const SizedBox(height: 8),
 
-            // 4. Konten utama resep yang dapat di-scroll
+            // 4. Konten utama resep yang dapat di-scroll + Ilustrasi lanskap alam di dasar
+            // Menggunakan Stack sehingga daftar resep tampil utuh di atas ilustrasi
+            // dan saat di-scroll mengalir mulus tanpa batasan/garis potong kaku
             Expanded(
-              child: _buildScrollableContent(),
-            ),
+              child: Stack(
+                children: [
+                  // Ilustrasi lanskap alam di bagian dasar
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: IgnorePointer(
+                      child: IllustrationForestFooter(fit: BoxFit.fitWidth),
+                    ),
+                  ),
 
-            // 5. Ilustrasi Lanskap Alam — FIXED di dasar (di atas Bottom Nav Bar),
-            //    berada tepat di bawah scroll viewport sehingga daftar resep yang di-scroll
-            //    tidak menindih ilustrasi dan mengalir menyatu tanpa garis batas kaku.
-            const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                  // Konten scrollable di atasnya
+                  Positioned.fill(
+                    child: _buildScrollableContent(),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -369,7 +383,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: 8, bottom: 16),
+      padding: const EdgeInsets.only(top: 8, bottom: 120),
       itemCount: _recipes.length,
       separatorBuilder: (context, index) {
         return const Padding(

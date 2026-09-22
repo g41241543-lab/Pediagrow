@@ -24,6 +24,8 @@ import '../detail/detail_artikel_page.dart';
 import '../../../core/services/youtube_service.dart';
 import '../../../models/youtube_video_model.dart';
 import 'widgets/youtube_player_sheet.dart';
+import 'widgets/full_page_sky_background.dart';
+import 'widgets/header_sky_illustration.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
@@ -46,15 +48,7 @@ class BerandaPage extends StatefulWidget {
   State<BerandaPage> createState() => _BerandaPageState();
 }
 
-class _BerandaPageState extends State<BerandaPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ellipseController;
-  late Animation<double> _ellipsePulse;
-  late Animation<double> _cloudDrift;
-  late Animation<double> _cloudFloat;
-  late Animation<double> _sunPulse;
-  late Animation<double> _sunRotate;
-
+class _BerandaPageState extends State<BerandaPage> {
   List<ArtikelModel> _latestArticles = [];
   bool _isLoadingArticles = true;
 
@@ -85,29 +79,6 @@ class _BerandaPageState extends State<BerandaPage>
       });
     }
 
-    _ellipseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
-
-    _ellipsePulse = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOut),
-    );
-
-    _cloudDrift = Tween<double>(begin: -8.0, end: 8.0).animate(
-      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOut),
-    );
-    _cloudFloat = Tween<double>(begin: -3.0, end: 3.0).animate(
-      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOutSine),
-    );
-
-    _sunPulse = Tween<double>(begin: 0.93, end: 1.07).animate(
-      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOutSine),
-    );
-    _sunRotate = Tween<double>(begin: -0.06, end: 0.06).animate(
-      CurvedAnimation(parent: _ellipseController, curve: Curves.easeInOut),
-    );
-
     _loadLatestArticles();
     _loadEducationalVideos();
     ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
@@ -117,7 +88,6 @@ class _BerandaPageState extends State<BerandaPage>
   void dispose() {
     _lengkapiProfilTimer?.cancel();
     ArtikelService().articlesNotifier.removeListener(_onArticlesUpdated);
-    _ellipseController.dispose();
     super.dispose();
   }
 
@@ -216,27 +186,41 @@ class _BerandaPageState extends State<BerandaPage>
         children: [
           SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                // -------------------------------------------------------------
-                // 1. AREA BIRU SEAMLESS (Header + "Profil Anak" + Card MomDad)
-                //    Satu container gradient menerus dari paling atas layar
-                // -------------------------------------------------------------
-                _buildSeamlessBlueArea(context),
+                // ─────────────────────────────────────────────────────────
+                // LAYER 0 — Background animasi awan & burung (full-page)
+                // Diletakkan DI DALAM area scroll (bukan di Stack terluar)
+                // supaya tingginya otomatis mengikuti TINGGI TOTAL konten
+                // (Column di bawah ini), bukan cuma setinggi 1 layar HP.
+                // Di belakang semua konten, tidak meng-intercept touch.
+                // ─────────────────────────────────────────────────────────
+                const Positioned.fill(child: FullPageSkyBackground()),
 
-                // -------------------------------------------------------------
-                // 2. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
-                // -------------------------------------------------------------
-                _buildWhiteContentSection(context),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // -------------------------------------------------------------
+                    // 1. AREA BIRU SEAMLESS (Header + "Profil Anak" + Card MomDad)
+                    //    Satu container gradient menerus dari paling atas layar
+                    // -------------------------------------------------------------
+                    _buildSeamlessBlueArea(context),
 
-                const SizedBox(
-                  height: 20,
-                ), // jarak kecil sebelum ilustrasi footer
-                // -------------------------------------------------------------
-                // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
-                // -------------------------------------------------------------
-                _buildFooterIllustration(),
+                    // -------------------------------------------------------------
+                    // 2. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
+                    // -------------------------------------------------------------
+                    _buildWhiteContentSection(context),
+
+                    const SizedBox(
+                      height: 20,
+                    ), // jarak kecil sebelum ilustrasi footer
+                    // -------------------------------------------------------------
+                    // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
+                    // -------------------------------------------------------------
+                    _buildFooterIllustration(),
+                  ],
+                ),
               ],
             ),
           ),
@@ -327,29 +311,43 @@ class _BerandaPageState extends State<BerandaPage>
 
   // ===================================================================
   // 1. AREA BIRU SEAMLESS
-  // Gradient menerus dari atas layar (termasuk Safe Area).
-  // Total tinggi sekitar 270-290dp.
+  // Gradient menerus dari atas layar (termasuk Safe Area),
+  // menyatu secara alami ke warna putih di bawah kartu profil anak.
+  // Dilengkapi ilustrasi langit dinamis (matahari/bulan, awan cumulus, burung).
   // ===================================================================
   Widget _buildSeamlessBlueArea(BuildContext context) {
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto);
+
     return Container(
       width: double.infinity,
       clipBehavior: Clip.hardEdge,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF5BA4F5), // Biru lebih terang di kiri-atas
-            Color(0xFF4592F0),
-            Color(0xFF2872E5), // Biru lebih pekat di kanan-bawah
-          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isNight
+              ? HeaderSkyIllustration.nightGradientColors
+              : HeaderSkyIllustration.dayGradientColors,
+          stops: isNight
+              ? HeaderSkyIllustration.nightGradientStops
+              : HeaderSkyIllustration.dayGradientStops,
         ),
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           // -----------------------------------------------------------
-          // DIRECT NON-POSITIONED CHILD PERTAMA: Column konten utama
+          // BACKGROUND LAYER: Ilustrasi Langit Dinamis (Awan, Burung, Matahari/Bulan)
+          // -----------------------------------------------------------
+          const Positioned.fill(
+            child: HeaderSkyIllustration(
+              mode: SkyTimeMode.auto,
+              renderBackgroundGradient: false,
+            ),
+          ),
+
+          // -----------------------------------------------------------
+          // DIRECT NON-POSITIONED CHILD: Column konten utama
           // Memberi constraint ukuran alami tanpa loose constraint issue
           // -----------------------------------------------------------
           Column(
@@ -487,140 +485,9 @@ class _BerandaPageState extends State<BerandaPage>
                 },
               ),
 
-              // Jarak ±20-30dp dari bottom card MomDad ke batas transisi biru→putih
+              // Jarak ±24dp dari bottom card MomDad ke batas transisi biru→putih
               const SizedBox(height: 24),
             ],
-          ),
-
-          // -----------------------------------------------------------
-          // DEKORASI: 2 Elips Blur di Kiri Atas
-          // -----------------------------------------------------------
-          AnimatedBuilder(
-            animation: _ellipsePulse,
-            builder: (context, child) {
-              final scale = _ellipsePulse.value;
-              return Positioned(
-                top: -45 * scale,
-                left: -45 * scale,
-                child: IgnorePointer(
-                  child: _BlurredEllipse(
-                    width: 175 * scale,
-                    height: 175 * scale,
-                    color: Colors.white.withValues(alpha: 0.05),
-                    blurSigma: 22,
-                  ),
-                ),
-              );
-            },
-          ),
-          AnimatedBuilder(
-            animation: _ellipsePulse,
-            builder: (context, child) {
-              final scale = _ellipsePulse.value;
-              return Positioned(
-                top: -15 * scale,
-                left: -15 * scale,
-                child: IgnorePointer(
-                  child: _BlurredEllipse(
-                    width: 115 * scale,
-                    height: 115 * scale,
-                    color: Colors.white.withValues(alpha: 0.10),
-                    blurSigma: 14,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          // -----------------------------------------------------------
-          // DEKORASI MATAHARI DENGAN ANIMASI LEMBUT (Decorative Sun)
-          // -----------------------------------------------------------
-          AnimatedBuilder(
-            animation: _ellipseController,
-            builder: (context, child) {
-              return Positioned(
-                top: 8 + (_cloudFloat.value * 0.7),
-                right: 48 + (_cloudDrift.value * 0.4),
-                child: IgnorePointer(
-                  child: _DecorativeSun(
-                    pulseValue: _sunPulse.value,
-                    rotateValue: _sunRotate.value,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          // -----------------------------------------------------------
-          // DEKORASI AWAN BERGERAK / MENGAPUNG LEMBUT (Cloud Animations)
-          // -----------------------------------------------------------
-          // Awan 1 di Kanan Atas (di samping/belakang ikon notifikasi & matahari)
-          AnimatedBuilder(
-            animation: _ellipseController,
-            builder: (context, child) {
-              return Positioned(
-                top: 26 + _cloudFloat.value,
-                right: -10 + _cloudDrift.value,
-                child: IgnorePointer(
-                  child: _PuffyCloud(
-                    width: 95,
-                    height: 44,
-                    color: Colors.white.withValues(alpha: 0.22),
-                  ),
-                ),
-              );
-            },
-          ),
-          // Awan 2 di Tengah Kiri (di bawah sapaan "Hai, Susanti")
-          AnimatedBuilder(
-            animation: _ellipseController,
-            builder: (context, child) {
-              return Positioned(
-                top: 65 - _cloudFloat.value,
-                left: 125 - (_cloudDrift.value * 0.75),
-                child: IgnorePointer(
-                  child: _PuffyCloud(
-                    width: 72,
-                    height: 32,
-                    color: Colors.white.withValues(alpha: 0.18),
-                  ),
-                ),
-              );
-            },
-          ),
-          // Awan 3 di Kiri Bawah (mengapung di belakang header Profil Anak)
-          AnimatedBuilder(
-            animation: _ellipseController,
-            builder: (context, child) {
-              return Positioned(
-                top: 105 + (_cloudFloat.value * 0.5),
-                left: -12 + (_cloudDrift.value * 0.6),
-                child: IgnorePointer(
-                  child: _PuffyCloud(
-                    width: 80,
-                    height: 36,
-                    color: Colors.white.withValues(alpha: 0.14),
-                  ),
-                ),
-              );
-            },
-          ),
-          // Awan 4 di Kanan Bawah (mengapung lembut di belakang kartu)
-          AnimatedBuilder(
-            animation: _ellipseController,
-            builder: (context, child) {
-              return Positioned(
-                bottom: 8 + (_cloudFloat.value * 0.6),
-                right: 25 + (_cloudDrift.value * 0.5),
-                child: IgnorePointer(
-                  child: _PuffyCloud(
-                    width: 88,
-                    height: 40,
-                    color: Colors.white.withValues(alpha: 0.16),
-                  ),
-                ),
-              );
-            },
           ),
         ],
       ),
@@ -1034,7 +901,11 @@ class _BerandaPageState extends State<BerandaPage>
   // ===================================================================
   Widget _buildWhiteContentSection(BuildContext context) {
     return Container(
-      color: Colors.white,
+      // Sengaja TRANSPARAN (bukan Colors.white) supaya ilustrasi awan/burung
+      // di FullPageSkyBackground tetap terlihat di celah-celah antar card.
+      // Tiap card (menu, PediaGrow, artikel, dll) sudah punya warna solid
+      // sendiri, jadi tidak akan tertutup/terganggu oleh awan di belakangnya.
+      color: Colors.transparent,
       padding: const EdgeInsets.only(top: 24, bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2150,48 +2021,6 @@ class _BerandaPageState extends State<BerandaPage>
 // DATA MODELS & HELPER WIDGETS
 // =====================================================================
 
-/// Widget elips dekoratif dengan efek Gaussian blur
-class _BlurredEllipse extends StatelessWidget {
-  final double width;
-  final double height;
-  final Color color;
-  final double blurSigma;
-
-  const _BlurredEllipse({
-    required this.width,
-    required this.height,
-    required this.color,
-    required this.blurSigma,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(width, height),
-      painter: _BlurredEllipsePainter(color: color, blurSigma: blurSigma),
-    );
-  }
-}
-
-class _BlurredEllipsePainter extends CustomPainter {
-  final Color color;
-  final double blurSigma;
-
-  const _BlurredEllipsePainter({required this.color, required this.blurSigma});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma);
-    canvas.drawOval(Rect.fromLTWH(0, 0, size.width, size.height), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BlurredEllipsePainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.blurSigma != blurSigma;
-}
-
 /// CustomPainter untuk menggambar ilustrasi wajah bayi seperti pada desain kartu
 class _BabyFacePainter extends CustomPainter {
   final Color outlineColor;
@@ -2268,141 +2097,6 @@ class _BabyFacePainter extends CustomPainter {
     smilePath.moveTo(cx - 5.5, cy + 7);
     smilePath.quadraticBezierTo(cx, cy + 11.5, cx + 5.5, cy + 7);
     canvas.drawPath(smilePath, stroke..strokeWidth = 2.0);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Widget awan puffy dekoratif dengan efek lembut dan mengapung
-class _PuffyCloud extends StatelessWidget {
-  final double width;
-  final double height;
-  final Color color;
-
-  const _PuffyCloud({
-    required this.width,
-    required this.height,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(width, height),
-      painter: _PuffyCloudPainter(color: color),
-    );
-  }
-}
-
-class _PuffyCloudPainter extends CustomPainter {
-  final Color color;
-  const _PuffyCloudPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.height * 0.18);
-
-    final w = size.width;
-    final h = size.height;
-
-    // Badan awan utama (ellips bawah)
-    canvas.drawOval(Rect.fromLTWH(w * 0.1, h * 0.45, w * 0.8, h * 0.5), paint);
-
-    // Gundukan kiri
-    canvas.drawOval(
-      Rect.fromLTWH(w * 0.05, h * 0.18, w * 0.38, h * 0.5),
-      paint,
-    );
-
-    // Gundukan tengah (lebih tinggi)
-    canvas.drawOval(
-      Rect.fromLTWH(w * 0.28, h * 0.0, w * 0.44, h * 0.58),
-      paint,
-    );
-
-    // Gundukan kanan
-    canvas.drawOval(
-      Rect.fromLTWH(w * 0.55, h * 0.15, w * 0.38, h * 0.50),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _PuffyCloudPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-/// Widget matahari dekoratif dengan pendaran cahaya lembut dan animasi pulsing
-class _DecorativeSun extends StatelessWidget {
-  final double pulseValue;
-  final double rotateValue;
-
-  const _DecorativeSun({required this.pulseValue, required this.rotateValue});
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: rotateValue,
-      child: Transform.scale(
-        scale: pulseValue,
-        child: SizedBox(
-          width: 58,
-          height: 58,
-          child: CustomPaint(painter: _SunPainter()),
-        ),
-      ),
-    );
-  }
-}
-
-class _SunPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final center = Offset(cx, cy);
-
-    // 1. Halo pendaran luar (Glow effect lembut)
-    final glowPaint = Paint()
-      ..color = const Color(0xFFFFF7C2).withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-    canvas.drawCircle(center, size.width * 0.44, glowPaint);
-
-    // 2. Pancaran sinar matahari lembut (8 rays)
-    final rayPaint = Paint()
-      ..color = const Color(0xFFFFE082).withValues(alpha: 0.65)
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-
-    const numRays = 8;
-    final innerRayR = size.width * 0.32;
-    final outerRayR = size.width * 0.45;
-
-    for (int i = 0; i < numRays; i++) {
-      final angle = (i * 2 * math.pi) / numRays;
-      final x1 = cx + innerRayR * math.cos(angle);
-      final y1 = cy + innerRayR * math.sin(angle);
-      final x2 = cx + outerRayR * math.cos(angle);
-      final y2 = cy + outerRayR * math.sin(angle);
-      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), rayPaint);
-    }
-
-    // 3. Inti matahari dengan gradient hangat
-    const coreGradient = RadialGradient(
-      colors: [Color(0xFFFFFDE7), Color(0xFFFFF176), Color(0xFFFFB74D)],
-      stops: [0.0, 0.65, 1.0],
-    );
-
-    final corePaint = Paint()
-      ..shader = coreGradient.createShader(
-        Rect.fromCircle(center: center, radius: size.width * 0.26),
-      );
-
-    canvas.drawCircle(center, size.width * 0.26, corePaint);
   }
 
   @override

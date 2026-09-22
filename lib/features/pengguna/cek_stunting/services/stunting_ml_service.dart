@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -71,7 +73,8 @@ class StuntingInputData {
 
   /// Mapping fitur untuk REST API backend Python
   Map<String, dynamic> toFeatureMap() {
-    final isGirl = gender.toLowerCase().contains('perempuan') ||
+    final isGirl =
+        gender.toLowerCase().contains('perempuan') ||
         gender.toLowerCase().contains('female');
     return {
       'nama_anak': namaAnak,
@@ -155,21 +158,41 @@ class StuntingPredictionResult {
 /// Menggabungkan inference via backend REST API (jika server aktif)
 /// dan fallback engine Random Forest + GridSearchCV lokal yang akurat.
 class StuntingMlService {
-  /// URL backend REST API (default USB reverse port 5000)
-  static String? backendBaseUrl = 'http://127.0.0.1:5000';
+  /// IP WiFi laptop/PC untuk testing di HP Android fisik.
+  /// HARUS SAMA dengan ApiService.defaultDeviceIp di
+  /// lib/core/services/api_service.dart, karena server Python (serve.py)
+  /// dan backend PHP diasumsikan berjalan di laptop yang sama.
+  static const String defaultDeviceIp = '10.125.160.76';
 
-  /// URL cadangan melalui IP WiFi LAN komputer
-  static String? secondaryBackendUrl = 'http://10.125.173.15:5000';
+  /// Override manual (opsional) -- isi lewat halaman pengaturan developer
+  /// kalau perlu menunjuk ke server ML di alamat lain.
+  static String? backendBaseUrlOverride;
+
+  /// Daftar kandidat base URL backend ML sesuai platform yang sedang
+  /// menjalankan aplikasi, mengikuti pola yang sama dengan ApiService.
+  static List<String> _candidateBaseUrls() {
+    if (backendBaseUrlOverride != null && backendBaseUrlOverride!.isNotEmpty) {
+      return [backendBaseUrlOverride!];
+    }
+    if (kIsWeb) {
+      return ['http://localhost:5000'];
+    }
+    try {
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        return ['http://127.0.0.1:5000'];
+      } else if (Platform.isAndroid) {
+        // Coba emulator dulu (10.0.2.2), baru IP WiFi LAN untuk HP fisik
+        return ['http://10.0.2.2:5000', 'http://$defaultDeviceIp:5000'];
+      }
+    } catch (_) {}
+    return ['http://$defaultDeviceIp:5000'];
+  }
 
   /// Memprediksi status stunting dengan data mining
   static Future<StuntingPredictionResult> predict(
-      StuntingInputData input) async {
-    // 1. Coba hubungi backend REST API primer (USB adb reverse: 127.0.0.1:5000)
-    final candidateUrls = [
-      if (backendBaseUrl != null && backendBaseUrl!.isNotEmpty) backendBaseUrl!,
-      if (secondaryBackendUrl != null && secondaryBackendUrl!.isNotEmpty)
-        secondaryBackendUrl!,
-    ];
+    StuntingInputData input,
+  ) async {
+    final candidateUrls = _candidateBaseUrls();
 
     for (final baseUrl in candidateUrls) {
       try {
@@ -188,13 +211,17 @@ class StuntingMlService {
         }
       } catch (e) {
         if (kDebugMode) {
-          debugPrint('Backend ($baseUrl) error: $e, mencoba opsi berikutnya...');
+          debugPrint(
+            'Backend ($baseUrl) error: $e, mencoba opsi berikutnya...',
+          );
         }
       }
     }
 
     if (kDebugMode) {
-      debugPrint('Semua REST API backend tidak merespons, menggunakan Local Ensemble.');
+      debugPrint(
+        'Semua REST API backend tidak merespons, menggunakan Local Ensemble.',
+      );
     }
 
     // 2. Local Tuned Random Forest Engine (GridSearchCV Optimized)
@@ -205,7 +232,8 @@ class StuntingMlService {
   /// dengan parameter optimal GridSearchCV (n_estimators: 100, max_depth: 8,
   /// min_samples_split: 4, criterion: gini).
   static StuntingPredictionResult _runLocalRandomForestInference(
-      StuntingInputData input) {
+    StuntingInputData input,
+  ) {
     final isGirl = input.gender.toLowerCase().contains('perempuan');
     final months = input.ageInMonths;
 
@@ -237,8 +265,7 @@ class StuntingMlService {
     if (haz < -3.0) {
       status = StuntingStatusCategory.severelyStunted;
       statusLabel = 'Sangat Pendek (Severely Stunted)';
-      desc =
-          'Pertumbuhan tinggi si Kecil berada di bawah batas -3 SD WHO. Diperlukan penanganan intensif bersama dokter spesialis anak.';
+      desc = 'Pertumbuhan tinggi si Kecil berada di bawah batas -3 SD WHO. Diperlukan penanganan intensif bersama dokter spesialis anak.';
       recs = [
         'Konsultasikan segera dengan Dokter Spesialis Anak atau Fasyankes terdekat.',
         'Evaluasi asupan protein hewani harian (telur, ikan, ayam, daging, susu).',
@@ -248,8 +275,7 @@ class StuntingMlService {
     } else if (haz < -2.0) {
       status = StuntingStatusCategory.berisikoStunting;
       statusLabel = 'Berisiko Stunting (Pendek)';
-      desc =
-          'Tinggi badan si Kecil berada di rentang -2 sampai -3 SD WHO. Intervensi nutrisi dini dapat membantu mengejar pertumbuhan optimal.';
+      desc = 'Tinggi badan si Kecil berada di rentang -2 sampai -3 SD WHO. Intervensi nutrisi dini dapat membantu mengejar pertumbuhan optimal.';
       recs = [
         'Tingkatkan porsi makanan bergizi kaya protein hewani dan mikronutrien.',
         'Lakukan pemantauan rutin tinggi dan berat badan setiap bulan di Posyandu.',
@@ -259,8 +285,7 @@ class StuntingMlService {
     } else if (haz > 2.5) {
       status = StuntingStatusCategory.tinggi;
       statusLabel = 'Tinggi di Atas Rata-rata';
-      desc =
-          'Pertumbuhan tinggi badan si Kecil melampaui rata-rata standar WHO seusianya.';
+      desc = 'Pertumbuhan tinggi badan si Kecil melampaui rata-rata standar WHO seusianya.';
       recs = [
         'Pertahankan pola gizi seimbang dan aktivitas fisik yang teratur.',
         'Pastikan asupan kalsium dan vitamin D mencukupi.',
@@ -269,8 +294,7 @@ class StuntingMlService {
     } else {
       status = StuntingStatusCategory.normal;
       statusLabel = 'Normal (Pertumbuhan Optimal)';
-      desc =
-          'Selamat! Pertumbuhan tinggi dan berat badan si Kecil berada dalam standar WHO yang sangat baik.';
+      desc = 'Selamat! Pertumbuhan tinggi dan berat badan si Kecil berada dalam standar WHO yang sangat baik.';
       recs = [
         'Pertahankan pola makan bergizi seimbang dengan kombinasi protein hewani & nabati.',
         'Lanjutkan pemantauan tumbuh kembang bulanan secara berkala.',
