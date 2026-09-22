@@ -147,6 +147,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Tinggi ilustrasi footer kira-kira 140dp (beranda_landscape_footer.jpg)
+    // Digunakan sebagai padding bawah list agar resep tidak tersembunyi di balik ilustrasi
+    const double illustrationHeight = 140;
+
     return Scaffold(
       backgroundColor: _colorWhite,
       // Bottom navigation bar FIXED — PediaBottomNavBar terpusat
@@ -167,13 +171,12 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
             const SizedBox(height: 8),
 
-            // 4. Konten utama resep yang dapat di-scroll + Ilustrasi lanskap alam di dasar
-            // Menggunakan Stack sehingga daftar resep tampil utuh di atas ilustrasi
-            // dan saat di-scroll mengalir mulus tanpa batasan/garis potong kaku
+            // 4. Konten utama: Stack dengan ilustrasi FIXED di bawah,
+            //    daftar resep SCROLLABLE di atasnya (muncul seamless tanpa batas kaku)
             Expanded(
               child: Stack(
                 children: [
-                  // Ilustrasi lanskap alam di bagian dasar
+                  // ── Ilustrasi alam: FIXED di bagian dasar ──────────────────
                   const Positioned(
                     left: 0,
                     right: 0,
@@ -183,9 +186,27 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                     ),
                   ),
 
-                  // Konten scrollable di atasnya
+                  // ── Daftar resep SCROLLABLE di atasnya ─────────────────────
+                  // ShaderMask menambahkan efek gradient fade di bagian bawah
+                  // sehingga daftar resep terlihat "muncul" alami di atas ilustrasi
+                  // tanpa garis/sekat yang tampak kaku.
                   Positioned.fill(
-                    child: _buildScrollableContent(),
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white,        // Konten penuh terlihat di atas
+                            Colors.white,        // Terlihat jelas hingga 75% tinggi
+                            Color(0x00FFFFFF),   // Fade ke transparan menuju ilustrasi
+                          ],
+                          stops: [0.0, 0.75, 1.0],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: _buildScrollableContent(illustrationHeight),
+                    ),
                   ),
                 ],
               ),
@@ -363,7 +384,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // 4. SCROLLABLE CONTENT (Daftar Resep / Loading / Empty / Error)
   // -------------------------------------------------------------------------
 
-  Widget _buildScrollableContent() {
+  Widget _buildScrollableContent([double illustrationHeight = 140]) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -381,9 +402,13 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       return _buildEmptyState();
     }
 
+    // Padding bawah: ilustrasi (~140dp) + zona fade gradien (~60dp) + nav bar safe area
+    // Memastikan resep terakhir bisa di-scroll ke atas dan terlihat sepenuhnya
+    final double bottomPad = illustrationHeight + 60;
+
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: 8, bottom: 120),
+      padding: EdgeInsets.only(top: 8, bottom: bottomPad),
       itemCount: _recipes.length,
       separatorBuilder: (context, index) {
         return const Padding(

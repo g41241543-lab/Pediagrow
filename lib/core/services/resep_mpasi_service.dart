@@ -23,7 +23,7 @@ class ResepMpasiService {
   ResepMpasiService._internal();
 
   static const String _dbName = 'pediagrow_resep.db';
-  static const int _dbVersion = 2; // Dinaikkan ke v2 untuk migrasi data lengkap
+  static const int _dbVersion = 3; // v3: tambah resep 8-10 (Kacang Hijau, Labu Salmon, Perkedel)
   static const String _tableName = 'resep_mpasi';
 
   Database? _db;
