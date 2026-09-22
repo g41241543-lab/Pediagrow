@@ -222,6 +222,7 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       final account = result.account!;
+      await ChildService().loadChildrenForCurrentUser();
 
       // Berhasil — tampilkan pesan sambutan lalu navigasi
       ScaffoldMessenger.of(context).showSnackBar(
