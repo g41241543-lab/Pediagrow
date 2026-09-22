@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pediagrow/features/Grafik_Pertumbuhan/services/who_growth_data.dart';
 
@@ -36,6 +37,9 @@ class GrowthService {
     _initService();
   }
 
+  static const String _collection = 'growth_records';
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
   /// State riwayat pertumbuhan per child ID
   final ValueNotifier<Map<String, List<GrowthRecordModel>>> recordsNotifier =
       ValueNotifier<Map<String, List<GrowthRecordModel>>>({});
@@ -49,17 +53,9 @@ class GrowthService {
   /// Sinkronisasi titik data awal (saat lahir) untuk setiap anak yang terdaftar
   void _syncWithChildService() {
     final children = ChildService().children;
-    final currentMap = Map<String, List<GrowthRecordModel>>.from(
-      recordsNotifier.value,
-    );
-
     for (final child in children) {
-      if (!currentMap.containsKey(child.id) || currentMap[child.id]!.isEmpty) {
-        currentMap[child.id] = _generateInitialRecordsForChild(child);
-      }
+      loadRecordsFromFirestore(child);
     }
-
-    recordsNotifier.value = currentMap;
   }
 
   /// Membuat titik data awal dari data kelahiran anak + beberapa riwayat contoh
@@ -294,6 +290,49 @@ class GrowthService {
     childList.add(record);
     currentMap[record.childId] = childList;
     recordsNotifier.value = currentMap;
+
+    _saveRecordToFirestore(record);
+  }
+
+  /// Menyimpan satu catatan pertumbuhan ke Firestore secara background.
+  Future<void> _saveRecordToFirestore(GrowthRecordModel record) async {
+    try {
+      await _db.collection(_collection).add(record.toMap());
+    } catch (e) {
+      debugPrint('[GrowthService] _saveRecordToFirestore error: $e');
+    }
+  }
+
+  /// Memuat riwayat pertumbuhan ASLI milik satu anak dari Firestore.
+  /// Kalau belum ada data tersimpan sama sekali (anak baru), tetap
+  /// tampilkan data contoh (fallback) berdasarkan data kelahirannya,
+  /// supaya grafik tidak kosong total.
+  Future<void> loadRecordsFromFirestore(ChildModel child) async {
+    try {
+      final query = await _db
+          .collection(_collection)
+          .where('child_id', isEqualTo: child.id)
+          .get();
+
+      final currentMap = Map<String, List<GrowthRecordModel>>.from(
+        recordsNotifier.value,
+      );
+
+      if (query.docs.isNotEmpty) {
+        currentMap[child.id] = query.docs
+            .map(
+              (doc) => GrowthRecordModel.fromMap({...doc.data(), 'id': doc.id}),
+            )
+            .toList();
+      } else if (!currentMap.containsKey(child.id) ||
+          currentMap[child.id]!.isEmpty) {
+        currentMap[child.id] = _generateInitialRecordsForChild(child);
+      }
+
+      recordsNotifier.value = currentMap;
+    } catch (e) {
+      debugPrint('[GrowthService] loadRecordsFromFirestore error: $e');
+    }
   }
 
   /// Menambahkan entri pengukuran yang didapat dari fitur Cek Stunting

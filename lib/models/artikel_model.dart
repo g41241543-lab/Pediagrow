@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Model representasi data Artikel Kesehatan pada aplikasi PediaGrow.
 ///
 /// Model ini dirancang fleksibel untuk:
@@ -7,7 +9,7 @@ import 'dart:convert';
 /// - Manajemen konten oleh role PMIK (Admin & Superadmin).
 /// - Penampilan data dinamis pada halaman daftar dan halaman detail artikel pengguna.
 class ArtikelModel {
-  final int? id;
+  final String? id; // ID dokumen Firestore
   final String judul;
   final String kategori; // Default: 'Artikel'
   final List<String> subKategori; // contoh: ['Apa itu Stunting?'] atau ['Stunting', 'Wasting']
@@ -70,7 +72,7 @@ class ArtikelModel {
     final fullContent = (map['isi_lengkap'] ?? map['isi'] ?? summary) as String? ?? '';
 
     return ArtikelModel(
-      id: (map['id'] as num?)?.toInt(),
+      id: map['id']?.toString(),
       judul: (map['judul'] as String?) ?? '',
       kategori: (map['kategori'] as String?) ?? 'Artikel',
       subKategori: parseSubKategori(map['sub_kategori']),
@@ -109,8 +111,56 @@ class ArtikelModel {
   /// Konversi ke JSON
   Map<String, dynamic> toJson() => toMap();
 
+  /// Factory dari dokumen Firestore (collection `artikel_kesehatan`).
+  factory ArtikelModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
+    final d = doc.data() ?? <String, dynamic>{};
+
+    // String kosong dianggap null.
+    String? text(dynamic v) {
+      final s = v?.toString().trim();
+      return (s == null || s.isEmpty) ? null : s;
+    }
+
+    final sub = d['subKategori'];
+    final ringkasan = text(d['deskripsi']);
+
+    return ArtikelModel(
+      id: doc.id,
+      judul: (d['judul'] as String?) ?? '',
+      kategori: text(d['kategori']) ?? 'Artikel',
+      subKategori: sub is List
+          ? sub.map((e) => e.toString()).toList()
+          : <String>[],
+      tanggal: (d['tanggal'] as String?) ?? '',
+      assetImagePath: text(d['assetImagePath']),
+      imageUrl: text(d['imageUrl']),
+      penulis: text(d['penulis']) ?? 'Pego',
+      deskripsi: ringkasan,
+      pengertian: text(d['pengertian']) ?? ringkasan,
+      isiLengkap: (d['isiLengkap'] as String?) ?? ringkasan ?? '',
+    );
+  }
+
+  /// Map untuk disimpan ke Firestore. `createdAt` dan `updatedAt` ditambahkan
+  /// oleh [ArtikelService].
+  Map<String, dynamic> toFirestore() {
+    return {
+      'judul': judul,
+      'kategori': kategori,
+      'subKategori': subKategori,
+      'tanggal': tanggal,
+      'assetImagePath': assetImagePath,
+      'imageUrl': imageUrl,
+      'penulis': penulis,
+      'deskripsi': deskripsi,
+      'pengertian': pengertian,
+      'isiLengkap': isiLengkap,
+    };
+  }
+
   ArtikelModel copyWith({
-    int? id,
+    String? id,
     String? judul,
     String? kategori,
     List<String>? subKategori,
@@ -140,7 +190,7 @@ class ArtikelModel {
   /// Data awal/seed default sesuai acuan desain referensi PediaGrow
   static const List<ArtikelModel> seedArticles = [
     ArtikelModel(
-      id: 1,
+      id: 'artikel_1',
       judul: 'Stunting',
       kategori: 'Artikel',
       subKategori: ['Apa itu Stunting?'],
@@ -154,7 +204,7 @@ class ArtikelModel {
       isiLengkap: '',
     ),
     ArtikelModel(
-      id: 2,
+      id: 'artikel_2',
       judul:
           'Selain Stunting, Wasting Juga Salah Satu Bentuk Masalah Gizi Anak yang Perlu Diwaspadai',
       kategori: 'Artikel',
@@ -169,7 +219,7 @@ class ArtikelModel {
       isiLengkap: '',
     ),
     ArtikelModel(
-      id: 3,
+      id: 'artikel_3',
       judul: 'Keluarga Bebas Stunting',
       kategori: 'Artikel',
       subKategori: ['Stunting'],

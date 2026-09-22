@@ -149,7 +149,7 @@ class _BerandaPageState extends State<BerandaPage>
     if (!mounted) return;
     final all = ArtikelService().currentArticles;
     final sorted = List<ArtikelModel>.from(all);
-    sorted.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
+    sorted.sort((a, b) => (b.id ?? '').compareTo(a.id ?? ''));
     setState(() {
       _latestArticles = sorted.take(8).toList();
       _isLoadingArticles = false;
@@ -161,7 +161,7 @@ class _BerandaPageState extends State<BerandaPage>
     try {
       final all = await ArtikelService().getAllArticles();
       final sorted = List<ArtikelModel>.from(all);
-      sorted.sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
+      sorted.sort((a, b) => (b.id ?? '').compareTo(a.id ?? ''));
       if (!mounted) return;
       setState(() {
         _latestArticles = sorted.take(8).toList();

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../models/user_model.dart';
+import 'staff_auth_service.dart';
 
 /// Hasil dari proses daftar/masuk pengguna dengan email & password.
 class UserAuthResult {
@@ -62,6 +63,13 @@ class UserService {
   }) async {
     try {
       final normalizedEmail = email.trim().toLowerCase();
+
+      // Email staf tidak boleh dipakai mendaftar sebagai pengguna biasa
+      if (await StaffAuthService().isStaffEmail(normalizedEmail)) {
+        return UserAuthResult.failure(
+          'Email ini sudah terdaftar. Silakan masuk.',
+        );
+      }
 
       final existing = await _db
           .collection(_collection)
