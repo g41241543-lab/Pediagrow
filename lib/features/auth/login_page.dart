@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/user_service.dart';
 import '../../core/services/child_service.dart';
 import '../../core/services/google_auth_service.dart';
+import '../../core/services/staff_auth_service.dart';
 import '../../models/user_model.dart';
 
+import '../pmik_superadmin/beranda/staff_home_placeholder_page.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
 import 'widgets/google_auth_dialog.dart';
@@ -59,6 +61,8 @@ class _LoginPageState extends State<LoginPage> {
   // Loading state untuk tombol Google Sign-In (cegah double-tap)
   bool _isGoogleLoading = false;
 
+  bool _isLoading = false;
+
   // Mode validasi otomatis setelah tombol Masuk pertama kali ditekan
   AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
 
@@ -81,75 +85,87 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _handleLogin() async {
     FocusScope.of(context).unfocus();
 
-    if (_formKey.currentState!.validate()) {
-      final hasil = await ApiService.login(
-        _emailController.text.trim(),
+    if (!_formKey.currentState!.validate()) {
+      setState(() {
+        _autoValidateMode = AutovalidateMode.onUserInteraction;
+      });
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    // Tahap 1: kalau email terdaftar sebagai staf (dokter/PMIK/superadmin),
+    // login lewat StaffAuthService dan masuk sesuai role-nya.
+    final staffService = StaffAuthService();
+    if (await staffService.isStaffEmail(_emailController.text)) {
+      final staff = await staffService.login(
+        _emailController.text,
         _passwordController.text,
       );
 
       if (!mounted) return;
+      setState(() => _isLoading = false);
 
-      if (hasil['status'] == 'sukses') {
-        final int idAkun = int.tryParse(hasil['id']?.toString() ?? '0') ?? 0;
-        final String namaUser = hasil['nama']?.toString() ?? 'Pengguna';
-        final String emailUser =
-            (hasil['email']?.toString() ?? _emailController.text).trim();
-        final String? fotoUrl = hasil['foto_url']?.toString();
-
-        // Simpan token & profil pengguna ke SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', hasil['token']?.toString() ?? '');
-        await prefs.setString(
-          'peran',
-          hasil['peran']?.toString() ?? 'orang_tua',
-        );
-        await prefs.setInt('id_akun', idAkun);
-        await prefs.setString('nama', namaUser);
-        await prefs.setString('email', emailUser);
-        if (fotoUrl != null) {
-          await prefs.setString('foto_url', fotoUrl);
-        }
-
-        // Perbarui UserService reaktif agar profil di UI langsung sesuai akun database
-        UserService().currentUserNotifier.value = UserModel(
-          id: idAkun.toString(),
-          name: namaUser,
-          email: emailUser,
-          avatarPath: fotoUrl,
-        );
-
-        // Muat data profil anak milik user dari database MySQL
-        if (idAkun > 0) {
-          await ChildService().loadChildrenFromApi(idAkun);
-        }
-
-        if (!mounted) return;
-
-        PediaBanner.showSuccess(
-          context,
-          message: 'Berhasil masuk! Mengalihkan ke beranda...',
-        );
-
-        Future.delayed(const Duration(milliseconds: 600), () {
-          if (!mounted) return;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+      if (staff == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Email atau kata sandi salah, atau akun staf tidak aktif.',
             ),
-            (route) => false,
-          );
-        });
-      } else {
-        PediaBanner.showError(
-          context,
-          message: hasil['pesan'] ?? 'Email atau kata sandi salah.',
+            backgroundColor: Color(0xFFB13535),
+            duration: Duration(seconds: 2),
+          ),
         );
+        return;
       }
-    } else {
-      setState(() {
-        _autoValidateMode = AutovalidateMode.onUserInteraction;
-      });
+
+      UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => StaffHomePlaceholderPage(account: staff),
+        ),
+        (route) => false,
+      );
+      return;
     }
+
+    // Tahap 2: bukan staf, login sebagai pengguna biasa.
+    final result = await UserService().loginWithEmail(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (!result.isSuccess) {
+      await ChildService().loadChildrenForCurrentUser();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.errorMessage ?? 'Gagal masuk.'),
+          backgroundColor: const Color(0xFFB13535),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Berhasil masuk! Mengalihkan ke beranda...'),
+        backgroundColor: Color(0xFF3985E7),
+        duration: Duration(milliseconds: 1500),
+      ),
+    );
+
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+      ),
+      (route) => false,
+    );
   }
 
   /// Memulai alur Google Sign-In menggunakan [GoogleAuthService].
@@ -177,6 +193,20 @@ class _LoginPageState extends State<LoginPage> {
             ),
             backgroundColor: const Color(0xFF64748B),
             duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      if (result.isStaffBlocked) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.errorMessage ??
+                  'Akun staf tidak bisa masuk dengan Google.',
+            ),
+            backgroundColor: const Color(0xFFB13535),
+            duration: const Duration(seconds: 3),
           ),
         );
         return;
@@ -297,11 +327,13 @@ class _LoginPageState extends State<LoginPage> {
                               return 'Email wajib diisi';
                             }
                             final trimmed = value.trim();
-                            final gmailRegex = RegExp(
-                              r'^[a-zA-Z0-9._%+-]+@gmail\.com$',
+                            // Login dipakai pengguna (Gmail) dan staf (domain apa pun),
+                            // jadi cukup cek format email umum.
+                            final emailRegex = RegExp(
+                              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
                             );
-                            if (!gmailRegex.hasMatch(trimmed)) {
-                              return 'Email harus berupa akun Gmail yang valid (@gmail.com)';
+                            if (!emailRegex.hasMatch(trimmed)) {
+                              return 'Format email tidak valid';
                             }
                             return null;
                           },
@@ -363,7 +395,7 @@ class _LoginPageState extends State<LoginPage> {
                             height: 46.0,
                             child: ElevatedButton(
                               key: const Key('login_button'),
-                              onPressed: _handleLogin,
+                              onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF3985E7),
                                 foregroundColor: Colors.white,

@@ -20,6 +20,30 @@ class StaffAuthService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  /// Staf yang sedang login (null = tidak ada staf yang login).
+  final ValueNotifier<StaffAccount?> currentStaffNotifier =
+      ValueNotifier<StaffAccount?>(null);
+
+  StaffAccount? get currentStaff => currentStaffNotifier.value;
+
+  /// Keluar dari sesi staf (hanya reset state lokal).
+  void logout() => currentStaffNotifier.value = null;
+
+  /// Apakah email ini terdaftar sebagai akun staf (aktif maupun tidak).
+  Future<bool> isStaffEmail(String email) async {
+    try {
+      final query = await _db
+          .collection(_collection)
+          .where('email', isEqualTo: email.trim().toLowerCase())
+          .limit(1)
+          .get();
+      return query.docs.isNotEmpty;
+    } catch (e) {
+      debugPrint('[StaffAuthService] isStaffEmail error: $e');
+      return false;
+    }
+  }
+
   String _hashPassword(String rawPassword) {
     final bytes = utf8.encode(rawPassword);
     return sha256.convert(bytes).toString();
@@ -79,6 +103,7 @@ class StaffAuthService {
       final inputHash = _hashPassword(password);
       if (inputHash != account.passwordHash) return null;
 
+      currentStaffNotifier.value = account;
       return account;
     } catch (e) {
       debugPrint('[StaffAuthService] login error: $e');

@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Model data untuk Resep MPASI pada aplikasi PediaGrow.
 ///
 /// Data bersumber dari PMIK/Superadmin yang disimpan via [ResepMpasiService].
 /// Model ini digunakan pada sisi pengguna (daftar_resep_page, detail_resep_page)
 /// maupun pada sisi PMIK/Superadmin untuk input & pengelolaan resep.
 class ResepMpasiModel {
-  final int? id;
+  final String? id; // ID dokumen Firestore
   final String judul;
   final String kategoriUsia; // '6-8 bulan' | '9-11 bulan' | '12-23 bulan'
   final String tanggal; // Format: 'dd MMMM yyyy', e.g. '26 Agustus 2026'
@@ -73,7 +75,7 @@ class ResepMpasiModel {
     final ingredients = splitLines(map['bahan']);
 
     return ResepMpasiModel(
-      id: (map['id'] as num?)?.toInt(),
+      id: map['id']?.toString(),
       judul: (map['judul'] as String?) ?? '',
       kategoriUsia: usia,
       tanggal: (map['tanggal'] ?? map['dibuat_pada'])?.toString() ?? '',
@@ -112,8 +114,62 @@ class ResepMpasiModel {
     };
   }
 
+  /// Factory dari dokumen Firestore (collection `resep_mpasi`).
+  factory ResepMpasiModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
+    final d = doc.data() ?? <String, dynamic>{};
+
+    List<String> list(dynamic v) =>
+        v is List ? v.map((e) => e.toString()).toList() : <String>[];
+
+    // String kosong dianggap null supaya displayImage bisa fallback ke imageUrl.
+    String? text(dynamic v) {
+      final s = v?.toString().trim();
+      return (s == null || s.isEmpty) ? null : s;
+    }
+
+    return ResepMpasiModel(
+      id: doc.id,
+      judul: (d['judul'] as String?) ?? '',
+      kategoriUsia: text(d['kategoriUsia']) ?? 'Semua',
+      tanggal: (d['tanggal'] as String?) ?? '',
+      assetImagePath: text(d['assetImagePath']),
+      imageUrl: text(d['imageUrl']),
+      penulis: text(d['penulis']),
+      energiKkal: (d['energiKkal'] as num?)?.toDouble(),
+      lemakGr: (d['lemakGr'] as num?)?.toDouble(),
+      proteinGr: (d['proteinGr'] as num?)?.toDouble(),
+      porsi: (d['porsi'] as num?)?.toInt(),
+      bahan: list(d['bahan']),
+      bahanPelapis: list(d['bahanPelapis']),
+      buah: list(d['buah']),
+      caraMembuat: list(d['caraMembuat']),
+    );
+  }
+
+  /// Map untuk disimpan ke Firestore. `createdAt` dan `updatedAt` ditambahkan
+  /// oleh [ResepMpasiService].
+  Map<String, dynamic> toFirestore() {
+    return {
+      'judul': judul,
+      'kategoriUsia': kategoriUsia,
+      'tanggal': tanggal,
+      'assetImagePath': assetImagePath,
+      'imageUrl': imageUrl,
+      'penulis': penulis,
+      'energiKkal': energiKkal,
+      'lemakGr': lemakGr,
+      'proteinGr': proteinGr,
+      'porsi': porsi,
+      'bahan': bahan,
+      'bahanPelapis': bahanPelapis,
+      'buah': buah,
+      'caraMembuat': caraMembuat,
+    };
+  }
+
   ResepMpasiModel copyWith({
-    int? id,
+    String? id,
     String? judul,
     String? kategoriUsia,
     String? tanggal,
@@ -155,7 +211,7 @@ class ResepMpasiModel {
   static const List<ResepMpasiModel> defaultKemenkesRecipes = [
     // 1. Resep 1 (6-8 bulan)
     ResepMpasiModel(
-      id: 1,
+      id: 'resep_1',
       judul: 'Bubur Singkong Isi Ikan dan Ayam dengan Saus Jeruk',
       kategoriUsia: '6-8 bulan',
       tanggal: '26 Agustus 2026',
@@ -193,7 +249,7 @@ class ResepMpasiModel {
 
     // 2. Resep 2 (6-8 bulan)
     ResepMpasiModel(
-      id: 2,
+      id: 'resep_2',
       judul: 'Bubur Soto Ayam Santan',
       kategoriUsia: '6-8 bulan',
       tanggal: '26 Agustus 2026',
@@ -233,7 +289,7 @@ class ResepMpasiModel {
 
     // 3. Resep 3 (6-8 bulan)
     ResepMpasiModel(
-      id: 3,
+      id: 'resep_3',
       judul: 'Puding Kentang Ayam dan Telur',
       kategoriUsia: '6-8 bulan',
       tanggal: '26 Agustus 2026',
@@ -274,7 +330,7 @@ class ResepMpasiModel {
 
     // 4. Resep 4 (9-11 bulan)
     ResepMpasiModel(
-      id: 4,
+      id: 'resep_4',
       judul: 'Nasi Tim Ikan Tuna Telur Puyuh',
       kategoriUsia: '9-11 bulan',
       tanggal: '26 Agustus 2026',
@@ -310,7 +366,7 @@ class ResepMpasiModel {
 
     // 5. Resep 5 (9-11 bulan) - MILESTONE UTAMA
     ResepMpasiModel(
-      id: 5,
+      id: 'resep_5',
       judul: 'Mie Kukus Telur Puyuh',
       kategoriUsia: '9-11 bulan',
       tanggal: '26 Agustus 2026',
@@ -347,7 +403,7 @@ class ResepMpasiModel {
 
     // 6. Resep 6 (9-11 bulan)
     ResepMpasiModel(
-      id: 6,
+      id: 'resep_6',
       judul: 'Tim Bubur Manado Daging dan Udang',
       kategoriUsia: '9-11 bulan',
       tanggal: '26 Agustus 2026',
@@ -385,7 +441,7 @@ class ResepMpasiModel {
 
     // 7. Resep 7 (12-23 bulan)
     ResepMpasiModel(
-      id: 7,
+      id: 'resep_7',
       judul: 'Nasi Soto Ayam Kuah Kuning',
       kategoriUsia: '12-23 bulan',
       tanggal: '26 Agustus 2026',

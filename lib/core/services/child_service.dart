@@ -1,17 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/child_model.dart';
-import 'api_service.dart';
+import 'user_service.dart';
 
 /// Service singleton untuk mengelola data profil anak-anak pada aplikasi PediaGrow.
 ///
 /// Menggunakan [ValueNotifier] agar penambahan, pembaruan, atau penghapusan anak
 /// dapat didengar secara reaktif oleh widget UI (Beranda, Cek Stunting, Grafik, Konsultasi)
-/// secara real-time tanpa memerlukan refresh manual.
+/// secara real-time. Data disimpan permanen di Firestore, collection 'children',
+/// dan selalu dibatasi (scoped) hanya untuk pengguna yang sedang login.
 class ChildService {
   static final ChildService _instance = ChildService._internal();
   factory ChildService() => _instance;
   ChildService._internal();
+
+  static const String _collection = 'children';
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   /// State daftar profil anak yang terdaftar
   final ValueNotifier<List<ChildModel>> childrenNotifier =
@@ -38,18 +43,69 @@ class ChildService {
     return null;
   }
 
-  /// Menambahkan profil anak baru
-  void addChild(ChildModel child) {
-    final updatedList = List<ChildModel>.from(childrenNotifier.value)
-      ..add(child);
-    childrenNotifier.value = updatedList;
+  /// Memuat semua profil anak milik pengguna yang SEDANG LOGIN dari Firestore.
+  /// WAJIB dipanggil setelah login berhasil (email/password ATAU Google),
+  /// supaya daftar anak yang ditampilkan sesuai pemiliknya masing-masing.
+  Future<void> loadChildrenForCurrentUser() async {
+    final ownerId = UserService().currentUser.id;
+    if (ownerId.isEmpty) {
+      // Belum ada pengguna login (masih tamu) -> kosongkan daftar
+      childrenNotifier.value = [];
+      activeChildNotifier.value = null;
+      return;
+    }
 
-    // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
-    activeChildNotifier.value = child;
+    try {
+      final query = await _db
+          .collection(_collection)
+          .where('owner_id', isEqualTo: ownerId)
+          .get();
+
+      final loadedChildren = query.docs
+          .map((doc) => ChildModel.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+
+      childrenNotifier.value = loadedChildren;
+
+      if (loadedChildren.isNotEmpty) {
+        final currentActiveId = activeChildNotifier.value?.id;
+        final stillExists = loadedChildren.any((c) => c.id == currentActiveId);
+        activeChildNotifier.value = stillExists
+            ? activeChildNotifier.value
+            : loadedChildren.first;
+      } else {
+        activeChildNotifier.value = null;
+      }
+    } catch (e) {
+      debugPrint('[ChildService] loadChildrenForCurrentUser error: $e');
+    }
   }
 
-  /// Memperbarui data profil anak yang sudah ada
-  void updateChild(ChildModel updatedChild) {
+  /// Menambahkan profil anak baru. Otomatis memberi `ownerId` sesuai
+  /// pengguna yang sedang login, dan menyimpannya ke Firestore.
+  Future<void> addChild(ChildModel child) async {
+    final ownerId = UserService().currentUser.id;
+    final childWithOwner = child.copyWith(ownerId: ownerId);
+
+    try {
+      final docRef = await _db
+          .collection(_collection)
+          .add(childWithOwner.toMap());
+      final savedChild = childWithOwner.copyWith(id: docRef.id);
+
+      final updatedList = List<ChildModel>.from(childrenNotifier.value)
+        ..add(savedChild);
+      childrenNotifier.value = updatedList;
+
+      // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
+      activeChildNotifier.value = savedChild;
+    } catch (e) {
+      debugPrint('[ChildService] addChild error: $e');
+    }
+  }
+
+  /// Memperbarui data profil anak yang sudah ada (lokal + Firestore).
+  Future<void> updateChild(ChildModel updatedChild) async {
     final current = childrenNotifier.value;
     final index = current.indexWhere((c) => c.id == updatedChild.id);
     if (index != -1) {
@@ -61,10 +117,19 @@ class ChildService {
         activeChildNotifier.value = updatedChild;
       }
     }
+
+    try {
+      await _db
+          .collection(_collection)
+          .doc(updatedChild.id)
+          .update(updatedChild.toMap());
+    } catch (e) {
+      debugPrint('[ChildService] updateChild error: $e');
+    }
   }
 
-  /// Menghapus profil anak berdasarkan [id]
-  void deleteChild(String id) {
+  /// Menghapus profil anak berdasarkan [id] (lokal + Firestore).
+  Future<void> deleteChild(String id) async {
     final updatedList = List<ChildModel>.from(childrenNotifier.value)
       ..removeWhere((c) => c.id == id);
     childrenNotifier.value = updatedList;
@@ -74,6 +139,12 @@ class ChildService {
           ? updatedList.first
           : null;
     }
+
+    try {
+      await _db.collection(_collection).doc(id).delete();
+    } catch (e) {
+      debugPrint('[ChildService] deleteChild error: $e');
+    }
   }
 
   /// Mengganti anak yang sedang aktif dipilih
@@ -81,34 +152,7 @@ class ChildService {
     activeChildNotifier.value = child;
   }
 
-  /// Mengambil daftar profil anak dari database MySQL via API,
-  /// lalu memperbarui [childrenNotifier] secara reaktif.
-  Future<void> loadChildrenFromApi(int idOrangTua) async {
-    try {
-      final rawList = await ApiService.getChildren(idOrangTua);
-      final loadedChildren = rawList
-          .map((map) => ChildModel.fromMap(map))
-          .toList();
-
-      childrenNotifier.value = loadedChildren;
-
-      // Pertahankan anak aktif jika masih ada di daftar baru,
-      // kalau tidak, pilih anak pertama sebagai default.
-      if (loadedChildren.isNotEmpty) {
-        final currentActiveId = activeChildNotifier.value?.id;
-        final stillExists = loadedChildren.any((c) => c.id == currentActiveId);
-        activeChildNotifier.value = stillExists
-            ? activeChildNotifier.value
-            : loadedChildren.first;
-      } else {
-        activeChildNotifier.value = null;
-      }
-    } catch (e) {
-      debugPrint('ChildService.loadChildrenFromApi error: $e');
-    }
-  }
-
-  /// Mengatur ulang daftar anak (misal saat logout atau inisialisasi)
+  /// Mengatur ulang daftar anak (dipanggil saat logout).
   void clear() {
     childrenNotifier.value = [];
     activeChildNotifier.value = null;
