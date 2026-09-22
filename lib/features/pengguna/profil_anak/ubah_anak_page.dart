@@ -743,23 +743,13 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     // 4. Jenis Kelamin* (Laki-laki = Biru, Perempuan = Pink)
                     Container(key: _genderKey),
                     _buildJenisKelaminSection(),
-                    const SizedBox(height: 14),
-
-                    // 5. Berat Badan Saat Lahir (kg)*
-                    Container(key: _beratBadanKey),
-                    _buildBeratBadanField(),
-                    const SizedBox(height: 14),
-
-                    // 6. Tinggi Badan Saat Lahir (cm)*
-                    Container(key: _tinggiBadanKey),
-                    _buildTinggiBadanField(),
                     const SizedBox(height: 18),
 
                     // Divider tipis sebelum Data Kelahiran
                     const Divider(height: 1, color: Color(0xFFF1F5F9)),
                     const SizedBox(height: 18),
 
-                    // 7. Section: Data Kelahiran (hanya berisi field Foto Si Kecil)
+                    // Section: Data Kelahiran (hanya berisi field Foto Si Kecil)
                     Text(
                       'Data Kelahiran',
                       style: GoogleFonts.lato(
@@ -770,6 +760,16 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     ),
                     const SizedBox(height: 12),
                     _buildFotoSiKecilSection(),
+                    const SizedBox(height: 14),
+
+                    // 5. Berat Badan Saat Lahir (kg)*
+                    Container(key: _beratBadanKey),
+                    _buildBeratBadanField(),
+                    const SizedBox(height: 14),
+
+                    // 6. Tinggi Badan Saat Lahir (cm)*
+                    Container(key: _tinggiBadanKey),
+                    _buildTinggiBadanField(),
                     const SizedBox(height: 18),
 
                     // Divider tipis sebelum Alergi

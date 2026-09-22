@@ -10,6 +10,7 @@ import '../../../models/child_model.dart';
 import 'notifikasi_page.dart';
 import '../../../core/services/notification_service.dart';
 import '../profil_anak/tambah_anak_page.dart';
+import '../profil_anak/ubah_anak_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
 import '../grafik_pertumbuhan/pilih_anak_grafik_page.dart';
 import '../mpasi/daftar_resep_page.dart';
@@ -671,8 +672,14 @@ class _BerandaPageState extends State<BerandaPage> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
+            // Tap pada bagian manapun kartu (selain foto bulat) → Ubah Data Profil
             onTap: () {
               ChildService().setActiveChild(child);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => UbahAnakPage(child: child),
+                ),
+              );
             },
             child: Stack(
               children: [
@@ -693,36 +700,51 @@ class _BerandaPageState extends State<BerandaPage> {
                 ),
 
                 // 2. Avatar Anak (Posisi kiri atas, overlapping banner & white card)
+                //    Tap khusus foto bulat → tampilkan foto full-screen dengan Hero zoom
                 Positioned(
                   top: 14,
                   left: 14,
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: avatarBgColor,
-                      border: Border.all(color: Colors.white, width: 2.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: hasPhoto
-                          ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
-                          : Image.asset(
-                              'assets/images/default_baby_avatar.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const CustomPaint(
-                                painter: _BabyFacePainter(
-                                  outlineColor: Color(0xFF1E293B),
-                                ),
-                              ),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Avatar tap: tampilkan foto full-screen, lalu balik ke edit profil
+                      _openFullScreenChildAvatar(
+                        context: context,
+                        child: child,
+                        hasPhoto: hasPhoto,
+                        heroTag: 'child_avatar_${child.id}',
+                      );
+                    },
+                    child: Hero(
+                      tag: 'child_avatar_${child.id}',
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: avatarBgColor,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
                             ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: hasPhoto
+                              ? Image.file(File(child.photoUrl!), fit: BoxFit.cover)
+                              : Image.asset(
+                                  'assets/images/default_baby_avatar.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -793,6 +815,102 @@ class _BerandaPageState extends State<BerandaPage> {
         ),
       ),
     );
+  }
+
+  /// Tampilkan foto anak secara full-screen dengan animasi Hero zoom dari avatar.
+  /// Setelah ditutup (back), halaman Ubah Data Profil akan dibuka.
+  void _openFullScreenChildAvatar({
+    required BuildContext context,
+    required ChildModel child,
+    required bool hasPhoto,
+    required String heroTag,
+  }) {
+    // Capture navigator before async gap to avoid use_build_context_synchronously
+    final navigator = Navigator.of(context);
+    navigator
+        .push(
+          PageRouteBuilder(
+            opaque: false,
+            barrierColor: Colors.black.withValues(alpha: 0.95),
+            transitionDuration: const Duration(milliseconds: 300),
+            reverseTransitionDuration: const Duration(milliseconds: 250),
+            pageBuilder: (ctx, animation, secondaryAnimation) {
+              return FadeTransition(
+                opacity: animation,
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: SafeArea(
+                    child: Stack(
+                      children: [
+                        // Foto ditampilkan di tengah, bisa di-zoom
+                        Center(
+                          child: InteractiveViewer(
+                            minScale: 0.8,
+                            maxScale: 3.5,
+                            child: Hero(
+                              tag: heroTag,
+                              child: ClipOval(
+                                child: hasPhoto
+                                    ? Image.file(
+                                        File(child.photoUrl!),
+                                        width: 260,
+                                        height: 260,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/default_baby_avatar.png',
+                                        width: 260,
+                                        height: 260,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.child_care,
+                                          size: 120,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Tombol kembali di pojok kiri atas
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(ctx).pop(),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        )
+        .then((_) {
+          // Setelah foto full-screen ditutup → navigasi ke halaman Ubah Data Profil
+          if (mounted) {
+            ChildService().setActiveChild(child);
+            navigator.push(
+              MaterialPageRoute(
+                builder: (_) => UbahAnakPage(child: child),
+              ),
+            );
+          }
+        });
   }
 
   /// Card untuk menambahkan profil anak baru di akhir list
