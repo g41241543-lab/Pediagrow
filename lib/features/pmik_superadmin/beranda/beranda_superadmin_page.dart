@@ -11,6 +11,7 @@ import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../pengguna/detail/detail_artikel_page.dart';
 import 'notifikasi_superadmin_page.dart';
 import 'data_anak/data_pasien_page.dart';
+import 'data_anak/pilih_anak_button_sheet.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
 import 'permainan/daftar_soal_permainan_page.dart';
@@ -461,7 +462,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 title: 'Grafik\nPengguna',
                 imageAsset: 'assets/images/grafik_pengguna_logo.png',
                 blobColor: const Color(0xFF2563EB),
-                onTap: () => _navigateTo(const GrafikPenggunaPage()),
+                onTap: () => PilihAnakBottomSheet.showForGrafik(context),
               ),
             ),
             const SizedBox(width: 16),
