@@ -199,7 +199,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                                       icon: const Icon(Icons.add,
                                           color: Colors.white, size: 20),
                                       label: Text(
-                                        '+ Data Pertumbuhan Baru',
+                                        'Data Pertumbuhan Baru',
                                         style: GoogleFonts.lato(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
@@ -336,15 +336,21 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
     required Color statusBgColor,
     required String statusDesc,
   }) {
+    final bool isNormal = statusGizi == 'Gizi Normal';
+    final Color cardBorderColor =
+        isNormal ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2);
+    final Color descColor =
+        isNormal ? const Color(0xFF1B4332) : const Color(0xFF7F1D1D);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: statusBgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(color: cardBorderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: statusColor.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -354,25 +360,21 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bar Status Gizi Dinamis
+          // Bar Status Gizi Dinamis (Pekat / Solid)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: statusBgColor,
+              color: statusColor,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: statusColor.withValues(alpha: 0.4),
-                width: 1,
-              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  statusGizi == 'Gizi Normal'
+                  isNormal
                       ? Icons.check_circle_rounded
                       : Icons.warning_rounded,
-                  color: statusColor,
+                  color: Colors.white,
                   size: 16,
                 ),
                 const SizedBox(width: 6),
@@ -381,7 +383,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: statusColor,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -396,7 +398,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               height: 1.5,
-              color: const Color(0xFF475569),
+              color: descColor,
             ),
           ),
 
@@ -420,16 +422,16 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF3985E7),
+                    color: statusColor,
                     decoration: TextDecoration.underline,
-                    decorationColor: const Color(0xFF3985E7),
+                    decorationColor: statusColor,
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_rounded,
                   size: 14,
-                  color: Color(0xFF3985E7),
+                  color: statusColor,
                 ),
               ],
             ),

@@ -23,7 +23,6 @@ import '../../../shared/widgets/pedia_banner.dart';
 /// - Validasi Nama Lengkap (hanya huruf, kapitalisasi otomatis tiap kata)
 /// - Date Picker visual dengan rentang 0-5 tahun & kalkulasi usia otomatis
 /// - Radio Jenis Kelamin (Laki-laki = Biru, Perempuan = Pink)
-/// - Foto Si Kecil (Data Kelahiran) dengan dashed rounded box
 /// - Radio Status Prematur (Ya/Tidak) dengan field usia kehamilan dinamis
 /// - Input numerik desimal: Berat Badan, Tinggi Badan, Lingkar Kepala lahir
 /// - Peringatan rentang wajar (warning amber) non-blocking
@@ -81,7 +80,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
   // State foto
   String? _fotoProfilPath;
-  String? _fotoKelahiranPath;
 
   // State error message manual untuk radio / date
   String? _namaError;
@@ -225,7 +223,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         _selectedBirthDate == null &&
         _selectedGender == null &&
         _fotoProfilPath == null &&
-        _fotoKelahiranPath == null &&
         _isPremature == null &&
         _usiaKehamilanController.text.trim().isEmpty &&
         _beratBadanController.text.trim().isEmpty &&
@@ -579,11 +576,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         onPressed: () {
                           Navigator.of(ctx).pop();
                           setState(() {
-                            if (isBirthPhoto) {
-                              _fotoKelahiranPath = file.path;
-                            } else {
-                              _fotoProfilPath = file.path;
-                            }
+                            _fotoProfilPath = file.path;
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -902,7 +895,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         heightCm: height,
         headCircumferenceCm: headCirc,
         photoUrl: _fotoProfilPath,
-        birthPhotoUrl: _fotoKelahiranPath,
         isPremature: _isPremature,
         gestationalAgeWeeks: gestWeeks,
         hasAllergies: _hasAllergies,
@@ -997,25 +989,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         Container(key: _genderKey),
                         _buildJenisKelaminSection(),
                         const SizedBox(height: 18),
-
-                        // Divider tipis pemisah data kelahiran
-                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                        const SizedBox(height: 18),
-
-                        // Section: Data Kelahiran
-                        Text(
-                          'Data Kelahiran',
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Foto Si Kecil
-                        _buildFotoSiKecilSection(),
-                        const SizedBox(height: 14),
 
                         // Apakah Anak Anda Lahir Prematur?*
                         Container(key: _prematurKey),
@@ -1457,126 +1430,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             ),
           ),
         ],
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // FOTO SI KECIL (DATA KELAHIRAN)
-  // ---------------------------------------------------------------------------
-  Widget _buildFotoSiKecilSection() {
-    final hasPhoto = _fotoKelahiranPath != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Foto Si Kecil',
-          style: GoogleFonts.lato(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 6),
-        if (!hasPhoto)
-          GestureDetector(
-            onTap: () => _showImagePickerModal(isBirthPhoto: true),
-            child: CustomPaint(
-              painter: _DashedRRectPainter(
-                color: const Color(0xFF3985E7),
-                radius: 10,
-                strokeWidth: 1.5,
-                dashLength: 6,
-                dashSpace: 4,
-              ),
-              child: Container(
-                width: double.infinity,
-                height: 48,
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add, color: Color(0xFF3985E7), size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      '+ Unggah Foto',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3985E7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        else
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _openFullScreenPhoto(
-                      _fotoKelahiranPath!, 'foto_si_kecil_preview'),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Hero(
-                      tag: 'foto_si_kecil_preview',
-                      child: Image.file(
-                        File(_fotoKelahiranPath!),
-                        width: 44,
-                        height: 44,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Foto Kelahiran Terpilih',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      Text(
-                        'Ketuk untuk melihat ukuran penuh',
-                        style: GoogleFonts.lato(
-                          fontSize: 11,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _showImagePickerModal(isBirthPhoto: true),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  child: Text(
-                    'Ubah',
-                    style: GoogleFonts.lato(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3985E7),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }
@@ -2321,57 +2174,4 @@ class _DashedCirclePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
-}
-
-// ---------------------------------------------------------------------------
-// CUSTOM PAINTER: DASHED ROUNDED RECTANGLE BORDER
-// ---------------------------------------------------------------------------
-class _DashedRRectPainter extends CustomPainter {
-  final Color color;
-  final double radius;
-  final double strokeWidth;
-  final double dashLength;
-  final double dashSpace;
-
-  _DashedRRectPainter({
-    required this.color,
-    required this.radius,
-    required this.strokeWidth,
-    required this.dashLength,
-    required this.dashSpace,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2,
-          size.width - strokeWidth, size.height - strokeWidth),
-      Radius.circular(radius),
-    );
-
-    final path = Path()..addRRect(rrect);
-    final pathMetrics = path.computeMetrics();
-
-    for (final metric in pathMetrics) {
-      double distance = 0.0;
-      while (distance < metric.length) {
-        final nextDistance = distance + dashLength;
-        final extractPath = metric.extractPath(
-          distance,
-          nextDistance > metric.length ? metric.length : nextDistance,
-        );
-        canvas.drawPath(extractPath, paint);
-        distance += dashLength + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
 }
