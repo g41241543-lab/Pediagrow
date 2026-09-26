@@ -11,8 +11,10 @@ import '../../core/services/child_service.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../models/user_model.dart';
+import '../../models/staff_account_model.dart';
 
 import '../pmik_superadmin/beranda/staff_home_placeholder_page.dart';
+import '../pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
 import 'widgets/google_auth_dialog.dart';
@@ -120,10 +122,17 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
+
+      // Superadmin punya beranda sendiri. PMIK dan dokter untuk sementara
+      // memakai halaman placeholder sampai beranda masing-masing selesai.
+      final Widget destination = switch (staff.role) {
+        StaffRole.superadmin => const BerandaSuperadminPage(),
+        StaffRole.admin ||
+        StaffRole.dokter => StaffHomePlaceholderPage(account: staff),
+      };
+
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => StaffHomePlaceholderPage(account: staff),
-        ),
+        MaterialPageRoute(builder: (_) => destination),
         (route) => false,
       );
       return;
