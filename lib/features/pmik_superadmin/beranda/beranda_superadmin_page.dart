@@ -265,21 +265,16 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 ),
               ),
 
-              // Jarak dari header ke card superadmin disamakan dengan jarak di beranda pengguna
-              // (SizedBox 10 + teks Profil Anak 24 + SizedBox 16 = 50dp),
-              // sehingga tinggi total area biru gradasi menjadi 250dp (+ SafeArea.top),
-              // identik persis dengan beranda pengguna.
-              const SizedBox(height: 50),
+              // Card dinaikkan sedikit ke atas
+              const SizedBox(height: 36),
 
               // Card Superadmin (PeGo + Ilustrasi Dokter)
-              // Margin horizontal 16.0 identik dengan Card MomDad di beranda pengguna
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: _buildSuperadminCard(context),
               ),
 
-              // Jarak dari bottom card ke batas transisi biru→putih: 24dp (identik dengan beranda pengguna)
-              const SizedBox(height: 24),
+              const SizedBox(height: 38),
             ],
           ),
         ],
