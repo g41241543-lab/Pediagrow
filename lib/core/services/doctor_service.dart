@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import 'staff_auth_service.dart';
+import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data dokter di Firestore.
 ///
@@ -281,6 +282,7 @@ class DoctorService {
         // DoctorModel.fromMap() sebagai doctor.id.
 
         await db.collection(_collection).add(data);
+        await SuperadminNotificationService().notifyDokterTambah(profile.name);
 
         return true;
       } catch (e) {
@@ -320,6 +322,7 @@ class DoctorService {
       final Map<String, dynamic> data = doctor.toMap()..remove('id');
 
       await db.collection(_collection).doc(doctor.id).update(data);
+      await SuperadminNotificationService().notifyDokterUbah(doctor.name);
     } catch (e) {
       debugPrint('[DoctorService] updateDoctor error: $e');
     }
@@ -352,6 +355,7 @@ class DoctorService {
         return;
       }
 
+      final String doctorName = snapshot.data()?['name'] as String? ?? 'Dokter';
       final String? staffId = snapshot.data()?['staff_account_id'] as String?;
 
       // ----------------------------------------------------------
@@ -359,6 +363,7 @@ class DoctorService {
       // ----------------------------------------------------------
 
       await ref.delete();
+      await SuperadminNotificationService().notifyDokterHapus(doctorName);
 
       // ----------------------------------------------------------
       // 3. NONAKTIFKAN AKUN LOGIN DOKTER

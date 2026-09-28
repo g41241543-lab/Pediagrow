@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/resep_mpasi_model.dart';
+import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Resep MPASI di Cloud Firestore
 /// (collection `resep_mpasi`).
@@ -158,12 +159,16 @@ class ResepMpasiService {
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
+    String docId;
     if (resep.id != null && resep.id!.isNotEmpty) {
       await _col.doc(resep.id).set(data);
-      return resep.id!;
+      docId = resep.id!;
+    } else {
+      final ref = await _col.add(data);
+      docId = ref.id;
     }
-    final ref = await _col.add(data);
-    return ref.id;
+    await SuperadminNotificationService().notifyResepTambah(resep.judul);
+    return docId;
   }
 
   /// Ubah resep yang sudah ada (PMIK/Superadmin). Mengembalikan 1 jika berhasil,
@@ -175,12 +180,14 @@ class ResepMpasiService {
       ...resep.toFirestore(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await SuperadminNotificationService().notifyResepUbah(resep.judul);
     return 1;
   }
 
   /// Hapus resep (PMIK/Superadmin). Mengembalikan 1 jika berhasil.
-  Future<int> deleteResep(String id) async {
+  Future<int> deleteResep(String id, {String judul = 'Resep MPASI'}) async {
     await _col.doc(id).delete();
+    await SuperadminNotificationService().notifyResepHapus(judul);
     return 1;
   }
 

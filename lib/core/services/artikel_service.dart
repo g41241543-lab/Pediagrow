@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/artikel_model.dart';
+import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Artikel Kesehatan di Cloud Firestore
 /// (collection `artikel_kesehatan`).
@@ -159,12 +160,16 @@ class ArtikelService {
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
+    String docId;
     if (artikel.id != null && artikel.id!.isNotEmpty) {
       await _col.doc(artikel.id).set(data);
-      return artikel.id!;
+      docId = artikel.id!;
+    } else {
+      final ref = await _col.add(data);
+      docId = ref.id;
     }
-    final ref = await _col.add(data);
-    return ref.id;
+    await SuperadminNotificationService().notifyArtikelTambah(artikel.judul);
+    return docId;
   }
 
   /// Perbarui artikel yang ada. Mengembalikan 1 jika berhasil,
@@ -176,12 +181,14 @@ class ArtikelService {
       ...artikel.toFirestore(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await SuperadminNotificationService().notifyArtikelUbah(artikel.judul);
     return 1;
   }
 
   /// Hapus artikel. Mengembalikan 1 jika berhasil.
-  Future<int> hapusArtikel(String id) async {
+  Future<int> hapusArtikel(String id, {String judul = 'Artikel'}) async {
     await _col.doc(id).delete();
+    await SuperadminNotificationService().notifyArtikelHapus(judul);
     return 1;
   }
 
