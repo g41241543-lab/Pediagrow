@@ -125,11 +125,13 @@ class _LoginPageState extends State<LoginPage> {
 
       // Superadmin punya beranda sendiri. PMIK dan dokter untuk sementara
       // memakai halaman placeholder sampai beranda masing-masing selesai.
-      final Widget destination = switch (staff.role) {
-        StaffRole.superadmin => const BerandaSuperadminPage(),
-        StaffRole.admin ||
-        StaffRole.dokter => StaffHomePlaceholderPage(account: staff),
-      };
+      final Widget destination;
+
+      if (staff.isPmikSuperadmin) {
+        destination = const BerandaSuperadminPage();
+      } else {
+        destination = StaffHomePlaceholderPage(account: staff);
+      }
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => destination),
