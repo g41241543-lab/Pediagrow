@@ -254,6 +254,8 @@ class DoctorService {
         password: password,
         role: StaffRole.dokter,
         createdByEmail: createdByEmail,
+        permissions: profile.permissions,
+        avatarPath: profile.avatarUrl,
       );
 
       // Jika akun gagal dibuat, proses dihentikan.
@@ -268,7 +270,8 @@ class DoctorService {
 
         final Map<String, dynamic> data = profile.toMap()
           ..remove('id')
-          ..['staff_account_id'] = staffId;
+          ..['staff_account_id'] = staffId
+          ..['email'] = email;
 
         // --------------------------------------------------------
         // 3. SIMPAN PROFIL DOKTER KE FIRESTORE
@@ -320,6 +323,16 @@ class DoctorService {
       final Map<String, dynamic> data = doctor.toMap()..remove('id');
 
       await db.collection(_collection).doc(doctor.id).update(data);
+
+      if (doctor.staffAccountId.isNotEmpty) {
+        await StaffAuthService().updateStaffAccount(
+          doctor.staffAccountId,
+          name: doctor.name,
+          email: doctor.email,
+          permissions: doctor.permissions,
+          avatarPath: doctor.avatarUrl,
+        );
+      }
     } catch (e) {
       debugPrint('[DoctorService] updateDoctor error: $e');
     }

@@ -16,10 +16,11 @@ import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
 import 'permainan/daftar_soal_permainan_page.dart';
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
-import 'grafik_pengguna/grafik_pengguna_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
+import '../../../core/services/staff_auth_service.dart';
+import '../../../models/staff_account_model.dart';
 
 /// Halaman Beranda PMIK Superadmin PediaGrow.
 ///
@@ -90,6 +91,45 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
 
   void _navigateTo(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  }
+
+  bool _canAccessFeature(String permissionKey) {
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return true;
+    return staff.hasPermission(permissionKey);
+  }
+
+  void _handleMenuTap({
+    required String permissionKey,
+    required String featureName,
+    required VoidCallback onAllowed,
+  }) {
+    if (_canAccessFeature(permissionKey)) {
+      onAllowed();
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
+                  style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -176,13 +216,36 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // "Hai, Superadmin" (Lato Bold 24, #FFFFFF)
-                        Text(
-                          'Hai, Superadmin',
-                          style: GoogleFonts.lato(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        // Sapaan Dinamis sesuai Akun Staf (Superadmin, Dokter, PMIK)
+                        Expanded(
+                          child: ValueListenableBuilder<StaffAccount?>(
+                            valueListenable:
+                                StaffAuthService().currentStaffNotifier,
+                            builder: (context, staff, _) {
+                              String greeting = 'Hai, Superadmin';
+                              if (staff != null) {
+                                if (staff.isSuperAdmin) {
+                                  greeting = 'Hai, Superadmin';
+                                } else if (staff.role == StaffRole.dokter) {
+                                  final name = staff.name.trim();
+                                  final isDr = name.toLowerCase().startsWith('dr.') ||
+                                      name.toLowerCase().startsWith('dr ');
+                                  greeting = 'Hai, ${isDr ? name : 'dr. $name'}';
+                                } else {
+                                  greeting = 'Hai, ${staff.name.trim()}';
+                                }
+                              }
+                              return Text(
+                                greeting,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.lato(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const Spacer(),
@@ -313,28 +376,61 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // "PeGo" (Baloo2 Bold, biru teal)
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Pe',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF4B83D6),
-                        ),
+                Row(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Pe',
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF4B83D6),
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Go',
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF3CC3A6),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextSpan(
-                        text: 'Go',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF3CC3A6),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    ValueListenableBuilder<StaffAccount?>(
+                      valueListenable: StaffAuthService().currentStaffNotifier,
+                      builder: (context, staff, _) {
+                        final roleText = staff?.isSuperAdmin == true
+                            ? 'PMIK Superadmin'
+                            : staff?.pmikRoleDisplay ?? (staff?.role.label ?? 'Staff');
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFFBFDBFE),
+                            ),
+                          ),
+                          child: Text(
+                            roleText,
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2563EB),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -407,77 +503,119 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // Warna #ECF6FF, 3 kolom x 2 baris, corner radius 10
   // =========================================================================
   Widget _build6MenuGrid(BuildContext context) {
-    return Column(
-      children: [
-        // Baris 1: Rekapitulasi, Data Pasien, Daftar Resep MPASI
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return ValueListenableBuilder<StaffAccount?>(
+      valueListenable: StaffAuthService().currentStaffNotifier,
+      builder: (context, staff, _) {
+        final canRekap = _canAccessFeature('rekapitulasi');
+        final canPasien = _canAccessFeature('data_pasien');
+        final canResep = _canAccessFeature('daftar_resep_mpasi');
+        final canArtikel = _canAccessFeature('daftar_artikel_kesehatan');
+        final canGrafik = _canAccessFeature('grafik_pengguna');
+        final canPermainan = _canAccessFeature('permainan');
+
+        return Column(
           children: [
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Rekapitulasi',
-                customIcon: _buildRekapitulasiLogo(),
-                blobColor: const Color(0xFFD97706),
-                onTap: () => _navigateTo(const RekapitulasiStuntingPage()),
-              ),
+            // Baris 1: Rekapitulasi, Data Pasien, Daftar Resep MPASI
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Rekapitulasi',
+                    customIcon: _buildRekapitulasiLogo(),
+                    blobColor: const Color(0xFFD97706),
+                    isLocked: !canRekap,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'rekapitulasi',
+                      featureName: 'Rekapitulasi',
+                      onAllowed: () => _navigateTo(const RekapitulasiStuntingPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Data\nPasien',
+                    imageAsset: 'assets/images/data_pasien_logo.png',
+                    blobColor: const Color(0xFF3CC3A6),
+                    isLocked: !canPasien,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'data_pasien',
+                      featureName: 'Data Pasien',
+                      onAllowed: () => _navigateTo(const DataPasienPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Daftar Resep\nMPASI',
+                    imageAsset: 'assets/images/resep_mpasi_logo.png',
+                    blobColor: const Color(0xFF10B981),
+                    isLocked: !canResep,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_resep_mpasi',
+                      featureName: 'Daftar Resep MPASI',
+                      onAllowed: () => _navigateTo(const DaftarResepMpasiAdminPage()),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Data\nPasien',
-                imageAsset: 'assets/images/data_pasien_logo.png',
-                blobColor: const Color(0xFF3CC3A6),
-                onTap: () => _navigateTo(const DataPasienPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Daftar Resep\nMPASI',
-                imageAsset: 'assets/images/resep_mpasi_logo.png',
-                blobColor: const Color(0xFF10B981),
-                onTap: () => _navigateTo(const DaftarResepMpasiAdminPage()),
-              ),
+
+            const SizedBox(height: 20),
+
+            // Baris 2: Daftar Artikel Kesehatan, Grafik Pengguna, Permainan
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Daftar Artikel\nKesehatan',
+                    imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                    blobColor: const Color(0xFF6366F1),
+                    isLocked: !canArtikel,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_artikel_kesehatan',
+                      featureName: 'Daftar Artikel Kesehatan',
+                      onAllowed: () => _navigateTo(const DaftarArtikelAdminPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Grafik\nPengguna',
+                    imageAsset: 'assets/images/grafik_pengguna_logo.png',
+                    blobColor: const Color(0xFF2563EB),
+                    isLocked: !canGrafik,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'grafik_pengguna',
+                      featureName: 'Grafik Pengguna',
+                      onAllowed: () => PilihAnakBottomSheet.showForGrafik(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Permainan\n',
+                    imageAsset: 'assets/images/permainan_logo.png',
+                    blobColor: const Color(0xFFF59E0B),
+                    logoOffsetX: 5,
+                    isLocked: !canPermainan,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'permainan',
+                      featureName: 'Permainan',
+                      onAllowed: () => _navigateTo(const DaftarSoalPermainanPage()),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-
-        const SizedBox(height: 20),
-
-        // Baris 2: Daftar Artikel Kesehatan, Grafik Pengguna, Permainan
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Daftar Artikel\nKesehatan',
-                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
-                blobColor: const Color(0xFF6366F1),
-                onTap: () => _navigateTo(const DaftarArtikelAdminPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Grafik\nPengguna',
-                imageAsset: 'assets/images/grafik_pengguna_logo.png',
-                blobColor: const Color(0xFF2563EB),
-                onTap: () => PilihAnakBottomSheet.showForGrafik(context),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Permainan\n',
-                imageAsset: 'assets/images/permainan_logo.png',
-                blobColor: const Color(0xFFF59E0B),
-                logoOffsetX: 5,
-                onTap: () => _navigateTo(const DaftarSoalPermainanPage()),
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -578,6 +716,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     double cardInset = 6,
     double imageSize = 40,
     double logoOffsetX = 0,
+    bool isLocked = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -592,7 +731,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECF6FF),
+                  color: isLocked ? const Color(0xFFF8FAFC) : const Color(0xFFECF6FF),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -608,33 +747,58 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     fit: StackFit.expand,
                     children: [
                       // Dekorasi blob tematik
-                      _buildTileDecoration(blobColor),
+                      Opacity(
+                        opacity: isLocked ? 0.35 : 1.0,
+                        child: _buildTileDecoration(blobColor),
+                      ),
 
                       // Icon, gambar, atau custom widget
                       Center(
-                        child: Transform.translate(
-                          offset: Offset(logoOffsetX, 0),
-                          child: customIcon ??
-                              (imageAsset != null
-                                  ? Image.asset(
-                                      imageAsset,
-                                      height: imageSize,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => Icon(
+                        child: Opacity(
+                          opacity: isLocked ? 0.45 : 1.0,
+                          child: Transform.translate(
+                            offset: Offset(logoOffsetX, 0),
+                            child: customIcon ??
+                                (imageAsset != null
+                                    ? Image.asset(
+                                        imageAsset,
+                                        height: imageSize,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          icon ?? Icons.widgets_rounded,
+                                          size: imageSize,
+                                          color: iconColor ??
+                                              const Color(0xFF3985E7),
+                                        ),
+                                      )
+                                    : Icon(
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
                                         color: iconColor ??
                                             const Color(0xFF3985E7),
-                                      ),
-                                    )
-                                  : Icon(
-                                      icon ?? Icons.widgets_rounded,
-                                      size: imageSize,
-                                      color: iconColor ??
-                                          const Color(0xFF3985E7),
-                                    )),
+                                      )),
+                          ),
                         ),
                       ),
+
+                      // Badge Gembok jika fitur dinonaktifkan
+                      if (isLocked)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF64748B),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -647,8 +811,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 14,
-              fontWeight: FontWeight.normal,
-              color: const Color(0xFF000000),
+              fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
+              color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF000000),
               height: 1.25,
             ),
           ),
@@ -1238,13 +1402,25 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         // Sudah di Beranda
         break;
       case 1:
-        _navigateTo(const KonsultasiSuperadminPage());
+        _handleMenuTap(
+          permissionKey: 'konsultasi',
+          featureName: 'Konsultasi',
+          onAllowed: () => _navigateTo(const KonsultasiSuperadminPage()),
+        );
         break;
       case 2:
-        _navigateTo(const DaftarRiwayatKonsultasiAdminPage());
+        _handleMenuTap(
+          permissionKey: 'riwayat_konsultasi',
+          featureName: 'Riwayat Konsultasi',
+          onAllowed: () => _navigateTo(const DaftarRiwayatKonsultasiAdminPage()),
+        );
         break;
       case 3:
-        _navigateTo(const ProfilSuperadminPage());
+        _handleMenuTap(
+          permissionKey: 'profil',
+          featureName: 'Profil',
+          onAllowed: () => _navigateTo(const ProfilSuperadminPage()),
+        );
         break;
     }
   }

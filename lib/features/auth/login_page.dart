@@ -3,23 +3,18 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pediagrow/core/services/api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../core/services/user_service.dart';
 import '../../core/services/child_service.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/services/staff_auth_service.dart';
-import '../../models/user_model.dart';
-import '../../models/staff_account_model.dart';
-
-import '../pmik_superadmin/beranda/staff_home_placeholder_page.dart';
 import '../pmik_superadmin/beranda/beranda_superadmin_page.dart';
+import '../dokter/beranda_dokter_page.dart';
+import '../pmik_admin/beranda_pmik_page.dart';
+import '../../models/staff_account_model.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
 import 'widgets/google_auth_dialog.dart';
 import '../pengguna/beranda/beranda_page.dart';
-import '../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Masuk (Login Page) PediaGrow.
 ///
@@ -123,13 +118,20 @@ class _LoginPageState extends State<LoginPage> {
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
 
-      // Superadmin punya beranda sendiri. PMIK dan dokter untuk sementara
-      // memakai halaman placeholder sampai beranda masing-masing selesai.
-      final Widget destination = switch (staff.role) {
-        StaffRole.superadmin => const BerandaSuperadminPage(),
-        StaffRole.admin ||
-        StaffRole.dokter => StaffHomePlaceholderPage(account: staff),
-      };
+      // Arahkan setiap role ke beranda yang sesuai.
+      Widget destination;
+      switch (staff.role) {
+        case StaffRole.dokter:
+          destination = const BerandaDokterPage();
+          break;
+        case StaffRole.admin: // PMIK
+          destination = const BerandaPmikPage();
+          break;
+        case StaffRole.superadmin:
+        default:
+          destination = const BerandaSuperadminPage();
+          break;
+      }
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => destination),
