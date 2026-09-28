@@ -6,6 +6,7 @@ import '../../../models/artikel_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../features/pengguna/detail/detail_artikel_page.dart';
 import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import '../../features/pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
 import '../../features/pmik_superadmin/profil/profil_superadmin_page.dart';
@@ -328,6 +329,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       // Bottom Navigation Bar konsisten dengan dashboard beranda (bentuk, ukuran, font, ikon)
       bottomNavigationBar: _buildBottomNavigationBar(),
       body: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -534,13 +536,17 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
         ),
 
         // Ilustrasi pemandangan pohon, tenda & bukit tepat di bawah seluruh artikel
-        // (menyesuaikan jumlah artikel, ikut ter-scroll, dan maksimal scroll berada di paling bawah)
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.only(top: 8.0, bottom: 20.0),
-            child: IllustrationForestFooter(
-              fit: BoxFit.fitWidth,
-            ),
+        // (menyesuaikan jumlah artikel, ikut ter-scroll, dan berada di paling bawah tanpa celah/gap dengan footer dashboard)
+        const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Column(
+            children: [
+              Spacer(),
+              SizedBox(height: 8.0),
+              IllustrationForestFooter(
+                fit: BoxFit.fitWidth,
+              ),
+            ],
           ),
         ),
       ],
@@ -549,6 +555,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
   /// Kartu Artikel mengikuti acuan desain dan seragam dengan kartu Resep MPASI:
   /// - Sudut rounded 18dp, border tipis abu muda, shadow halus
+  /// - Dapat diklik (InkWell) untuk membuka halaman detail artikel
   /// - Thumbnail berukuran 124x84dp dengan rounded 18dp
   /// - Judul artikel tebal hitam (Lato 16sp bold, max 3 baris dengan ellipsis)
   /// - Informasi meta: ikon jam, teks "Artikel", tag/kategori dipisah titik (Lato 12sp #A0A0A0)
@@ -573,9 +580,15 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18.0),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18.0),
+          onTap: () => _navigateToDetailArtikel(artikel),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Konten Atas: Thumbnail + Judul & Meta Info
           Padding(
             padding: const EdgeInsets.all(14.0),
@@ -725,9 +738,37 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  /// Navigasi ke DetailArtikelPage saat kartu artikel diklik
+  void _navigateToDetailArtikel(ArtikelModel artikel) async {
+    await Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            DetailArtikelPage(artikel: artikel),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0.0),
+              end: Offset.zero,
+            ).animate(curved),
+            child: FadeTransition(opacity: curved, child: child),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 250),
+      ),
+    );
+    // Muat ulang daftar artikel jika ada perubahan saat kembali
+    if (mounted) {
+      _loadArticles();
+    }
   }
 
   /// Membangun string meta informasi: "Artikel • Stunting • Wasting"
@@ -840,11 +881,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                 ),
               ),
               const Spacer(flex: 3),
-              const Padding(
-                padding: EdgeInsets.only(top: 16.0, bottom: 20.0),
-                child: IllustrationForestFooter(
-                  fit: BoxFit.fitWidth,
-                ),
+              const IllustrationForestFooter(
+                fit: BoxFit.fitWidth,
               ),
             ],
           ),
