@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/staff_auth_service.dart';
 import '../../auth/auth_choice_page.dart';
+import '../beranda/beranda_superadmin_page.dart';
+import '../konsultasi/konsultasi_superadmin_page.dart';
+import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'hak_akses/hak_akses_page.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
@@ -33,17 +36,7 @@ class ProfilSuperadminPage extends StatefulWidget {
 }
 
 class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
-  int _selectedIndex = 3; // Menu Profil aktif
-
-  void _handleBack() {
-    if (widget.onBackPressed != null) {
-      widget.onBackPressed!();
-      return;
-    }
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    }
-  }
+  final int _selectedIndex = 3; // Menu Profil aktif
 
   void _navigateToHakAkses() {
     Navigator.of(context).push(
@@ -158,51 +151,51 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
   void _onBottomNavTap(int index) {
     if (index == _selectedIndex) return;
-    setState(() {
-      _selectedIndex = index;
-    });
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    Widget targetPage;
     switch (index) {
       case 0:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Menavigasi ke Beranda Superadmin',
-              style: GoogleFonts.lato(),
-            ),
-            duration: const Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        targetPage = const BerandaSuperadminPage();
         break;
       case 1:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Halaman Konsultasi Superadmin',
-              style: GoogleFonts.lato(),
-            ),
-            duration: const Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        targetPage = const KonsultasiSuperadminPage();
         break;
       case 2:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Halaman Riwayat Konsultasi Superadmin',
-              style: GoogleFonts.lato(),
-            ),
-            duration: const Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
+        targetPage = const DaftarRiwayatKonsultasiAdminPage();
+        break;
+      default:
+        return;
+    }
+
+    final isLeft = index < _selectedIndex;
+    final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
+
+    final route = PageRouteBuilder(
+      transitionDuration: const Duration(milliseconds: 280),
+      reverseTransitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (_, __, ___) => targetPage,
+      transitionsBuilder: (_, animation, secondaryAnimation, child) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: beginOffset,
+            end: Offset.zero,
+          ).animate(curvedAnimation),
+          child: FadeTransition(
+            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation),
+            child: child,
           ),
         );
-        break;
-      case 3:
-        // Sudah di profil
-        break;
+      },
+    );
+
+    if (index == 0) {
+      Navigator.of(context).pushAndRemoveUntil(route, (route) => false);
+    } else {
+      Navigator.of(context).pushReplacement(route);
     }
   }
 
@@ -310,7 +303,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   /// Header kustom dengan tinggi tepat 56dp di bawah SafeArea atas.
-  /// Tombol kembali berada 12dp dari sisi kiri, diikuti judul "Profil" 12dp setelahnya.
+  /// Judul "Profil" terletak tepat 16dp dari pojok layar kiri (tanpa tombol back).
   Widget _buildCustomHeader() {
     return Container(
       width: double.infinity,
@@ -320,44 +313,20 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Tombol kembali (12dp dari sisi kiri layar)
-                GestureDetector(
-                  onTap: _handleBack,
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: 36.0,
-                    height: 36.0,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Profil',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF000000),
+                  letterSpacing: -0.2,
                 ),
-
-                // Jarak 12dp setelah area tombol kembali
-                const SizedBox(width: 12.0),
-
-                // Judul "Profil"
-                Expanded(
-                  child: Text(
-                    'Profil',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -445,10 +414,19 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   Expanded(
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.work_outline_rounded,
-                          size: 24.0,
-                          color: Color(0xFF94A3B8),
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.work_rounded,
+                            size: 20.0,
+                            color: Color(0xFF2563EB),
+                          ),
                         ),
                         const SizedBox(width: 8.0),
                         Expanded(
@@ -485,10 +463,19 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   Expanded(
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.badge_outlined,
-                          size: 24.0,
-                          color: Color(0xFF94A3B8),
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.badge_rounded,
+                            size: 20.0,
+                            color: Color(0xFF10B981),
+                          ),
                         ),
                         const SizedBox(width: 8.0),
                         Expanded(
@@ -595,10 +582,19 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.event_note_outlined,
-                  size: 28.0,
-                  color: Color(0xFF94A3B8),
+                Container(
+                  width: 40.0,
+                  height: 40.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F2),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.cake_rounded,
+                    size: 22.0,
+                    color: Color(0xFFF43F5E),
+                  ),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(
@@ -641,10 +637,19 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.home_work_outlined,
-                  size: 28.0,
-                  color: Color(0xFF94A3B8),
+                Container(
+                  width: 40.0,
+                  height: 40.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F3FF),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.school_rounded,
+                    size: 22.0,
+                    color: Color(0xFF8B5CF6),
+                  ),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(

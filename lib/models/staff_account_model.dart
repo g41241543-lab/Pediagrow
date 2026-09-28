@@ -14,7 +14,7 @@ enum StaffRole {
       case StaffRole.superadmin:
         return 'Superadmin';
       case StaffRole.admin:
-        return 'Admin (PMIK)';
+        return 'PMIK';
       case StaffRole.dokter:
         return 'Dokter';
     }

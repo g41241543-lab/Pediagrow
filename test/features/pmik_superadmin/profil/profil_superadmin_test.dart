@@ -19,9 +19,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // 1. Header & Title verification
+    // 1. Header & Title verification (tanpa tombol back pada halaman Profil)
     expect(find.text('Profil'), findsWidgets); // di header & navbar
-    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back), findsNothing);
 
     // 2. Profile Card verification
     expect(find.text('Anita Setyowati, S.Tr. RMIK'), findsOneWidget);
@@ -78,5 +78,51 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Anita Setyowati, S.Tr. RMIK'), findsOneWidget);
     expect(find.text('HAK AKSES'), findsOneWidget);
+  });
+
+  testWidgets('ProfilSuperadminPage: bottom navigation bar navigates to Konsultasi', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ProfilSuperadminPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Konsultasi'));
+    await tester.pumpAndSettle();
+    expect(find.text('Konsultasi Superadmin'), findsOneWidget);
+  });
+
+  testWidgets('ProfilSuperadminPage: bottom navigation bar navigates to Riwayat Konsultasi', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ProfilSuperadminPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Riwayat Konsultasi'));
+    await tester.pumpAndSettle();
+    expect(find.text('Daftar Riwayat Konsultasi'), findsOneWidget);
+  });
+
+  testWidgets('HakAksesPage: renders colored icons for Dokter and PMIK', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: HakAksesPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dokter'), findsOneWidget);
+    expect(find.text('PMIK'), findsOneWidget);
+    expect(find.byIcon(Icons.medical_services_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.badge_rounded), findsOneWidget);
   });
 }

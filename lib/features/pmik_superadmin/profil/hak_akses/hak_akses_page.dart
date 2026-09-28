@@ -61,7 +61,9 @@ class HakAksesPage extends StatelessWidget {
             // 1. Menu Hak Akses: Dokter
             _buildAccessTile(
               context: context,
-              icon: Icons.medical_information_outlined,
+              icon: Icons.medical_services_rounded,
+              iconColor: const Color(0xFF0284C7),
+              iconBgColor: const Color(0xFFE0F2FE),
               title: 'Dokter',
               onTap: () => _navigateToDokter(context),
             ),
@@ -78,7 +80,9 @@ class HakAksesPage extends StatelessWidget {
             // 2. Menu Hak Akses: PMIK
             _buildAccessTile(
               context: context,
-              icon: Icons.badge_outlined,
+              icon: Icons.badge_rounded,
+              iconColor: const Color(0xFF38C1A2),
+              iconBgColor: const Color(0xFFE6F9F5),
               title: 'PMIK',
               onTap: () => _navigateToPmik(context),
             ),
@@ -140,6 +144,8 @@ class HakAksesPage extends StatelessWidget {
   Widget _buildAccessTile({
     required BuildContext context,
     required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
     required String title,
     required VoidCallback onTap,
   }) {
@@ -149,11 +155,20 @@ class HakAksesPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Row(
           children: [
-            // Ikon outline di sisi kiri
-            Icon(
-              icon,
-              size: 28.0,
-              color: const Color(0xFF94A3B8),
+            // Ikon berwarna dengan kontainer rounded di sisi kiri
+            Container(
+              width: 44.0,
+              height: 44.0,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                icon,
+                size: 24.0,
+                color: iconColor,
+              ),
             ),
             const SizedBox(width: 16.0),
 

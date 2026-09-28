@@ -59,10 +59,10 @@ class ResepMpasiModel {
       return str.isEmpty
           ? []
           : str
-              .split('\n')
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
+                .split('\n')
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .toList();
     }
 
     String usia = (map['kategori_usia'] as String?) ?? '';
@@ -93,7 +93,6 @@ class ResepMpasiModel {
     );
   }
 
-
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,
@@ -116,7 +115,8 @@ class ResepMpasiModel {
 
   /// Factory dari dokumen Firestore (collection `resep_mpasi`).
   factory ResepMpasiModel.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc) {
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final d = doc.data() ?? <String, dynamic>{};
 
     List<String> list(dynamic v) =>
@@ -274,9 +274,7 @@ class ResepMpasiModel {
         '1 cm kunyit & 1 cm jahe (halus)',
       ],
       bahanPelapis: [],
-      buah: [
-        '50 gr buah pepaya manis matang, haluskan',
-      ],
+      buah: ['50 gr buah pepaya manis matang, haluskan'],
       caraMembuat: [
         'Panaskan minyak, tumis bumbu halus bersama daun salam, sereh, dan daun jeruk hingga harum.',
         'Masukkan daging ayam cincang, tumis hingga berubah warna menjadi matang.',
@@ -313,9 +311,7 @@ class ResepMpasiModel {
         '2 siung bawang merah & 2 siung bawang putih (halus)',
       ],
       bahanPelapis: [],
-      buah: [
-        '50 gr buah alpukat matang, kerok lumat',
-      ],
+      buah: ['50 gr buah alpukat matang, kerok lumat'],
       caraMembuat: [
         'Panaskan minyak kelapa, tumis bumbu halus bersama daun salam dan sereh hingga harum.',
         'Masukkan daging ayam cincang, aduk hingga berubah warna.',
@@ -351,9 +347,7 @@ class ResepMpasiModel {
         '1 siung bawang putih & 1 siung bawang merah, cincang halus',
       ],
       bahanPelapis: [],
-      buah: [
-        '60 gr buah pepaya matang, potong dadu kecil',
-      ],
+      buah: ['60 gr buah pepaya matang, potong dadu kecil'],
       caraMembuat: [
         'Siapkan mangkuk tahan panas khusus tim makanan bayi.',
         'Masukkan nasi putih, ikan tuna cincang halus, telur puyuh rebus cincang, dan minyak kelapa ke dalam mangkuk.',
@@ -387,9 +381,7 @@ class ResepMpasiModel {
         '1 sdt minyak kelapa untuk mengoles wadah cetakan kukus',
       ],
       bahanPelapis: [],
-      buah: [
-        '60 gr buah melon manis, potong dadu kecil lembut',
-      ],
+      buah: ['60 gr buah melon manis, potong dadu kecil lembut'],
       caraMembuat: [
         'Rebus mie dalam air mendidih hingga lunak matang, tiriskan lalu potong pendek agar mudah dikunyah bayi 9-11 bulan.',
         'Campurkan mie rebus dengan wortel parut, keju parut, daun bawang, bumbu halus, dan telur ayam kocok hingga rata.',
@@ -426,9 +418,7 @@ class ResepMpasiModel {
         '1 siung bawang merah & 1 siung bawang putih, cincang halus',
       ],
       bahanPelapis: [],
-      buah: [
-        '50 gr buah naga merah manis, potong kecil',
-      ],
+      buah: ['50 gr buah naga merah manis, potong kecil'],
       caraMembuat: [
         'Panaskan minyak kelapa, tumis bawang merah dan bawang putih cincang hingga harum.',
         'Masukkan daging sapi cincang dan udang cincang, aduk hingga berubah warna dan matang gurih.',
@@ -481,7 +471,7 @@ class ResepMpasiModel {
 
     // 8. Resep 8 (24+ bulan)
     ResepMpasiModel(
-      id: 8,
+      id: 'resep_8',
       judul: 'Bubur Kacang Hijau Santan Pandan',
       kategoriUsia: '24+ bulan',
       tanggal: '26 Agustus 2026',
@@ -502,9 +492,7 @@ class ResepMpasiModel {
         '30 ml santan kental untuk taburan sajian',
       ],
       bahanPelapis: [],
-      buah: [
-        '1 buah pisang ambon matang, potong dadu kecil',
-      ],
+      buah: ['1 buah pisang ambon matang, potong dadu kecil'],
       caraMembuat: [
         'Cuci bersih kacang hijau yang telah direndam, tiriskan dari air rendaman.',
         'Rebus kacang hijau bersama 200 ml air dalam panci hingga kacang pecah mekar dan empuk (sekitar 20-25 menit).',
@@ -518,7 +506,7 @@ class ResepMpasiModel {
 
     // 9. Resep 9 (6-8 bulan)
     ResepMpasiModel(
-      id: 9,
+      id: 'resep_9',
       judul: 'Bubur Labu Kuning Ikan Salmon',
       kategoriUsia: '6-8 bulan',
       tanggal: '26 Agustus 2026',
@@ -554,7 +542,7 @@ class ResepMpasiModel {
 
     // 10. Resep 10 (12-23 bulan)
     ResepMpasiModel(
-      id: 10,
+      id: 'resep_10',
       judul: 'Perkedel Tahu Tempe Wortel',
       kategoriUsia: '12-23 bulan',
       tanggal: '26 Agustus 2026',
@@ -577,9 +565,7 @@ class ResepMpasiModel {
         '3 sdm minyak kelapa untuk menggoreng atau memanggang',
       ],
       bahanPelapis: [],
-      buah: [
-        '1 buah tomat merah segar matang, potong kecil dan sajikan segar',
-      ],
+      buah: ['1 buah tomat merah segar matang, potong kecil dan sajikan segar'],
       caraMembuat: [
         'Campurkan tahu halus, tempe kukus halus, dan wortel parut ke dalam satu wadah besar.',
         'Masukkan tepung terigu, kocokan telur, seledri, daun bawang, dan bumbu halus. Aduk merata hingga adonan bisa dibentuk.',

@@ -23,6 +23,7 @@ import '../../../shared/widgets/pedia_banner.dart';
 /// - Validasi Nama Lengkap (hanya huruf, kapitalisasi otomatis tiap kata)
 /// - Date Picker visual dengan rentang 0-5 tahun & kalkulasi usia otomatis
 /// - Radio Jenis Kelamin (Laki-laki = Biru, Perempuan = Pink)
+/// - Foto Si Kecil (Data Kelahiran) dengan dashed rounded box
 /// - Radio Status Prematur (Ya/Tidak) dengan field usia kehamilan dinamis
 /// - Input numerik desimal: Berat Badan, Tinggi Badan, Lingkar Kepala lahir
 /// - Peringatan rentang wajar (warning amber) non-blocking
@@ -57,10 +58,12 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // Controllers
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
-  final TextEditingController _usiaKehamilanController = TextEditingController();
+  final TextEditingController _usiaKehamilanController =
+      TextEditingController();
   final TextEditingController _beratBadanController = TextEditingController();
   final TextEditingController _tinggiBadanController = TextEditingController();
-  final TextEditingController _lingkarKepalaController = TextEditingController();
+  final TextEditingController _lingkarKepalaController =
+      TextEditingController();
   final TextEditingController _alergiController = TextEditingController();
 
   // FocusNodes
@@ -80,6 +83,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
   // State foto
   String? _fotoProfilPath;
+  String? _fotoKelahiranPath;
 
   // State error message manual untuk radio / date
   String? _namaError;
@@ -144,8 +148,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     final val = double.tryParse(text);
     if (val != null && (val < 0.5 || val > 7.0)) {
       if (_beratBadanWarning == null) {
-        setState(() => _beratBadanWarning =
-            'Nilai ini di luar rentang umum, mohon periksa kembali');
+        setState(
+          () => _beratBadanWarning =
+              'Nilai ini di luar rentang umum, mohon periksa kembali',
+        );
       }
     } else {
       if (_beratBadanWarning != null) {
@@ -157,14 +163,17 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   void _checkTinggiBadanRange() {
     final text = _tinggiBadanController.text.trim();
     if (text.isEmpty) {
-      if (_tinggiBadanWarning != null) setState(() => _tinggiBadanWarning = null);
+      if (_tinggiBadanWarning != null)
+        setState(() => _tinggiBadanWarning = null);
       return;
     }
     final val = double.tryParse(text);
     if (val != null && (val < 20.0 || val > 60.0)) {
       if (_tinggiBadanWarning == null) {
-        setState(() => _tinggiBadanWarning =
-            'Nilai ini di luar rentang umum, mohon periksa kembali');
+        setState(
+          () => _tinggiBadanWarning =
+              'Nilai ini di luar rentang umum, mohon periksa kembali',
+        );
       }
     } else {
       if (_tinggiBadanWarning != null) {
@@ -184,8 +193,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     final val = double.tryParse(text);
     if (val != null && (val < 20.0 || val > 40.0)) {
       if (_lingkarKepalaWarning == null) {
-        setState(() => _lingkarKepalaWarning =
-            'Nilai ini di luar rentang umum, mohon periksa kembali');
+        setState(
+          () => _lingkarKepalaWarning =
+              'Nilai ini di luar rentang umum, mohon periksa kembali',
+        );
       }
     } else {
       if (_lingkarKepalaWarning != null) {
@@ -205,8 +216,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     final val = int.tryParse(text);
     if (val != null && (val < 20 || val > 42)) {
       if (_usiaKehamilanWarning == null) {
-        setState(() => _usiaKehamilanWarning =
-            'Nilai ini di luar rentang umum (20-42 minggu), mohon periksa kembali');
+        setState(
+          () => _usiaKehamilanWarning = 'Nilai ini di luar rentang umum (20-42 minggu), mohon periksa kembali',
+        );
       }
     } else {
       if (_usiaKehamilanWarning != null) {
@@ -223,6 +235,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         _selectedBirthDate == null &&
         _selectedGender == null &&
         _fotoProfilPath == null &&
+        _fotoKelahiranPath == null &&
         _isPremature == null &&
         _usiaKehamilanController.text.trim().isEmpty &&
         _beratBadanController.text.trim().isEmpty &&
@@ -247,9 +260,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const BerandaPage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const BerandaPage()));
     }
   }
 
@@ -259,7 +272,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       barrierDismissible: false,
       builder: (dialogCtx) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -392,7 +407,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isBirthPhoto ? 'Unggah Foto Si Kecil' : 'Unggah Foto Profil Anak',
+                  isBirthPhoto
+                      ? 'Unggah Foto Si Kecil'
+                      : 'Unggah Foto Profil Anak',
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -423,7 +440,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   ),
                   onTap: () {
                     Navigator.of(sheetCtx).pop();
-                    _pickAndValidateImage(ImageSource.gallery, isBirthPhoto: isBirthPhoto);
+                    _pickAndValidateImage(
+                      ImageSource.gallery,
+                      isBirthPhoto: isBirthPhoto,
+                    );
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
@@ -450,7 +470,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   ),
                   onTap: () {
                     Navigator.of(sheetCtx).pop();
-                    _pickAndValidateImage(ImageSource.camera, isBirthPhoto: isBirthPhoto);
+                    _pickAndValidateImage(
+                      ImageSource.camera,
+                      isBirthPhoto: isBirthPhoto,
+                    );
                   },
                 ),
               ],
@@ -461,8 +484,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     );
   }
 
-  Future<void> _pickAndValidateImage(ImageSource source,
-      {required bool isBirthPhoto}) async {
+  Future<void> _pickAndValidateImage(
+    ImageSource source, {
+    required bool isBirthPhoto,
+  }) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
@@ -485,8 +510,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       // Validasi format file (jpg, jpeg, png)
       final ext = pickedFile.path.split('.').last.toLowerCase();
       if (!['jpg', 'jpeg', 'png'].contains(ext)) {
-        _showBanner('Format foto tidak didukung, gunakan JPG atau PNG',
-            isError: true);
+        _showBanner(
+          'Format foto tidak didukung, gunakan JPG atau PNG',
+          isError: true,
+        );
         return;
       }
 
@@ -519,7 +546,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       barrierDismissible: false,
       builder: (ctx) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(18.0),
@@ -549,7 +578,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                       child: OutlinedButton(
                         onPressed: () {
                           Navigator.of(ctx).pop();
-                          _pickAndValidateImage(source, isBirthPhoto: isBirthPhoto);
+                          _pickAndValidateImage(
+                            source,
+                            isBirthPhoto: isBirthPhoto,
+                          );
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -576,7 +608,11 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         onPressed: () {
                           Navigator.of(ctx).pop();
                           setState(() {
-                            _fotoProfilPath = file.path;
+                            if (isBirthPhoto) {
+                              _fotoKelahiranPath = file.path;
+                            } else {
+                              _fotoProfilPath = file.path;
+                            }
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -796,7 +832,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     }
 
     // 2. Tanggal Lahir
-    if (_selectedBirthDate == null || _birthDateController.text.trim().isEmpty) {
+    if (_selectedBirthDate == null ||
+        _birthDateController.text.trim().isEmpty) {
       dateErr = 'Tanggal lahir wajib diisi';
       firstErrorKey ??= _tanggalLahirKey;
     }
@@ -839,8 +876,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     if (_hasAllergies == null) {
       alergiErr = 'Status alergi wajib dipilih';
       firstErrorKey ??= _alergiKey;
-    } else if (_hasAllergies == true &&
-        _alergiController.text.trim().isEmpty) {
+    } else if (_hasAllergies == true && _alergiController.text.trim().isEmpty) {
       alergiDetailErr = 'Alergi wajib disebutkan minimal satu';
       firstErrorKey ??= _alergiDetailKey;
     }
@@ -895,6 +931,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         heightCm: height,
         headCircumferenceCm: headCirc,
         photoUrl: _fotoProfilPath,
+        birthPhotoUrl: _fotoKelahiranPath,
         isPremature: _isPremature,
         gestationalAgeWeeks: gestWeeks,
         hasAllergies: _hasAllergies,
@@ -907,7 +944,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       if (!mounted) return;
 
       setState(() => _isSaving = false);
-
 
       // Arahkan ke Beranda dengan flag notifikasi sukses
       Navigator.of(context).pushAndRemoveUntil(
@@ -924,11 +960,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   }
 
   void _showBanner(String message, {bool isError = false}) {
-    PediaBanner.show(
-      context,
-      message: message,
-      isError: isError,
-    );
+    PediaBanner.show(context, message: message, isError: isError);
   }
 
   // ---------------------------------------------------------------------------
@@ -989,6 +1021,25 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         Container(key: _genderKey),
                         _buildJenisKelaminSection(),
                         const SizedBox(height: 18),
+
+                        // Divider tipis pemisah data kelahiran
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                        const SizedBox(height: 18),
+
+                        // Section: Data Kelahiran
+                        Text(
+                          'Data Kelahiran',
+                          style: GoogleFonts.lato(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Foto Si Kecil
+                        _buildFotoSiKecilSection(),
+                        const SizedBox(height: 14),
 
                         // Apakah Anak Anda Lahir Prematur?*
                         Container(key: _prematurKey),
@@ -1055,9 +1106,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       width: double.infinity,
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1204,11 +1253,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.cake_outlined,
-            size: 18,
-            color: Color(0xFF3985E7),
-          ),
+          const Icon(Icons.cake_outlined, size: 18, color: Color(0xFF3985E7)),
           const SizedBox(width: 8),
           Text(
             'Usia saat ini: ',
@@ -1430,6 +1475,128 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // FOTO SI KECIL (DATA KELAHIRAN)
+  // ---------------------------------------------------------------------------
+  Widget _buildFotoSiKecilSection() {
+    final hasPhoto = _fotoKelahiranPath != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Foto Si Kecil',
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 6),
+        if (!hasPhoto)
+          GestureDetector(
+            onTap: () => _showImagePickerModal(isBirthPhoto: true),
+            child: CustomPaint(
+              painter: _DashedRRectPainter(
+                color: const Color(0xFF3985E7),
+                radius: 10,
+                strokeWidth: 1.5,
+                dashLength: 6,
+                dashSpace: 4,
+              ),
+              child: Container(
+                width: double.infinity,
+                height: 48,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add, color: Color(0xFF3985E7), size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      '+ Unggah Foto',
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF3985E7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _openFullScreenPhoto(
+                    _fotoKelahiranPath!,
+                    'foto_si_kecil_preview',
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Hero(
+                      tag: 'foto_si_kecil_preview',
+                      child: Image.file(
+                        File(_fotoKelahiranPath!),
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Foto Kelahiran Terpilih',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      Text(
+                        'Ketuk untuk melihat ukuran penuh',
+                        style: GoogleFonts.lato(
+                          fontSize: 11,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _showImagePickerModal(isBirthPhoto: true),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  child: Text(
+                    'Ubah',
+                    style: GoogleFonts.lato(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF3985E7),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -1941,7 +2108,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
       _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
+      _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
     ];
 
     return Container(
@@ -1979,7 +2146,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   break;
                 case 2:
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+                    MaterialPageRoute(
+                      builder: (_) => const DaftarRiwayatPage(),
+                    ),
                   );
                   break;
                 case 3:
@@ -2064,10 +2233,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.lato(
-        fontSize: 14,
-        color: const Color(0xFF94A3B8),
-      ),
+      hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       suffixIcon: suffixIcon != null
           ? Icon(suffixIcon, size: 20, color: const Color(0xFF64748B))
@@ -2100,7 +2266,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         borderSide: BorderSide(
           color: hasError
               ? const Color(0xFFEF4444)
-              : (hasWarning ? const Color(0xFFF59E0B) : const Color(0xFF3985E7)),
+              : (hasWarning
+                    ? const Color(0xFFF59E0B)
+                    : const Color(0xFF3985E7)),
           width: 1.5,
         ),
       ),
@@ -2161,7 +2329,9 @@ class _DashedCirclePainter extends CustomPainter {
       final sweepAngle = adjustedDashLength / radius;
       canvas.drawArc(
         Rect.fromCircle(
-            center: Offset(radius, radius), radius: radius - strokeWidth / 2),
+          center: Offset(radius, radius),
+          radius: radius - strokeWidth / 2,
+        ),
         currentAngle,
         sweepAngle,
         false,
@@ -2174,4 +2344,61 @@ class _DashedCirclePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOM PAINTER: DASHED ROUNDED RECTANGLE BORDER
+// ---------------------------------------------------------------------------
+class _DashedRRectPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+  final double strokeWidth;
+  final double dashLength;
+  final double dashSpace;
+
+  _DashedRRectPainter({
+    required this.color,
+    required this.radius,
+    required this.strokeWidth,
+    required this.dashLength,
+    required this.dashSpace,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
+      Radius.circular(radius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final pathMetrics = path.computeMetrics();
+
+    for (final metric in pathMetrics) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        final nextDistance = distance + dashLength;
+        final extractPath = metric.extractPath(
+          distance,
+          nextDistance > metric.length ? metric.length : nextDistance,
+        );
+        canvas.drawPath(extractPath, paint);
+        distance += dashLength + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedRRectPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.radius != radius;
 }
