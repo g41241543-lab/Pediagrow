@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+export '../../../../pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
+
+import '../../../../pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
+
+/// Alias untuk DaftarArtikelAdminPage yang merujuk pada [DaftarArtikelPage].
+typedef DaftarArtikelAdminPage = DaftarArtikelPage;
+=======
 import 'package:flutter/material.dart';
 
 /// Halaman Daftar Artikel Kesehatan Admin — stub, implementasi menyusul.
@@ -12,3 +20,4 @@ class DaftarArtikelAdminPage extends StatelessWidget {
     );
   }
 }
+>>>>>>> 419aebc7bec47aabf01e7de66fd53ad7aaf5f380
