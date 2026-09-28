@@ -111,8 +111,10 @@ class StaffAuthService {
     }
   }
 
-  /// Dipanggil oleh Superadmin untuk membuat akun Admin/Dokter baru.
-  Future<bool> createStaffAccount({
+  /// Dipanggil oleh Superadmin untuk membuat akun PMIK (admin) atau Dokter baru.
+  /// Mengembalikan ID akun baru, atau null kalau gagal
+  /// (email sudah dipakai, atau mencoba membuat superadmin tambahan).
+  Future<String?> createStaffAccount({
     required String name,
     required String email,
     required String password,
@@ -121,7 +123,7 @@ class StaffAuthService {
   }) async {
     try {
       // Cegah pembuatan superadmin tambahan — hanya boleh ada 1 superadmin
-      if (role == StaffRole.superadmin) return false;
+      if (role == StaffRole.superadmin) return null;
 
       final normalizedEmail = email.trim().toLowerCase();
 
@@ -130,9 +132,9 @@ class StaffAuthService {
           .where('email', isEqualTo: normalizedEmail)
           .limit(1)
           .get();
-      if (existing.docs.isNotEmpty) return false;
+      if (existing.docs.isNotEmpty) return null;
 
-      await _db
+      final ref = await _db
           .collection(_collection)
           .add(
             StaffAccount(
@@ -145,10 +147,10 @@ class StaffAuthService {
               createdAt: DateTime.now(),
             ).toMap(),
           );
-      return true;
+      return ref.id;
     } catch (e) {
       debugPrint('[StaffAuthService] createStaffAccount error: $e');
-      return false;
+      return null;
     }
   }
 
