@@ -344,31 +344,9 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
             const SizedBox(height: 16.0),
 
-            // 3. KONTEN UTAMA (DAFTAR ARTIKEL ATAU EMPTY STATE) DENGAN ILUSTRASI DI DASAR SEPERTI HALAMAN ARTIKEL PENGGUNA
+            // 3. KONTEN UTAMA (Daftar Kartu Artikel yang dapat di-scroll dan Ilustrasi di bawah artikel)
             Expanded(
-              child: Stack(
-                children: [
-                  // Ilustrasi lanskap alam kumpulan pohon, tenda & rumput tepat di atas dashboard footer
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: IgnorePointer(
-                      child: IllustrationForestFooter(
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ),
-                  ),
-
-                  // Konten scrollable di atas ilustrasi
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: _buildBodyContent(),
-                    ),
-                  ),
-                ],
-              ),
+              child: _buildBodyContent(),
             ),
           ],
         ),
@@ -534,33 +512,55 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       return _buildEmptyState();
     }
 
-    // Daftar Kartu Artikel yang dapat di-scroll vertikal
-    return ListView.separated(
+    // Daftar Kartu Artikel yang dapat di-scroll vertikal dengan ilustrasi di bagian paling bawah
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: 4.0, bottom: 48.0),
-      itemCount: _filteredArticles.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16.0),
-      itemBuilder: (context, index) {
-        final artikel = _filteredArticles[index];
-        return _buildArticleCard(artikel);
-      },
+      slivers: [
+        // Daftar kartu artikel dengan padding horizontal 16dp
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final artikel = _filteredArticles[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: _buildArticleCard(artikel),
+                );
+              },
+              childCount: _filteredArticles.length,
+            ),
+          ),
+        ),
+
+        // Ilustrasi pemandangan pohon, tenda & bukit tepat di bawah seluruh artikel
+        // (menyesuaikan jumlah artikel, ikut ter-scroll, dan maksimal scroll berada di paling bawah)
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(top: 8.0, bottom: 20.0),
+            child: IllustrationForestFooter(
+              fit: BoxFit.fitWidth,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  /// Kartu Artikel mengikuti acuan desain:
-  /// - Sudut rounded, border tipis abu muda, shadow halus
-  /// - Thumbnail dengan sudut rounded di sebelah kiri
-  /// - Judul artikel tebal hitam (maksimal 4 baris, ellipsis)
-  /// - Informasi meta: ikon jam, teks "Artikel", tag/kategori dipisah titik (warna #C5C5C5)
+  /// Kartu Artikel mengikuti acuan desain dan seragam dengan kartu Resep MPASI:
+  /// - Sudut rounded 18dp, border tipis abu muda, shadow halus
+  /// - Thumbnail berukuran 124x84dp dengan rounded 18dp
+  /// - Judul artikel tebal hitam (Lato 16sp bold, max 3 baris dengan ellipsis)
+  /// - Informasi meta: ikon jam, teks "Artikel", tag/kategori dipisah titik (Lato 12sp #A0A0A0)
   /// - Garis pemisah horizontal tipis
-  /// - Tanggal artikel di kiri (#C5C5C5)
-  /// - Tombol hapus (background & border merah muda, icon tempat sampah merah)
-  /// - Tombol edit (background & border biru muda, icon pensil biru)
+  /// - Tanggal artikel di kiri (Lato 12sp #A0A0A0)
+  /// - Tombol hapus (background & border merah muda, ikon tempat sampah merah)
+  /// - Tombol edit (background & border biru muda, ikon pensil biru)
   Widget _buildArticleCard(ArtikelModel artikel) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(18.0),
         border: Border.all(
           color: const Color(0xFFE5E7EB),
           width: 1.0,
@@ -582,7 +582,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Thumbnail foto artikel dengan sudut rounded
+                // Thumbnail foto artikel berukuran seragam 124x84dp dengan sudut rounded 18dp
                 _buildThumbnail(artikel),
                 const SizedBox(width: 14.0),
 
@@ -591,13 +591,13 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Judul artikel (maksimal 4 baris, ellipsis)
+                      // Judul artikel (Lato 16sp bold hitam, maksimal 3 baris dengan ellipsis)
                       Text(
                         artikel.judul,
-                        maxLines: 4,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
-                          fontSize: 15.0,
+                          fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                           height: 1.25,
@@ -605,14 +605,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                       ),
                       const SizedBox(height: 8.0),
 
-                      // Informasi Meta (Ikon jam + "Artikel • ...") warna #C5C5C5
+                      // Informasi Meta (Ikon jam + "Artikel • ...") warna #A0A0A0
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Icon(
                             Icons.access_time_rounded,
                             size: 14.0,
-                            color: _colorLightGray,
+                            color: Color(0xFFA0A0A0),
                           ),
                           const SizedBox(width: 5.0),
                           Expanded(
@@ -622,7 +622,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.lato(
                                 fontSize: 12.0,
-                                color: _colorLightGray,
+                                color: const Color(0xFFA0A0A0),
                                 fontWeight: FontWeight.normal,
                               ),
                             ),
@@ -650,19 +650,19 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Tanggal Artikel (warna #C5C5C5)
+                // Tanggal Artikel (Lato 12sp warna #A0A0A0)
                 Expanded(
                   child: Text(
                     artikel.tanggal,
                     style: GoogleFonts.lato(
-                      fontSize: 13.0,
-                      color: _colorLightGray,
+                      fontSize: 12.0,
+                      color: const Color(0xFFA0A0A0),
                       fontWeight: FontWeight.normal,
                     ),
                   ),
                 ),
 
-                // Tombol Hapus & Tombol Edit
+                // Tombol Hapus & Tombol Edit seragam dan proporsional
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -673,8 +673,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                         onTap: () => _confirmDeleteArtikel(artikel),
                         borderRadius: BorderRadius.circular(8.0),
                         child: Container(
-                          width: 36.0,
-                          height: 36.0,
+                          width: 34.0,
+                          height: 34.0,
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFEBEE),
                             borderRadius: BorderRadius.circular(8.0),
@@ -687,12 +687,12 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                           child: const Icon(
                             Icons.delete_outline_rounded,
                             color: Color(0xFFE53935),
-                            size: 20.0,
+                            size: 18.0,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10.0),
+                    const SizedBox(width: 8.0),
 
                     // Tombol Edit (background & border biru muda, ikon pensil biru)
                     Material(
@@ -701,8 +701,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                         onTap: () => _navigateToEditArtikel(artikel),
                         borderRadius: BorderRadius.circular(8.0),
                         child: Container(
-                          width: 36.0,
-                          height: 36.0,
+                          width: 34.0,
+                          height: 34.0,
                           decoration: BoxDecoration(
                             color: const Color(0xFFE3F2FD),
                             borderRadius: BorderRadius.circular(8.0),
@@ -715,7 +715,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                           child: const Icon(
                             Icons.edit_outlined,
                             color: Color(0xFF1E88E5),
-                            size: 20.0,
+                            size: 18.0,
                           ),
                         ),
                       ),
@@ -741,11 +741,11 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     return buffer.toString();
   }
 
-  /// Thumbnail gambar dengan sudut rounded dan fallback placeholder
+  /// Thumbnail gambar seragam dengan Resep MPASI (124x84dp, rounded 18dp)
   Widget _buildThumbnail(ArtikelModel artikel) {
-    const double width = 112.0;
-    const double height = 82.0;
-    const double radius = 12.0;
+    const double width = 124.0;
+    const double height = 84.0;
+    const double radius = 18.0;
 
     final image = artikel.displayImage;
 
@@ -792,48 +792,64 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   }
 
   /// Empty State: Menampilkan teks pesan saat belum ada artikel / hasil cari nihil
+  /// dengan ilustrasi yang berada di bagian bawah
   Widget _buildEmptyState() {
     final isSearching = _searchController.text.trim().isNotEmpty;
 
-    return Center(
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 24.0, left: 24.0, right: 24.0, bottom: 80.0),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isSearching ? Icons.search_off_rounded : Icons.article_outlined,
-                size: 54.0,
-                color: _colorLightGray,
-              ),
-              const SizedBox(height: 14.0),
-              Text(
-                isSearching ? 'Artikel tidak ditemukan' : 'Belum ada artikel',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF334155),
+              const Spacer(flex: 2),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isSearching ? Icons.search_off_rounded : Icons.article_outlined,
+                      size: 54.0,
+                      color: _colorLightGray,
+                    ),
+                    const SizedBox(height: 14.0),
+                    Text(
+                      isSearching ? 'Artikel tidak ditemukan' : 'Belum ada artikel',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.lato(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(height: 6.0),
+                    Text(
+                      isSearching
+                          ? 'Tidak ada artikel yang sesuai dengan kata kunci "${_searchController.text.trim()}".'
+                          : 'Belum ada artikel yang ditambahkan. Gunakan tombol (+) di atas untuk menambahkan artikel baru.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.lato(
+                        fontSize: 13.0,
+                        color: _colorDarkGray,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6.0),
-              Text(
-                isSearching
-                    ? 'Tidak ada artikel yang sesuai dengan kata kunci "${_searchController.text.trim()}".'
-                    : 'Belum ada artikel yang ditambahkan. Gunakan tombol (+) di atas untuk menambahkan artikel baru.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.lato(
-                  fontSize: 13.0,
-                  color: _colorDarkGray,
-                  height: 1.4,
+              const Spacer(flex: 3),
+              const Padding(
+                padding: EdgeInsets.only(top: 16.0, bottom: 20.0),
+                child: IllustrationForestFooter(
+                  fit: BoxFit.fitWidth,
                 ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
