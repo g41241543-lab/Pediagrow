@@ -1,20 +1,19 @@
-<<<<<<< HEAD
 import 'doctor_permissions.dart';
 
 /// Peran (role) untuk akun staff internal PediaGrow.
-=======
-/// Peran untuk akun staff internal PediaGrow.
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 ///
 /// Akun staff internal hanya dapat dibuat oleh
 /// PMIK Superadmin dan tidak memiliki pendaftaran mandiri.
 enum StaffRole {
+  superadmin,
   admin, // PMIK
   dokter;
 
   /// Label tampilan yang enak dibaca untuk UI.
   String get label {
     switch (this) {
+      case StaffRole.superadmin:
+        return 'Superadmin';
       case StaffRole.admin:
         return 'PMIK';
       case StaffRole.dokter:
@@ -74,12 +73,7 @@ enum PmikLevel {
   }
 }
 
-/// Model data untuk satu akun staff.
-///
-/// Staff dapat berupa:
-/// - PMIK biasa
-/// - PMIK Superadmin
-/// - Dokter
+/// Model data untuk satu akun staff (superadmin/admin/dokter).
 class StaffAccount {
   final String id;
   final String name;
@@ -87,10 +81,7 @@ class StaffAccount {
   final String passwordHash;
   final StaffRole role;
 
-  /// Hanya digunakan untuk role PMIK.
-  ///
-  /// Untuk dokter nilainya PmikLevel.biasa secara default
-  /// dan tidak digunakan sebagai hak akses PMIK.
+  /// Tingkat PMIK (biasa atau superadmin).
   final PmikLevel pmikLevel;
 
   final String createdBy;
@@ -127,12 +118,11 @@ class StaffAccount {
   bool get isPmik => role == StaffRole.admin;
 
   /// Apakah akun ini merupakan PMIK Superadmin?
-  bool get isPmikSuperadmin =>
-      role == StaffRole.admin && pmikLevel == PmikLevel.superadmin;
+  bool get isPmikSuperadmin => isSuperAdmin;
 
   /// Apakah akun ini merupakan PMIK biasa?
   bool get isPmikBiasa =>
-      role == StaffRole.admin && pmikLevel == PmikLevel.biasa;
+      role == StaffRole.admin && !isSuperAdmin;
 
   /// Apakah akun ini merupakan dokter?
   bool get isDokter => role == StaffRole.dokter;
@@ -167,17 +157,19 @@ class StaffAccount {
       addInfo = Map<String, dynamic>.from(map['additionalInfo'] as Map);
     }
 
+    final rawPmikLevel = map['pmikLevel'] as String?;
+    final defaultPmikLevel =
+        (role == StaffRole.superadmin) ? PmikLevel.superadmin : PmikLevel.biasa;
+
     return StaffAccount(
       id: id,
       name: map['name'] as String? ?? '',
       email: map['email'] as String? ?? '',
       passwordHash: map['passwordHash'] as String? ?? '',
-<<<<<<< HEAD
       role: role,
-=======
-      role: StaffRole.fromString(map['role'] as String? ?? 'dokter'),
-      pmikLevel: PmikLevel.fromString(map['pmikLevel'] as String? ?? 'biasa'),
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
+      pmikLevel: rawPmikLevel != null
+          ? PmikLevel.fromString(rawPmikLevel)
+          : defaultPmikLevel,
       createdBy: map['createdBy'] as String? ?? '',
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt'] as String)
@@ -220,6 +212,7 @@ class StaffAccount {
     String? email,
     String? passwordHash,
     StaffRole? role,
+    PmikLevel? pmikLevel,
     String? createdBy,
     DateTime? createdAt,
     bool? isActive,
@@ -237,6 +230,7 @@ class StaffAccount {
       email: email ?? this.email,
       passwordHash: passwordHash ?? this.passwordHash,
       role: role ?? this.role,
+      pmikLevel: pmikLevel ?? this.pmikLevel,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
@@ -253,6 +247,7 @@ class StaffAccount {
   /// Cek apakah akun ini adalah Superadmin (baik dari role, email, atau hak_akses)
   bool get isSuperAdmin {
     if (role == StaffRole.superadmin) return true;
+    if (pmikLevel == PmikLevel.superadmin) return true;
     if (email.trim().toLowerCase().contains('superadmin')) return true;
     if (email.trim().toLowerCase() == 'superadmin@pediagrow.com') return true;
     if (permissions['hak_akses'] == true) return true;

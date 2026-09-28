@@ -35,6 +35,12 @@ class ArtikelModel {
     this.isiLengkap = '',
   });
 
+  /// Alias kompatibilitas untuk judul
+  String get title => judul;
+
+  /// Alias kompatibilitas untuk kategori
+  String get category => kategori;
+
   /// Mengembalikan gambar yang akan ditampilkan.
   /// Memprioritaskan gambar aset lokal, lalu URL remote.
   String? get displayImage =>

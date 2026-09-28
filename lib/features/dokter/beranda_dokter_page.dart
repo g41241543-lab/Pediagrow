@@ -558,7 +558,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    artikel.title ?? 'Artikel',
+                    artikel.judul,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.lato(
@@ -570,7 +570,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    artikel.category ?? '',
+                    artikel.kategori,
                     style: GoogleFonts.lato(
                       fontSize: 11,
                       color: const Color(0xFF3985E7),
