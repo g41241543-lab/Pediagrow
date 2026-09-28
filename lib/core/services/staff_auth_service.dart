@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/staff_account_model.dart';
+import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola login & akun staff internal
 /// (Superadmin, Admin/PMIK, Dokter) melalui Firestore.
@@ -147,6 +148,10 @@ class StaffAuthService {
               createdAt: DateTime.now(),
             ).toMap(),
           );
+      // Notifikasi otomatis ke superadmin (PMIK = role admin)
+      if (role == StaffRole.admin) {
+        await SuperadminNotificationService().notifyPmikTambah(name.trim());
+      }
       return ref.id;
     } catch (e) {
       debugPrint('[StaffAuthService] createStaffAccount error: $e');

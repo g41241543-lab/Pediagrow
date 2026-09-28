@@ -7,7 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
+import '../../../models/user_model.dart';
 import 'notifikasi_page.dart';
 import '../../../core/services/notification_service.dart';
 import '../profil_anak/tambah_anak_page.dart';
@@ -84,6 +86,8 @@ class _BerandaPageState extends State<BerandaPage> {
     _loadLatestArticles();
     _loadEducationalVideos();
     ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
+    UserService().init();
+    ChildService().loadChildrenForCurrentUser();
   }
 
   @override
@@ -366,16 +370,25 @@ class _BerandaPageState extends State<BerandaPage> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // "Hai, Susanti" (Lato Bold 24, #FFFFFF)
-                        Text(
-                          'Hai, Susanti',
-                          style: GoogleFonts.lato(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        // Sapaan pengguna dinamis sesuai database users
+                        Expanded(
+                          child: ValueListenableBuilder<UserModel>(
+                            valueListenable: UserService().currentUserNotifier,
+                            builder: (context, user, _) {
+                              return Text(
+                                'Hai, ${user.greetingName}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.lato(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         // Lingkaran Notifikasi (31×31, #FFFFFF, 12dp dari kanan) + badge angka
                         ValueListenableBuilder<int>(
                           valueListenable:
