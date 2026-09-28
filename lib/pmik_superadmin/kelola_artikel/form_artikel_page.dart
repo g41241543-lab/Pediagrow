@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/artikel_service.dart';
 import '../../../models/artikel_model.dart';
+import '../../../shared/widgets/article_rich_text_editor.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Form Artikel PMIK Superadmin untuk mode "Tambah Artikel" dan "Ubah Artikel".
@@ -39,7 +40,7 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
 
   late final TextEditingController _judulController;
   late final TextEditingController _penulisController;
-  late final TextEditingController _isiController;
+  late final RichTextEditingController _isiController;
 
   final FocusNode _judulFocusNode = FocusNode();
   final FocusNode _penulisFocusNode = FocusNode();
@@ -67,11 +68,11 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
     if (item != null) {
       // MODE UBAH: Isi otomatis foto dan seluruh konten artikel yang tersimpan
       _imagePath = item.displayImage;
-      _isiController = TextEditingController(text: _buildInitialContent(item));
+      _isiController = RichTextEditingController(text: _buildInitialContent(item));
     } else {
       // MODE TAMBAH: Form bersih/kosong
       _imagePath = null;
-      _isiController = TextEditingController();
+      _isiController = RichTextEditingController();
     }
   }
 
@@ -566,21 +567,35 @@ Referensi: Kemenkes RI, 2022''';
 
                       const SizedBox(height: 20.0),
 
-                      // Label & Field "Isi Artikel" (Besar, Scrollable, Border Putus-putus)
-                      Text(
-                        'Isi Artikel',
-                        style: GoogleFonts.lato(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                      // Label & Field "Isi Artikel" dengan Toolbar Rich Text (Bold, Italic, Underline)
+                      Row(
+                        children: [
+                          Text(
+                            'Isi Artikel',
+                            style: GoogleFonts.lato(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(width: 4.0),
+                          const Text(
+                            '*',
+                            style: TextStyle(
+                              color: Color(0xFFE53935),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.0,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6.0),
-                      _buildDashedTextArea(
+                      const SizedBox(height: 8.0),
+                      ArticleRichTextEditor(
                         controller: _isiController,
                         focusNode: _isiFocusNode,
-                        placeholder: 'Tuliskan isi artikel...',
+                        placeholder: 'Tulis isi artikel di sini...',
                         hasError: _isiError != null,
+                        minLines: 8,
                         onChanged: (val) {
                           if (_isiError != null && val.trim().isNotEmpty) {
                             setState(() => _isiError = null);

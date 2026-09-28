@@ -6,6 +6,10 @@ import '../../../models/artikel_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
+import '../../features/pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
+import '../../features/pmik_superadmin/profil/profil_superadmin_page.dart';
+import '../../features/pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'form_artikel_page.dart';
 
 /// Halaman "Daftar Artikel" untuk peran PMIK Superadmin pada aplikasi PediaGrow.
@@ -26,7 +30,8 @@ import 'form_artikel_page.dart';
 /// 5. Navigasi tambah artikel & edit artikel ke [FormArtikelPage].
 /// 6. Loading, empty state (teks "Belum ada artikel" & ilustrasi pohon, rumput, tenda),
 ///    serta error state dengan tombol coba lagi.
-/// 7. Bottom Navigation Bar konsisten menggunakan [PediaBottomNavBar] dengan sudut atas membulat.
+/// 7. Bottom Navigation Bar konsisten dengan dashboard beranda (bentuk, ukuran, font, ikon sama).
+/// 8. Ilustrasi kumpulan pohon dan lanskap alam di atas dashboard footer seperti di halaman artikel pengguna.
 class DaftarArtikelPage extends StatefulWidget {
   const DaftarArtikelPage({super.key});
 
@@ -320,7 +325,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // Bottom Navigation Bar konsisten PediaGrow dengan sudut atas membulat
+      // Bottom Navigation Bar konsisten dengan dashboard beranda (bentuk, ukuran, font, ikon)
       bottomNavigationBar: _buildBottomNavigationBar(),
       body: SafeArea(
         child: Column(
@@ -329,26 +334,40 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             // 1. Header (tinggi 56dp, back 12dp dari kiri, judul 12dp setelahnya, tombol plus 16dp dari kanan)
             _buildHeader(),
 
-            // Konten Utama di bawah header
+            const SizedBox(height: 12.0),
+
+            // 2. Search Bar Real-Time
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: _buildSearchBar(),
+            ),
+
+            const SizedBox(height: 16.0),
+
+            // 3. KONTEN UTAMA (DAFTAR ARTIKEL ATAU EMPTY STATE) DENGAN ILUSTRASI DI DASAR SEPERTI HALAMAN ARTIKEL PENGGUNA
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12.0),
+              child: Stack(
+                children: [
+                  // Ilustrasi lanskap alam kumpulan pohon, tenda & rumput tepat di atas dashboard footer
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: IgnorePointer(
+                      child: IllustrationForestFooter(
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                  ),
 
-                    // 2. Search Bar Real-Time
-                    _buildSearchBar(),
-
-                    const SizedBox(height: 16.0),
-
-                    // 3. Daftar Kartu Artikel / Loading / Empty / Error State
-                    Expanded(
+                  // Konten scrollable di atas ilustrasi
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: _buildBodyContent(),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -518,7 +537,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     // Daftar Kartu Artikel yang dapat di-scroll vertikal
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: 4.0, bottom: 24.0),
+      padding: const EdgeInsets.only(top: 4.0, bottom: 48.0),
       itemCount: _filteredArticles.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16.0),
       itemBuilder: (context, index) {
@@ -772,66 +791,49 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     );
   }
 
-  /// Empty State: Menampilkan teks "Belum ada artikel" dan ilustrasi alam pohon, rumput, tenda
+  /// Empty State: Menampilkan teks pesan saat belum ada artikel / hasil cari nihil
   Widget _buildEmptyState() {
     final isSearching = _searchController.text.trim().isNotEmpty;
 
-    return Stack(
-      children: [
-        // Pesan teks Empty State di tengah atas
-        Positioned.fill(
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 48.0, left: 24.0, right: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isSearching ? Icons.search_off_rounded : Icons.article_outlined,
-                    size: 54.0,
-                    color: _colorLightGray,
-                  ),
-                  const SizedBox(height: 14.0),
-                  Text(
-                    isSearching ? 'Artikel tidak ditemukan' : 'Belum ada artikel',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.lato(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF334155),
-                    ),
-                  ),
-                  const SizedBox(height: 6.0),
-                  Text(
-                    isSearching
-                        ? 'Tidak ada artikel yang sesuai dengan kata kunci "${_searchController.text.trim()}".'
-                        : 'Belum ada artikel yang ditambahkan. Gunakan tombol (+) di atas untuk menambahkan artikel baru.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.0,
-                      color: _colorDarkGray,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
+    return Center(
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 24.0, left: 24.0, right: 24.0, bottom: 80.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isSearching ? Icons.search_off_rounded : Icons.article_outlined,
+                size: 54.0,
+                color: _colorLightGray,
               ),
-            ),
+              const SizedBox(height: 14.0),
+              Text(
+                isSearching ? 'Artikel tidak ditemukan' : 'Belum ada artikel',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 6.0),
+              Text(
+                isSearching
+                    ? 'Tidak ada artikel yang sesuai dengan kata kunci "${_searchController.text.trim()}".'
+                    : 'Belum ada artikel yang ditambahkan. Gunakan tombol (+) di atas untuk menambahkan artikel baru.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 13.0,
+                  color: _colorDarkGray,
+                  height: 1.4,
+                ),
+              ),
+            ],
           ),
         ),
-
-        // Ilustrasi bergaya flat kumpulan pohon, rumput, dan tenda di dasar layar
-        const Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: IgnorePointer(
-            child: IllustrationForestFooter(
-              fit: BoxFit.fitWidth,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -885,24 +887,61 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     );
   }
 
-  /// Bottom Navigation Bar mengikuti komponen terpusat [PediaBottomNavBar]
-  /// dengan sudut bagian atas membulat sesuai desain referensi
+  /// Bottom Navigation Bar mengikuti ukuran, bentuk, font, dan icon dashboard beranda
   Widget _buildBottomNavigationBar() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20.0)),
-      child: PediaBottomNavBar(
-        selectedIndex: -1,
-        onNavTap: (index) {
-          // Menghubungkan menu navigasi jika dibuka dari role superadmin
-          switch (index) {
-            case 0:
-              Navigator.of(context).maybePop();
-              break;
-            default:
-              break;
-          }
-        },
-      ),
+    return PediaBottomNavBar(
+      selectedIndex: -1,
+      onNavTap: (index) {
+        // Navigasi menu superadmin sesuai dengan dashboard beranda
+        switch (index) {
+          case 0:
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            } else {
+              Navigator.of(context).pushAndRemoveUntil(
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const BerandaSuperadminPage(),
+                  transitionsBuilder: (_, animation, __, child) =>
+                      FadeTransition(opacity: animation, child: child),
+                  transitionDuration: const Duration(milliseconds: 200),
+                ),
+                (route) => false,
+              );
+            }
+            break;
+          case 1:
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const KonsultasiSuperadminPage(),
+                transitionsBuilder: (_, animation, __, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 200),
+              ),
+            );
+            break;
+          case 2:
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) =>
+                    const DaftarRiwayatKonsultasiAdminPage(),
+                transitionsBuilder: (_, animation, __, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 200),
+              ),
+            );
+            break;
+          case 3:
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const ProfilSuperadminPage(),
+                transitionsBuilder: (_, animation, __, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 200),
+              ),
+            );
+            break;
+        }
+      },
     );
   }
 }
