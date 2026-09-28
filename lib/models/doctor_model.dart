@@ -1,8 +1,9 @@
+import 'doctor_permissions.dart';
+
 /// Model data untuk profil dokter pada fitur konsultasi PediaGrow.
 ///
 /// Data dokter ditentukan oleh Superadmin dan disimpan di Firestore.
-/// DoctorModel hanya bertugas merepresentasikan data dokter yang
-/// berasal dari Firestore.
+/// DoctorModel merepresentasikan data dokter yang berasal dari Firestore.
 class DoctorModel {
   /// ID dokumen dokter di Firestore.
   final String id;
@@ -13,7 +14,7 @@ class DoctorModel {
   /// Spesialisasi dokter.
   final String specialization;
 
-  /// URL foto dokter dari storage/cloud.
+  /// URL foto dokter dari storage/cloud atau path file lokal.
   final String? avatarUrl;
 
   /// Path gambar dokter jika menggunakan asset aplikasi.
@@ -40,6 +41,12 @@ class DoctorModel {
   /// ID akun staff dokter.
   final String staffAccountId;
 
+  /// Email dokter untuk kontak & akun staff login
+  final String? email;
+
+  /// Hak akses dokter yang diatur superadmin
+  final Map<String, bool> permissions;
+
   const DoctorModel({
     required this.id,
     required this.name,
@@ -53,6 +60,8 @@ class DoctorModel {
     this.consultationFee = 0,
     this.isOnline = true,
     this.staffAccountId = '',
+    this.email,
+    this.permissions = const {},
   });
 
   /// Mengambil daftar tempat praktik dokter.
@@ -61,8 +70,6 @@ class DoctorModel {
   /// 1. placesOfPractice jika tersedia.
   /// 2. hospital jika placesOfPractice kosong.
   /// 3. List kosong jika keduanya tidak tersedia.
-  ///
-  /// Tidak menggunakan data dokter default/dummy.
   List<String> get daftarTempatPraktik {
     if (placesOfPractice.isNotEmpty) {
       return placesOfPractice;
@@ -85,46 +92,45 @@ class DoctorModel {
           .map((item) => item.toString())
           .toList();
     }
-
-    // Fallback jika data lama menggunakan nama field
-    // 'tempat_praktik'.
+    // Fallback jika data lama menggunakan nama field 'tempat_praktik'.
     else if (map['tempat_praktik'] is List) {
       places = (map['tempat_praktik'] as List)
           .map((item) => item.toString())
           .toList();
     }
 
+    Map<String, bool> parsedPermissions = {};
+    if (map['permissions'] is Map) {
+      parsedPermissions = (map['permissions'] as Map).map(
+        (key, value) => MapEntry(key.toString(), value == true),
+      );
+    } else if (map['hak_akses'] is Map) {
+      parsedPermissions = (map['hak_akses'] as Map).map(
+        (key, value) => MapEntry(key.toString(), value == true),
+      );
+    } else {
+      parsedPermissions = DoctorPermissions.defaultPermissions;
+    }
+
     return DoctorModel(
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
-      specialization:
-          map['specialization']?.toString() ?? '',
-      avatarUrl:
-          map['avatar_url']?.toString(),
-      assetImagePath:
-          map['asset_image_path']?.toString(),
-      experienceYears:
-          (map['experience_years'] as num?)?.toInt() ?? 0,
-      strNumber:
-          map['str_number']?.toString(),
-      hospital:
-          map['hospital']?.toString(),
-      placesOfPractice:
-          places,
-      consultationFee:
-          (map['consultation_fee'] as num?)?.toInt() ?? 0,
-      isOnline:
-          map['is_online'] as bool? ?? false,
-      staffAccountId:
-          map['staff_account_id']?.toString() ?? '',
+      specialization: map['specialization']?.toString() ?? 'Spesialis Anak',
+      avatarUrl: map['avatar_url']?.toString(),
+      assetImagePath: map['asset_image_path']?.toString(),
+      experienceYears: (map['experience_years'] as num?)?.toInt() ?? 0,
+      strNumber: map['str_number']?.toString(),
+      hospital: map['hospital']?.toString(),
+      placesOfPractice: places,
+      consultationFee: (map['consultation_fee'] as num?)?.toInt() ?? 0,
+      isOnline: map['is_online'] as bool? ?? true,
+      staffAccountId: map['staff_account_id']?.toString() ?? '',
+      email: map['email']?.toString(),
+      permissions: parsedPermissions,
     );
   }
 
   /// Mengubah DoctorModel menjadi Map untuk Firestore.
-  ///
-  /// ID dokumen tidak dimasukkan ke Map karena ketika dokter
-  /// dibuat melalui DoctorService, Firestore menggunakan
-  /// document ID-nya sendiri.
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -138,7 +144,43 @@ class DoctorModel {
       'consultation_fee': consultationFee,
       'is_online': isOnline,
       'staff_account_id': staffAccountId,
+      'email': email,
+      'permissions': permissions,
     };
+  }
+
+  DoctorModel copyWith({
+    String? id,
+    String? name,
+    String? specialization,
+    String? avatarUrl,
+    String? assetImagePath,
+    int? experienceYears,
+    String? strNumber,
+    String? hospital,
+    List<String>? placesOfPractice,
+    int? consultationFee,
+    bool? isOnline,
+    String? staffAccountId,
+    String? email,
+    Map<String, bool>? permissions,
+  }) {
+    return DoctorModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      specialization: specialization ?? this.specialization,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      assetImagePath: assetImagePath ?? this.assetImagePath,
+      experienceYears: experienceYears ?? this.experienceYears,
+      strNumber: strNumber ?? this.strNumber,
+      hospital: hospital ?? this.hospital,
+      placesOfPractice: placesOfPractice ?? this.placesOfPractice,
+      consultationFee: consultationFee ?? this.consultationFee,
+      isOnline: isOnline ?? this.isOnline,
+      staffAccountId: staffAccountId ?? this.staffAccountId,
+      email: email ?? this.email,
+      permissions: permissions ?? this.permissions,
+    );
   }
 
   /// Dokter default untuk fallback jika data dokter tidak disertakan
@@ -148,13 +190,15 @@ class DoctorModel {
     specialization: 'Spesialis Anak',
     assetImagePath: 'assets/images/doctor_ririn.png',
     experienceYears: 9,
-    strNumber: '3511201402019943',
-    hospital: 'Klinik Tumbuh Kembang PediaGrow',
+    strNumber: '3321201320131150',
+    hospital: 'RS Citra Husada Jember',
     placesOfPractice: [
-      'Klinik Tumbuh Kembang PediaGrow',
-      'RS Siloam Jember',
+      'RS Citra Husada Jember',
+      'IHC RS Perkebunan Jember Klinik',
+      'Praktek Mandiri',
     ],
     consultationFee: 35000,
     isOnline: true,
+    email: 'drririnesterina@gmail.com',
   );
 }

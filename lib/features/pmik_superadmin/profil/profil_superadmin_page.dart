@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/services/staff_auth_service.dart';
 import '../../auth/auth_choice_page.dart';
@@ -7,6 +11,8 @@ import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'hak_akses/hak_akses_page.dart';
+import '../../../models/staff_account_model.dart';
+import '../beranda/staff_home_placeholder_page.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
 ///
@@ -18,6 +24,7 @@ import 'hak_akses/hak_akses_page.dart';
 ///    sehingga aman dari overflow di semua resolusi Android.
 /// 3. Kartu Profil dengan foto avatar yang melayang di atas kartu,
 ///    menampilkan data Anita Setyowati, S.Tr. RMIK, Pengalaman, dan No. STR.
+///    Dapat diubah fotonya dari galeri maupun kamera dengan badge kamera standar PediaGrow.
 /// 4. Kartu Informasi Umum (Tanggal Lahir dan Pendidikan).
 /// 5. Tombol aksi "HAK AKSES" (menuju halaman pengelolaan hak akses Dokter & PMIK)
 ///    dan tombol "LOGOUT" (dengan dialog konfirmasi keluar).
@@ -37,6 +44,662 @@ class ProfilSuperadminPage extends StatefulWidget {
 
 class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   final int _selectedIndex = 3; // Menu Profil aktif
+  final ImagePicker _picker = ImagePicker();
+  String? _superadminAvatarPath;
+  StaffAccount? _superadmin;
+
+  @override
+  void initState() {
+    super.initState();
+    _superadmin = StaffAuthService().currentStaff;
+    _superadminAvatarPath = _superadmin?.avatarPath;
+    _loadSavedAvatar();
+    _loadSuperadminData();
+    StaffAuthService().currentStaffNotifier.addListener(_onStaffUpdated);
+  }
+
+  @override
+  void dispose() {
+    StaffAuthService().currentStaffNotifier.removeListener(_onStaffUpdated);
+    super.dispose();
+  }
+
+  void _onStaffUpdated() {
+    if (!mounted) return;
+    setState(() {
+      _superadmin = StaffAuthService().currentStaff;
+      if (_superadmin?.avatarPath != null && _superadmin!.avatarPath!.isNotEmpty) {
+        _superadminAvatarPath = _superadmin!.avatarPath;
+      }
+    });
+  }
+
+  Future<void> _loadSuperadminData() async {
+    final current = StaffAuthService().currentStaff;
+    if (current != null) {
+      if (mounted) {
+        setState(() {
+          _superadmin = current;
+          if (current.avatarPath != null && current.avatarPath!.isNotEmpty) {
+            _superadminAvatarPath = current.avatarPath;
+          }
+        });
+      }
+      return;
+    }
+    final acc = await StaffAuthService().getSuperadminAccount();
+    if (acc != null && mounted) {
+      setState(() {
+        _superadmin = acc;
+        if (acc.avatarPath != null && acc.avatarPath!.isNotEmpty) {
+          _superadminAvatarPath = acc.avatarPath;
+        }
+      });
+    }
+  }
+
+  Future<void> _loadSavedAvatar() async {
+    final staff = StaffAuthService().currentStaff;
+    if (staff?.avatarPath != null && staff!.avatarPath!.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _superadminAvatarPath = staff.avatarPath;
+        });
+      }
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedPath = prefs.getString('superadmin_avatar_path');
+    if (savedPath != null && mounted) {
+      setState(() {
+        _superadminAvatarPath = savedPath;
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PEMILIH FOTO PROFIL (KAMERA / GALERI)
+  // ---------------------------------------------------------------------------
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Ubah Foto Profil',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: Color(0xFF3985E7),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Ambil Foto dari Kamera',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: Color(0xFF3985E7),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Pilih Foto dari Galeri',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _superadminAvatarPath = pickedFile.path;
+        });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('superadmin_avatar_path', pickedFile.path);
+
+        final staffId = StaffAuthService().currentStaff?.id;
+        if (staffId != null && staffId.isNotEmpty) {
+          await StaffAuthService().updateAvatar(staffId, pickedFile.path);
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Foto profil Superadmin berhasil diperbarui',
+                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: const Color(0xFF16A34A),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal memilih foto: $e',
+              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildModalField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.lato(
+            fontSize: 13.0,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF334155),
+          ),
+        ),
+        const SizedBox(height: 6.0),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          style: GoogleFonts.lato(fontSize: 14.5, color: const Color(0xFF0F172A)),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, size: 20, color: const Color(0xFF64748B)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(color: Color(0xFF3985E7)),
+            ),
+          ),
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
+  void _showEditSuperadminDialog() {
+    final formKey = GlobalKey<FormState>();
+    final superadmin = _superadmin;
+
+    final nameCtrl = TextEditingController(
+      text: superadmin?.name.isNotEmpty == true
+          ? superadmin!.name
+          : 'Anita Setyowati, S.Tr. RMIK',
+    );
+    final emailCtrl = TextEditingController(
+      text: superadmin?.email.isNotEmpty == true
+          ? superadmin!.email
+          : 'superadmin@pediagrow.com',
+    );
+    final passwordCtrl = TextEditingController();
+    bool obscurePassword = true;
+
+    final rawExp = superadmin?.experience ?? '7 tahun';
+    final expDigits = RegExp(r'\d+').stringMatch(rawExp) ?? rawExp;
+    final expCtrl = TextEditingController(text: expDigits);
+
+    final strCtrl = TextEditingController(
+      text: superadmin?.strNumber ?? '3511201402012222',
+    );
+    final birthDateCtrl = TextEditingController(
+      text: superadmin?.birthDate ?? '16/07/2006',
+    );
+    final eduCtrl = TextEditingController(
+      text: superadmin?.education ?? 'DIV - Manajemen Informasi Kesehatan',
+    );
+
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (bottomSheetCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                top: 16.0,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24.0,
+              ),
+              child: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40.0,
+                          height: 4.0,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(2.0),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Edit Profil & Akun Superadmin',
+                            style: GoogleFonts.lato(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded,
+                                color: Color(0xFF64748B)),
+                            onPressed: () => Navigator.of(bottomSheetCtx).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16.0),
+
+                      _buildModalField(
+                        label: 'Nama Lengkap',
+                        controller: nameCtrl,
+                        icon: Icons.person_outline_rounded,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? 'Nama tidak boleh kosong'
+                            : null,
+                      ),
+                      const SizedBox(height: 12.0),
+
+                      _buildModalField(
+                        label: 'Email (Digunakan untuk Login)',
+                        controller: emailCtrl,
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Email tidak boleh kosong';
+                          }
+                          if (!v.contains('@') || !v.contains('.')) {
+                            return 'Format email tidak valid';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12.0),
+
+                      Text(
+                        'Kata Sandi / Password Baru (Opsional)',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF334155),
+                        ),
+                      ),
+                      const SizedBox(height: 6.0),
+                      TextFormField(
+                        controller: passwordCtrl,
+                        obscureText: obscurePassword,
+                        style: GoogleFonts.lato(fontSize: 14.5),
+                        decoration: InputDecoration(
+                          hintText:
+                              'Kosongkan jika tidak ingin mengubah password',
+                          hintStyle: GoogleFonts.lato(
+                            fontSize: 13.0,
+                            color: const Color(0xFF94A3B8),
+                          ),
+                          prefixIcon: const Icon(Icons.lock_outline_rounded,
+                              size: 20, color: Color(0xFF64748B)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              size: 20,
+                              color: const Color(0xFF94A3B8),
+                            ),
+                            onPressed: () {
+                              setModalState(() {
+                                obscurePassword = !obscurePassword;
+                              });
+                            },
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14.0, vertical: 12.0),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide:
+                                const BorderSide(color: Color(0xFF3985E7)),
+                          ),
+                        ),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty && v.length < 6) {
+                            return 'Password minimal 6 karakter';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12.0),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildModalField(
+                              label: 'Pengalaman (Tahun)',
+                              controller: expCtrl,
+                              icon: Icons.work_outline_rounded,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 12.0),
+                          Expanded(
+                            child: _buildModalField(
+                              label: 'No. STR',
+                              controller: strCtrl,
+                              icon: Icons.badge_outlined,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12.0),
+
+                      Text(
+                        'Tanggal Lahir',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF334155),
+                        ),
+                      ),
+                      const SizedBox(height: 6.0),
+                      TextFormField(
+                        controller: birthDateCtrl,
+                        readOnly: true,
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime(2000, 1, 1),
+                            firstDate: DateTime(1950),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
+                            final formatted =
+                                '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+                            setModalState(() {
+                              birthDateCtrl.text = formatted;
+                            });
+                          }
+                        },
+                        style: GoogleFonts.lato(fontSize: 14.5),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.cake_outlined,
+                              size: 20, color: Color(0xFF64748B)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14.0, vertical: 12.0),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide:
+                                const BorderSide(color: Color(0xFF3985E7)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12.0),
+
+                      _buildModalField(
+                        label: 'Pendidikan',
+                        controller: eduCtrl,
+                        icon: Icons.school_outlined,
+                      ),
+                      const SizedBox(height: 24.0),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48.0,
+                        child: ElevatedButton(
+                          onPressed: isSubmitting
+                              ? null
+                              : () async {
+                                  if (!formKey.currentState!.validate()) return;
+                                  setModalState(() => isSubmitting = true);
+                                  try {
+                                    final currentAcc = _superadmin ??
+                                        await StaffAuthService()
+                                            .getSuperadminAccount();
+                                    if (currentAcc == null ||
+                                        currentAcc.id.isEmpty) {
+                                      throw Exception(
+                                          'Akun Superadmin belum terdata di sistem.');
+                                    }
+
+                                    await StaffAuthService().updateStaffAccount(
+                                      currentAcc.id,
+                                      name: nameCtrl.text.trim(),
+                                      email:
+                                          emailCtrl.text.trim().toLowerCase(),
+                                      password:
+                                          passwordCtrl.text.trim().isNotEmpty
+                                              ? passwordCtrl.text.trim()
+                                              : null,
+                                      experience: expCtrl.text.trim().isNotEmpty
+                                          ? '${expCtrl.text.trim()} tahun'
+                                          : null,
+                                      strNumber: strCtrl.text.trim().isNotEmpty
+                                          ? strCtrl.text.trim()
+                                          : null,
+                                      birthDate:
+                                          birthDateCtrl.text.trim().isNotEmpty
+                                              ? birthDateCtrl.text.trim()
+                                              : null,
+                                      education: eduCtrl.text.trim().isNotEmpty
+                                          ? eduCtrl.text.trim()
+                                          : null,
+                                    );
+
+                                    await _loadSuperadminData();
+
+                                    if (!mounted) return;
+                                    Navigator.of(bottomSheetCtx).pop();
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Profil & kredensial Superadmin berhasil diperbarui.',
+                                          style: GoogleFonts.lato(
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                        backgroundColor:
+                                            const Color(0xFF16A34A),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    setModalState(() => isSubmitting = false);
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Gagal menyimpan: $e'),
+                                        backgroundColor:
+                                            const Color(0xFFDC2626),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                      ),
+                                    );
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3985E7),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isSubmitting
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : Text(
+                                  'Simpan Perubahan',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _navigateToHakAkses() {
     Navigator.of(context).push(
@@ -152,6 +815,36 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   void _onBottomNavTap(int index) {
     if (index == _selectedIndex) return;
 
+    final staff = StaffAuthService().currentStaff;
+    if (index == 1 && staff != null && !staff.hasPermission('konsultasi')) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Akses fitur "Konsultasi" dinonaktifkan oleh Superadmin.',
+            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (index == 2 && staff != null && !staff.hasPermission('riwayat_konsultasi')) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Akses fitur "Riwayat Konsultasi" dinonaktifkan oleh Superadmin.',
+            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     Widget targetPage;
     switch (index) {
       case 0:
@@ -242,20 +935,14 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               const SizedBox(height: 24.0),
 
-              // 4. TOMBOL HAK AKSES (Warna Toska #38C1A2)
+              // 4. TOMBOL EDIT PROFIL & KREDENSIAL AKUN (Warna Biru PediaGrow #3985E7)
               SizedBox(
                 height: 50.0,
-                child: ElevatedButton(
-                  onPressed: _navigateToHakAkses,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF38C1A2),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: Text(
-                    'HAK AKSES',
+                child: ElevatedButton.icon(
+                  onPressed: _showEditSuperadminDialog,
+                  icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 22),
+                  label: Text(
+                    'EDIT PROFIL & AKUN',
                     style: GoogleFonts.lato(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
@@ -263,19 +950,90 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       color: Colors.white,
                     ),
                   ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3985E7),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
                 ),
               ),
 
               const SizedBox(height: 12.0),
 
-              // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
+              // 5. TOMBOL HAK AKSES (Warna Toska #38C1A2) jika Superadmin / memiliki izin hak_akses
+              if (_superadmin?.isSuperAdmin == true ||
+                  StaffAuthService().currentStaff?.isSuperAdmin == true ||
+                  StaffAuthService().currentStaff?.hasPermission('hak_akses') == true) ...[
+                SizedBox(
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: _navigateToHakAkses,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF38C1A2),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    child: Text(
+                      'HAK AKSES',
+                      style: GoogleFonts.lato(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12.0),
+              ] else if (_superadmin != null) ...[
+                SizedBox(
+                  height: 50.0,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => StaffHomePlaceholderPage(
+                            account: _superadmin!,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.security_rounded,
+                      color: Color(0xFF38C1A2),
+                      size: 20,
+                    ),
+                    label: Text(
+                      'DETAIL HAK AKSES SAYA',
+                      style: GoogleFonts.lato(
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        color: const Color(0xFF38C1A2),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF38C1A2), width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12.0),
+              ],
+
+              // 6. TOMBOL LOGOUT (Warna Merah #DC2626)
               SizedBox(
                 height: 50.0,
-                child: ElevatedButton(
+                child: OutlinedButton(
                   onPressed: _showLogoutConfirmationDialog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3985E7),
-                    elevation: 0,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFDC2626), width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
@@ -286,7 +1044,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.8,
-                      color: Colors.white,
+                      color: const Color(0xFFDC2626),
                     ),
                   ),
                 ),
@@ -371,7 +1129,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             children: [
               // Nama Superadmin
               Text(
-                'Anita Setyowati, S.Tr. RMIK',
+                _superadmin?.name.isNotEmpty == true
+                    ? _superadmin!.name
+                    : 'Anita Setyowati, S.Tr. RMIK',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
@@ -384,7 +1144,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               // Role / Profesi
               Text(
-                'PMIK',
+                _superadmin?.pmikRoleDisplay ?? 'PMIK (SUPER ADMIN)',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
@@ -397,7 +1157,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               // Email
               Text(
-                'g41241509@student.polije.ac.id',
+                _superadmin?.email.isNotEmpty == true
+                    ? _superadmin!.email
+                    : 'superadmin@pediagrow.com',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
@@ -443,7 +1205,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 ),
                               ),
                               Text(
-                                '7 tahun',
+                                _superadmin?.experience ?? '7 tahun',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
@@ -492,7 +1254,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 ),
                               ),
                               Text(
-                                '3511201402012222',
+                                _superadmin?.strNumber ?? '3511201402012222',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
@@ -513,46 +1275,118 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
         ),
 
-        // Avatar Bulat melayang di posisi atas
+        // Tombol Edit di pojok kanan atas kartu
+        Positioned(
+          top: avatarRadius + 6.0,
+          right: 6.0,
+          child: IconButton(
+            onPressed: _showEditSuperadminDialog,
+            icon: const Icon(
+              Icons.edit_outlined,
+              color: Color(0xFF64748B),
+              size: 20.0,
+            ),
+            tooltip: 'Edit Profil & Akun',
+          ),
+        ),
+
+        // Avatar Bulat melayang di posisi atas dengan badge kamera
         Positioned(
           top: 0,
-          child: Container(
-            width: avatarRadius * 2,
-            height: avatarRadius * 2,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: 3.5,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 10.0,
-                  offset: Offset(0, 4),
+          child: GestureDetector(
+            onTap: _showImagePickerOptions,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: avatarRadius * 2,
+                  height: avatarRadius * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3.5,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x1A000000),
+                        blurRadius: 10.0,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: _buildSuperadminAvatarImage(),
+                  ),
+                ),
+
+                // Badge Kamera di pojok kanan bawah (Gaya standar Profil Ibu)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 30.0,
+                    height: 30.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3985E7),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              const Color(0xFF3985E7).withValues(alpha: 0.35),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      size: 15.0,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/anita_superadmin.jpg',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: const Color(0xFFE2E8F0),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.person_rounded,
-                      size: 52.0,
-                      color: Color(0xFF72A9F4),
-                    ),
-                  );
-                },
-              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSuperadminAvatarImage() {
+    if (_superadminAvatarPath != null && _superadminAvatarPath!.isNotEmpty) {
+      if (File(_superadminAvatarPath!).existsSync()) {
+        return Image.file(
+          File(_superadminAvatarPath!),
+          fit: BoxFit.cover,
+        );
+      }
+      if (_superadminAvatarPath!.startsWith('http')) {
+        return Image.network(
+          _superadminAvatarPath!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildFallbackAvatar(),
+        );
+      }
+    }
+    return Image.asset(
+      'assets/images/anita_superadmin.jpg',
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+    );
+  }
+
+  Widget _buildFallbackAvatar() {
+    return Container(
+      color: const Color(0xFFE2E8F0),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.person_rounded,
+        size: 52.0,
+        color: Color(0xFF72A9F4),
+      ),
     );
   }
 
@@ -611,7 +1445,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        '16/07/2006',
+                        _superadmin?.birthDate ?? '16/07/2006',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: const Color(0xFF64748B),
@@ -666,7 +1500,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        'DIV - Manajemen Informasi Kesehatan',
+                        _superadmin?.education ??
+                            'DIV - Manajemen Informasi Kesehatan',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: const Color(0xFF64748B),

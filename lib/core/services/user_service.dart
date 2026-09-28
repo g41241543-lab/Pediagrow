@@ -208,12 +208,19 @@ class UserService {
         passwordHash: _hashPassword(password),
       );
 
+<<<<<<< HEAD
+      final docRef = await _db.collection(_collection).add({
+        ...newUser.toMap(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+=======
       final docRef = await db.collection(_collection).add(newUser.toMap());
       final savedUser = newUser.copyWith(id: docRef.id);
 
       currentUserNotifier.value = savedUser;
       await _saveSession(docRef.id);
       _startListeningToUser(docRef.id);
+>>>>>>> fc0231803de1fa80ac699e6444c160370fb79a73
 
       return UserAuthResult.success();
     } catch (e) {
@@ -315,11 +322,19 @@ class UserService {
           email: normalizedEmail,
           avatarPath: account.photoUrl,
         );
+<<<<<<< HEAD
+        final docRef = await _db.collection(_collection).add({
+          ...newUser.toMap(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        currentUserNotifier.value = newUser.copyWith(id: docRef.id);
+=======
         final docRef = await db.collection(_collection).add(newUser.toMap());
         final savedUser = newUser.copyWith(id: docRef.id);
         currentUserNotifier.value = savedUser;
         await _saveSession(docRef.id);
         _startListeningToUser(docRef.id);
+>>>>>>> fc0231803de1fa80ac699e6444c160370fb79a73
       } else {
         final doc = query.docs.first;
         final user = UserModel.fromMap({

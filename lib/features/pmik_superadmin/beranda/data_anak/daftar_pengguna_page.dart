@@ -10,7 +10,7 @@ import '../beranda_superadmin_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
-import 'pilih_anak_button_sheet.dart';
+import 'detail_pengguna_page.dart';
 
 /// Halaman Daftar Data Pengguna untuk POV SUPERADMIN aplikasi PediaGrow.
 ///
@@ -89,8 +89,8 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
       // Kembali ke Beranda Superadmin — clear seluruh stack
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const BerandaSuperadminPage(),
-          transitionsBuilder: (_, animation, __, child) =>
+          pageBuilder: (_, _, _) => const BerandaSuperadminPage(),
+          transitionsBuilder: (_, animation, _, child) =>
               FadeTransition(opacity: animation, child: child),
           transitionDuration: const Duration(milliseconds: 200),
         ),
@@ -116,8 +116,8 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => targetPage,
-        transitionsBuilder: (_, animation, __, child) =>
+        pageBuilder: (_, _, _) => targetPage,
+        transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 200),
       ),
@@ -537,11 +537,10 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
           highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
           onTap: () {
-            // Memunculkan Modal Bottom Sheet "Pilih Profil Anak" dari file terpisah
-            PilihAnakBottomSheet.showForDetail(
-              context,
-              user: user,
-              children: children,
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DetailPenggunaPage(user: user),
+              ),
             );
           },
           child: Padding(
