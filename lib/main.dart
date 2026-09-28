@@ -4,8 +4,6 @@ import 'package:flutter/services.dart';
 
 import 'features/splash/splash_page.dart';
 
-import 'package:firebase_core/firebase_core.dart';
-
 import 'core/services/staff_auth_service.dart';
 
 void main() async {

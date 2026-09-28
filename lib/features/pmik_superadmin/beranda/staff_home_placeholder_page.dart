@@ -4,6 +4,8 @@ import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../auth/auth_choice_page.dart';
 
+import 'beranda_superadmin_page.dart';
+
 /// Halaman sementara setelah staf berhasil login.
 ///
 /// Ganti isi [build] (atau ganti pemanggilan di login_page.dart) dengan
@@ -25,6 +27,19 @@ class StaffHomePlaceholderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (account.role == StaffRole.superadmin || account.role == StaffRole.admin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+        );
+      });
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(title: Text(account.role.label)),
       body: Center(

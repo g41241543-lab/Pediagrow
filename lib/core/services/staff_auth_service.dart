@@ -54,7 +54,7 @@ class StaffAuthService {
     try {
       final query = await _db
           .collection(_collection)
-          .where('role', isEqualTo: StaffRole.superadmin.name)
+          .where('email', isEqualTo: defaultSuperadminEmail)
           .limit(1)
           .get();
 
@@ -77,6 +77,13 @@ class StaffAuthService {
           '$defaultSuperadminEmail / $defaultSuperadminPassword '
           '(SEGERA GANTI PASSWORD INI!)',
         );
+      } else {
+        final doc = query.docs.first;
+        final currentRole = doc.data()['role'] as String?;
+        if (currentRole != StaffRole.superadmin.name) {
+          await doc.reference.update({'role': StaffRole.superadmin.name});
+          debugPrint('[StaffAuthService] Role akun $defaultSuperadminEmail di-update menjadi superadmin.');
+        }
       }
     } catch (e) {
       debugPrint('[StaffAuthService] Gagal seeding superadmin: $e');
@@ -103,8 +110,24 @@ class StaffAuthService {
       final inputHash = _hashPassword(password);
       if (inputHash != account.passwordHash) return null;
 
-      currentStaffNotifier.value = account;
-      return account;
+      StaffAccount effectiveAccount = account;
+      if (normalizedEmail == defaultSuperadminEmail && account.role != StaffRole.superadmin) {
+        effectiveAccount = StaffAccount(
+          id: account.id,
+          name: account.name,
+          email: account.email,
+          passwordHash: account.passwordHash,
+          role: StaffRole.superadmin,
+          createdBy: account.createdBy,
+          createdAt: account.createdAt,
+          isActive: account.isActive,
+        );
+        // Sinkronkan ke Firestore
+        doc.reference.update({'role': StaffRole.superadmin.name}).catchError((_) {});
+      }
+
+      currentStaffNotifier.value = effectiveAccount;
+      return effectiveAccount;
     } catch (e) {
       debugPrint('[StaffAuthService] login error: $e');
       return null;

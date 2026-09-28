@@ -90,7 +90,10 @@ class UserService {
         passwordHash: _hashPassword(password),
       );
 
-      final docRef = await _db.collection(_collection).add(newUser.toMap());
+      final docRef = await _db.collection(_collection).add({
+        ...newUser.toMap(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       currentUserNotifier.value = newUser.copyWith(id: docRef.id);
       return UserAuthResult.success();
@@ -161,7 +164,10 @@ class UserService {
           email: normalizedEmail,
           avatarPath: account.photoUrl,
         );
-        final docRef = await _db.collection(_collection).add(newUser.toMap());
+        final docRef = await _db.collection(_collection).add({
+          ...newUser.toMap(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
         currentUserNotifier.value = newUser.copyWith(id: docRef.id);
       } else {
         // Pengguna lama — muat data yang sudah ada

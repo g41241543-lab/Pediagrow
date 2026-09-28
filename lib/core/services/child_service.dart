@@ -90,7 +90,10 @@ class ChildService {
     try {
       final docRef = await _db
           .collection(_collection)
-          .add(childWithOwner.toMap());
+          .add({
+            ...childWithOwner.toMap(),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
       final savedChild = childWithOwner.copyWith(id: docRef.id);
 
       final updatedList = List<ChildModel>.from(childrenNotifier.value)

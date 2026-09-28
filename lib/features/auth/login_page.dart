@@ -123,11 +123,11 @@ class _LoginPageState extends State<LoginPage> {
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
 
-      // Superadmin punya beranda sendiri. PMIK dan dokter untuk sementara
-      // memakai halaman placeholder sampai beranda masing-masing selesai.
+      // Superadmin & Admin (PMIK) masuk ke BerandaSuperadminPage.
+      // Dokter untuk sementara memakai halaman placeholder sampai beranda dokter selesai.
       final Widget destination = switch (staff.role) {
-        StaffRole.superadmin => const BerandaSuperadminPage(),
-        StaffRole.admin ||
+        StaffRole.superadmin ||
+        StaffRole.admin => const BerandaSuperadminPage(),
         StaffRole.dokter => StaffHomePlaceholderPage(account: staff),
       };
 

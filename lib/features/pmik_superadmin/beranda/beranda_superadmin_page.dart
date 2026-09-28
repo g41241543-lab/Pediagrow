@@ -11,12 +11,11 @@ import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../pengguna/detail/detail_artikel_page.dart';
 import 'notifikasi_superadmin_page.dart';
 import 'data_anak/data_pasien_page.dart';
-import 'data_anak/pilih_anak_button_sheet.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
-import 'permainan/daftar_soal_permainan_page.dart';
-import 'rekapitulasi/rekapitulasi_stunting_page.dart';
 import 'grafik_pengguna/grafik_pengguna_page.dart';
+import 'permainan/permainan_admin_page.dart';
+import 'rekapitulasi/rekapitulasi_stunting_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
@@ -462,7 +461,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 title: 'Grafik\nPengguna',
                 imageAsset: 'assets/images/grafik_pengguna_logo.png',
                 blobColor: const Color(0xFF2563EB),
-                onTap: () => PilihAnakBottomSheet.showForGrafik(context),
+                onTap: () => _navigateTo(const GrafikPenggunaPage()),
               ),
             ),
             const SizedBox(width: 16),
@@ -472,7 +471,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 imageAsset: 'assets/images/permainan_logo.png',
                 blobColor: const Color(0xFFF59E0B),
                 logoOffsetX: 5,
-                onTap: () => _navigateTo(const DaftarSoalPermainanPage()),
+                onTap: () => _navigateTo(const PermainanAdminPage()),
               ),
             ),
           ],
@@ -620,7 +619,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                       imageAsset,
                                       height: imageSize,
                                       fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => Icon(
+                                      errorBuilder: (ctx, err, _) => Icon(
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
                                         color: iconColor ??
@@ -844,7 +843,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _latestArticles.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  separatorBuilder: (_, idx) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final artikel = _latestArticles[index];
                     return _buildArticleCard(context, artikel);
@@ -903,13 +902,13 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                             ? Image.asset(
                                 artikel.displayImage!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (ctx, err, _) =>
                                     _buildFallbackArticleImage(),
                               )
                             : Image.network(
                                 artikel.displayImage!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (ctx, err, _) =>
                                     _buildFallbackArticleImage(),
                               ))
                       : _buildFallbackArticleImage(),
@@ -1012,8 +1011,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(width: 14),
-      itemBuilder: (_, __) => Container(
+      separatorBuilder: (_, idx) => const SizedBox(width: 14),
+      itemBuilder: (ctx, _) => Container(
         width: 220,
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
