@@ -7,6 +7,7 @@ import '../../../models/staff_account_model.dart';
 import '../../auth/auth_choice_page.dart';
 import 'beranda_superadmin_page.dart';
 
+<<<<<<< HEAD
 import 'data_anak/data_pasien_page.dart';
 import 'data_anak/pilih_anak_button_sheet.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
@@ -19,6 +20,11 @@ import '../profil/profil_superadmin_page.dart';
 import '../profil/hak_akses/hak_akses_page.dart';
 
 /// Halaman Dashboard & Profil Staf (Dokter / PMIK) setelah login.
+=======
+import 'beranda_superadmin_page.dart';
+
+/// Halaman sementara setelah staf berhasil login.
+>>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 ///
 /// Menerapkan kontrol hak akses dokter secara ketat sesuai
 /// pengaturan hak akses yang ditentukan oleh Superadmin.
@@ -181,6 +187,19 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (account.role == StaffRole.superadmin || account.role == StaffRole.admin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+        );
+      });
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFFBFBFB),
       appBar: PreferredSize(

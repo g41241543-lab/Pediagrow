@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/artikel_model.dart';
+import '../../../shared/widgets/article_rich_text_editor.dart';
 
 
 /// Halaman Detail Artikel untuk menampilkan konten lengkap artikel kesehatan
@@ -334,10 +335,10 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
     );
   }
 
-  /// Paragraf teks isi artikel dengan kenyamanan membaca optimal
+  /// Paragraf teks isi artikel dengan rendering format kaya (Bold, Italic, Underline)
   Widget _buildSectionParagraph(String content) {
-    return Text(
-      content,
+    return FormattedArticleText(
+      content: content,
       textAlign: TextAlign.justify,
       style: GoogleFonts.lato(
         fontSize: 15,

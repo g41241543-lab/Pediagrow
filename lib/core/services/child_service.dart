@@ -16,7 +16,14 @@ class ChildService {
   ChildService._internal();
 
   static const String _collection = 'children';
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  FirebaseFirestore? get _db {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// State daftar profil anak yang terdaftar
   final ValueNotifier<List<ChildModel>> childrenNotifier =
@@ -55,8 +62,11 @@ class ChildService {
       return;
     }
 
+    final db = _db;
+    if (db == null) return;
+
     try {
-      final query = await _db
+      final query = await db
           .collection(_collection)
           .where('owner_id', isEqualTo: ownerId)
           .get();
@@ -87,10 +97,16 @@ class ChildService {
     final ownerId = UserService().currentUser.id;
     final childWithOwner = child.copyWith(ownerId: ownerId);
 
+    final db = _db;
+    if (db == null) return;
+
     try {
-      final docRef = await _db
+      final docRef = await db
           .collection(_collection)
-          .add(childWithOwner.toMap());
+          .add({
+            ...childWithOwner.toMap(),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
       final savedChild = childWithOwner.copyWith(id: docRef.id);
 
       final updatedList = List<ChildModel>.from(childrenNotifier.value)
@@ -118,8 +134,11 @@ class ChildService {
       }
     }
 
+    final db = _db;
+    if (db == null) return;
+
     try {
-      await _db
+      await db
           .collection(_collection)
           .doc(updatedChild.id)
           .update(updatedChild.toMap());
@@ -140,8 +159,11 @@ class ChildService {
           : null;
     }
 
+    final db = _db;
+    if (db == null) return;
+
     try {
-      await _db.collection(_collection).doc(id).delete();
+      await db.collection(_collection).doc(id).delete();
     } catch (e) {
       debugPrint('[ChildService] deleteChild error: $e');
     }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'features/splash/splash_page.dart';
 
 import 'core/services/staff_auth_service.dart';
+import 'core/services/user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,7 @@ void main() async {
   // Inisialisasi Firebase sebelum app dijalankan
   await Firebase.initializeApp();
   await StaffAuthService().ensureSuperadminSeeded();
+  await UserService().init();
 
   // Mengatur status bar transparan dan ikon gelap agar menyatu dengan background putih
   SystemChrome.setSystemUIOverlayStyle(

@@ -5,16 +5,21 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/superadmin_notification_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../pengguna/detail/detail_artikel_page.dart';
 import 'notifikasi_superadmin_page.dart';
 import 'data_anak/data_pasien_page.dart';
-import 'data_anak/pilih_anak_button_sheet.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
+<<<<<<< HEAD
 import 'permainan/daftar_soal_permainan_page.dart';
+=======
+import 'grafik_pengguna/grafik_pengguna_page.dart';
+import 'permainan/permainan_admin_page.dart';
+>>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
@@ -50,6 +55,10 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     super.initState();
     _loadLatestArticles();
     ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
+    // Inisialisasi notifikasi superadmin & cek pengingat dataset bulanan
+    SuperadminNotificationService().init().then((_) {
+      SuperadminNotificationService().checkDatasetReminder();
+    });
   }
 
   @override
@@ -253,7 +262,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                         // Lingkaran Notifikasi dengan badge angka
                         ValueListenableBuilder<int>(
                           valueListenable:
-                              NotificationService().unreadCountNotifier,
+                              SuperadminNotificationService().unreadCountNotifier,
                           builder: (context, unreadCount, _) {
                             return GestureDetector(
                               onTap: () =>
@@ -614,8 +623,49 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               ],
             ),
           ],
+<<<<<<< HEAD
         );
       },
+=======
+        ),
+
+        const SizedBox(height: 20),
+
+        // Baris 2: Daftar Artikel Kesehatan, Grafik Pengguna, Permainan
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Daftar Artikel\nKesehatan',
+                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                blobColor: const Color(0xFF6366F1),
+                onTap: () => _navigateTo(const DaftarArtikelAdminPage()),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Grafik\nPengguna',
+                imageAsset: 'assets/images/grafik_pengguna_logo.png',
+                blobColor: const Color(0xFF2563EB),
+                onTap: () => _navigateTo(const GrafikPenggunaPage()),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                title: 'Permainan\n',
+                imageAsset: 'assets/images/permainan_logo.png',
+                blobColor: const Color(0xFFF59E0B),
+                logoOffsetX: 5,
+                onTap: () => _navigateTo(const PermainanAdminPage()),
+              ),
+            ),
+          ],
+        ),
+      ],
+>>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
     );
   }
 
@@ -754,6 +804,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
 
                       // Icon, gambar, atau custom widget
                       Center(
+<<<<<<< HEAD
                         child: Opacity(
                           opacity: isLocked ? 0.45 : 1.0,
                           child: Transform.translate(
@@ -772,6 +823,17 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                         ),
                                       )
                                     : Icon(
+=======
+                        child: Transform.translate(
+                          offset: Offset(logoOffsetX, 0),
+                          child: customIcon ??
+                              (imageAsset != null
+                                  ? Image.asset(
+                                      imageAsset,
+                                      height: imageSize,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (ctx, err, _) => Icon(
+>>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
                                         color: iconColor ??
@@ -1008,7 +1070,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _latestArticles.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  separatorBuilder: (_, idx) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final artikel = _latestArticles[index];
                     return _buildArticleCard(context, artikel);
@@ -1067,13 +1129,13 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                             ? Image.asset(
                                 artikel.displayImage!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (ctx, err, _) =>
                                     _buildFallbackArticleImage(),
                               )
                             : Image.network(
                                 artikel.displayImage!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
+                                errorBuilder: (ctx, err, _) =>
                                     _buildFallbackArticleImage(),
                               ))
                       : _buildFallbackArticleImage(),
@@ -1176,8 +1238,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(width: 14),
-      itemBuilder: (_, __) => Container(
+      separatorBuilder: (_, idx) => const SizedBox(width: 14),
+      itemBuilder: (ctx, _) => Container(
         width: 220,
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),

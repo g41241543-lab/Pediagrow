@@ -14,6 +14,17 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+
+    // Override compileSdkVersion untuk semua plugin (termasuk media_store_plus
+    // yang masih dikompilasi dengan SDK lama). Harus dijalankan di sini,
+    // sebelum blok evaluationDependsOn, agar afterEvaluate masih bisa berjalan.
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.library") || plugins.hasPlugin("com.android.application")) {
+            extensions.configure<com.android.build.gradle.BaseExtension> {
+                compileSdkVersion(37)
+            }
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(":app")

@@ -1,20 +1,20 @@
+<<<<<<< HEAD
 import 'doctor_permissions.dart';
 
 /// Peran (role) untuk akun staff internal PediaGrow.
+=======
+/// Peran untuk akun staff internal PediaGrow.
+>>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 ///
-/// Berbeda dari pengguna masyarakat biasa (yang bisa daftar sendiri
-/// lewat email/Google), akun dengan role ini HANYA bisa dibuat
-/// oleh Superadmin — tidak ada pendaftaran mandiri.
+/// Akun staff internal hanya dapat dibuat oleh
+/// PMIK Superadmin dan tidak memiliki pendaftaran mandiri.
 enum StaffRole {
-  superadmin,
   admin, // PMIK
   dokter;
 
-  /// Label tampilan yang enak dibaca (untuk UI).
+  /// Label tampilan yang enak dibaca untuk UI.
   String get label {
     switch (this) {
-      case StaffRole.superadmin:
-        return 'Superadmin';
       case StaffRole.admin:
         return 'PMIK';
       case StaffRole.dokter:
@@ -46,14 +46,54 @@ enum StaffRole {
   }
 }
 
-/// Model data untuk satu akun staff (superadmin/admin/dokter).
+/// Tingkat kewenangan untuk akun PMIK.
+///
+/// PMIK memiliki dua tingkat:
+/// - biasa
+/// - superadmin
+enum PmikLevel {
+  biasa,
+  superadmin;
+
+  /// Label tampilan untuk UI.
+  String get label {
+    switch (this) {
+      case PmikLevel.biasa:
+        return 'PMIK';
+      case PmikLevel.superadmin:
+        return 'PMIK Superadmin';
+    }
+  }
+
+  /// Mengubah string dari Firestore menjadi enum PmikLevel.
+  static PmikLevel fromString(String value) {
+    return PmikLevel.values.firstWhere(
+      (level) => level.name == value,
+      orElse: () => PmikLevel.biasa,
+    );
+  }
+}
+
+/// Model data untuk satu akun staff.
+///
+/// Staff dapat berupa:
+/// - PMIK biasa
+/// - PMIK Superadmin
+/// - Dokter
 class StaffAccount {
-  final String id; // ID dokumen Firestore
+  final String id;
   final String name;
   final String email;
   final String passwordHash;
   final StaffRole role;
-  final String createdBy; // email superadmin yang membuat akun ini
+
+  /// Hanya digunakan untuk role PMIK.
+  ///
+  /// Untuk dokter nilainya PmikLevel.biasa secara default
+  /// dan tidak digunakan sebagai hak akses PMIK.
+  final PmikLevel pmikLevel;
+
+  final String createdBy;
   final DateTime? createdAt;
   final bool isActive;
   final Map<String, bool> permissions;
@@ -70,6 +110,7 @@ class StaffAccount {
     required this.email,
     required this.passwordHash,
     required this.role,
+    this.pmikLevel = PmikLevel.biasa,
     required this.createdBy,
     this.createdAt,
     this.isActive = true,
@@ -82,7 +123,21 @@ class StaffAccount {
     this.additionalInfo,
   });
 
-  /// Membuat objek StaffAccount dari data Firestore (Map).
+  /// Apakah akun ini merupakan PMIK?
+  bool get isPmik => role == StaffRole.admin;
+
+  /// Apakah akun ini merupakan PMIK Superadmin?
+  bool get isPmikSuperadmin =>
+      role == StaffRole.admin && pmikLevel == PmikLevel.superadmin;
+
+  /// Apakah akun ini merupakan PMIK biasa?
+  bool get isPmikBiasa =>
+      role == StaffRole.admin && pmikLevel == PmikLevel.biasa;
+
+  /// Apakah akun ini merupakan dokter?
+  bool get isDokter => role == StaffRole.dokter;
+
+  /// Membuat objek StaffAccount dari data Firestore.
   factory StaffAccount.fromMap(String id, Map<String, dynamic> map) {
     Map<String, bool> parsedPermissions = {};
     if (map['permissions'] is Map) {
@@ -117,7 +172,12 @@ class StaffAccount {
       name: map['name'] as String? ?? '',
       email: map['email'] as String? ?? '',
       passwordHash: map['passwordHash'] as String? ?? '',
+<<<<<<< HEAD
       role: role,
+=======
+      role: StaffRole.fromString(map['role'] as String? ?? 'dokter'),
+      pmikLevel: PmikLevel.fromString(map['pmikLevel'] as String? ?? 'biasa'),
+>>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
       createdBy: map['createdBy'] as String? ?? '',
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt'] as String)
@@ -133,13 +193,14 @@ class StaffAccount {
     );
   }
 
-  /// Mengubah objek ini menjadi Map untuk disimpan ke Firestore.
+  /// Mengubah objek menjadi Map untuk Firestore.
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'email': email,
       'passwordHash': passwordHash,
       'role': role.name,
+      'pmikLevel': pmikLevel.name,
       'createdBy': createdBy,
       'createdAt': (createdAt ?? DateTime.now()).toIso8601String(),
       'isActive': isActive,
