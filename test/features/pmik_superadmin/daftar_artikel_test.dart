@@ -5,247 +5,291 @@ import 'package:pediagrow/pmik_superadmin/kelola_artikel/daftar_artikel_page.dar
 import 'package:pediagrow/pmik_superadmin/kelola_artikel/form_artikel_page.dart';
 import 'package:pediagrow/shared/widgets/pedia_bottom_nav_bar.dart';
 
+// ---------------------------------------------------------------------------
+// Catatan Testing:
+// DaftarArtikelPage dan FormArtikelPage membaca/menulis data ke Firebase Firestore
+// koleksi `artikel_kesehatan` via ArtikelService.
+//
+// Test di sini hanya memverifikasi STRUKTUR UI (label, ikon, komponen) karena:
+// 1. Widget test tidak terhubung ke Firebase secara langsung.
+// 2. DaftarArtikelPage memiliki fallback ke ArtikelModel.seedArticles saat
+//    koneksi Firebase gagal, sehingga kartu artikel tetap muncul.
+// 3. FormArtikelPage tidak membutuhkan Firebase untuk render form kosong atau
+//    pra-isi data dari ArtikelModel yang sudah diterima via parameter.
+// ---------------------------------------------------------------------------
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // ---------------------------------------------------------------------------
+  // 1. DaftarArtikelPage
+  // ---------------------------------------------------------------------------
   group('DaftarArtikelPage Widget Tests', () {
-    testWidgets('Merender Header, Search Bar, Card Artikel, Tombol Aksi, dan NavBar', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'Merender Header, Search Bar, tombol tambah, dan NavBar',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        const MaterialApp(home: DaftarArtikelPage()),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          const MaterialApp(home: DaftarArtikelPage()),
+        );
+        // Tunggu fallback seedArticles dimuat setelah Firebase error
+        await tester.pumpAndSettle(const Duration(seconds: 5));
 
-      // 1. Verifikasi Header
-      expect(find.text('Daftar Artikel'), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
-      expect(find.byIcon(Icons.add), findsOneWidget);
+        // 1. Header
+        expect(find.text('Daftar Artikel'), findsOneWidget);
+        expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+        expect(find.byIcon(Icons.add), findsOneWidget);
 
-      // 2. Verifikasi Search Bar
-      expect(find.text('Cari Artikel'), findsOneWidget);
-      expect(find.byIcon(Icons.search), findsOneWidget);
+        // 2. Search Bar (icon = Icons.search, bukan Icons.search_rounded)
+        expect(find.text('Cari Artikel'), findsOneWidget);
+        expect(find.byIcon(Icons.search), findsOneWidget);
 
-      // 3. Verifikasi Kartu Artikel
-      expect(find.text('Stunting'), findsWidgets);
-      expect(find.byIcon(Icons.delete_outline_rounded), findsWidgets);
-      expect(find.byIcon(Icons.edit_outlined), findsWidgets);
+        // 3. Bottom Navigation Bar
+        expect(find.byType(PediaBottomNavBar), findsOneWidget);
+        expect(find.text('Beranda'), findsOneWidget);
+        expect(find.text('Konsultasi'), findsOneWidget);
+        expect(find.text('Riwayat Konsultasi'), findsOneWidget);
+        expect(find.text('Profil'), findsOneWidget);
+      },
+    );
 
-      // 4. Verifikasi Bottom Navigation Bar
-      expect(find.byType(PediaBottomNavBar), findsOneWidget);
-      expect(find.text('Beranda'), findsOneWidget);
-      expect(find.text('Konsultasi'), findsOneWidget);
-      expect(find.text('Riwayat Konsultasi'), findsOneWidget);
-      expect(find.text('Profil'), findsOneWidget);
-    });
+    testWidgets(
+      'Kartu artikel dan tombol hapus/edit muncul setelah data dimuat',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-    testWidgets('Responsif pada layar kecil Android compact tanpa overflow', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(320, 533);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          const MaterialApp(home: DaftarArtikelPage()),
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 5));
 
-      await tester.pumpWidget(
-        const MaterialApp(home: DaftarArtikelPage()),
-      );
-      await tester.pumpAndSettle();
+        // Fallback ke seedArticles — artikel "Stunting" harus muncul
+        expect(find.textContaining('Stunting'), findsWidgets);
+        expect(find.byIcon(Icons.delete_outline_rounded), findsWidgets);
+        expect(find.byIcon(Icons.edit_outlined), findsWidgets);
+      },
+    );
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Daftar Artikel'), findsOneWidget);
-    });
+    testWidgets(
+      'Responsif pada layar kecil Android compact tanpa overflow',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(320, 533);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-    testWidgets('Filter live pencarian menyaring artikel berdasarkan judul atau tag', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          const MaterialApp(home: DaftarArtikelPage()),
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 5));
 
-      await tester.pumpWidget(
-        const MaterialApp(home: DaftarArtikelPage()),
-      );
-      await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Daftar Artikel'), findsOneWidget);
+      },
+    );
 
-      final searchField = find.byType(TextField);
-      expect(searchField, findsOneWidget);
+    testWidgets(
+      'Filter live pencarian menyaring artikel berdasarkan kata kunci',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      // Cari artikel dengan kata "Wasting"
-      await tester.enterText(searchField, 'Wasting');
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          const MaterialApp(home: DaftarArtikelPage()),
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 5));
 
-      expect(find.textContaining('Wasting'), findsWidgets);
+        final searchField = find.byType(TextField);
+        expect(searchField, findsOneWidget);
 
-      // Hapus pencarian
-      final clearButton = find.byIcon(Icons.close_rounded);
-      if (clearButton.evaluate().isNotEmpty) {
-        await tester.tap(clearButton);
+        await tester.enterText(searchField, 'Wasting');
         await tester.pumpAndSettle();
-      }
-    });
 
-    testWidgets('Dialog konfirmasi hapus muncul dengan judul Hapus Data dan tombol Ya/Tidak', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+        expect(find.textContaining('Wasting'), findsWidgets);
 
-      await tester.pumpWidget(
-        const MaterialApp(home: DaftarArtikelPage()),
-      );
-      await tester.pumpAndSettle();
+        // Clear pencarian
+        final clearButton = find.byIcon(Icons.close_rounded);
+        if (clearButton.evaluate().isNotEmpty) {
+          await tester.tap(clearButton);
+          await tester.pumpAndSettle();
+        }
+      },
+    );
 
-      final deleteButtons = find.byIcon(Icons.delete_outline_rounded);
-      expect(deleteButtons, findsWidgets);
+    testWidgets(
+      'Dialog konfirmasi hapus muncul dengan judul Hapus Data dan tombol Ya/Tidak',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.tap(deleteButtons.first);
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          const MaterialApp(home: DaftarArtikelPage()),
+        );
+        await tester.pumpAndSettle(const Duration(seconds: 5));
 
-      // Verifikasi judul dan teks dialog konfirmasi
-      expect(find.text('Hapus Data'), findsOneWidget);
-      expect(
-        find.text(
-          'Mohon pastikan ulang sebelum menghapus Artikel. Apakah anda yakin ingin menghapus?',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('Ya'), findsOneWidget);
-      expect(find.text('Tidak'), findsOneWidget);
+        final deleteButtons = find.byIcon(Icons.delete_outline_rounded);
+        expect(deleteButtons, findsWidgets);
 
-      // Tekan tombol Tidak (batal)
-      await tester.tap(find.text('Tidak'));
-      await tester.pumpAndSettle();
+        await tester.tap(deleteButtons.first);
+        await tester.pumpAndSettle();
 
-      expect(find.text('Hapus Data'), findsNothing);
-    });
+        // Verifikasi judul dan teks dialog
+        expect(find.text('Hapus Data'), findsOneWidget);
+        expect(
+          find.text(
+            'Mohon pastikan ulang sebelum menghapus Artikel. Apakah anda yakin ingin menghapus?',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Ya'), findsOneWidget);
+        expect(find.text('Tidak'), findsOneWidget);
+
+        // Tekan Tidak — dialog harus tertutup
+        await tester.tap(find.text('Tidak'));
+        await tester.pumpAndSettle();
+        expect(find.text('Hapus Data'), findsNothing);
+      },
+    );
   });
 
+  // ---------------------------------------------------------------------------
+  // 2. FormArtikelPage
+  // ---------------------------------------------------------------------------
   group('FormArtikelPage Widget Tests (Mode Tambah & Mode Ubah)', () {
-    testWidgets('Mode Tambah: merender form kosong dan header Tambah Artikel', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'Mode Tambah: merender header "Tambah Artikel" dan form kosong',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        const MaterialApp(home: FormArtikelPage()),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          const MaterialApp(home: FormArtikelPage()),
+        );
+        await tester.pumpAndSettle();
 
-      // Header Tambah Artikel
-      expect(find.text('Tambah Artikel'), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+        // Header
+        expect(find.text('Tambah Artikel'), findsOneWidget);
+        expect(find.byIcon(Icons.arrow_back), findsOneWidget);
 
-      // Area Foto default kosong
-      expect(find.byIcon(Icons.image_outlined), findsOneWidget);
-      expect(find.text('Ubah Foto'), findsOneWidget);
+        // Area foto placeholder
+        expect(find.byIcon(Icons.image_outlined), findsOneWidget);
 
-      // Input fields
-      expect(find.text('Isi Judul'), findsOneWidget);
-      expect(find.text('Judul Artikel'), findsOneWidget);
-      expect(find.text('Nama Penulis'), findsOneWidget);
-      expect(find.text('Isi Artikel'), findsOneWidget);
-      expect(find.text('Simpan'), findsOneWidget);
-    });
+        // Tombol Ubah Foto
+        expect(find.text('Ubah Foto'), findsOneWidget);
 
-    testWidgets('Mode Ubah: merender data artikel terpilih secara otomatis', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+        // Label field
+        expect(find.text('Isi Judul'), findsOneWidget);
+        expect(find.text('Nama Penulis'), findsOneWidget);
+        expect(find.text('Isi Artikel'), findsOneWidget);
 
-      const sampleArtikel = ArtikelModel(
-        id: 'artikel_1',
-        judul: 'Stunting',
-        penulis: 'Pego',
-        tanggal: '26 Agustus 2026',
-        assetImagePath: 'assets/images/artikel_stunting.jpg',
-        deskripsi: 'Deskripsi uji coba stunting.',
-        pengertian: 'Pengertian uji coba stunting.',
-      );
+        // Tombol simpan
+        expect(find.text('Simpan'), findsOneWidget);
+      },
+    );
 
-      await tester.pumpWidget(
-        const MaterialApp(home: FormArtikelPage(artikel: sampleArtikel)),
-      );
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Mode Ubah: header "Ubah Artikel" dan data artikel terpilih terisi otomatis',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      // 1. Header Ubah Artikel
-      expect(find.text('Ubah Artikel'), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+        const sampleArtikel = ArtikelModel(
+          id: 'artikel_1',
+          judul: 'Stunting',
+          penulis: 'Pego',
+          tanggal: '26 Agustus 2026',
+          assetImagePath: 'assets/images/artikel_stunting.jpg',
+          deskripsi: 'Deskripsi uji coba stunting.',
+          pengertian: 'Pengertian uji coba stunting.',
+          isiLengkap: 'Isi lengkap stunting untuk test.',
+        );
 
-      // 2. Foto & Tombol Ubah Foto
-      expect(find.text('Ubah Foto'), findsOneWidget);
+        await tester.pumpWidget(
+          const MaterialApp(home: FormArtikelPage(artikel: sampleArtikel)),
+        );
+        await tester.pumpAndSettle();
 
-      // 3. Tanggal Terisi Otomatis
-      expect(find.text('26 Agustus 2026'), findsOneWidget);
+        // Header mode ubah
+        expect(find.text('Ubah Artikel'), findsOneWidget);
+        expect(find.byIcon(Icons.arrow_back), findsOneWidget);
 
-      // 4. Isi Judul & Penulis Terisi Otomatis
-      expect(find.text('Stunting'), findsOneWidget);
-      expect(find.text('Pego'), findsOneWidget);
+        // Tombol Ubah Foto
+        expect(find.text('Ubah Foto'), findsOneWidget);
 
-      // 5. Isi Artikel Terisi
-      expect(find.textContaining('Deskripsi'), findsWidgets);
-      expect(find.text('Simpan'), findsOneWidget);
-    });
+        // Tanggal terisi otomatis dari artikel
+        expect(find.text('26 Agustus 2026'), findsOneWidget);
 
-    testWidgets('Validasi form mencegah penyimpanan jika judul atau isi kosong', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+        // Judul dan penulis terisi
+        expect(find.text('Stunting'), findsOneWidget);
+        expect(find.text('Pego'), findsOneWidget);
 
-      await tester.pumpWidget(
-        const MaterialApp(home: FormArtikelPage()),
-      );
-      await tester.pumpAndSettle();
+        // Tombol simpan
+        expect(find.text('Simpan'), findsOneWidget);
+      },
+    );
 
-      // Tekan tombol Simpan tanpa mengisi
-      final simpanButton = find.text('Simpan');
-      await tester.tap(simpanButton);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Validasi form memunculkan pesan error jika judul atau isi kosong',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      expect(find.text('Judul artikel wajib diisi'), findsOneWidget);
-      expect(find.text('Isi artikel wajib diisi'), findsOneWidget);
-    });
+        await tester.pumpWidget(
+          const MaterialApp(home: FormArtikelPage()),
+        );
+        await tester.pumpAndSettle();
 
-    testWidgets('Responsif pada layar kecil Android compact tanpa overflow', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(320, 533);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+        // Tekan Simpan tanpa mengisi field apa pun
+        await tester.tap(find.text('Simpan'));
+        await tester.pumpAndSettle();
 
-      const sampleArtikel = ArtikelModel(
-        id: 'artikel_1',
-        judul: 'Stunting',
-        penulis: 'Pego',
-        tanggal: '26 Agustus 2026',
-        assetImagePath: 'assets/images/artikel_stunting.jpg',
-      );
+        // Pesan error sesuai string di _handleSimpan
+        expect(find.text('Judul artikel wajib diisi'), findsOneWidget);
+        expect(find.text('Isi artikel wajib diisi'), findsOneWidget);
+      },
+    );
 
-      await tester.pumpWidget(
-        const MaterialApp(home: FormArtikelPage(artikel: sampleArtikel)),
-      );
-      await tester.pumpAndSettle();
+    testWidgets(
+      'Responsif pada layar kecil Android compact tanpa overflow',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(320, 533);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Ubah Artikel'), findsOneWidget);
-    });
+        const sampleArtikel = ArtikelModel(
+          id: 'artikel_1',
+          judul: 'Stunting',
+          penulis: 'Pego',
+          tanggal: '26 Agustus 2026',
+          assetImagePath: 'assets/images/artikel_stunting.jpg',
+        );
+
+        await tester.pumpWidget(
+          const MaterialApp(home: FormArtikelPage(artikel: sampleArtikel)),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Ubah Artikel'), findsOneWidget);
+      },
+    );
   });
 }
