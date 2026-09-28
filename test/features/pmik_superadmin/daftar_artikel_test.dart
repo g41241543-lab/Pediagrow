@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/models/artikel_model.dart';
 import 'package:pediagrow/pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
 import 'package:pediagrow/pmik_superadmin/kelola_artikel/form_artikel_page.dart';
+import 'package:pediagrow/shared/widgets/illustration_forest_footer.dart';
 import 'package:pediagrow/shared/widgets/pedia_bottom_nav_bar.dart';
 
 // ---------------------------------------------------------------------------
@@ -48,7 +49,10 @@ void main() {
         expect(find.text('Cari Artikel'), findsOneWidget);
         expect(find.byIcon(Icons.search), findsOneWidget);
 
-        // 3. Bottom Navigation Bar
+        // 3. Ilustrasi Forest Footer di atas Bottom Nav Bar
+        expect(find.byType(IllustrationForestFooter), findsOneWidget);
+
+        // 4. Bottom Navigation Bar
         expect(find.byType(PediaBottomNavBar), findsOneWidget);
         expect(find.text('Beranda'), findsOneWidget);
         expect(find.text('Konsultasi'), findsOneWidget);
@@ -289,6 +293,46 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('Ubah Artikel'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Menampilkan toolbar rich text (Paragraph, B, I, U, Lists, Undo, Redo) dan memformat teks saat ditekan',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: FormArtikelPage()),
+        );
+        await tester.pumpAndSettle();
+
+        // 1. Verifikasi elemen toolbar
+        expect(find.text('Paragraph'), findsOneWidget);
+        expect(find.text('B'), findsOneWidget);
+        expect(find.text('I'), findsOneWidget);
+        expect(find.text('U'), findsOneWidget);
+        expect(find.byIcon(Icons.format_list_bulleted_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.format_list_numbered_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.undo_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.redo_rounded), findsOneWidget);
+
+        // 2. Ketuk tombol Bold (B) — menambahkan placeholder bold
+        await tester.tap(find.text('B'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('teks tebal'), findsWidgets);
+
+        // 3. Ketuk tombol Italic (I)
+        await tester.tap(find.text('I'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('teks miring'), findsWidgets);
+
+        // 4. Ketuk tombol Underline (U)
+        await tester.tap(find.text('U'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('teks bergaris bawah'), findsWidgets);
       },
     );
   });
