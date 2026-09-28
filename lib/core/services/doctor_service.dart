@@ -1,102 +1,393 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/doctor_model.dart';
+import '../../models/staff_account_model.dart';
+import 'staff_auth_service.dart';
+import 'superadmin_notification_service.dart';
 
-/// Service repositori untuk mengelola data Dokter pada PediaGrow.
+/// Service untuk mengelola data dokter di Firestore.
 ///
-/// Bertindak sebagai sumber data terpusat (single source of truth) yang
-/// digunakan oleh:
-/// - Sisi Pengguna: `DaftarDokterPage`, `ProfilDokterPage`, `FormulirKonsultasiPage`
-/// - Sisi PMIK/Superadmin: Pengelolaan data dokter (tambah, ubah, hapus)
+/// Sumber data dokter sepenuhnya berasal dari collection 'doctors'.
+/// Dokter tidak dibuat secara default di dalam aplikasi.
 ///
-/// Mendukung pembaruan reaktif via [doctorsNotifier] sehingga saat PMIK
-/// mengubah atau menambahkan dokter baru di database/API, tampilan di HP
-/// pengguna otomatis terbarui tanpa perlu refresh manual.
+/// Dipakai oleh:
+/// - Sisi Pengguna:
+///   - DaftarDokterPage
+///   - ProfilDokterPage
+///   - FormulirKonsultasiPage
+///
+/// - Sisi PMIK/Superadmin:
+///   - Tambah dokter
+///   - Ubah dokter
+///   - Hapus dokter
+///
+/// Perubahan data dokter di Firestore dipantau secara real-time.
+/// Jadi ketika PMIK menambah, mengubah, atau menghapus dokter,
+/// daftar dokter pada sisi pengguna akan ikut diperbarui.
 class DoctorService {
+  // ============================================================
+  // SINGLETON
+  // ============================================================
+
   static final DoctorService _instance = DoctorService._internal();
+
   factory DoctorService() => _instance;
 
-  DoctorService._internal() {
-    // Inisialisasi awal dengan data PMIK terverifikasi
-    _doctorsNotifier = ValueNotifier<List<DoctorModel>>(
-      List<DoctorModel>.from(DoctorModel.dummyList),
-    );
-  }
+  DoctorService._internal();
 
-  late final ValueNotifier<List<DoctorModel>> _doctorsNotifier;
+  // ============================================================
+  // FIRESTORE
+  // ============================================================
 
-  /// Notifier untuk mendengarkan perubahan daftar dokter secara real-time
-  ValueListenable<List<DoctorModel>> get doctorsNotifier => _doctorsNotifier;
+  static const String _collection = 'doctors';
 
-  /// Mengambil daftar seluruh dokter saat ini
-  List<DoctorModel> get currentDoctors =>
-      List<DoctorModel>.unmodifiable(_doctorsNotifier.value);
-
-  /// Mengambil daftar dokter (asinkron untuk kompatibilitas API/database di masa depan)
-  Future<List<DoctorModel>> getDoctors() async {
-    // Simulasi delay jaringan minimal jika nantinya dihubungkan ke REST API/Database
-    await Future.delayed(const Duration(milliseconds: 50));
-    return currentDoctors;
-  }
-
-  /// Pencarian dokter berdasarkan nama atau spesialis secara dinamis
-  List<DoctorModel> filterDoctors(String query) {
-    final cleanQuery = query.trim().toLowerCase();
-    if (cleanQuery.isEmpty) {
-      return currentDoctors;
-    }
-
-    return currentDoctors.where((doc) {
-      final nameMatches = doc.name.toLowerCase().contains(cleanQuery);
-      final specMatches = doc.specialization.toLowerCase().contains(cleanQuery);
-      final hospitalMatches =
-          doc.hospital?.toLowerCase().contains(cleanQuery) ?? false;
-      final placesMatch = doc.placesOfPractice
-          .any((p) => p.toLowerCase().contains(cleanQuery));
-
-      return nameMatches || specMatches || hospitalMatches || placesMatch;
-    }).toList();
-  }
-
-  /// Mengambil profil dokter berdasarkan ID unik
-  Future<DoctorModel?> getDoctorById(String id) async {
+  FirebaseFirestore? get _db {
     try {
-      return currentDoctors.firstWhere((doc) => doc.id == id);
-    } catch (_) {
+      return FirebaseFirestore.instance;
+    } catch (e) {
       return null;
     }
   }
 
-  /// Menambahkan dokter baru (oleh PMIK Superadmin)
-  Future<void> addDoctor(DoctorModel doctor) async {
-    final updated = List<DoctorModel>.from(_doctorsNotifier.value)..add(doctor);
-    _doctorsNotifier.value = updated;
-  }
+  // ============================================================
+  // DOKTER NOTIFIER
+  // ============================================================
 
-  /// Memperbarui informasi dokter (oleh PMIK Superadmin)
-  Future<void> updateDoctor(DoctorModel doctor) async {
-    final list = List<DoctorModel>.from(_doctorsNotifier.value);
-    final index = list.indexWhere((item) => item.id == doctor.id);
-    if (index != -1) {
-      list[index] = doctor;
-      _doctorsNotifier.value = list;
+  /// Daftar dokter yang berasal dari Firestore.
+  ///
+  /// Nilai awal kosong karena aplikasi tidak memiliki
+  /// dokter bawaan/default.
+  final ValueNotifier<List<DoctorModel>> _doctorsNotifier =
+      ValueNotifier<List<DoctorModel>>([]);
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
+
+  // ============================================================
+  // REAL-TIME LISTENER
+  // ============================================================
+
+  /// Mulai mendengarkan perubahan collection 'doctors'.
+  ///
+  /// Listener hanya dibuat satu kali.
+  void _startListening() {
+    if (_subscription != null) return;
+
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      _subscription = db
+          .collection(_collection)
+          .snapshots()
+          .listen(
+            (snapshot) {
+              final List<DoctorModel> list = snapshot.docs
+                  .map(
+                    (doc) => DoctorModel.fromMap({...doc.data(), 'id': doc.id}),
+                  )
+                  .toList();
+
+              // Urutkan berdasarkan nama dokter.
+              list.sort(
+                (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+              );
+
+              _doctorsNotifier.value = list;
+            },
+            onError: (error) {
+              debugPrint('[DoctorService] listen error: $error');
+            },
+          );
+    } catch (e) {
+      debugPrint('[DoctorService] start listening error: $e');
     }
   }
 
-  /// Menghapus dokter dari daftar (oleh PMIK Superadmin)
+  /// Membantu inject dokter saat testing widget
+  @visibleForTesting
+  void setDoctorsForTesting(List<DoctorModel> doctors) {
+    _doctorsNotifier.value = doctors;
+  }
+
+  // ============================================================
+  // GETTERS
+  // ============================================================
+
+  /// Notifier untuk mendengarkan daftar dokter secara real-time.
+  ///
+  /// Jika Firestore kosong, nilai yang diterima adalah [].
+  ValueListenable<List<DoctorModel>> get doctorsNotifier {
+    _startListening();
+    return _doctorsNotifier;
+  }
+
+  /// Mengambil daftar dokter yang saat ini tersedia.
+  ///
+  /// Data berasal dari Firestore.
+  /// Tidak ada dokter dummy/default.
+  List<DoctorModel> get currentDoctors {
+    _startListening();
+
+    return List<DoctorModel>.unmodifiable(_doctorsNotifier.value);
+  }
+
+  /// Mengambil daftar dokter.
+  Future<List<DoctorModel>> getDoctors() async {
+    return currentDoctors;
+  }
+
+  // ============================================================
+  // SEARCH DOKTER
+  // ============================================================
+
+  /// Mencari dokter berdasarkan:
+  /// - Nama
+  /// - Spesialisasi
+  /// - Rumah sakit
+  /// - Tempat praktik
+  ///
+  /// Pencarian dilakukan hanya terhadap dokter
+  /// yang sudah ada di Firestore.
+  List<DoctorModel> filterDoctors(String query) {
+    final String cleanQuery = query.trim().toLowerCase();
+
+    // Jika pencarian kosong, tampilkan semua dokter.
+    if (cleanQuery.isEmpty) {
+      return currentDoctors;
+    }
+
+    return currentDoctors.where((doctor) {
+      final bool nameMatches = doctor.name.toLowerCase().contains(cleanQuery);
+
+      final bool specializationMatches = doctor.specialization
+          .toLowerCase()
+          .contains(cleanQuery);
+
+      final bool hospitalMatches =
+          doctor.hospital?.toLowerCase().contains(cleanQuery) ?? false;
+
+      final bool placesMatch = doctor.placesOfPractice.any(
+        (place) => place.toLowerCase().contains(cleanQuery),
+      );
+
+      return nameMatches ||
+          specializationMatches ||
+          hospitalMatches ||
+          placesMatch;
+    }).toList();
+  }
+
+  // ============================================================
+  // GET DOKTER BERDASARKAN ID
+  // ============================================================
+
+  /// Mengambil satu profil dokter berdasarkan ID dokumen Firestore.
+  Future<DoctorModel?> getDoctorById(String id) async {
+    try {
+      final db = _db;
+      if (db == null) return null;
+
+      final DocumentSnapshot<Map<String, dynamic>> doc = await db
+          .collection(_collection)
+          .doc(id)
+          .get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      final data = doc.data();
+
+      if (data == null) {
+        return null;
+      }
+
+      return DoctorModel.fromMap({...data, 'id': doc.id});
+    } catch (e) {
+      debugPrint('[DoctorService] getDoctorById error: $e');
+
+      return null;
+    }
+  }
+
+  // ============================================================
+  // TAMBAH DOKTER + AKUN LOGIN
+  // ============================================================
+
+  /// Membuat dokter baru sekaligus membuat akun login dokter.
+  ///
+  /// Proses:
+  ///
+  /// 1. PMIK/Superadmin memasukkan data dokter.
+  /// 2. Sistem membuat akun pada collection 'staff_accounts'.
+  /// 3. Sistem mendapatkan staffAccountId.
+  /// 4. Profil dokter disimpan pada collection 'doctors'.
+  /// 5. Profil dokter dihubungkan dengan akun melalui
+  ///    field 'staff_account_id'.
+  ///
+  /// Tidak ada dokter default.
+  /// Dokter hanya akan muncul setelah PMIK/Superadmin
+  /// berhasil menambahkan dokter.
+  ///
+  /// Return:
+  /// - true  = berhasil
+  /// - false = gagal
+  Future<bool> createDoctorWithAccount({
+    required DoctorModel profile,
+    required String email,
+    required String password,
+    required String createdByEmail,
+  }) async {
+    try {
+      final db = _db;
+      if (db == null) return false;
+
+      // ----------------------------------------------------------
+      // 1. BUAT AKUN STAFF DOKTER
+      // ----------------------------------------------------------
+
+      final String? staffId = await StaffAuthService().createStaffAccount(
+        name: profile.name,
+        email: email,
+        password: password,
+        role: StaffRole.dokter,
+        createdByEmail: createdByEmail,
+      );
+
+      // Jika akun gagal dibuat, proses dihentikan.
+      if (staffId == null) {
+        return false;
+      }
+
+      try {
+        // --------------------------------------------------------
+        // 2. SIAPKAN DATA PROFIL DOKTER
+        // --------------------------------------------------------
+
+        final Map<String, dynamic> data = profile.toMap()
+          ..remove('id')
+          ..['staff_account_id'] = staffId;
+
+        // --------------------------------------------------------
+        // 3. SIMPAN PROFIL DOKTER KE FIRESTORE
+        // --------------------------------------------------------
+        //
+        // Menggunakan add() agar Firestore membuat ID dokumen
+        // secara otomatis.
+        //
+        // ID tersebut nantinya akan dimasukkan kembali oleh
+        // DoctorModel.fromMap() sebagai doctor.id.
+
+        await db.collection(_collection).add(data);
+        await SuperadminNotificationService().notifyDokterTambah(profile.name);
+
+        return true;
+      } catch (e) {
+        debugPrint('[DoctorService] create doctor profile error: $e');
+
+        // --------------------------------------------------------
+        // 4. JIKA PROFIL GAGAL DISIMPAN
+        // --------------------------------------------------------
+        //
+        // Akun dokter yang sudah dibuat dinonaktifkan agar
+        // tidak meninggalkan akun aktif tanpa profil dokter.
+
+        await StaffAuthService().setAccountActive(staffId, false);
+
+        return false;
+      }
+    } catch (e) {
+      debugPrint('[DoctorService] createDoctorWithAccount error: $e');
+
+      return false;
+    }
+  }
+
+  // ============================================================
+  // UPDATE DOKTER
+  // ============================================================
+
+  /// Memperbarui profil dokter.
+  ///
+  /// Dokter yang diperbarui adalah dokter yang sudah ada
+  /// di collection 'doctors'.
+  Future<void> updateDoctor(DoctorModel doctor) async {
+    try {
+      final db = _db;
+      if (db == null) return;
+
+      final Map<String, dynamic> data = doctor.toMap()..remove('id');
+
+      await db.collection(_collection).doc(doctor.id).update(data);
+      await SuperadminNotificationService().notifyDokterUbah(doctor.name);
+    } catch (e) {
+      debugPrint('[DoctorService] updateDoctor error: $e');
+    }
+  }
+
+  // ============================================================
+  // DELETE DOKTER
+  // ============================================================
+
+  /// Menghapus profil dokter.
+  ///
+  /// Selain menghapus profil dari collection 'doctors',
+  /// akun login dokter juga dinonaktifkan.
   Future<void> deleteDoctor(String id) async {
-    final updated = List<DoctorModel>.from(_doctorsNotifier.value)
-      ..removeWhere((item) => item.id == id);
-    _doctorsNotifier.value = updated;
+    try {
+      final db = _db;
+      if (db == null) return;
+
+      // ----------------------------------------------------------
+      // 1. AMBIL DATA DOKTER
+      // ----------------------------------------------------------
+
+      final DocumentReference<Map<String, dynamic>> ref = db
+          .collection(_collection)
+          .doc(id);
+
+      final DocumentSnapshot<Map<String, dynamic>> snapshot = await ref.get();
+
+      if (!snapshot.exists) {
+        return;
+      }
+
+      final String doctorName = snapshot.data()?['name'] as String? ?? 'Dokter';
+      final String? staffId = snapshot.data()?['staff_account_id'] as String?;
+
+      // ----------------------------------------------------------
+      // 2. HAPUS PROFIL DOKTER
+      // ----------------------------------------------------------
+
+      await ref.delete();
+      await SuperadminNotificationService().notifyDokterHapus(doctorName);
+
+      // ----------------------------------------------------------
+      // 3. NONAKTIFKAN AKUN LOGIN DOKTER
+      // ----------------------------------------------------------
+
+      if (staffId != null && staffId.isNotEmpty) {
+        await StaffAuthService().setAccountActive(staffId, false);
+      }
+    } catch (e) {
+      debugPrint('[DoctorService] deleteDoctor error: $e');
+    }
   }
 
-  /// Mengosongkan daftar dokter (untuk skenario pengujian database kosong)
-  void clearAllDoctors() {
+  // ============================================================
+  // CLEANUP
+  // ============================================================
+
+  /// Menghentikan listener Firestore dan membersihkan notifier.
+  ///
+  /// Dipakai jika service memang perlu dihentikan secara manual.
+  Future<void> dispose() async {
+    await _subscription?.cancel();
+    _subscription = null;
+
     _doctorsNotifier.value = [];
-  }
-
-  /// Mengembalikan data ke daftar default PMIK
-  void resetToDefault() {
-    _doctorsNotifier.value = List<DoctorModel>.from(DoctorModel.dummyList);
   }
 }
