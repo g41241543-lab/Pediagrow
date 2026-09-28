@@ -7,8 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
 import '../../../../models/user_model.dart';
-import '../../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
 import 'pilih_anak_button_sheet.dart';
+import 'superadmin_grafik_page.dart';
+import 'tab_detail_pasien/resume_medis/daftar_resume_medis_page.dart';
 
 /// Halaman Data Pasien Anak untuk POV Superadmin.
 ///
@@ -85,17 +86,20 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           final data = doc.data()!;
           setState(() {
             _parentUser = UserModel.fromMap({...data, 'id': doc.id});
-            final pPhoto = data['photoUrl'] ??
+            final pPhoto =
+                data['photoUrl'] ??
                 data['photo_url'] ??
                 data['avatarPath'] ??
                 data['avatar_path'] ??
                 data['avatar'];
             if (pPhoto != null && pPhoto.toString().trim().isNotEmpty) {
-              _parentUser =
-                  _parentUser?.copyWith(avatarPath: pPhoto.toString());
+              _parentUser = _parentUser?.copyWith(
+                avatarPath: pPhoto.toString(),
+              );
             }
 
-            final uChildPhoto = data['childPhoto'] ??
+            final uChildPhoto =
+                data['childPhoto'] ??
                 data['child_photo'] ??
                 data['childPhotoUrl'] ??
                 data['child_photo_url'];
@@ -120,7 +124,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           final data = doc.data()!;
           setState(() {
             _currentChild = ChildModel.fromMap({...data, 'id': doc.id});
-            final cPhoto = data['photoUrl'] ??
+            final cPhoto =
+                data['photoUrl'] ??
                 data['photo_url'] ??
                 data['avatar'] ??
                 data['avatarPath'] ??
@@ -152,8 +157,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     if (trimmed.startsWith('data:image')) {
       try {
         final commaIdx = trimmed.indexOf(',');
-        final base64Str =
-            commaIdx != -1 ? trimmed.substring(commaIdx + 1) : trimmed;
+        final base64Str = commaIdx != -1
+            ? trimmed.substring(commaIdx + 1)
+            : trimmed;
         final bytes = base64Decode(base64Str.trim());
         return Image.memory(
           bytes,
@@ -253,118 +259,15 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     return value % 1 == 0 ? value.toInt().toString() : value.toString();
   }
 
-  void _showResumeMedisDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  void _navigateToResumeMedis() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (_, _, _) =>
+            DaftarResumeMedisPage(child: _currentChild, user: widget.user),
+        transitionsBuilder: (_, animation, _, childWidget) =>
+            FadeTransition(opacity: animation, child: childWidget),
+        transitionDuration: const Duration(milliseconds: 200),
       ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/data_pasien_logo.png',
-                      width: 32,
-                      height: 32,
-                      errorBuilder: (_, _, _) => const Icon(
-                        Icons.description_outlined,
-                        color: _colorPrimaryBlue,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Resume Medis Pasien',
-                      style: GoogleFonts.lato(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Ringkasan Rekam Medis: ${_currentChild.name}',
-                        style: GoogleFonts.lato(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '• Tanggal Lahir: ${_formatTanggalIndonesia(_currentChild.birthDate)}\n'
-                        '• Jenis Kelamin: ${_currentChild.gender}\n'
-                        '• Berat Lahir: ${_formatNumber(_currentChild.birthWeightKg)} kg\n'
-                        '• Panjang Lahir: ${_formatNumber(_currentChild.birthHeightCm)} cm\n'
-                        '• Lingkar Kepala: ${_formatNumber(_currentChild.headCircumferenceCm)} cm\n'
-                        '• Alergi: ${_currentChild.allergies?.isNotEmpty == true ? _currentChild.allergies! : 'Tidak ada riwayat alergi'}',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: const Color(0xFF475569),
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _colorPrimaryBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      'Tutup',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -678,7 +581,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                   Navigator.of(context).push(
                     PageRouteBuilder(
                       pageBuilder: (_, _, _) =>
-                          PertumbuhanGrafikPage(child: _currentChild),
+                          SuperadminGrafikPage(child: _currentChild),
                       transitionsBuilder: (_, animation, _, childWidget) =>
                           FadeTransition(
                             opacity: animation,
@@ -696,7 +599,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               _buildFeatureButton(
                 title: 'Resume\nMedis',
                 imageAsset: 'assets/images/data_pasien_logo.png',
-                onTap: _showResumeMedisDialog,
+                onTap: _navigateToResumeMedis,
               ),
             ],
           ),
@@ -793,7 +696,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       final minggu = child.gestationalAgeWeeks;
       prematur = minggu != null ? 'Ya, Lahir di minggu ke-$minggu' : 'Ya';
     } else {
-      prematur = 'Tidak';
+      prematur = '-';
     }
 
     final String bbLahir = _formatNumber(child.birthWeightKg ?? child.weightKg);
@@ -938,7 +841,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Ruang obrolan konsultasi dengan orang tua pasien hanya dapat diakses saat sesi konsultasi aktif atau telah dijadwalkan.',
+            'Ruang obrolan konsultasi dengan orang tua pasien hanya dapat diakses oleh dokter dan saat sesi konsultasi sedang aktif.',
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 13,
