@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/superadmin_notification_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
@@ -48,6 +49,10 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     super.initState();
     _loadLatestArticles();
     ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
+    // Inisialisasi notifikasi superadmin & cek pengingat dataset bulanan
+    SuperadminNotificationService().init().then((_) {
+      SuperadminNotificationService().checkDatasetReminder();
+    });
   }
 
   @override
@@ -189,7 +194,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                         // Lingkaran Notifikasi dengan badge angka
                         ValueListenableBuilder<int>(
                           valueListenable:
-                              NotificationService().unreadCountNotifier,
+                              SuperadminNotificationService().unreadCountNotifier,
                           builder: (context, unreadCount, _) {
                             return GestureDetector(
                               onTap: () =>

@@ -85,7 +85,7 @@ class PediaBottomNavBar extends StatelessWidget {
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
       _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
+      _NavData(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
     return Container(
@@ -101,91 +101,95 @@ class PediaBottomNavBar extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(navItems.length, (i) {
-          final isSelected = i == selectedIndex;
-          final item = navItems[i];
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: List.generate(navItems.length, (i) {
+            final isSelected = i == selectedIndex;
+            final item = navItems[i];
 
-          return GestureDetector(
-            onTap: () => _defaultNavigate(context, i),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 80,
-              height: 68,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isSelected) ...[
-                    // State aktif: lingkaran putih dengan icon biru #72A9F4
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x1A000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => _defaultNavigate(context, i),
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  height: 68,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected) ...[
+                        // State aktif: lingkaran putih dengan icon biru #72A9F4
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        item.icon,
-                        size: 22,
-                        color: const Color(0xFF72A9F4),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          item.label,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.lato(
-                            fontSize: 11,
-                            fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1E293B),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.icon,
+                            size: 22,
+                            color: const Color(0xFF72A9F4),
                           ),
                         ),
-                      ),
-                    ),
-                  ] else ...[
-                    // State tidak aktif: icon & label abu-abu #9E9E9E
-                    Icon(
-                      item.icon,
-                      size: 24,
-                      color: const Color(0xFF9E9E9E),
-                    ),
-                    const SizedBox(height: 3),
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          item.label,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.lato(
-                            fontSize: 11,
-                            fontWeight: FontWeight.normal,
-                            color: const Color(0xFF9E9E9E),
+                        const SizedBox(height: 2),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 11,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF1E293B),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                ],
+                      ] else ...[
+                        // State tidak aktif: icon & label abu-abu #9E9E9E
+                        Icon(
+                          item.icon,
+                          size: 24,
+                          color: const Color(0xFF9E9E9E),
+                        ),
+                        const SizedBox(height: 3),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF9E9E9E),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }

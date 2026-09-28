@@ -1,14 +1,6 @@
-import 'package:flutter/material.dart';
+export '../../../../pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
 
-/// Halaman Daftar Artikel Kesehatan Admin — stub, implementasi menyusul.
-class DaftarArtikelAdminPage extends StatelessWidget {
-  const DaftarArtikelAdminPage({super.key});
+import '../../../../pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Artikel Kesehatan')),
-      body: const Center(child: Text('Daftar Artikel Kesehatan')),
-    );
-  }
-}
+/// Alias untuk DaftarArtikelAdminPage yang merujuk pada [DaftarArtikelPage].
+typedef DaftarArtikelAdminPage = DaftarArtikelPage;

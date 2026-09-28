@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../models/child_model.dart';
 import '../../../../models/user_model.dart';
 import '../../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
-import 'detail_pengguna_page.dart';
+import 'detail_anak_page.dart';
 
 // =============================================================================
 // HELPER: Hitung umur anak secara akurat berdasarkan tanggal lahir
@@ -154,9 +157,9 @@ class PilihAnakBottomSheet extends StatefulWidget {
       onChildSelected: (child) {
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) =>
-                DetailPenggunaPage(user: user, child: child),
-            transitionsBuilder: (_, animation, __, childWidget) =>
+            pageBuilder: (_, _, _) =>
+                DetailAnakPage(child: child, user: user),
+            transitionsBuilder: (_, animation, _, childWidget) =>
                 FadeTransition(opacity: animation, child: childWidget),
             transitionDuration: const Duration(milliseconds: 200),
           ),
@@ -201,9 +204,9 @@ class PilihAnakBottomSheet extends StatefulWidget {
       onChildSelected: (child) {
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) =>
+            pageBuilder: (_, _, _) =>
                 PertumbuhanGrafikPage(child: child),
-            transitionsBuilder: (_, animation, __, childWidget) =>
+            transitionsBuilder: (_, animation, _, childWidget) =>
                 FadeTransition(opacity: animation, child: childWidget),
             transitionDuration: const Duration(milliseconds: 200),
           ),
@@ -419,7 +422,7 @@ class _SheetContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       physics: const BouncingScrollPhysics(),
       itemCount: children.length,
-      separatorBuilder: (_, __) => const Divider(
+      separatorBuilder: (_, _) => const Divider(
         height: 1,
         thickness: 1,
         color: Color(0xFFE2E8F0),
@@ -536,14 +539,64 @@ class _SheetContent extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: hasPhoto
-          ? Image.network(
+          ? _buildAvatarImage(
               child.photoUrl!,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
-                  Icon(Icons.face_rounded, size: 26, color: iconColor),
+              Icon(Icons.face_rounded, size: 26, color: iconColor),
             )
           : Icon(Icons.face_rounded, size: 26, color: iconColor),
     );
+  }
+
+  Widget _buildAvatarImage(String imagePath, Widget fallback) {
+    final trimmed = imagePath.trim();
+    if (trimmed.startsWith('data:image')) {
+      try {
+        final commaIdx = trimmed.indexOf(',');
+        final base64Str =
+            commaIdx != -1 ? trimmed.substring(commaIdx + 1) : trimmed;
+        final bytes = base64Decode(base64Str.trim());
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => fallback,
+        );
+      } catch (_) {}
+    }
+    if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0KGgo')) {
+      try {
+        final bytes = base64Decode(trimmed);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => fallback,
+        );
+      } catch (_) {}
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return Image.network(
+        trimmed,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    }
+    if (trimmed.startsWith('assets/')) {
+      return Image.asset(
+        trimmed,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    }
+    try {
+      final file = File(trimmed);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => fallback,
+        );
+      }
+    } catch (_) {}
+    return fallback;
   }
 
   // ── STATE KOSONG ────────────────────────────────────────────────────────────

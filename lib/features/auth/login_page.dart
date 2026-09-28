@@ -123,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
 
+<<<<<<< HEAD
       // Superadmin & Admin (PMIK) masuk ke BerandaSuperadminPage.
       // Dokter untuk sementara memakai halaman placeholder sampai beranda dokter selesai.
       final Widget destination = switch (staff.role) {
@@ -130,6 +131,17 @@ class _LoginPageState extends State<LoginPage> {
         StaffRole.admin => const BerandaSuperadminPage(),
         StaffRole.dokter => StaffHomePlaceholderPage(account: staff),
       };
+=======
+      // Superadmin punya beranda sendiri. PMIK dan dokter untuk sementara
+      // memakai halaman placeholder sampai beranda masing-masing selesai.
+      final Widget destination;
+
+      if (staff.isPmikSuperadmin) {
+        destination = const BerandaSuperadminPage();
+      } else {
+        destination = StaffHomePlaceholderPage(account: staff);
+      }
+>>>>>>> fc0231803de1fa80ac699e6444c160370fb79a73
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => destination),

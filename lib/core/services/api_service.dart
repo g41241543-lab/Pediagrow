@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -103,7 +104,11 @@ class ApiService {
     final root = await getEffectiveBaseUrl();
     try {
       final response = await http
-          .get(Uri.parse('$root/pengguna/get_children.php?id_orang_tua=$idOrangTua'))
+          .get(
+            Uri.parse(
+              '$root/pengguna/get_children.php?id_orang_tua=$idOrangTua',
+            ),
+          )
           .timeout(_timeoutDuration);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -118,7 +123,9 @@ class ApiService {
   }
 
   /// Menambahkan data profil anak ke database MySQL
-  static Future<Map<String, dynamic>> addChild(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> addChild(
+    Map<String, dynamic> data,
+  ) async {
     final root = await getEffectiveBaseUrl();
     try {
       final response = await http
@@ -141,7 +148,8 @@ class ApiService {
 
   /// Mencatat riwayat pengukuran stunting/pertumbuhan anak ke database MySQL
   static Future<Map<String, dynamic>> addGrowthRecord(
-      Map<String, dynamic> record) async {
+    Map<String, dynamic> record,
+  ) async {
     final root = await getEffectiveBaseUrl();
     try {
       final response = await http
@@ -163,7 +171,9 @@ class ApiService {
     final root = await getEffectiveBaseUrl();
     try {
       final response = await http
-          .get(Uri.parse('$root/pengguna/get_growth_records.php?id_anak=$idAnak'))
+          .get(
+            Uri.parse('$root/pengguna/get_growth_records.php?id_anak=$idAnak'),
+          )
           .timeout(_timeoutDuration);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -186,7 +196,9 @@ class ApiService {
     final root = await getEffectiveBaseUrl();
     try {
       final uri = (query != null && query.trim().isNotEmpty)
-          ? Uri.parse('$root/pengguna/get_articles.php?q=${Uri.encodeComponent(query.trim())}')
+          ? Uri.parse(
+              '$root/pengguna/get_articles.php?q=${Uri.encodeComponent(query.trim())}',
+            )
           : Uri.parse('$root/pengguna/get_articles.php');
       final response = await http.get(uri).timeout(_timeoutDuration);
       if (response.statusCode == 200) {
@@ -210,7 +222,9 @@ class ApiService {
     final root = await getEffectiveBaseUrl();
     try {
       final uri = (query != null && query.trim().isNotEmpty)
-          ? Uri.parse('$root/pengguna/get_recipes.php?q=${Uri.encodeComponent(query.trim())}')
+          ? Uri.parse(
+              '$root/pengguna/get_recipes.php?q=${Uri.encodeComponent(query.trim())}',
+            )
           : Uri.parse('$root/pengguna/get_recipes.php');
       final response = await http.get(uri).timeout(_timeoutDuration);
       if (response.statusCode == 200) {
@@ -253,11 +267,17 @@ class ApiService {
   // ---------------------------------------------------------------------------
 
   /// Mengambil riwayat konsultasi milik orang tua
-  static Future<List<Map<String, dynamic>>> getConsultations(int idOrangTua) async {
+  static Future<List<Map<String, dynamic>>> getConsultations(
+    int idOrangTua,
+  ) async {
     final root = await getEffectiveBaseUrl();
     try {
       final response = await http
-          .get(Uri.parse('$root/pengguna/get_consultations.php?id_orang_tua=$idOrangTua'))
+          .get(
+            Uri.parse(
+              '$root/pengguna/get_consultations.php?id_orang_tua=$idOrangTua',
+            ),
+          )
           .timeout(_timeoutDuration);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -280,7 +300,9 @@ class ApiService {
     final root = await getEffectiveBaseUrl();
     try {
       final response = await http
-          .get(Uri.parse('$root/pengguna/get_notifications.php?id_akun=$idAkun'))
+          .get(
+            Uri.parse('$root/pengguna/get_notifications.php?id_akun=$idAkun'),
+          )
           .timeout(_timeoutDuration);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -324,4 +346,3 @@ class ApiService {
     }
   }
 }
-
