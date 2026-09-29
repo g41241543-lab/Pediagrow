@@ -40,14 +40,22 @@ class ResepMpasiModel {
     this.caraMembuat = const [],
   });
 
-  /// Gambar yang ditampilkan: prioritaskan assetImagePath, fallback imageUrl.
-  String? get displayImage => assetImagePath ?? imageUrl;
+  /// Gambar yang ditampilkan: prioritaskan imageUrl (Firebase/remote), fallback assetImagePath.
+  /// Dengan ini gambar yang diupload PMIK/Superadmin ke Firebase selalu tampil.
+  String? get displayImage => (imageUrl != null && imageUrl!.isNotEmpty) ? imageUrl : assetImagePath;
 
   /// Cek apakah gambar berupa URL network HTTP/HTTPS
   bool get isNetworkImage {
     final img = displayImage;
     if (img == null) return false;
     return img.startsWith('http://') || img.startsWith('https://');
+  }
+
+  /// Cek apakah gambar berupa file lokal (dari image_picker)
+  bool get isLocalFile {
+    final img = displayImage;
+    if (img == null) return false;
+    return img.startsWith('/') || img.startsWith('file://');
   }
 
   /// Factory dari Map (Mendukung skema MySQL dan SQLite lokal)

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -343,10 +345,15 @@ class _DetailResepPageState extends State<DetailResepPage> {
 
   // Gambar Resep — sudut membulat modern 18dp sesuai Detail Artikel
   Widget _buildRecipeImage(ResepMpasi resep) {
+    // Prioritaskan imageUrl (Firebase) atas assetImage (lokal/bawaan)
     final imagePath =
-        resep.assetImage.isNotEmpty ? resep.assetImage : (resep.imageUrl ?? '');
+        (resep.imageUrl != null && resep.imageUrl!.isNotEmpty)
+            ? resep.imageUrl!
+            : resep.assetImage;
     final isNetwork =
         imagePath.startsWith('http://') || imagePath.startsWith('https://');
+    final isLocalFile =
+        imagePath.startsWith('/') || imagePath.startsWith('file://');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -377,13 +384,21 @@ class _DetailResepPageState extends State<DetailResepPage> {
                         errorBuilder: (context, error, stackTrace) =>
                             _buildImagePlaceholder(),
                       )
-                    : Image.asset(
-                        imagePath,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildImagePlaceholder(),
-                      ),
+                    : isLocalFile
+                        ? Image.file(
+                            File(imagePath.replaceFirst('file://', '')),
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildImagePlaceholder(),
+                          )
+                        : Image.asset(
+                            imagePath,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildImagePlaceholder(),
+                          ),
           ),
         ),
       ),
