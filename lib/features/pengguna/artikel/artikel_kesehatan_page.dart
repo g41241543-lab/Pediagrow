@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -526,7 +528,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
         borderRadius: BorderRadius.circular(borderRadius),
         child: displayImage == null
             ? _buildThumbnailPlaceholder()
-            : (artikel.isAssetImage
+            : artikel.isAssetImage
                 ? Image.asset(
                     displayImage,
                     width: thumbWidth,
@@ -535,14 +537,23 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                     errorBuilder: (context, error, stackTrace) =>
                         _buildThumbnailPlaceholder(),
                   )
-                : Image.network(
-                    displayImage,
-                    width: thumbWidth,
-                    height: thumbHeight,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildThumbnailPlaceholder(),
-                  )),
+                : artikel.isLocalFile
+                    ? Image.file(
+                        File(displayImage.replaceFirst('file://', '')),
+                        width: thumbWidth,
+                        height: thumbHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildThumbnailPlaceholder(),
+                      )
+                    : Image.network(
+                        displayImage,
+                        width: thumbWidth,
+                        height: thumbHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildThumbnailPlaceholder(),
+                      ),
       ),
     );
   }

@@ -3,12 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/services/user_service.dart';
 import '../../core/services/child_service.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../pmik_superadmin/beranda/beranda_superadmin_page.dart';
-import '../dokter/beranda_dokter_page.dart';
+import '../dokter/beranda/beranda_dokter_page.dart';
 import '../pmik_admin/beranda_pmik_page.dart';
 import '../../models/staff_account_model.dart';
 import 'auth_choice_page.dart';
@@ -118,7 +119,6 @@ class _LoginPageState extends State<LoginPage> {
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
 
-<<<<<<< HEAD
       // Arahkan setiap role ke beranda yang sesuai.
       Widget destination;
       switch (staff.role) {
@@ -133,27 +133,6 @@ class _LoginPageState extends State<LoginPage> {
           destination = const BerandaSuperadminPage();
           break;
       }
-=======
-<<<<<<< HEAD
-      // Superadmin & Admin (PMIK) masuk ke BerandaSuperadminPage.
-      // Dokter untuk sementara memakai halaman placeholder sampai beranda dokter selesai.
-      final Widget destination = switch (staff.role) {
-        StaffRole.superadmin ||
-        StaffRole.admin => const BerandaSuperadminPage(),
-        StaffRole.dokter => StaffHomePlaceholderPage(account: staff),
-      };
-=======
-      // Superadmin punya beranda sendiri. PMIK dan dokter untuk sementara
-      // memakai halaman placeholder sampai beranda masing-masing selesai.
-      final Widget destination;
-
-      if (staff.isPmikSuperadmin) {
-        destination = const BerandaSuperadminPage();
-      } else {
-        destination = StaffHomePlaceholderPage(account: staff);
-      }
->>>>>>> fc0231803de1fa80ac699e6444c160370fb79a73
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => destination),

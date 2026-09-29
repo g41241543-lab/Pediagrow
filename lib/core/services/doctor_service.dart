@@ -328,6 +328,83 @@ class DoctorService {
     }
   }
 
+  /// Memperbarui status online dokter di Firestore
+  Future<void> updateOnlineStatus(String doctorId, bool isOnline) async {
+    try {
+      final db = _db;
+      if (db == null) return;
+
+      await db.collection(_collection).doc(doctorId).update({
+        'is_online': isOnline,
+      });
+
+      final currentList = List<DoctorModel>.from(_doctorsNotifier.value);
+      final idx = currentList.indexWhere((d) => d.id == doctorId);
+      if (idx != -1) {
+        currentList[idx] = currentList[idx].copyWith(isOnline: isOnline);
+        _doctorsNotifier.value = currentList;
+      }
+    } catch (e) {
+      debugPrint('[DoctorService] updateOnlineStatus error: $e');
+    }
+  }
+
+  /// Mencari dokter berdasarkan staff account ID
+  Future<DoctorModel?> findDoctorByStaffAccountId(String staffAccountId) async {
+    _startListening();
+    try {
+      final cached = _doctorsNotifier.value.firstWhere(
+        (d) => d.staffAccountId == staffAccountId,
+      );
+      return cached;
+    } catch (_) {}
+
+    final db = _db;
+    if (db == null) return null;
+    try {
+      final query = await db
+          .collection(_collection)
+          .where('staff_account_id', isEqualTo: staffAccountId)
+          .limit(1)
+          .get();
+      if (query.docs.isNotEmpty) {
+        final doc = query.docs.first;
+        return DoctorModel.fromMap({...doc.data(), 'id': doc.id});
+      }
+    } catch (e) {
+      debugPrint('[DoctorService] findDoctorByStaffAccountId error: $e');
+    }
+    return null;
+  }
+
+  /// Mencari dokter berdasarkan email
+  Future<DoctorModel?> findDoctorByEmail(String email) async {
+    _startListening();
+    try {
+      final cached = _doctorsNotifier.value.firstWhere(
+        (d) => d.email?.toLowerCase() == email.toLowerCase(),
+      );
+      return cached;
+    } catch (_) {}
+
+    final db = _db;
+    if (db == null) return null;
+    try {
+      final query = await db
+          .collection(_collection)
+          .where('email', isEqualTo: email.toLowerCase())
+          .limit(1)
+          .get();
+      if (query.docs.isNotEmpty) {
+        final doc = query.docs.first;
+        return DoctorModel.fromMap({...doc.data(), 'id': doc.id});
+      }
+    } catch (e) {
+      debugPrint('[DoctorService] findDoctorByEmail error: $e');
+    }
+    return null;
+  }
+
   // ============================================================
   // DELETE DOKTER
   // ============================================================

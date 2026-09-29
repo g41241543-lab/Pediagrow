@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
-import '../../../core/services/notification_service.dart';
 import '../../../core/services/superadmin_notification_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
@@ -14,12 +13,8 @@ import 'notifikasi_superadmin_page.dart';
 import 'data_anak/data_pasien_page.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
-<<<<<<< HEAD
-import 'permainan/daftar_soal_permainan_page.dart';
-=======
 import 'grafik_pengguna/grafik_pengguna_page.dart';
 import 'permainan/permainan_admin_page.dart';
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
@@ -601,7 +596,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     onTap: () => _handleMenuTap(
                       permissionKey: 'grafik_pengguna',
                       featureName: 'Grafik Pengguna',
-                      onAllowed: () => PilihAnakBottomSheet.showForGrafik(context),
+                      onAllowed: () => _navigateTo(const GrafikPenggunaPage()),
                     ),
                   ),
                 ),
@@ -616,56 +611,15 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     onTap: () => _handleMenuTap(
                       permissionKey: 'permainan',
                       featureName: 'Permainan',
-                      onAllowed: () => _navigateTo(const DaftarSoalPermainanPage()),
+                      onAllowed: () => _navigateTo(const PermainanAdminPage()),
                     ),
                   ),
                 ),
               ],
             ),
           ],
-<<<<<<< HEAD
         );
       },
-=======
-        ),
-
-        const SizedBox(height: 20),
-
-        // Baris 2: Daftar Artikel Kesehatan, Grafik Pengguna, Permainan
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Daftar Artikel\nKesehatan',
-                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
-                blobColor: const Color(0xFF6366F1),
-                onTap: () => _navigateTo(const DaftarArtikelAdminPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Grafik\nPengguna',
-                imageAsset: 'assets/images/grafik_pengguna_logo.png',
-                blobColor: const Color(0xFF2563EB),
-                onTap: () => _navigateTo(const GrafikPenggunaPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Permainan\n',
-                imageAsset: 'assets/images/permainan_logo.png',
-                blobColor: const Color(0xFFF59E0B),
-                logoOffsetX: 5,
-                onTap: () => _navigateTo(const PermainanAdminPage()),
-              ),
-            ),
-          ],
-        ),
-      ],
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
     );
   }
 
@@ -804,7 +758,6 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
 
                       // Icon, gambar, atau custom widget
                       Center(
-<<<<<<< HEAD
                         child: Opacity(
                           opacity: isLocked ? 0.45 : 1.0,
                           child: Transform.translate(
@@ -823,17 +776,6 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                         ),
                                       )
                                     : Icon(
-=======
-                        child: Transform.translate(
-                          offset: Offset(logoOffsetX, 0),
-                          child: customIcon ??
-                              (imageAsset != null
-                                  ? Image.asset(
-                                      imageAsset,
-                                      height: imageSize,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (ctx, err, _) => Icon(
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
                                         color: iconColor ??

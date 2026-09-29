@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -32,6 +34,7 @@ class ProfilDokterPage extends StatelessWidget {
   const ProfilDokterPage({super.key, required this.doctor, this.child});
 
   void _onChatDokterPressed(BuildContext context) {
+    if (!doctor.isOnline) return;
     // Alur resmi: Profil Dokter → Menunggu Persetujuan → Formulir → Chat
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -358,6 +361,53 @@ class ProfilDokterPage extends StatelessWidget {
   Widget _buildPracticeLocationsCard() {
     final places = doctor.daftarTempatPraktik;
 
+    if (places.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.apartment_rounded,
+                size: 20,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Belum ada informasi tempat praktik.',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -455,11 +505,16 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: () => _onChatDokterPressed(context),
+              onPressed: doctor.isOnline ? () => _onChatDokterPressed(context) : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3985E7),
+                backgroundColor: doctor.isOnline
+                    ? const Color(0xFF3985E7)
+                    : const Color(0xFFCBD5E1),
+                disabledBackgroundColor: const Color(0xFFE2E8F0),
                 elevation: 0,
-                shadowColor: const Color(0xFF3985E7).withValues(alpha: 0.3),
+                shadowColor: doctor.isOnline
+                    ? const Color(0xFF3985E7).withValues(alpha: 0.3)
+                    : Colors.transparent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -469,11 +524,11 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Konsultasi Sekarang',
+                doctor.isOnline ? 'Konsultasi Sekarang' : 'Dokter Sedang Offline',
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
                 ),
               ),
             ),
@@ -491,9 +546,20 @@ class ProfilDokterPage extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
       );
     }
-    if (doctor.avatarUrl != null && doctor.avatarUrl!.isNotEmpty) {
+    final url = doctor.avatarUrl;
+    if (url != null && url.isNotEmpty) {
+      // Path file lokal (dari image_picker di sisi dokter/superadmin)
+      if (url.startsWith('/') || url.startsWith('file://')) {
+        final file = File(url.replaceFirst('file://', ''));
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
+        );
+      }
+      // URL jaringan
       return Image.network(
-        doctor.avatarUrl!,
+        url,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
       );

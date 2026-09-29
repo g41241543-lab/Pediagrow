@@ -35,18 +35,29 @@ class ArtikelModel {
     this.isiLengkap = '',
   });
 
-  /// Mengembalikan gambar yang akan ditampilkan.
-  /// Memprioritaskan gambar aset lokal, lalu URL remote.
-  String? get displayImage =>
-      (assetImagePath != null && assetImagePath!.isNotEmpty)
-          ? assetImagePath
-          : ((imageUrl != null && imageUrl!.isNotEmpty) ? imageUrl : null);
+  /// Alias kompatibilitas untuk judul
+  String get title => judul;
 
-  /// Apakah gambar merupakan aset lokal
+  /// Alias kompatibilitas untuk kategori
+  String get category => kategori;
+
+  /// Mengembalikan gambar yang akan ditampilkan.
+  /// Memprioritaskan imageUrl (Firebase/remote) agar gambar yang diupload
+  /// PMIK/Superadmin selalu tampil. Fallback ke assetImagePath jika tidak ada.
+  String? get displayImage =>
+      (imageUrl != null && imageUrl!.isNotEmpty)
+          ? imageUrl
+          : ((assetImagePath != null && assetImagePath!.isNotEmpty) ? assetImagePath : null);
+
+  /// Apakah gambar merupakan aset lokal (asset bawaan aplikasi)
   bool get isAssetImage =>
-      assetImagePath != null &&
-      assetImagePath!.isNotEmpty &&
-      assetImagePath!.startsWith('assets/');
+      displayImage != null &&
+      displayImage!.startsWith('assets/');
+
+  /// Apakah gambar berupa file lokal dari image_picker
+  bool get isLocalFile =>
+      displayImage != null &&
+      (displayImage!.startsWith('/') || displayImage!.startsWith('file://'));
 
   /// Konversi dari Map SQLite / Database lokal
   factory ArtikelModel.fromMap(Map<String, dynamic> map) {

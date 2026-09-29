@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -506,7 +508,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     const double borderRadius = 18;
 
     final displayImage = recipe.displayImage;
-    final isNetwork = recipe.isNetworkImage;
 
     return Container(
       width: thumbWidth,
@@ -526,7 +527,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         borderRadius: BorderRadius.circular(borderRadius),
         child: displayImage == null || displayImage.isEmpty
             ? _buildThumbnailPlaceholder()
-            : isNetwork
+            : recipe.isNetworkImage
                 ? Image.network(
                     displayImage,
                     width: thumbWidth,
@@ -535,14 +536,23 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                     errorBuilder: (context, error, stackTrace) =>
                         _buildThumbnailPlaceholder(),
                   )
-                : Image.asset(
-                    displayImage,
-                    width: thumbWidth,
-                    height: thumbHeight,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildThumbnailPlaceholder(),
-                  ),
+                : recipe.isLocalFile
+                    ? Image.file(
+                        File(displayImage.replaceFirst('file://', '')),
+                        width: thumbWidth,
+                        height: thumbHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildThumbnailPlaceholder(),
+                      )
+                    : Image.asset(
+                        displayImage,
+                        width: thumbWidth,
+                        height: thumbHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildThumbnailPlaceholder(),
+                      ),
       ),
     );
   }

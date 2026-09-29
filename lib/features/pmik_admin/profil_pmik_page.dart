@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/staff_auth_service.dart';
@@ -24,6 +25,7 @@ class ProfilPmikPage extends StatefulWidget {
 class _ProfilPmikPageState extends State<ProfilPmikPage> {
   final int _selectedIndex = 3; // Profil aktif
   final ImagePicker _picker = ImagePicker();
+
   String? _avatarPath;
   StaffAccount? _pmik;
 
@@ -68,7 +70,6 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     }
   }
 
-  // ─── PHOTO PICKER ─────────────────────────────────────────────────────────
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -76,116 +77,128 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Ubah Foto Profil',
-                style: GoogleFonts.lato(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECF6FF),
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  child: const Icon(Icons.camera_alt_outlined,
-                      color: Color(0xFF3985E7), size: 24),
                 ),
-                title: Text('Ambil Foto dari Kamera',
-                    style: GoogleFonts.lato(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECF6FF),
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16),
+                Text(
+                  'Ubah Foto Profil',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
                   ),
-                  child: const Icon(Icons.photo_library_outlined,
-                      color: Color(0xFF3985E7), size: 24),
                 ),
-                title: Text('Pilih Foto dari Galeri',
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: Color(0xFF0891B2),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Ambil Foto dari Kamera',
                     style: GoogleFonts.lato(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: Color(0xFF0891B2),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Pilih Foto dari Galeri',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(
+      final XFile? picked = await _picker.pickImage(
         source: source,
         maxWidth: 600,
         maxHeight: 600,
         imageQuality: 85,
       );
-      if (pickedFile != null) {
-        setState(() => _avatarPath = pickedFile.path);
+      if (picked != null) {
+        setState(() => _avatarPath = picked.path);
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('pmik_avatar_${_pmik?.id}', pickedFile.path);
-        final staffId = StaffAuthService().currentStaff?.id;
-        if (staffId != null && staffId.isNotEmpty) {
-          await StaffAuthService().updateAvatar(staffId, pickedFile.path);
+        if (_pmik?.id != null) {
+          await prefs.setString('pmik_avatar_${_pmik!.id}', picked.path);
+          await StaffAuthService().updateStaffAccount(
+            _pmik!.id,
+            avatarPath: picked.path,
+          );
         }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Foto profil berhasil diperbarui',
-                  style: GoogleFonts.lato(fontWeight: FontWeight.w600)),
+              content: Text(
+                'Berhasil memperbarui foto profil',
+                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+              ),
               backgroundColor: const Color(0xFF16A34A),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih foto: $e',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600)),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
+      debugPrint('[ProfilPmikPage] _pickImage error: $e');
     }
   }
 
@@ -204,7 +217,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             children: [
               const SizedBox(height: 8),
               Text(
-                'Keluar dari Aplikasi',
+                'Keluar dari Akun',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18,
@@ -214,7 +227,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Apakah Anda yakin ingin keluar dari aplikasi PediaGrow?',
+                'Apakah Anda yakin ingin keluar dari akun PMIK?',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
@@ -235,7 +248,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: Text('Ya',
+                        child: Text('Batal',
                             style: GoogleFonts.lato(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -258,12 +271,12 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3985E7),
+                          backgroundColor: const Color(0xFFDC2626),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: Text('Tidak',
+                        child: Text('Keluar',
                             style: GoogleFonts.lato(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -394,13 +407,14 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               // 4. TOMBOL LOGOUT
               SizedBox(
                 height: 50.0,
-                child: OutlinedButton(
+                child: ElevatedButton(
                   onPressed: _showLogoutConfirmationDialog,
-                  style: OutlinedButton.styleFrom(
-                    side:
-                        const BorderSide(color: Color(0xFFDC2626), width: 1.5),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3985E7),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0)),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
                   ),
                   child: Text(
                     'LOGOUT',
@@ -408,7 +422,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.8,
-                      color: const Color(0xFFDC2626),
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -546,7 +560,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             ],
           ),
         ),
-        // Avatar melayang
+        // Avatar melayang dengan badge kamera
         Positioned(
           top: 0,
           child: GestureDetector(
@@ -567,19 +581,28 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       : null,
                 ),
                 Positioned(
-                  bottom: 0,
                   right: 0,
+                  bottom: 0,
                   child: Container(
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3985E7),
+                      color: const Color(0xFF0891B2),
                       shape: BoxShape.circle,
-                      border:
-                          Border.all(color: Colors.white, width: 2),
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x33000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.camera_alt_rounded,
-                        size: 14, color: Colors.white),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      size: 15,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],

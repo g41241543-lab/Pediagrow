@@ -5,11 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/staff_account_model.dart';
-<<<<<<< HEAD
 import '../../models/doctor_permissions.dart';
-=======
 import 'superadmin_notification_service.dart';
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 
 /// Service untuk mengelola login dan akun staff internal PediaGrow.
 ///
@@ -31,8 +28,11 @@ class StaffAuthService {
 
   /// Akun PMIK Superadmin bawaan sistem.
   static const String defaultSuperadminEmail = 'superadmin@pediagrow.com';
-
   static const String defaultSuperadminPassword = 'Superadmin123!';
+
+  /// Akun Dokter bawaan sistem.
+  static const String defaultDokterEmail = 'dokter@pediagrow.com';
+  static const String defaultDokterPassword = 'Dokter123!';
 
   FirebaseFirestore? get _db {
     try {
@@ -66,7 +66,9 @@ class StaffAuthService {
     try {
       final normalized = email.trim().toLowerCase();
       if (normalized == defaultSuperadminEmail.toLowerCase() ||
-          normalized.contains('superadmin')) {
+          normalized.contains('superadmin') ||
+          normalized == defaultDokterEmail.toLowerCase() ||
+          normalized.contains('dokter')) {
         return true;
       }
 
@@ -101,13 +103,7 @@ class StaffAuthService {
   // SEED PMIK SUPERADMIN
   // ============================================================
 
-  /// Memastikan minimal ada satu akun PMIK Superadmin
-  /// di Firestore.
-  ///
-  /// Struktur akun Superadmin:
-  ///
-  /// role      = admin
-  /// pmikLevel = superadmin
+  /// Memastikan minimal ada satu akun PMIK Superadmin di Firestore.
   Future<void> ensureSuperadminSeeded() async {
     try {
       final db = _db;
@@ -115,62 +111,73 @@ class StaffAuthService {
 
       final query = await db
           .collection(_collection)
-          .where('role', isEqualTo: StaffRole.admin.name)
-          .where('pmikLevel', isEqualTo: PmikLevel.superadmin.name)
+          .where('email', isEqualTo: defaultSuperadminEmail.toLowerCase())
           .limit(1)
           .get();
 
-<<<<<<< HEAD
-      if (query.docs.isEmpty) {
-        await db
-            .collection(_collection)
-            .add(
-              StaffAccount(
-                id: '',
-                name: 'Superadmin PediaGrow',
-                email: defaultSuperadminEmail,
-                passwordHash: _hashPassword(defaultSuperadminPassword),
-                role: StaffRole.superadmin,
-                createdBy: 'system',
-                createdAt: DateTime.now(),
-              ).toMap(),
-            );
-        debugPrint(
-          '[StaffAuthService] Akun superadmin default dibuat: '
-          '$defaultSuperadminEmail / $defaultSuperadminPassword',
-        );
-=======
-      // Jika sudah ada PMIK Superadmin,
-      // tidak membuat akun baru.
       if (query.docs.isNotEmpty) {
         return;
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
       }
 
-      await _db
-          .collection(_collection)
-          .add(
+      await db.collection(_collection).add(
             StaffAccount(
               id: '',
               name: 'Superadmin PediaGrow',
               email: defaultSuperadminEmail,
               passwordHash: _hashPassword(defaultSuperadminPassword),
-              role: StaffRole.admin,
+              role: StaffRole.superadmin,
               pmikLevel: PmikLevel.superadmin,
               createdBy: 'system',
               createdAt: DateTime.now(),
             ).toMap(),
           );
-
       debugPrint(
-        '[StaffAuthService] '
-        'Akun PMIK Superadmin default berhasil dibuat.',
+        '[StaffAuthService] Akun superadmin default dibuat: '
+        '$defaultSuperadminEmail / $defaultSuperadminPassword',
       );
     } catch (e) {
+      debugPrint('[StaffAuthService] Gagal seeding PMIK Superadmin: $e');
+    }
+  }
+
+  /// Memastikan minimal ada satu akun Dokter di Firestore untuk demo / pengujian.
+  Future<void> ensureDokterSeeded() async {
+    try {
+      final db = _db;
+      if (db == null) return;
+
+      final query = await db
+          .collection(_collection)
+          .where('email', isEqualTo: defaultDokterEmail.toLowerCase())
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        return;
+      }
+
+      await db.collection(_collection).add(
+            StaffAccount(
+              id: '',
+              name: 'dr. Ahmad Nuri, Sp.A',
+              email: defaultDokterEmail,
+              passwordHash: _hashPassword(defaultDokterPassword),
+              role: StaffRole.dokter,
+              pmikLevel: PmikLevel.biasa,
+              createdBy: 'system',
+              createdAt: DateTime.now(),
+              permissions: DoctorPermissions.defaultPermissions,
+              additionalInfo: {
+                'spesialisasi': 'Spesialis Anak',
+              },
+            ).toMap(),
+          );
       debugPrint(
-        '[StaffAuthService] '
-        'Gagal seeding PMIK Superadmin: $e',
+        '[StaffAuthService] Akun dokter default dibuat: '
+        '$defaultDokterEmail / $defaultDokterPassword',
       );
+    } catch (e) {
+      debugPrint('[StaffAuthService] Gagal seeding Dokter: $e');
     }
   }
 
@@ -190,20 +197,26 @@ class StaffAuthService {
       if (db == null) return null;
 
       final normalizedEmail = email.trim().toLowerCase();
-<<<<<<< HEAD
       var query = await db
-=======
-
-      final query = await _db
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
           .collection(_collection)
           .where('email', isEqualTo: normalizedEmail)
           .limit(1)
           .get();
 
-<<<<<<< HEAD
-      if (query.docs.isEmpty && normalizedEmail == defaultSuperadminEmail.toLowerCase()) {
+      if (query.docs.isEmpty &&
+          normalizedEmail == defaultSuperadminEmail.toLowerCase()) {
         await ensureSuperadminSeeded();
+        query = await db
+            .collection(_collection)
+            .where('email', isEqualTo: normalizedEmail)
+            .limit(1)
+            .get();
+      }
+
+      if (query.docs.isEmpty &&
+          (normalizedEmail == defaultDokterEmail.toLowerCase() ||
+              normalizedEmail == 'dokter@pediagrow.com')) {
+        await ensureDokterSeeded();
         query = await db
             .collection(_collection)
             .where('email', isEqualTo: normalizedEmail)
@@ -215,15 +228,6 @@ class StaffAuthService {
 
       final doc = query.docs.first;
       var account = StaffAccount.fromMap(doc.id, doc.data());
-=======
-      if (query.docs.isEmpty) {
-        return null;
-      }
-
-      final doc = query.docs.first;
-
-      final account = StaffAccount.fromMap(doc.id, doc.data());
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
 
       // Akun yang tidak aktif tidak dapat login.
       if (!account.isActive) {
@@ -232,20 +236,17 @@ class StaffAuthService {
 
       final inputHash = _hashPassword(password);
 
-<<<<<<< HEAD
-      // Jika email adalah superadmin atau memiliki hak_akses, pastikan rolenya superadmin
-      if (account.isSuperAdmin && account.role != StaffRole.superadmin) {
-        account = account.copyWith(role: StaffRole.superadmin);
-      }
-
-=======
       // Password salah.
       if (inputHash != account.passwordHash) {
         return null;
       }
 
+      // Jika email adalah superadmin atau memiliki hak_akses, pastikan rolenya superadmin
+      if (account.isSuperAdmin && account.role != StaffRole.superadmin) {
+        account = account.copyWith(role: StaffRole.superadmin);
+      }
+
       // Simpan staff yang sedang login.
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
       currentStaffNotifier.value = account;
 
       return account;
@@ -256,24 +257,12 @@ class StaffAuthService {
     }
   }
 
-<<<<<<< HEAD
-  /// Dipanggil oleh Superadmin untuk membuat akun PMIK (admin) atau Dokter baru.
-  /// Dipanggil oleh Superadmin untuk membuat akun PMIK (admin) atau Dokter baru.
-  /// Mengembalikan ID akun baru, atau null kalau gagal
-=======
   // ============================================================
   // MEMBUAT AKUN STAFF
   // ============================================================
 
-  /// Membuat akun staff baru.
-  ///
-  /// Yang dapat dibuat melalui fungsi ini:
-  /// - PMIK biasa
-  /// - Dokter
-  ///
-  /// PMIK Superadmin tidak dibuat melalui fungsi ini.
-  /// Akun PMIK Superadmin adalah akun khusus sistem.
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
+  /// Dipanggil oleh Superadmin untuk membuat akun PMIK (admin) atau Dokter baru.
+  /// Mengembalikan ID akun baru, atau null kalau gagal.
   Future<String?> createStaffAccount({
     required String name,
     required String email,
@@ -289,7 +278,6 @@ class StaffAuthService {
     Map<String, dynamic>? additionalInfo,
   }) async {
     try {
-<<<<<<< HEAD
       final db = _db;
       if (db == null) return null;
 
@@ -298,62 +286,22 @@ class StaffAuthService {
 
       final normalizedEmail = email.trim().toLowerCase();
 
-      final existing = await db
-=======
-      // PMIK Superadmin tidak boleh dibuat dari fungsi
-      // pembuatan akun staff biasa.
-      //
-      // Pada struktur baru, Superadmin bukan StaffRole
-      // tersendiri. Superadmin adalah:
-      //
-      // role = admin
-      // pmikLevel = superadmin
-      //
-      // Fungsi ini hanya membuat PMIK biasa atau dokter.
-
-      final normalizedEmail = email.trim().toLowerCase();
-
       // Cek apakah email sudah digunakan.
-      final existing = await _db
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
+      final existing = await db
           .collection(_collection)
           .where('email', isEqualTo: normalizedEmail)
           .limit(1)
           .get();
 
-<<<<<<< HEAD
+      if (existing.docs.isNotEmpty) {
+        return null;
+      }
+
       final actualPermissions = permissions ??
           (role == StaffRole.dokter
               ? DoctorPermissions.defaultPermissions
               : const <String, bool>{});
 
-      final ref = await db
-          .collection(_collection)
-          .add(
-            StaffAccount(
-              id: '',
-              name: name.trim(),
-              email: normalizedEmail,
-              passwordHash: _hashPassword(password),
-              role: role,
-              createdBy: createdByEmail,
-              createdAt: DateTime.now(),
-              permissions: actualPermissions,
-              avatarPath: avatarPath,
-              experience: experience,
-              strNumber: strNumber,
-              birthDate: birthDate,
-              education: education,
-              additionalInfo: additionalInfo,
-            ).toMap(),
-          );
-=======
-      if (existing.docs.isNotEmpty) {
-        return null;
-      }
-
-      // Karena fungsi ini hanya membuat PMIK biasa
-      // atau dokter, maka level PMIK selalu biasa.
       final account = StaffAccount(
         id: '',
         name: name.trim(),
@@ -363,29 +311,34 @@ class StaffAuthService {
         pmikLevel: PmikLevel.biasa,
         createdBy: createdByEmail,
         createdAt: DateTime.now(),
+        permissions: actualPermissions,
+        avatarPath: avatarPath,
+        experience: experience,
+        strNumber: strNumber,
+        birthDate: birthDate,
+        education: education,
+        additionalInfo: additionalInfo,
       );
 
-      final ref = await _db.collection(_collection).add(account.toMap());
+      final ref = await db.collection(_collection).add(account.toMap());
 
-      // Jika membuat akun PMIK, kirim notifikasi
-      // ke PMIK Superadmin.
+      // Jika membuat akun PMIK, kirim notifikasi ke PMIK Superadmin.
       if (role == StaffRole.admin) {
         await SuperadminNotificationService().notifyPmikTambah(name.trim());
       }
 
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
       return ref.id;
     } catch (e) {
-      debugPrint(
-        '[StaffAuthService] '
-        'createStaffAccount error: $e',
-      );
+      debugPrint('[StaffAuthService] createStaffAccount error: $e');
 
       return null;
     }
   }
 
-<<<<<<< HEAD
+  // ============================================================
+  // MENGAMBIL AKUN STAFF
+  // ============================================================
+
   /// Mengambil satu akun staff berdasarkan ID
   Future<StaffAccount?> getStaffAccountById(String id) async {
     try {
@@ -401,6 +354,27 @@ class StaffAuthService {
     }
   }
 
+  /// Mengambil satu akun staff berdasarkan email
+  Future<StaffAccount?> getStaffAccountByEmail(String email) async {
+    try {
+      final db = _db;
+      if (db == null) return null;
+
+      final normalized = email.trim().toLowerCase();
+      final query = await db
+          .collection(_collection)
+          .where('email', isEqualTo: normalized)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) return null;
+      return StaffAccount.fromMap(query.docs.first.id, query.docs.first.data());
+    } catch (e) {
+      debugPrint('[StaffAuthService] getStaffAccountByEmail error: $e');
+      return null;
+    }
+  }
+
   /// Mengambil semua akun staff (untuk halaman kelola akun Superadmin).
   Future<List<StaffAccount>> getAllStaffAccounts() async {
     try {
@@ -408,34 +382,17 @@ class StaffAuthService {
       if (db == null) return [];
 
       final query = await db.collection(_collection).get();
-=======
-  // ============================================================
-  // MENGAMBIL SEMUA AKUN STAFF
-  // ============================================================
 
-  /// Mengambil semua akun staff.
-  ///
-  /// Digunakan pada halaman pengelolaan akun
-  /// milik PMIK Superadmin.
-  Future<List<StaffAccount>> getAllStaffAccounts() async {
-    try {
-      final query = await _db.collection(_collection).get();
-
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
       return query.docs
           .map((doc) => StaffAccount.fromMap(doc.id, doc.data()))
           .toList();
     } catch (e) {
-      debugPrint(
-        '[StaffAuthService] '
-        'getAllStaffAccounts error: $e',
-      );
+      debugPrint('[StaffAuthService] getAllStaffAccounts error: $e');
 
       return [];
     }
   }
 
-<<<<<<< HEAD
   /// Memperbarui informasi akun staff (nama, email, password, role, permissions, avatarPath, info PMIK)
   Future<void> updateStaffAccount(
     String accountId, {
@@ -467,7 +424,8 @@ class StaffAuthService {
             .get();
         final isDuplicate = existingQuery.docs.any((d) => d.id != accountId);
         if (isDuplicate) {
-          throw Exception('Email "$normalizedEmail" sudah digunakan oleh akun lain.');
+          throw Exception(
+              'Email "$normalizedEmail" sudah digunakan oleh akun lain.');
         }
         updates['email'] = normalizedEmail;
       }
@@ -538,16 +496,11 @@ class StaffAuthService {
     await updateStaffAccount(accountId, avatarPath: avatarPath);
   }
 
-  /// Menonaktifkan/mengaktifkan akun staff (bukan hapus permanen).
-=======
   // ============================================================
   // AKTIF / NONAKTIF AKUN
   // ============================================================
 
   /// Mengaktifkan atau menonaktifkan akun staff.
-  ///
-  /// Akun tidak dihapus permanen.
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
   Future<void> setAccountActive(String accountId, bool isActive) async {
     try {
       final db = _db;
@@ -561,10 +514,7 @@ class StaffAuthService {
             currentStaffNotifier.value?.copyWith(isActive: isActive);
       }
     } catch (e) {
-      debugPrint(
-        '[StaffAuthService] '
-        'setAccountActive error: $e',
-      );
+      debugPrint('[StaffAuthService] setAccountActive error: $e');
     }
   }
 
@@ -587,7 +537,6 @@ class StaffAuthService {
             currentStaffNotifier.value?.copyWith(passwordHash: newHash);
       }
     } catch (e) {
-<<<<<<< HEAD
       debugPrint('[StaffAuthService] changePassword error: $e');
       rethrow;
     }
@@ -599,7 +548,8 @@ class StaffAuthService {
       final db = _db;
       if (db == null) return currentStaff;
       if (currentStaff != null && currentStaff!.id.isNotEmpty) {
-        final doc = await db.collection(_collection).doc(currentStaff!.id).get();
+        final doc =
+            await db.collection(_collection).doc(currentStaff!.id).get();
         if (doc.exists && doc.data() != null) {
           final acc = StaffAccount.fromMap(doc.id, doc.data()!);
           currentStaffNotifier.value = acc;
@@ -621,12 +571,6 @@ class StaffAuthService {
     } catch (e) {
       debugPrint('[StaffAuthService] getSuperadminAccount error: $e');
       return currentStaff;
-=======
-      debugPrint(
-        '[StaffAuthService] '
-        'changePassword error: $e',
-      );
->>>>>>> 7ce746daae19543c2e5c6c8493406e73d74689a1
     }
   }
 }
