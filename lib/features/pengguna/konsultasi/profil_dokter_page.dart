@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -544,9 +546,20 @@ class ProfilDokterPage extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
       );
     }
-    if (doctor.avatarUrl != null && doctor.avatarUrl!.isNotEmpty) {
+    final url = doctor.avatarUrl;
+    if (url != null && url.isNotEmpty) {
+      // Path file lokal (dari image_picker di sisi dokter/superadmin)
+      if (url.startsWith('/') || url.startsWith('file://')) {
+        final file = File(url.replaceFirst('file://', ''));
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
+        );
+      }
+      // URL jaringan
       return Image.network(
-        doctor.avatarUrl!,
+        url,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
       );

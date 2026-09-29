@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/child_service.dart';
@@ -709,7 +711,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
     );
   }
 
-  /// Avatar dokter dengan fallback cerdas
+  /// Avatar dokter dengan fallback cerdas.
+  /// Mendukung tiga sumber gambar:
+  /// 1. Asset bawaan aplikasi (assetImagePath)
+  /// 2. File lokal (avatarUrl berupa path file)
+  /// 3. URL jaringan (avatarUrl berupa http/https)
   Widget _buildAvatar(DoctorModel doctor) {
     if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
       return Image.asset(
@@ -718,9 +724,20 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
         errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
       );
     }
-    if (doctor.avatarUrl != null && doctor.avatarUrl!.isNotEmpty) {
+    final url = doctor.avatarUrl;
+    if (url != null && url.isNotEmpty) {
+      // Path file lokal (dari image_picker di sisi dokter/superadmin)
+      if (url.startsWith('/') || url.startsWith('file://')) {
+        final file = File(url.replaceFirst('file://', ''));
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
+        );
+      }
+      // URL jaringan
       return Image.network(
-        doctor.avatarUrl!,
+        url,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
       );
