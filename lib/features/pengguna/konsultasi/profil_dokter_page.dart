@@ -7,10 +7,11 @@ import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import 'menunggu_persetujuan_page.dart';
+import 'pilih_anak_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
 ///
-/// Alur navigasi: Profil Dokter → [MenungguPersetujuanPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
+/// Alur navigasi: Profil Dokter → [PilihAnakPage] → [MenungguPersetujuanPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
 ///
 /// Disesuaikan persis dengan acuan desain:
 /// 1. Header: Tombol kembali + judul "Profil Dokter Anak"
@@ -26,7 +27,7 @@ import 'menunggu_persetujuan_page.dart';
 ///    - Kartu berisikan daftar rumah sakit/klinik praktik dokter dengan ikon fasyankes
 ///      dan garis divider horizontal
 /// 4. Bottom Action Bar:
-///    - Tombol oranye "Chat Dokter" → navigasi ke [MenungguPersetujuanPage]
+///    - Tombol oranye "Konsultasi Sekarang" → navigasi ke [PilihAnakPage]
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
   final ChildModel? child;
@@ -35,32 +36,17 @@ class ProfilDokterPage extends StatelessWidget {
 
   void _onChatDokterPressed(BuildContext context) {
     if (!doctor.isOnline) return;
-    // Alur resmi: Profil Dokter → Menunggu Persetujuan → Formulir → Chat
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            MenungguPersetujuanPage(
-              doctor: doctor,
-              child: child ?? ChildService().activeChild,
-            ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final curved = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOutCubic,
-          );
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.15, 0.0),
-              end: Offset.zero,
-            ).animate(curved),
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 550),
-      ),
+
+    // Alur: Profil Dokter → Pilih Anak (bottom sheet) → Menunggu Persetujuan
+    PilihAnakPage.show(
+      context,
+      onChildSelected: (selectedChild) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => MenungguPersetujuanPage(child: selectedChild),
+          ),
+        );
+      },
     );
   }
 
@@ -505,7 +491,9 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: doctor.isOnline ? () => _onChatDokterPressed(context) : null,
+              onPressed: doctor.isOnline
+                  ? () => _onChatDokterPressed(context)
+                  : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: doctor.isOnline
                     ? const Color(0xFF3985E7)
@@ -524,11 +512,15 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ),
               child: Text(
-                doctor.isOnline ? 'Konsultasi Sekarang' : 'Dokter Sedang Offline',
+                doctor.isOnline
+                    ? 'Konsultasi Sekarang'
+                    : 'Dokter Sedang Offline',
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
+                  color: doctor.isOnline
+                      ? Colors.white
+                      : const Color(0xFF94A3B8),
                 ),
               ),
             ),

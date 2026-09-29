@@ -232,9 +232,11 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                   greeting = 'Hai, Superadmin';
                                 } else if (staff.role == StaffRole.dokter) {
                                   final name = staff.name.trim();
-                                  final isDr = name.toLowerCase().startsWith('dr.') ||
+                                  final isDr =
+                                      name.toLowerCase().startsWith('dr.') ||
                                       name.toLowerCase().startsWith('dr ');
-                                  greeting = 'Hai, ${isDr ? name : 'dr. $name'}';
+                                  greeting =
+                                      'Hai, ${isDr ? name : 'dr. $name'}';
                                 } else {
                                   greeting = 'Hai, ${staff.name.trim()}';
                                 }
@@ -256,8 +258,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
 
                         // Lingkaran Notifikasi dengan badge angka
                         ValueListenableBuilder<int>(
-                          valueListenable:
-                              SuperadminNotificationService().unreadCountNotifier,
+                          valueListenable: SuperadminNotificationService()
+                              .unreadCountNotifier,
                           builder: (context, unreadCount, _) {
                             return GestureDetector(
                               onTap: () =>
@@ -410,7 +412,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                       builder: (context, staff, _) {
                         final roleText = staff?.isSuperAdmin == true
                             ? 'PMIK Superadmin'
-                            : staff?.pmikRoleDisplay ?? (staff?.role.label ?? 'Staff');
+                            : staff?.pmikRoleDisplay ??
+                                  (staff?.role.label ?? 'Staff');
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,
@@ -419,9 +422,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: const Color(0xFFBFDBFE),
-                            ),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
                           ),
                           child: Text(
                             roleText,
@@ -532,7 +533,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     onTap: () => _handleMenuTap(
                       permissionKey: 'rekapitulasi',
                       featureName: 'Rekapitulasi',
-                      onAllowed: () => _navigateTo(const RekapitulasiStuntingPage()),
+                      onAllowed: () =>
+                          _navigateTo(const RekapitulasiStuntingPage()),
                     ),
                   ),
                 ),
@@ -560,7 +562,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     onTap: () => _handleMenuTap(
                       permissionKey: 'daftar_resep_mpasi',
                       featureName: 'Daftar Resep MPASI',
-                      onAllowed: () => _navigateTo(const DaftarResepMpasiAdminPage()),
+                      onAllowed: () =>
+                          _navigateTo(const DaftarResepMpasiAdminPage()),
                     ),
                   ),
                 ),
@@ -582,7 +585,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     onTap: () => _handleMenuTap(
                       permissionKey: 'daftar_artikel_kesehatan',
                       featureName: 'Daftar Artikel Kesehatan',
-                      onAllowed: () => _navigateTo(const DaftarArtikelAdminPage()),
+                      onAllowed: () =>
+                          _navigateTo(const DaftarArtikelAdminPage()),
                     ),
                   ),
                 ),
@@ -631,10 +635,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8CF47),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFE2B025),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFE2B025), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFD97706).withValues(alpha: 0.25),
@@ -735,7 +736,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isLocked ? const Color(0xFFF8FAFC) : const Color(0xFFECF6FF),
+                  color: isLocked
+                      ? const Color(0xFFF8FAFC)
+                      : const Color(0xFFECF6FF),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -762,7 +765,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                           opacity: isLocked ? 0.45 : 1.0,
                           child: Transform.translate(
                             offset: Offset(logoOffsetX, 0),
-                            child: customIcon ??
+                            child:
+                                customIcon ??
                                 (imageAsset != null
                                     ? Image.asset(
                                         imageAsset,
@@ -771,14 +775,16 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                         errorBuilder: (_, __, ___) => Icon(
                                           icon ?? Icons.widgets_rounded,
                                           size: imageSize,
-                                          color: iconColor ??
+                                          color:
+                                              iconColor ??
                                               const Color(0xFF3985E7),
                                         ),
                                       )
                                     : Icon(
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
-                                        color: iconColor ??
+                                        color:
+                                            iconColor ??
                                             const Color(0xFF3985E7),
                                       )),
                           ),
@@ -816,7 +822,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
-              color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF000000),
+              color: isLocked
+                  ? const Color(0xFF94A3B8)
+                  : const Color(0xFF000000),
               height: 1.25,
             ),
           ),
@@ -1416,7 +1424,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         _handleMenuTap(
           permissionKey: 'riwayat_konsultasi',
           featureName: 'Riwayat Konsultasi',
-          onAllowed: () => _navigateTo(const DaftarRiwayatKonsultasiAdminPage()),
+          onAllowed: () =>
+              _navigateTo(const DaftarRiwayatKonsultasiAdminPage()),
         );
         break;
       case 3:
