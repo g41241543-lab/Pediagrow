@@ -359,6 +359,53 @@ class ProfilDokterPage extends StatelessWidget {
   Widget _buildPracticeLocationsCard() {
     final places = doctor.daftarTempatPraktik;
 
+    if (places.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.apartment_rounded,
+                size: 20,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Belum ada informasi tempat praktik.',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(

@@ -31,6 +31,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
   String? _avatarPath;
   StaffAccount? _dokter;
+  DoctorModel? _doctorModel;
   bool _isOnline = false; // Status online/offline dokter
 
   @override
@@ -40,12 +41,60 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     _avatarPath = _dokter?.avatarPath;
     _loadSavedData();
     StaffAuthService().currentStaffNotifier.addListener(_onStaffUpdated);
+    DoctorService().doctorsNotifier.addListener(_onDoctorsUpdated);
   }
 
   @override
   void dispose() {
+    DoctorService().doctorsNotifier.removeListener(_onDoctorsUpdated);
     StaffAuthService().currentStaffNotifier.removeListener(_onStaffUpdated);
     super.dispose();
+  }
+
+  DoctorModel? _findMatchingDoctor(List<DoctorModel> list) {
+    if (_dokter == null && _doctorModel == null) return null;
+    final staffId = _dokter?.id ?? _doctorModel?.staffAccountId ?? '';
+    final email =
+        (_dokter?.email ?? _doctorModel?.email ?? '').trim().toLowerCase();
+    final name =
+        (_dokter?.name ?? _doctorModel?.name ?? '').trim().toLowerCase();
+
+    if (staffId.isNotEmpty) {
+      final byStaffId = list
+          .where((d) => d.staffAccountId.isNotEmpty && d.staffAccountId == staffId)
+          .firstOrNull;
+      if (byStaffId != null) return byStaffId;
+    }
+    if (email.isNotEmpty) {
+      final byEmail = list
+          .where((d) =>
+              d.email != null && d.email!.trim().toLowerCase() == email)
+          .firstOrNull;
+      if (byEmail != null) return byEmail;
+    }
+    if (name.isNotEmpty) {
+      final byName = list
+          .where((d) => d.name.trim().toLowerCase() == name)
+          .firstOrNull;
+      if (byName != null) return byName;
+    }
+    return null;
+  }
+
+  void _onDoctorsUpdated() {
+    if (!mounted) return;
+    final doc = _findMatchingDoctor(DoctorService().currentDoctors);
+    if (doc != null) {
+      setState(() {
+        _doctorModel = doc;
+        _isOnline = doc.isOnline;
+        if ((_avatarPath == null || _avatarPath!.isEmpty) &&
+            doc.avatarUrl != null &&
+            doc.avatarUrl!.isNotEmpty) {
+          _avatarPath = doc.avatarUrl;
+        }
+      });
+    }
   }
 
   void _onStaffUpdated() {
@@ -56,6 +105,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         _avatarPath = _dokter!.avatarPath;
       }
     });
+    _syncDoctorFromFirestore();
   }
 
   Future<void> _loadSavedData() async {
@@ -64,7 +114,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       setState(() => _dokter = staff);
       if (staff.avatarPath != null && staff.avatarPath!.isNotEmpty) {
         setState(() => _avatarPath = staff.avatarPath);
-        return;
       }
     }
     final prefs = await SharedPreferences.getInstance();
@@ -72,28 +121,50 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     final savedOnline = prefs.getBool('dokter_online_${_dokter?.id}') ?? false;
     if (mounted) {
       setState(() {
-        if (savedPath != null) _avatarPath = savedPath;
+        if (savedPath != null && (_avatarPath == null || _avatarPath!.isEmpty)) {
+          _avatarPath = savedPath;
+        }
         _isOnline = savedOnline;
       });
     }
 
-    // Sinkronkan status online terbaru dari Firestore jika ada
+    await _syncDoctorFromFirestore();
+  }
+
+  Future<void> _syncDoctorFromFirestore() async {
     try {
       DoctorModel? doc;
-      if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
-        doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
+      final staffId = _dokter?.id ?? '';
+      final email = _dokter?.email ?? '';
+
+      // Cek dulu dari cache doctors yang sudah aktif
+      doc = _findMatchingDoctor(DoctorService().currentDoctors);
+
+      if (doc == null && staffId.isNotEmpty) {
+        doc = await DoctorService().findDoctorByStaffAccountId(staffId);
       }
-      if (doc == null && _dokter?.email != null) {
-        doc = await DoctorService().findDoctorByEmail(_dokter!.email);
+      if (doc == null && email.isNotEmpty) {
+        doc = await DoctorService().findDoctorByEmail(email);
       }
+
       if (doc != null && mounted) {
-        setState(() => _isOnline = doc!.isOnline);
-        if (_dokter?.id != null) {
-          await prefs.setBool('dokter_online_${_dokter!.id}', doc.isOnline);
+        final foundDoc = doc;
+        final prefs = await SharedPreferences.getInstance();
+        setState(() {
+          _doctorModel = foundDoc;
+          _isOnline = foundDoc.isOnline;
+          if ((_avatarPath == null || _avatarPath!.isEmpty) &&
+              foundDoc.avatarUrl != null &&
+              foundDoc.avatarUrl!.isNotEmpty) {
+            _avatarPath = foundDoc.avatarUrl;
+          }
+        });
+        if (staffId.isNotEmpty) {
+          await prefs.setBool('dokter_online_$staffId', foundDoc.isOnline);
         }
       }
     } catch (e) {
-      debugPrint('[ProfilDokterPage] _loadSavedData sync error: $e');
+      debugPrint('[ProfilDokterPage] _syncDoctorFromFirestore error: $e');
     }
   }
 
@@ -107,14 +178,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     }
 
     try {
-      DoctorModel? doc;
-      if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
-        doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
-      }
-      if (doc == null && _dokter?.email != null) {
-        doc = await DoctorService().findDoctorByEmail(_dokter!.email);
+      DoctorModel? doc = _doctorModel;
+      if (doc == null) {
+        if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
+          doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
+        }
+        if (doc == null && _dokter?.email != null) {
+          doc = await DoctorService().findDoctorByEmail(_dokter!.email);
+        }
       }
       if (doc != null) {
+        _doctorModel = doc.copyWith(isOnline: newStatus);
         await DoctorService().updateOnlineStatus(doc.id, newStatus);
       }
     } catch (e) {
@@ -130,11 +204,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 : 'Status Anda sekarang Offline — pasien tidak dapat berkonsultasi',
             style: GoogleFonts.lato(fontWeight: FontWeight.w600),
           ),
-          backgroundColor:
-              newStatus ? const Color(0xFF16A34A) : const Color(0xFF64748B),
+          backgroundColor: newStatus
+              ? const Color(0xFF16A34A)
+              : const Color(0xFF64748B),
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -253,15 +329,19 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         }
 
         try {
-          DoctorModel? doc;
-          if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
-            doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
-          }
-          if (doc == null && _dokter?.email != null) {
-            doc = await DoctorService().findDoctorByEmail(_dokter!.email);
+          DoctorModel? doc = _doctorModel;
+          if (doc == null) {
+            if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
+              doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
+            }
+            if (doc == null && _dokter?.email != null) {
+              doc = await DoctorService().findDoctorByEmail(_dokter!.email);
+            }
           }
           if (doc != null) {
-            await DoctorService().updateDoctor(doc.copyWith(avatarUrl: picked.path));
+            final updated = doc.copyWith(avatarUrl: picked.path);
+            _doctorModel = updated;
+            await DoctorService().updateDoctor(updated);
           }
         } catch (_) {}
 
@@ -330,13 +410,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        child: Text('Batal',
-                            style: GoogleFonts.lato(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF475569))),
+                        child: Text(
+                          'Batal',
+                          style: GoogleFonts.lato(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -350,7 +434,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           StaffAuthService().logout();
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
-                                builder: (_) => const AuthChoicePage()),
+                              builder: (_) => const AuthChoicePage(),
+                            ),
                             (route) => false,
                           );
                         },
@@ -358,13 +443,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           backgroundColor: const Color(0xFFDC2626),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        child: Text('Keluar',
-                            style: GoogleFonts.lato(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
+                        child: Text(
+                          'Keluar',
+                          style: GoogleFonts.lato(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -387,12 +476,15 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 280),
-            pageBuilder: (_, __, ___) => const BerandaDokterPage(),
-            transitionsBuilder: (_, anim, __, child) => SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(-0.25, 0.0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+            pageBuilder: (_, _, _) => const BerandaDokterPage(),
+            transitionsBuilder: (_, anim, _, child) => SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(-0.25, 0.0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+                  ),
               child: FadeTransition(
                 opacity: Tween<double>(begin: 0, end: 1).animate(anim),
                 child: child,
@@ -415,8 +507,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     final isLeft = index < _selectedIndex;
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, anim, __, child) => SlideTransition(
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, anim, _, child) => SlideTransition(
         position: Tween<Offset>(
           begin: Offset(isLeft ? -0.25 : 0.25, 0.0),
           end: Offset.zero,
@@ -455,9 +547,9 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
               const SizedBox(height: 24.0),
 
-              // 2. INFORMASI UMUM
+              // 2. TEMPAT PRAKTIK
               Text(
-                'Informasi Umum',
+                'Tempat Praktik',
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
@@ -465,7 +557,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 ),
               ),
               const SizedBox(height: 12.0),
-              _buildGeneralInfoCard(),
+              _buildPracticeLocationsCard(),
 
               const SizedBox(height: 20.0),
 
@@ -479,8 +571,11 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: Color(0xFFF97316), size: 20),
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: Color(0xFFF97316),
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -607,13 +702,22 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   // ─── PROFILE CARD ─────────────────────────────────────────────────────────
   Widget _buildProfileCard() {
     const double avatarRadius = 46.0;
-    final name = _dokter?.name.isNotEmpty == true
-        ? _dokter!.name
-        : 'dr. Nama Dokter, Sp.A';
-    final spesialisasi =
-        _dokter?.additionalInfo?['spesialisasi']?.toString() ??
-            'Spesialis Anak';
-    final email = _dokter?.email ?? '';
+    final name = _doctorModel?.name.isNotEmpty == true
+        ? _doctorModel!.name
+        : (_dokter?.name.isNotEmpty == true
+            ? _dokter!.name
+            : 'dr. Nama Dokter, Sp.A');
+    final spesialisasi = _doctorModel?.specialization.isNotEmpty == true
+        ? _doctorModel!.specialization
+        : (_dokter?.additionalInfo?['spesialisasi']?.toString() ??
+            'Spesialis Anak');
+    final email = _doctorModel?.email?.isNotEmpty == true
+        ? _doctorModel!.email!
+        : (_dokter?.email ?? '');
+    final imagePath = _avatarPath ??
+        _doctorModel?.avatarUrl ??
+        _doctorModel?.assetImagePath ??
+        _dokter?.avatarPath;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -647,8 +751,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               if (_isOnline)
                 Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(20),
@@ -679,8 +785,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               else
                 Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(20),
@@ -749,9 +857,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _dokter?.experience != null
-                          ? '${_dokter!.experience} thn'
-                          : '-',
+                      value: _doctorModel != null &&
+                              _doctorModel!.experienceYears > 0
+                          ? '${_doctorModel!.experienceYears} tahun'
+                          : (_dokter?.experience != null &&
+                                  _dokter!.experience!.isNotEmpty
+                              ? _dokter!.experience!
+                              : '-'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -761,7 +873,11 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
-                      value: _dokter?.strNumber ?? '-',
+                      value: _doctorModel?.strNumber?.isNotEmpty == true
+                          ? _doctorModel!.strNumber!
+                          : (_dokter?.strNumber?.isNotEmpty == true
+                              ? _dokter!.strNumber!
+                              : '-'),
                     ),
                   ),
                 ],
@@ -781,13 +897,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 CircleAvatar(
                   radius: avatarRadius,
                   backgroundColor: const Color(0xFFE0EEFF),
-                  backgroundImage: _avatarPath != null
-                      ? FileImage(File(_avatarPath!)) as ImageProvider
-                      : null,
-                  child: _avatarPath == null
-                      ? Icon(Icons.person_rounded,
+                  backgroundImage: _resolveAvatarImage(imagePath),
+                  child: imagePath == null || imagePath.isEmpty
+                      ? Icon(
+                          Icons.person_rounded,
                           size: avatarRadius * 1.1,
-                          color: const Color(0xFF3985E7))
+                          color: const Color(0xFF3985E7),
+                        )
                       : null,
                 ),
                 Positioned(
@@ -847,17 +963,24 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  maxLines: 1,
-                  style: GoogleFonts.lato(
-                      fontSize: 11, color: const Color(0xFF94A3B8))),
-              Text(value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A))),
+              Text(
+                label,
+                maxLines: 1,
+                style: GoogleFonts.lato(
+                  fontSize: 11,
+                  color: const Color(0xFF94A3B8),
+                ),
+              ),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
             ],
           ),
         ),
@@ -865,34 +988,104 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── GENERAL INFO CARD ────────────────────────────────────────────────────
-  Widget _buildGeneralInfoCard() {
-    final items = [
-      _InfoItem(
-        icon: Icons.cake_rounded,
-        iconColor: const Color(0xFFEC4899),
-        bgColor: const Color(0xFFFDF2F8),
-        label: 'Tanggal Lahir',
-        value: _dokter?.birthDate ?? '-',
-      ),
-      _InfoItem(
-        icon: Icons.school_rounded,
-        iconColor: const Color(0xFF7C3AED),
-        bgColor: const Color(0xFFF5F3FF),
-        label: 'Pendidikan',
-        value: _dokter?.education ?? '-',
-      ),
-      _InfoItem(
-        icon: Icons.local_hospital_rounded,
-        iconColor: const Color(0xFF0891B2),
-        bgColor: const Color(0xFFECFEFF),
-        label: 'Spesialisasi',
-        value: _dokter?.additionalInfo?['spesialisasi']?.toString() ??
-            'Spesialis Anak',
-      ),
-    ];
+  ImageProvider? _resolveAvatarImage(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
+    if (path.startsWith('assets/')) {
+      return AssetImage(path);
+    }
+    try {
+      final file = File(path);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // ─── TEMPAT PRAKTIK ───────────────────────────────────────────────────────
+  List<String> get _resolvedPlacesOfPractice {
+    if (_doctorModel != null && _doctorModel!.daftarTempatPraktik.isNotEmpty) {
+      return _doctorModel!.daftarTempatPraktik;
+    }
+    final addInfo = _dokter?.additionalInfo;
+    if (addInfo != null) {
+      if (addInfo['places_of_practice'] is List) {
+        final list = (addInfo['places_of_practice'] as List)
+            .map((e) => e.toString().trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+        if (list.isNotEmpty) return list;
+      }
+      if (addInfo['tempat_praktik'] is List) {
+        final list = (addInfo['tempat_praktik'] as List)
+            .map((e) => e.toString().trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+        if (list.isNotEmpty) return list;
+      }
+      if (addInfo['hospital'] != null &&
+          addInfo['hospital'].toString().trim().isNotEmpty) {
+        return [addInfo['hospital'].toString().trim()];
+      }
+    }
+    return const [];
+  }
+
+  Widget _buildPracticeLocationsCard() {
+    final places = _resolvedPlacesOfPractice;
+
+    if (places.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 12.0,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.apartment_rounded,
+                size: 20,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Belum ada tempat praktik yang ditambahkan oleh Superadmin.',
+                style: GoogleFonts.lato(
+                  fontSize: 13.5,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
@@ -906,53 +1099,54 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         ],
       ),
       child: Column(
-        children: List.generate(items.length, (i) {
-          final item = items[i];
+        children: List.generate(places.length, (i) {
+          final place = places[i];
+          final isLast = i == places.length - 1;
+
           return Column(
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 14.0),
+                  horizontal: 16.0,
+                  vertical: 14.0,
+                ),
                 child: Row(
                   children: [
                     Container(
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: item.bgColor,
+                        color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
-                      child: Icon(item.icon,
-                          size: 20, color: item.iconColor),
+                      child: const Icon(
+                        Icons.local_hospital_outlined,
+                        size: 20,
+                        color: Color(0xFF3985E7),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.label,
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            color: const Color(0xFF94A3B8),
-                          ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        place,
+                        style: GoogleFonts.lato(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1E293B),
                         ),
-                        Text(
-                          item.value,
-                          style: GoogleFonts.lato(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E293B),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (i < items.length - 1)
+              if (!isLast)
                 const Divider(
-                    height: 1, indent: 66, color: Color(0xFFF1F5F9)),
+                  height: 1,
+                  thickness: 1,
+                  indent: 68,
+                  color: Color(0xFFF1F5F9),
+                ),
             ],
           );
         }),
@@ -984,7 +1178,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               _buildNavItem(0, Icons.home_rounded, 'Beranda'),
               _buildNavItem(1, Icons.chat_bubble_outline_rounded, 'Konsultasi'),
               _buildNavItem(
-                  2, Icons.receipt_long_rounded, 'Riwayat\nKonsultasi'),
+                2,
+                Icons.receipt_long_rounded,
+                'Riwayat\nKonsultasi',
+              ),
               _buildNavItem(3, Icons.person_rounded, 'Profil'),
             ],
           ),
@@ -1003,11 +1200,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 24,
-                color: isSelected
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8)),
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected
+                  ? const Color(0xFF3985E7)
+                  : const Color(0xFF94A3B8),
+            ),
             const SizedBox(height: 3),
             Text(
               label,
@@ -1015,8 +1214,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               maxLines: 2,
               style: GoogleFonts.lato(
                 fontSize: 10.5,
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? const Color(0xFF3985E7)
                     : const Color(0xFF94A3B8),
@@ -1030,21 +1228,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   }
 }
 
-// ─── DATA CLASS ───────────────────────────────────────────────────────────────
-class _InfoItem {
-  final IconData icon;
-  final Color iconColor;
-  final Color bgColor;
-  final String label;
-  final String value;
-  const _InfoItem({
-    required this.icon,
-    required this.iconColor,
-    required this.bgColor,
-    required this.label,
-    required this.value,
-  });
-}
 
 // ─── PLACEHOLDER ──────────────────────────────────────────────────────────────
 class _PlaceholderPage extends StatelessWidget {

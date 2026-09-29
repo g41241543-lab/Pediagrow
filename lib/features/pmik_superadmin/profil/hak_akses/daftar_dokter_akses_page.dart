@@ -258,7 +258,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: null,
     );
   }
 
