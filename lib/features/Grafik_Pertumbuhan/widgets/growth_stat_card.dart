@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Widget baris 3 kartu statistik ringkas berdampingan untuk
-/// Berat (kg), Tinggi (cm), dan Lingkar Kepala (cm).
+/// Widget baris 2 kartu statistik ringkas berdampingan untuk
+/// Berat (kg) dan Tinggi (cm).
 class GrowthStatCardsRow extends StatelessWidget {
   final double? weightKg;
   final double? heightCm;
-  final double? headCircumferenceCm;
 
   const GrowthStatCardsRow({
     super.key,
     required this.weightKg,
     required this.heightCm,
-    required this.headCircumferenceCm,
   });
 
   @override
@@ -41,21 +39,6 @@ class GrowthStatCardsRow extends StatelessWidget {
             icon: Icons.straighten_outlined,
             iconColor: const Color(0xFF16A34A),
             iconBgColor: const Color(0xFFDCFCE7),
-          ),
-        ),
-        const SizedBox(width: 10),
-
-        // 3. Kartu L. Kepala
-        Expanded(
-          child: _StatCard(
-            title: 'L. Kepala',
-            value: headCircumferenceCm != null
-                ? headCircumferenceCm!.toStringAsFixed(1)
-                : '-',
-            unit: 'cm',
-            icon: Icons.face_outlined,
-            iconColor: const Color(0xFF9333EA),
-            iconBgColor: const Color(0xFFF3E8FF),
           ),
         ),
       ],

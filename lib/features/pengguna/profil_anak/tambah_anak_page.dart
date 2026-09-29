@@ -1022,25 +1022,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         _buildJenisKelaminSection(),
                         const SizedBox(height: 18),
 
-                        // Divider tipis pemisah data kelahiran
-                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                        const SizedBox(height: 18),
-
-                        // Section: Data Kelahiran
-                        Text(
-                          'Data Kelahiran',
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Foto Si Kecil
-                        _buildFotoSiKecilSection(),
-                        const SizedBox(height: 14),
-
                         // Apakah Anak Anda Lahir Prematur?*
                         Container(key: _prematurKey),
                         _buildPrematurSection(),
