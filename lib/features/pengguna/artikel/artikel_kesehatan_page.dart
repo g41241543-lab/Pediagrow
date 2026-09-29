@@ -181,26 +181,11 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
                 const SizedBox(height: 12),
 
-                // 3. KONTEN UTAMA (DAFTAR ARTIKEL ATAU EMPTY STATE) DENGAN ILUSTRASI DI DASAR SEPERTI BERANDA
+                // 3. KONTEN UTAMA (DAFTAR ARTIKEL ATAU EMPTY STATE)
+                // Ilustrasi ikut ter-scroll bersama daftar artikel dan selalu
+                // berada di paling bawah setelah artikel terakhir.
                 Expanded(
-                  child: Stack(
-                    children: [
-                      // Ilustrasi lanskap alam selalu terpaku menempel di bagian dasar, tepat di atas Navigation Bar seperti pada Beranda
-                      const Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          child: IllustrationForestFooter(fit: BoxFit.fitWidth),
-                        ),
-                      ),
-
-                      // Konten scrollable di atasnya
-                      Positioned.fill(
-                        child: _buildBodyContent(),
-                      ),
-                    ],
-                  ),
+                  child: _buildBodyContent(),
                 ),
               ],
             ),
@@ -316,7 +301,10 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
     );
   }
 
-  /// Membangun konten utama sesuai ketersediaan data artikel
+  /// Membangun konten utama sesuai ketersediaan data artikel.
+  /// Menggunakan [CustomScrollView] agar ilustrasi footer ikut ter-scroll
+  /// bersama daftar artikel dan selalu berada di paling bawah konten,
+  /// bukan fixed/terpaku di lapisan belakang.
   Widget _buildBodyContent() {
     if (_isLoading) {
       return const Center(
@@ -332,25 +320,48 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
       return _buildEmptyState();
     }
 
-    // POPULATED STATE: Tampilkan daftar artikel scrollable
-    return ListView.separated(
+    // POPULATED STATE: CustomScrollView agar ilustrasi ikut scroll di paling bawah
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: 12, bottom: 96),
-      itemCount: _displayedArticles.length,
-      separatorBuilder: (context, index) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Divider(
-            height: 32,
-            thickness: 1,
-            color: Color(0xFFE5E5E5),
+      slivers: [
+        // Daftar artikel
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 12),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index.isOdd) {
+                  // Divider antar artikel
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Divider(
+                      height: 32,
+                      thickness: 1,
+                      color: Color(0xFFE5E5E5),
+                    ),
+                  );
+                }
+                final artikelIndex = index ~/ 2;
+                final artikel = _displayedArticles[artikelIndex];
+                return _buildArticleCardItem(artikel);
+              },
+              childCount: _displayedArticles.length * 2 - 1,
+            ),
           ),
-        );
-      },
-      itemBuilder: (context, index) {
-        final artikel = _displayedArticles[index];
-        return _buildArticleCardItem(artikel);
-      },
+        ),
+
+        // Ilustrasi footer selalu di paling bawah konten, ikut ter-scroll
+        const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SizedBox(height: 16),
+              IllustrationForestFooter(fit: BoxFit.fitWidth),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
