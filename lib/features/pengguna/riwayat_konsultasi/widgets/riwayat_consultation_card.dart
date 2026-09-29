@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,6 +16,7 @@ import '../../../../models/riwayat_konsultasi_model.dart';
 /// - Bagian bawah: Badge status "Selesai" (background #33CCA6, teks putih #FFFFFF Lato 12sp)
 ///   dan ikon kalender + tanggal konsultasi (Lato 13sp bold #000000).
 /// - Tappable dengan respon sentuhan yang rapi.
+/// - Mendukung foto dokter dari asset lokal, file lokal, maupun URL jaringan.
 class RiwayatConsultationCard extends StatelessWidget {
   final RiwayatKonsultasiModel riwayat;
   final VoidCallback? onTap;
@@ -179,15 +182,54 @@ class RiwayatConsultationCard extends StatelessWidget {
     );
   }
 
-  /// Avatar dokter responsif dengan dukungan asset maupun network image
+  /// Avatar dokter responsif: mendukung network URL, file lokal, dan asset.
   Widget _buildDoctorAvatar() {
     const double size = 52.0;
+    final photo = riwayat.doctorPhoto;
 
-    if (riwayat.doctorPhoto != null && riwayat.doctorPhoto!.isNotEmpty) {
+    if (photo != null && photo.isNotEmpty) {
+      // Network image (URL http/https)
+      if (photo.startsWith('http://') || photo.startsWith('https://')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8.0),
+          child: Image.network(
+            photo,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(size),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return _buildFallbackAvatar(size);
+            },
+          ),
+        );
+      }
+
+      // File lokal (path absolut)
+      if (photo.startsWith('/') || photo.contains('\\')) {
+        try {
+          final file = File(photo);
+          if (file.existsSync()) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Image.file(
+                file,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(size),
+              ),
+            );
+          }
+        } catch (_) {}
+      }
+
+      // Asset lokal (path assets/)
       return ClipRRect(
         borderRadius: BorderRadius.circular(8.0),
         child: Image.asset(
-          riwayat.doctorPhoto!,
+          photo,
           width: size,
           height: size,
           fit: BoxFit.contain,
@@ -218,3 +260,4 @@ class RiwayatConsultationCard extends StatelessWidget {
     );
   }
 }
+
