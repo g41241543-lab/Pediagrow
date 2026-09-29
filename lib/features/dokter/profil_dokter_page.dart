@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/staff_auth_service.dart';
@@ -24,7 +24,7 @@ class ProfilDokterPage extends StatefulWidget {
 
 class _ProfilDokterPageState extends State<ProfilDokterPage> {
   final int _selectedIndex = 3; // Profil aktif
-  final ImagePicker _picker = ImagePicker();
+
   String? _avatarPath;
   StaffAccount? _dokter;
   bool _isOnline = false; // Status online/offline dokter
@@ -74,128 +74,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     }
   }
 
-  // ─── PHOTO PICKER ─────────────────────────────────────────────────────────
-  void _showImagePickerOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Ubah Foto Profil',
-                style: GoogleFonts.lato(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECF6FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.camera_alt_outlined,
-                      color: Color(0xFF3985E7), size: 24),
-                ),
-                title: Text('Ambil Foto dari Kamera',
-                    style: GoogleFonts.lato(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECF6FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.photo_library_outlined,
-                      color: Color(0xFF3985E7), size: 24),
-                ),
-                title: Text('Pilih Foto dari Galeri',
-                    style: GoogleFonts.lato(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: source,
-        maxWidth: 600,
-        maxHeight: 600,
-        imageQuality: 85,
-      );
-      if (pickedFile != null) {
-        setState(() => _avatarPath = pickedFile.path);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-            'dokter_avatar_${_dokter?.id}', pickedFile.path);
-        final staffId = StaffAuthService().currentStaff?.id;
-        if (staffId != null && staffId.isNotEmpty) {
-          await StaffAuthService().updateAvatar(staffId, pickedFile.path);
-        }
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Foto profil berhasil diperbarui',
-                  style: GoogleFonts.lato(fontWeight: FontWeight.w600)),
-              backgroundColor: const Color(0xFF16A34A),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih foto: $e',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600)),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
-    }
-  }
-
   // ─── ONLINE TOGGLE ────────────────────────────────────────────────────────
   Future<void> _toggleOnlineStatus() async {
     final newStatus = !_isOnline;
@@ -236,7 +114,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             children: [
               const SizedBox(height: 8),
               Text(
-                'Keluar dari Aplikasi',
+                'Keluar dari Akun',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18,
@@ -246,7 +124,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Apakah Anda yakin ingin keluar dari aplikasi PediaGrow?',
+                'Apakah Anda yakin ingin keluar dari akun Dokter?',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
@@ -267,7 +145,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: Text('Ya',
+                        child: Text('Batal',
                             style: GoogleFonts.lato(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -290,12 +168,12 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3985E7),
+                          backgroundColor: const Color(0xFFDC2626),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: Text('Tidak',
+                        child: Text('Keluar',
                             style: GoogleFonts.lato(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -437,13 +315,14 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               // 4. TOMBOL LOGOUT
               SizedBox(
                 height: 50.0,
-                child: OutlinedButton(
+                child: ElevatedButton(
                   onPressed: _showLogoutConfirmationDialog,
-                  style: OutlinedButton.styleFrom(
-                    side:
-                        const BorderSide(color: Color(0xFFDC2626), width: 1.5),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3985E7),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0)),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
                   ),
                   child: Text(
                     'LOGOUT',
@@ -451,7 +330,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.8,
-                      color: const Color(0xFFDC2626),
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -707,41 +586,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         // Avatar melayang
         Positioned(
           top: 0,
-          child: GestureDetector(
-            onTap: _showImagePickerOptions,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundColor: const Color(0xFFE0EEFF),
-                  backgroundImage: _avatarPath != null
-                      ? FileImage(File(_avatarPath!)) as ImageProvider
-                      : null,
-                  child: _avatarPath == null
-                      ? Icon(Icons.person_rounded,
-                          size: avatarRadius * 1.1,
-                          color: const Color(0xFF3985E7))
-                      : null,
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3985E7),
-                      shape: BoxShape.circle,
-                      border:
-                          Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(Icons.camera_alt_rounded,
-                        size: 14, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
+          child: CircleAvatar(
+            radius: avatarRadius,
+            backgroundColor: const Color(0xFFE0EEFF),
+            backgroundImage: _avatarPath != null
+                ? FileImage(File(_avatarPath!)) as ImageProvider
+                : null,
+            child: _avatarPath == null
+                ? Icon(Icons.person_rounded,
+                    size: avatarRadius * 1.1,
+                    color: const Color(0xFF3985E7))
+                : null,
           ),
         ),
       ],

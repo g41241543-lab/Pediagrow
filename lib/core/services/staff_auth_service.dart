@@ -297,6 +297,27 @@ class StaffAuthService {
     }
   }
 
+  /// Mengambil satu akun staff berdasarkan email
+  Future<StaffAccount?> getStaffAccountByEmail(String email) async {
+    try {
+      final db = _db;
+      if (db == null) return null;
+
+      final normalized = email.trim().toLowerCase();
+      final query = await db
+          .collection(_collection)
+          .where('email', isEqualTo: normalized)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) return null;
+      return StaffAccount.fromMap(query.docs.first.id, query.docs.first.data());
+    } catch (e) {
+      debugPrint('[StaffAuthService] getStaffAccountByEmail error: $e');
+      return null;
+    }
+  }
+
   /// Mengambil semua akun staff (untuk halaman kelola akun Superadmin).
   Future<List<StaffAccount>> getAllStaffAccounts() async {
     try {
