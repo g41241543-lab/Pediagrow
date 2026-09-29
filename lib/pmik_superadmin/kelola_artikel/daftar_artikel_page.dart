@@ -491,11 +491,15 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     // Daftar Kartu Artikel yang dapat di-scroll vertikal dengan ilustrasi di bagian paling bawah
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
+      // Clamping: tidak memantul, sehingga tidak ada celah putih di atas bottom nav.
+      // AlwaysScrollable: tetap konsisten walau konten pendek.
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: ClampingScrollPhysics(),
+      ),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
-        // Daftar kartu artikel dengan padding horizontal 16dp
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 0),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final artikel = _filteredArticles[index];
@@ -509,14 +513,13 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
         // Ilustrasi pemandangan pohon, tenda & bukit tepat di bawah seluruh artikel
         // (menyesuaikan jumlah artikel, ikut ter-scroll, dan berada di paling bawah tanpa celah/gap dengan footer dashboard)
+        // Ilustrasi menempel di dasar layar jika artikel sedikit,
+        // dan tepat di akhir daftar jika artikel banyak (tanpa jarak ekstra)
         const SliverFillRemaining(
           hasScrollBody: false,
           child: Column(
-            children: [
-              Spacer(),
-              SizedBox(height: 8.0),
-              IllustrationForestFooter(fit: BoxFit.fitWidth),
-            ],
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [IllustrationForestFooter(fit: BoxFit.fitWidth)],
           ),
         ),
       ],
