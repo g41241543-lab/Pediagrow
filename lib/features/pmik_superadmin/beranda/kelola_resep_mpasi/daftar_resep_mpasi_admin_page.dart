@@ -8,6 +8,7 @@ import '../../../../core/services/resep_mpasi_service.dart';
 import '../../../../models/resep_mpasi_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_banner.dart';
+import '../../../pengguna/mpasi/detail_resep_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
@@ -24,6 +25,7 @@ import 'tambah_resep_mpasi_page.dart';
 /// 3. Filter chips kategori usia: Semua, 6-8 bulan, 9-11 bulan, 12-23 bulan, 24+ bulan.
 /// 4. Kartu resep dengan thumbnail, judul, keterangan usia, tanggal,
 ///    tombol hapus (merah muda) dan tombol ubah (biru muda).
+///    Klik bagian atas kartu membuka [DetailResepPage] (sama dengan tampilan pengguna).
 /// 5. Dialog konfirmasi hapus data ("Hapus Data", tombol "Ya" dan "Tidak").
 /// 6. Bottom Navigation Bar konsisten dengan Superadmin.
 /// 7. Otomatis terhubung dengan database Cloud Firestore dan memicu notifikasi Superadmin.
@@ -137,11 +139,15 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     if (result == true && mounted) {
       await _loadRecipes();
       if (!mounted) return;
-      PediaBanner.showSuccess(
-        context,
-        message: 'Berhasil Menyimpan Perubahan',
-      );
+      PediaBanner.showSuccess(context, message: 'Berhasil Menyimpan Perubahan');
     }
+  }
+
+  /// Membuka halaman Detail Resep (halaman yang sama dengan POV pengguna).
+  void _navigateToDetailResep(ResepMpasiModel resep) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => DetailResepPage(resepModel: resep)),
+    );
   }
 
   Future<void> _confirmDeleteResep(ResepMpasiModel resep) async {
@@ -270,10 +276,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       }
     } catch (e) {
       if (mounted) {
-        PediaBanner.showError(
-          context,
-          message: 'Gagal menghapus resep: $e',
-        );
+        PediaBanner.showError(context, message: 'Gagal menghapus resep: $e');
       }
     }
   }
@@ -292,9 +295,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
             const SizedBox(height: 12.0),
             _buildCategoryFilter(),
             const SizedBox(height: 12.0),
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -375,7 +376,11 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
             ),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, size: 18.0, color: Color(0xFF94A3B8)),
+                    icon: const Icon(
+                      Icons.clear,
+                      size: 18.0,
+                      color: Color(0xFF94A3B8),
+                    ),
                     onPressed: () {
                       _searchController.clear();
                       _searchFocusNode.unfocus();
@@ -410,7 +415,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
-                  color: isSelected ? _colorPrimaryBlue : const Color(0xFFCBD5E1),
+                  color: isSelected
+                      ? _colorPrimaryBlue
+                      : const Color(0xFFCBD5E1),
                   width: isSelected ? 1.5 : 1.0,
                 ),
               ),
@@ -419,7 +426,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? _colorPrimaryBlue : const Color(0xFF94A3B8),
+                  color: isSelected
+                      ? _colorPrimaryBlue
+                      : const Color(0xFF94A3B8),
                 ),
               ),
             ),
@@ -459,8 +468,13 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _loadRecipes,
-                style: ElevatedButton.styleFrom(backgroundColor: _colorPrimaryBlue),
-                child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _colorPrimaryBlue,
+                ),
+                child: const Text(
+                  'Coba Lagi',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -535,62 +549,66 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bagian atas: Thumbnail + Judul & Kategori
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12.0),
-                  child: SizedBox(
-                    width: 96.0,
-                    height: 76.0,
-                    child: _buildThumbnailImage(resep),
+          // Bagian atas: Thumbnail + Judul & Kategori (klik → Detail Resep)
+          GestureDetector(
+            onTap: () => _navigateToDetailResep(resep),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: SizedBox(
+                      width: 96.0,
+                      height: 76.0,
+                      child: _buildThumbnailImage(resep),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        resep.judul,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.bold,
-                          color: _colorDark,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 6.0),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.access_time_rounded,
-                            size: 14.0,
-                            color: Color(0xFF94A3B8),
+                  const SizedBox(width: 14.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          resep.judul,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.lato(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
+                            color: _colorDark,
+                            height: 1.3,
                           ),
-                          const SizedBox(width: 4.0),
-                          Flexible(
-                            child: Text(
-                              'Resep MPASI • ${resep.kategoriUsia}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 12.0,
-                                color: const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(height: 6.0),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 14.0,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 4.0),
+                            Flexible(
+                              child: Text(
+                                'Resep MPASI • ${resep.kategoriUsia}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.lato(
+                                  fontSize: 12.0,
+                                  color: const Color(0xFF94A3B8),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -599,7 +617,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
 
           // Bagian bawah: Tanggal + Tombol Hapus & Edit
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 Text(
@@ -660,7 +681,11 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     if (img == null || img.isEmpty) {
       return Container(
         color: const Color(0xFFF1F5F9),
-        child: const Icon(Icons.restaurant_menu_rounded, color: Color(0xFFCBD5E1), size: 32.0),
+        child: const Icon(
+          Icons.restaurant_menu_rounded,
+          color: Color(0xFFCBD5E1),
+          size: 32.0,
+        ),
       );
     }
 
@@ -670,7 +695,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: const Color(0xFFF1F5F9),
-          child: const Icon(Icons.broken_image_outlined, color: Color(0xFFCBD5E1)),
+          child: const Icon(
+            Icons.broken_image_outlined,
+            color: Color(0xFFCBD5E1),
+          ),
         ),
       );
     }
@@ -681,7 +709,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: const Color(0xFFF1F5F9),
-          child: const Icon(Icons.restaurant_menu_rounded, color: Color(0xFFCBD5E1)),
+          child: const Icon(
+            Icons.restaurant_menu_rounded,
+            color: Color(0xFFCBD5E1),
+          ),
         ),
       );
     }
@@ -691,7 +722,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) => Container(
         color: const Color(0xFFF1F5F9),
-        child: const Icon(Icons.broken_image_outlined, color: Color(0xFFCBD5E1)),
+        child: const Icon(
+          Icons.broken_image_outlined,
+          color: Color(0xFFCBD5E1),
+        ),
       ),
     );
   }
@@ -700,7 +734,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     final navItems = [
       const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      const _NavItem(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
       const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
@@ -723,7 +760,8 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
-            final isSelected = i == 0; // Beranda aktif karena berada dalam modul Beranda
+            final isSelected =
+                i == 0; // Beranda aktif karena berada dalam modul Beranda
             final item = navItems[i];
 
             return Expanded(
@@ -823,7 +861,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         break;
       case 2:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const DaftarRiwayatKonsultasiAdminPage()),
+          MaterialPageRoute(
+            builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
+          ),
         );
         break;
       case 3:

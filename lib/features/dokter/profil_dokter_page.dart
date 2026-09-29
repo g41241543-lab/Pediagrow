@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
-import 'beranda_dokter_page.dart';
+import 'beranda/beranda_dokter_page.dart';
 
 /// Halaman Profil Dokter PediaGrow.
 ///
