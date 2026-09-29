@@ -124,8 +124,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'Dokter Spesialis Anak';
 
     _effectiveDoctorPhoto =
+        // Prioritas: avatarUrl (Firebase/lokal dari image_picker) > assetImagePath
+        widget.doctor?.avatarUrl ??
         widget.doctor?.assetImagePath ??
         widget.fotoDokter ??
+        widget.consultation?.doctor.avatarUrl ??
         widget.consultation?.doctor.assetImagePath ??
         'assets/images/doctor_ririn.png';
   }
@@ -847,15 +850,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             ],
           ),
           child: ClipOval(
-            child: _effectiveDoctorPhoto != null &&
-                    _effectiveDoctorPhoto!.isNotEmpty
-                ? Image.asset(
-                    _effectiveDoctorPhoto!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildDefaultDoctorIcon(),
-                  )
-                : _buildDefaultDoctorIcon(),
+            child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 44),
           ),
         ),
 
@@ -880,6 +875,45 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   Widget _buildDefaultDoctorIcon() {
     return const Center(
       child: Icon(Icons.person, size: 24, color: colorGreyDark),
+    );
+  }
+
+  /// Menampilkan foto dokter dari berbagai sumber:
+  /// - Firebase URL (http/https) → Image.network
+  /// - File lokal dari image_picker (path absolut) → Image.file
+  /// - Asset bawaan aplikasi → Image.asset
+  /// - Tidak ada foto → ikon person default
+  Widget _buildDoctorPhotoWidget(String? photoPath, double size) {
+    if (photoPath == null || photoPath.isEmpty) {
+      return _buildDefaultDoctorIcon();
+    }
+    // URL jaringan (Firebase Storage / http)
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return Image.network(
+        photoPath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultDoctorIcon(),
+      );
+    }
+    // File lokal dari image_picker (path absolut seperti /data/user/...)
+    if (photoPath.startsWith('/') || photoPath.startsWith('file://')) {
+      return Image.file(
+        File(photoPath.replaceFirst('file://', '')),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultDoctorIcon(),
+      );
+    }
+    // Asset bawaan aplikasi
+    return Image.asset(
+      photoPath,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildDefaultDoctorIcon(),
     );
   }
 
@@ -1225,13 +1259,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           CircleAvatar(
             radius: 17,
             backgroundColor: const Color(0xFFF1F5F9),
-            backgroundImage: _effectiveDoctorPhoto != null &&
-                    _effectiveDoctorPhoto!.isNotEmpty
-                ? AssetImage(_effectiveDoctorPhoto!)
-                : null,
-            child: _effectiveDoctorPhoto == null
-                ? const Icon(Icons.person, size: 20, color: colorGreyDark)
-                : null,
+            child: ClipOval(
+              child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
+            ),
           ),
           const SizedBox(width: 8),
 
@@ -1299,13 +1329,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           CircleAvatar(
             radius: 17,
             backgroundColor: const Color(0xFFF1F5F9),
-            backgroundImage: _effectiveDoctorPhoto != null &&
-                    _effectiveDoctorPhoto!.isNotEmpty
-                ? AssetImage(_effectiveDoctorPhoto!)
-                : null,
-            child: _effectiveDoctorPhoto == null
-                ? const Icon(Icons.person, size: 20, color: colorGreyDark)
-                : null,
+            child: ClipOval(
+              child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
+            ),
           ),
           const SizedBox(width: 8),
           Container(

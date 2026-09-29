@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -24,10 +26,9 @@ import 'detail_resep_page.dart';
 ///    pada halaman Daftar Artikel (kiri: judul bold 16sp, ikon jam + metadata 12sp,
 ///    tanggal 12sp; kanan: thumbnail rounded 18dp 124x84dp).
 /// 6. Divider pemisah 1dp #E5E5E5 antar item resep.
-/// 7. Ilustrasi Footer: [IllustrationForestFooter] tetap (fixed) di bagian bawah
-///    di atas Bottom Navigation Bar. Area scroll berada tepat di atas ilustrasi
-///    sehingga ketika di-scroll tidak menindih/menimpa ilustrasi, dan menyatu
-///    alami tanpa garis batas kaku. Ilustrasi tidak ditransparasi.
+/// 7. Ilustrasi Footer: [IllustrationForestFooter] ikut ter-scroll bersama
+///    daftar resep dan selalu berada di paling bawah setelah resep terakhir.
+///    Saat resep bertambah, ilustrasi otomatis turun ke posisi paling bawah.
 /// 8. Bottom Navigation Bar tetap di `Scaffold.bottomNavigationBar`
 ///    menggunakan [PediaBottomNavBar] (selectedIndex: -1).
 class DaftarResepPage extends StatefulWidget {
@@ -147,10 +148,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Tinggi ilustrasi footer kira-kira 140dp (beranda_landscape_footer.jpg)
-    // Digunakan sebagai padding bawah list agar resep tidak tersembunyi di balik ilustrasi
-    const double illustrationHeight = 140;
-
     return Scaffold(
       backgroundColor: _colorWhite,
       // Bottom navigation bar FIXED — PediaBottomNavBar terpusat
@@ -171,45 +168,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
             const SizedBox(height: 8),
 
-            // 4. Konten utama: Stack dengan ilustrasi FIXED di bawah,
-            //    daftar resep SCROLLABLE di atasnya (muncul seamless tanpa batas kaku)
+            // 4. Konten utama: daftar resep SCROLLABLE dengan ilustrasi
+            //    yang ikut ter-scroll di paling bawah setelah resep terakhir
             Expanded(
-              child: Stack(
-                children: [
-                  // ── Ilustrasi alam: FIXED di bagian dasar ──────────────────
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: IgnorePointer(
-                      child: IllustrationForestFooter(fit: BoxFit.fitWidth),
-                    ),
-                  ),
-
-                  // ── Daftar resep SCROLLABLE di atasnya ─────────────────────
-                  // ShaderMask menambahkan efek gradient fade di bagian bawah
-                  // sehingga daftar resep terlihat "muncul" alami di atas ilustrasi
-                  // tanpa garis/sekat yang tampak kaku.
-                  Positioned.fill(
-                    child: ShaderMask(
-                      shaderCallback: (Rect bounds) {
-                        return const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.white,        // Konten penuh terlihat di atas
-                            Colors.white,        // Terlihat jelas hingga 75% tinggi
-                            Color(0x00FFFFFF),   // Fade ke transparan menuju ilustrasi
-                          ],
-                          stops: [0.0, 0.75, 1.0],
-                        ).createShader(bounds);
-                      },
-                      blendMode: BlendMode.dstIn,
-                      child: _buildScrollableContent(illustrationHeight),
-                    ),
-                  ),
-                ],
-              ),
+              child: _buildScrollableContent(),
             ),
           ],
         ),
@@ -382,9 +344,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   // -------------------------------------------------------------------------
   // 4. SCROLLABLE CONTENT (Daftar Resep / Loading / Empty / Error)
+  // Menggunakan CustomScrollView agar ilustrasi footer ikut ter-scroll
+  // dan selalu berada tepat di bawah resep terakhir (bukan di lapisan belakang).
   // -------------------------------------------------------------------------
 
-  Widget _buildScrollableContent([double illustrationHeight = 140]) {
+  Widget _buildScrollableContent() {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -402,28 +366,46 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       return _buildEmptyState();
     }
 
-    // Padding bawah: ilustrasi (~140dp) + zona fade gradien (~60dp) + nav bar safe area
-    // Memastikan resep terakhir bisa di-scroll ke atas dan terlihat sepenuhnya
-    final double bottomPad = illustrationHeight + 60;
-
-    return ListView.separated(
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.only(top: 8, bottom: bottomPad),
-      itemCount: _recipes.length,
-      separatorBuilder: (context, index) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Divider(
-            height: 32,
-            thickness: 1,
-            color: _colorDivider,
+      slivers: [
+        // Daftar resep dengan separator divider
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 8),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index.isOdd) {
+                  // Divider pemisah antar resep
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Divider(
+                      height: 32,
+                      thickness: 1,
+                      color: _colorDivider,
+                    ),
+                  );
+                }
+                final recipe = _recipes[index ~/ 2];
+                return _buildRecipeItem(recipe);
+              },
+              childCount: _recipes.length * 2 - 1,
+            ),
           ),
-        );
-      },
-      itemBuilder: (context, index) {
-        final recipe = _recipes[index];
-        return _buildRecipeItem(recipe);
-      },
+        ),
+
+        // Ilustrasi footer selalu di paling bawah konten, ikut ter-scroll
+        const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SizedBox(height: 16),
+              IllustrationForestFooter(fit: BoxFit.fitWidth),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -526,7 +508,6 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     const double borderRadius = 18;
 
     final displayImage = recipe.displayImage;
-    final isNetwork = recipe.isNetworkImage;
 
     return Container(
       width: thumbWidth,
@@ -546,7 +527,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         borderRadius: BorderRadius.circular(borderRadius),
         child: displayImage == null || displayImage.isEmpty
             ? _buildThumbnailPlaceholder()
-            : isNetwork
+            : recipe.isNetworkImage
                 ? Image.network(
                     displayImage,
                     width: thumbWidth,
@@ -555,14 +536,23 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                     errorBuilder: (context, error, stackTrace) =>
                         _buildThumbnailPlaceholder(),
                   )
-                : Image.asset(
-                    displayImage,
-                    width: thumbWidth,
-                    height: thumbHeight,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildThumbnailPlaceholder(),
-                  ),
+                : recipe.isLocalFile
+                    ? Image.file(
+                        File(displayImage.replaceFirst('file://', '')),
+                        width: thumbWidth,
+                        height: thumbHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildThumbnailPlaceholder(),
+                      )
+                    : Image.asset(
+                        displayImage,
+                        width: thumbWidth,
+                        height: thumbHeight,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildThumbnailPlaceholder(),
+                      ),
       ),
     );
   }

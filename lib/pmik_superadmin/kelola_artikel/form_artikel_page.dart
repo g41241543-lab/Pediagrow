@@ -68,7 +68,9 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
     if (item != null) {
       // MODE UBAH: Isi otomatis foto dan seluruh konten artikel yang tersimpan
       _imagePath = item.displayImage;
-      _isiController = RichTextEditingController(text: _buildInitialContent(item));
+      _isiController = RichTextEditingController(
+        text: _buildInitialContent(item),
+      );
     } else {
       // MODE TAMBAH: Form bersih/kosong
       _imagePath = null;
@@ -181,7 +183,10 @@ Referensi: Kemenkes RI, 2022''';
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -281,10 +286,7 @@ Referensi: Kemenkes RI, 2022''';
       }
     } catch (e) {
       if (mounted) {
-        PediaBanner.showError(
-          context,
-          message: 'Gagal memilih foto: $e',
-        );
+        PediaBanner.showError(context, message: 'Gagal memilih foto: $e');
       }
     }
   }
@@ -374,8 +376,10 @@ Referensi: Kemenkes RI, 2022''';
       final deskripsi = _extractDeskripsi(isi);
       final subKategori = _extractSubKategori(judul, isi);
 
-      final resolvedImage = _imagePath ??
-          (widget.artikel?.displayImage ?? 'assets/images/artikel_stunting.jpg');
+      final resolvedImage =
+          _imagePath ??
+          (widget.artikel?.displayImage ??
+              'assets/images/artikel_stunting.jpg');
       final isAsset = resolvedImage.startsWith('assets/');
 
       if (widget.isEditMode) {
@@ -430,10 +434,7 @@ Referensi: Kemenkes RI, 2022''';
       setState(() => _isSaving = false);
 
       // Tampilkan pesan error jelas dan biarkan pengguna tetap di form untuk memperbaiki data
-      PediaBanner.showError(
-        context,
-        message: 'Gagal menyimpan artikel: $e',
-      );
+      PediaBanner.showError(context, message: 'Gagal menyimpan artikel: $e');
     }
   }
 
@@ -780,11 +781,7 @@ Referensi: Kemenkes RI, 2022''';
 
   Widget _buildFallbackPhotoIcon() {
     return const Center(
-      child: Icon(
-        Icons.image_outlined,
-        size: 64.0,
-        color: _colorDarkGray,
-      ),
+      child: Icon(Icons.image_outlined, size: 64.0, color: _colorDarkGray),
     );
   }
 
@@ -809,10 +806,7 @@ Referensi: Kemenkes RI, 2022''';
           controller: controller,
           focusNode: focusNode,
           onChanged: onChanged,
-          style: GoogleFonts.lato(
-            fontSize: 14.0,
-            color: Colors.black,
-          ),
+          style: GoogleFonts.lato(fontSize: 14.0, color: Colors.black),
           decoration: InputDecoration(
             hintText: placeholder,
             hintStyle: GoogleFonts.lato(

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -250,7 +252,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
         borderRadius: BorderRadius.circular(18),
         child: displayImage == null
             ? _buildPlaceholderImage()
-            : (artikel.isAssetImage
+            : artikel.isAssetImage
                 ? Image.asset(
                     displayImage,
                     fit: BoxFit.cover,
@@ -259,18 +261,27 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                     errorBuilder: (context, error, stackTrace) =>
                         _buildPlaceholderImage(),
                   )
-                : Image.network(
-                    displayImage,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: 230,
-                    loadingBuilder: (context, child, progress) {
-                      if (progress == null) return child;
-                      return _buildLoadingPlaceholder();
-                    },
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildPlaceholderImage(),
-                  )),
+                : artikel.isLocalFile
+                    ? Image.file(
+                        File(displayImage.replaceFirst('file://', '')),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 230,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildPlaceholderImage(),
+                      )
+                    : Image.network(
+                        displayImage,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 230,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return _buildLoadingPlaceholder();
+                        },
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildPlaceholderImage(),
+                      ),
       ),
     );
   }
