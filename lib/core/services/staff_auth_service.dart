@@ -28,8 +28,11 @@ class StaffAuthService {
 
   /// Akun PMIK Superadmin bawaan sistem.
   static const String defaultSuperadminEmail = 'superadmin@pediagrow.com';
-
   static const String defaultSuperadminPassword = 'Superadmin123!';
+
+  /// Akun Dokter bawaan sistem.
+  static const String defaultDokterEmail = 'dokter@pediagrow.com';
+  static const String defaultDokterPassword = 'Dokter123!';
 
   FirebaseFirestore? get _db {
     try {
@@ -63,7 +66,9 @@ class StaffAuthService {
     try {
       final normalized = email.trim().toLowerCase();
       if (normalized == defaultSuperadminEmail.toLowerCase() ||
-          normalized.contains('superadmin')) {
+          normalized.contains('superadmin') ||
+          normalized == defaultDokterEmail.toLowerCase() ||
+          normalized.contains('dokter')) {
         return true;
       }
 
@@ -135,6 +140,47 @@ class StaffAuthService {
     }
   }
 
+  /// Memastikan minimal ada satu akun Dokter di Firestore untuk demo / pengujian.
+  Future<void> ensureDokterSeeded() async {
+    try {
+      final db = _db;
+      if (db == null) return;
+
+      final query = await db
+          .collection(_collection)
+          .where('email', isEqualTo: defaultDokterEmail.toLowerCase())
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        return;
+      }
+
+      await db.collection(_collection).add(
+            StaffAccount(
+              id: '',
+              name: 'dr. Ahmad Nuri, Sp.A',
+              email: defaultDokterEmail,
+              passwordHash: _hashPassword(defaultDokterPassword),
+              role: StaffRole.dokter,
+              pmikLevel: PmikLevel.biasa,
+              createdBy: 'system',
+              createdAt: DateTime.now(),
+              permissions: DoctorPermissions.defaultPermissions,
+              additionalInfo: {
+                'spesialisasi': 'Spesialis Anak',
+              },
+            ).toMap(),
+          );
+      debugPrint(
+        '[StaffAuthService] Akun dokter default dibuat: '
+        '$defaultDokterEmail / $defaultDokterPassword',
+      );
+    } catch (e) {
+      debugPrint('[StaffAuthService] Gagal seeding Dokter: $e');
+    }
+  }
+
   // ============================================================
   // LOGIN
   // ============================================================
@@ -160,6 +206,17 @@ class StaffAuthService {
       if (query.docs.isEmpty &&
           normalizedEmail == defaultSuperadminEmail.toLowerCase()) {
         await ensureSuperadminSeeded();
+        query = await db
+            .collection(_collection)
+            .where('email', isEqualTo: normalizedEmail)
+            .limit(1)
+            .get();
+      }
+
+      if (query.docs.isEmpty &&
+          (normalizedEmail == defaultDokterEmail.toLowerCase() ||
+              normalizedEmail == 'dokter@pediagrow.com')) {
+        await ensureDokterSeeded();
         query = await db
             .collection(_collection)
             .where('email', isEqualTo: normalizedEmail)

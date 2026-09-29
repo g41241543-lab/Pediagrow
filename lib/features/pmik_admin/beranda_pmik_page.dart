@@ -9,6 +9,7 @@ import '../../models/staff_account_model.dart';
 import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
+import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
 import 'profil_pmik_page.dart';
 
 /// Halaman Beranda PMIK Admin PediaGrow.
@@ -101,8 +102,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               Expanded(
                 child: Text(
                   'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
-                  style:
-                      GoogleFonts.lato(fontWeight: FontWeight.w600),
+                  style: GoogleFonts.lato(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -110,7 +110,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           backgroundColor: const Color(0xFFDC2626),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -189,8 +190,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                             valueListenable:
                                 StaffAuthService().currentStaffNotifier,
                             builder: (context, staff, _) {
-                              final name =
-                                  staff?.name.trim() ?? 'PMIK';
+                              final name = staff?.name.trim() ?? 'PMIK';
                               return Text(
                                 'Hai, $name',
                                 maxLines: 1,
@@ -244,13 +244,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                           minHeight: 16,
                                         ),
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 4),
+                                          horizontal: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE53E3E),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
-                                              color: Colors.white, width: 1),
+                                            color: Colors.white,
+                                            width: 1,
+                                          ),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
@@ -343,12 +347,13 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                                color: const Color(0xFFBFDBFE)),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
                           ),
                           child: Text(
                             roleLabel,
@@ -475,7 +480,11 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'rekapitulasi',
                         featureName: 'Rekapitulasi',
-                        onAllowed: () {},
+                        onAllowed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const RekapitulasiStuntingPage(),
+                          ),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -573,7 +582,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   Widget _buildArticleList() {
     if (_isLoadingArticles) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF3985E7)));
+        child: CircularProgressIndicator(color: Color(0xFF3985E7)),
+      );
     }
     if (_latestArticles.isEmpty) {
       return Center(
@@ -651,8 +661,11 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: Color(0xFFCBD5E1), size: 20),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Color(0xFFCBD5E1),
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -668,8 +681,11 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.center,
-      child: const Icon(Icons.article_rounded,
-          color: Color(0xFF3985E7), size: 28),
+      child: const Icon(
+        Icons.article_rounded,
+        color: Color(0xFF3985E7),
+        size: 28,
+      ),
     );
   }
 
@@ -679,10 +695,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       child: Center(
         child: Text(
           '© PediaGrow — Bersama Cegah Stunting',
-          style: GoogleFonts.lato(
-            fontSize: 12,
-            color: const Color(0xFF94A3B8),
-          ),
+          style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFF94A3B8)),
         ),
       ),
     );
@@ -712,7 +725,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               _buildNavItem(0, Icons.home_rounded, 'Beranda'),
               _buildNavItem(1, Icons.chat_bubble_outline_rounded, 'Konsultasi'),
               _buildNavItem(
-                  2, Icons.receipt_long_rounded, 'Riwayat\nKonsultasi'),
+                2,
+                Icons.receipt_long_rounded,
+                'Riwayat\nKonsultasi',
+              ),
               _buildNavItem(3, Icons.person_rounded, 'Profil'),
             ],
           ),
@@ -738,11 +754,13 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 24,
-                color: isSelected
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8)),
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected
+                  ? const Color(0xFF3985E7)
+                  : const Color(0xFF94A3B8),
+            ),
             const SizedBox(height: 3),
             Text(
               label,

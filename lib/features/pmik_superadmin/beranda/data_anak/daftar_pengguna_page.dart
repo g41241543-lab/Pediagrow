@@ -149,9 +149,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               // -------------------------------------------------------------
               // 3. KONTEN UTAMA SCROLLABLE (Daftar Pengguna / Empty State)
               // -------------------------------------------------------------
-              Expanded(
-                child: _buildUserListStream(),
-              ),
+              Expanded(child: _buildUserListStream()),
             ],
           ),
         ),
@@ -163,16 +161,22 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
+  // Indeks nav bar (0 = Beranda aktif, karena Data Pengguna sub-fitur Beranda)
+  final int _selectedIndex = -1;
+
   // =========================================================================
   // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
-  // Warna #F2EDED, tinggi 68dp, Expanded layout & animasi konsisten dengan admin
+  // Warna #F2EDED, tinggi 68dp, identik dengan halaman Beranda
   // =========================================================================
   Widget _buildFixedNavBar() {
     final navItems = [
-      const _NavItem(icon: Icons.home_outlined, label: 'Beranda'),
-      const _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Konsultasi'),
-      const _NavItem(icon: Icons.find_in_page_outlined, label: 'Riwayat Konsultasi'),
-      const _NavItem(icon: Icons.person_outline_rounded, label: 'Profil'),
+      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
+      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
+      const _NavItem(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
+      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
     return Container(
@@ -194,6 +198,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
+            final isSelected = i == _selectedIndex;
             final item = navItems[i];
 
             return Expanded(
@@ -206,28 +211,67 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        item.icon,
-                        size: 24.0,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(height: 3.0),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            item.label,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 11.0,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.black,
+                      if (isSelected) ...[
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 4.0,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.icon,
+                            size: 22.0,
+                            color: const Color(0xFF72A9F4),
+                          ),
+                        ),
+                        const SizedBox(height: 2.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF1E293B),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ] else ...[
+                        Icon(
+                          item.icon,
+                          size: 24.0,
+                          color: const Color(0xFF9E9E9E),
+                        ),
+                        const SizedBox(height: 3.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF9E9E9E),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -258,11 +302,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: _colorTextBlack,
-                size: 24,
-              ),
+              child: Icon(Icons.arrow_back, color: _colorTextBlack, size: 24),
             ),
           ),
 
@@ -299,10 +339,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         decoration: BoxDecoration(
           color: _colorSearchBarBg,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0),
-            width: 1.0,
-          ),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -454,9 +491,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: constraints.maxHeight,
-        ),
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
         child: IntrinsicHeight(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -538,9 +573,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => DetailPenggunaPage(user: user),
-              ),
+              MaterialPageRoute(builder: (_) => DetailPenggunaPage(user: user)),
             );
           },
           child: Padding(
@@ -744,10 +777,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
           ),
           child: Row(
             children: [

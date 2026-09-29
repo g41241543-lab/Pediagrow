@@ -20,19 +20,17 @@ import '../../../../shared/widgets/pedia_banner.dart';
 /// - Penulis ("Ditulis oleh Pego")
 /// - 4 stat gizi & porsi (Energi, Lemak, Protein, Porsi) masing-masing dalam kotak garis putus-putus
 /// - Kategori Usia
-/// - Dynamic list sesuai Gambar 2 (kartu putih rounded, icon di kiri, teks di tengah dengan garis putus-putus, tombol (-) merah di kanan, dan tombol (+) biru di header):
-///   * Bahan
-///   * Bahan Pelapis
-///   * Buah
-///   * Cara Membuat
+/// - Dynamic list (kartu putih rounded, penanda di kiri, teks di tengah dengan garis putus-putus,
+///   tombol (-) merah di kanan, dan tombol (+) biru di header):
+///   * Bahan          → penanda bullet (•) seperti di Detail Resep
+///   * Bahan Pelapis  → penanda bullet (•)
+///   * Buah           → penanda bullet (•)
+///   * Cara Membuat   → penanda nomor (1. 2. 3.) seperti di Detail Resep
 /// - Tombol "Simpan" biru yang langsung memperbarui dokumen di Firestore
 class EditResepMpasiPage extends StatefulWidget {
   final ResepMpasiModel resep;
 
-  const EditResepMpasiPage({
-    super.key,
-    required this.resep,
-  });
+  const EditResepMpasiPage({super.key, required this.resep});
 
   @override
   State<EditResepMpasiPage> createState() => _EditResepMpasiPageState();
@@ -72,6 +70,9 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
   static const Color _colorGray = Color(0xFF7F7F7F);
   static const Color _colorGreen = Color(0xFF22C55E);
 
+  // Warna penanda bullet/nomor — sama dengan Detail Resep (#262626)
+  static const Color _colorMarker = Color(0xFF262626);
+
   @override
   void initState() {
     super.initState();
@@ -102,7 +103,9 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
       text: r.porsi != null ? r.porsi.toString() : '',
     );
 
-    _selectedKategoriUsia = r.kategoriUsia.isNotEmpty ? r.kategoriUsia : '6-8 bulan';
+    _selectedKategoriUsia = r.kategoriUsia.isNotEmpty
+        ? r.kategoriUsia
+        : '6-8 bulan';
 
     // Isi daftar bahan
     if (r.bahan.isNotEmpty) {
@@ -202,7 +205,10 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -344,7 +350,8 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
       final protein = double.tryParse(_proteinController.text.trim());
       final porsi = int.tryParse(_porsiController.text.trim());
 
-      final bool isAsset = _imagePath != null && _imagePath!.startsWith('assets/');
+      final bool isAsset =
+          _imagePath != null && _imagePath!.startsWith('assets/');
 
       final updatedResep = ResepMpasiModel(
         id: widget.resep.id,
@@ -352,7 +359,9 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
         kategoriUsia: _selectedKategoriUsia,
         tanggal: _tanggal,
         assetImagePath: isAsset ? _imagePath : (widget.resep.assetImagePath),
-        imageUrl: !isAsset && _imagePath != null ? _imagePath : widget.resep.imageUrl,
+        imageUrl: !isAsset && _imagePath != null
+            ? _imagePath
+            : widget.resep.imageUrl,
         penulis: _penulisController.text.trim().isNotEmpty
             ? _penulisController.text.trim()
             : widget.resep.penulis,
@@ -376,10 +385,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      PediaBanner.showError(
-        context,
-        message: 'Gagal memperbarui resep: $e',
-      );
+      PediaBanner.showError(context, message: 'Gagal memperbarui resep: $e');
     }
   }
 
@@ -405,7 +411,10 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                       child: GestureDetector(
                         onTap: _showImagePickerOptions,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 4.0,
+                          ),
                           child: Text(
                             'Ubah Foto',
                             style: GoogleFonts.lato(
@@ -470,32 +479,28 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                     const SizedBox(height: 20.0),
                     _buildKategoriUsiaSelector(),
                     const SizedBox(height: 24.0),
-                    // Dynamic section gaya Gambar 2
+                    // Dynamic section (penanda bullet / nomor seperti Detail Resep)
                     _buildDynamicSection(
                       title: 'Bahan',
                       controllers: _bahanControllers,
-                      icon: Icons.restaurant_menu_rounded,
                       hintText: 'Nama Bahan',
                     ),
                     const SizedBox(height: 20.0),
                     _buildDynamicSection(
                       title: 'Bahan Pelapis',
                       controllers: _bahanPelapisControllers,
-                      icon: Icons.soup_kitchen_outlined,
                       hintText: 'Nama Bahan Pelapis',
                     ),
                     const SizedBox(height: 20.0),
                     _buildDynamicSection(
                       title: 'Buah',
                       controllers: _buahControllers,
-                      icon: Icons.apple_outlined,
                       hintText: 'Nama Buah',
                     ),
                     const SizedBox(height: 20.0),
                     _buildDynamicSection(
                       title: 'Cara Membuat',
                       controllers: _caraMembuatControllers,
-                      icon: Icons.format_list_numbered_rounded,
                       hintText: 'Cara Membuat',
                       isNumbered: true,
                     ),
@@ -528,7 +533,11 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                 borderRadius: BorderRadius.circular(24.0),
                 child: const Padding(
                   padding: EdgeInsets.all(4.0),
-                  child: Icon(Icons.arrow_back, size: 24.0, color: Colors.black),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24.0,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             ),
@@ -572,12 +581,27 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
 
   Widget _buildImageWidget(String path) {
     if (path.startsWith('assets/')) {
-      return Image.asset(path, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
     }
     if (kIsWeb || path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(path, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
     }
-    return Image.file(File(path), fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+    );
   }
 
   Widget _buildPenulisField() {
@@ -730,7 +754,9 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
           child: Center(
             child: TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               style: GoogleFonts.lato(
                 fontSize: 14.0,
                 fontWeight: FontWeight.bold,
@@ -776,12 +802,17 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
             return GestureDetector(
               onTap: () => setState(() => _selectedKategoriUsia = usia),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14.0,
+                  vertical: 8.0,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFFEBF5FF) : Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(
-                    color: isSelected ? _colorPrimaryBlue : const Color(0xFFCBD5E1),
+                    color: isSelected
+                        ? _colorPrimaryBlue
+                        : const Color(0xFFCBD5E1),
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -801,17 +832,52 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
     );
   }
 
+  /// Penanda di sebelah kiri tiap item, disamakan dengan Detail Resep:
+  /// - bullet bulat kecil (5x5, #262626) untuk Bahan / Bahan Pelapis / Buah
+  /// - nomor bold ("1.", "2.", ...) untuk Cara Membuat
+  Widget _buildItemMarker(int index, bool isNumbered) {
+    if (isNumbered) {
+      return SizedBox(
+        width: 24.0,
+        child: Text(
+          '${index + 1}.',
+          style: GoogleFonts.lato(
+            fontSize: 15.0,
+            fontWeight: FontWeight.bold,
+            color: _colorMarker,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
+    return const SizedBox(
+      width: 24.0,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: EdgeInsets.only(left: 4.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: _colorMarker,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox(width: 5.0, height: 5.0),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDynamicSection({
     required String title,
     required List<TextEditingController> controllers,
-    required IconData icon,
     required String hintText,
     bool isNumbered = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Section: Judul di kiri, Icon (+) lingkaran biru di kanan (Sesuai Gambar 2)
+        // Header Section: Judul di kiri, Icon (+) lingkaran biru di kanan
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -838,7 +904,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
           ],
         ),
         const SizedBox(height: 8.0),
-        // Kotak Card Putih Melengkung dengan bayangan halus (Sesuai Gambar 2)
+        // Kotak Card Putih Melengkung dengan bayangan halus
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -858,17 +924,18 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14.0,
+                      vertical: 12.0,
+                    ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: isNumbered
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.center,
                       children: [
-                        // Icon di sebelah kiri item (Sesuai Gambar 2)
-                        Icon(
-                          icon,
-                          size: 20.0,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(width: 12.0),
+                        // Penanda bullet / nomor di sebelah kiri (sama dengan Detail Resep)
+                        _buildItemMarker(index, isNumbered),
+                        const SizedBox(width: 6.0),
                         // TextField di tengah
                         Expanded(
                           child: TextField(
@@ -880,7 +947,9 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                             ),
                             decoration: InputDecoration(
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 2.0),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 2.0,
+                              ),
                               hintText: isNumbered
                                   ? 'Langkah ${index + 1}...'
                                   : '$hintText...',
@@ -892,7 +961,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                             ),
                           ),
                         ),
-                        // Tombol (-) lingkaran merah di sebelah kanan item (Sesuai Gambar 2)
+                        // Tombol (-) lingkaran merah di sebelah kanan item
                         if (controllers.length > 1)
                           GestureDetector(
                             onTap: () {
@@ -913,14 +982,14 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                       ],
                     ),
                   ),
-                  // Garis putus-putus di bawah item (Sesuai Gambar 2)
+                  // Garis putus-putus di bawah item
                   if (!isLast)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14.0),
                       child: SizedBox(
                         height: 1.0,
                         child: CustomPaint(
-                          painter: _DashedLinePainter(),
+                          painter: const _DashedLinePainter(),
                           child: const SizedBox.expand(),
                         ),
                       ),
@@ -944,7 +1013,9 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
           backgroundColor: _colorPrimaryBlue,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
         ),
         child: _isSaving
             ? const SizedBox(
@@ -1069,7 +1140,12 @@ class _DashedRRectPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth, size.height - strokeWidth),
+      Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
       Radius.circular(radius),
     );
     final path = Path()..addRRect(rrect);
@@ -1078,7 +1154,10 @@ class _DashedRRectPainter extends CustomPainter {
       double distance = 0.0;
       while (distance < metric.length) {
         final length = math.min(dashWidth, metric.length - distance);
-        dashedPath.addPath(metric.extractPath(distance, distance + length), Offset.zero);
+        dashedPath.addPath(
+          metric.extractPath(distance, distance + length),
+          Offset.zero,
+        );
         distance += dashWidth + dashSpace;
       }
     }

@@ -20,11 +20,12 @@ import '../../../../shared/widgets/pedia_banner.dart';
 /// - Penulis ("Ditulis oleh Pego")
 /// - 4 stat gizi & porsi (Energi, Lemak, Protein, Porsi) masing-masing dalam kotak garis putus-putus
 /// - Kategori Usia
-/// - Dynamic list sesuai Gambar 2 (kartu putih rounded, icon di kiri, teks di tengah dengan garis putus-putus, tombol (-) merah di kanan, dan tombol (+) biru di header):
-///   * Bahan
-///   * Bahan Pelapis
-///   * Buah
-///   * Cara Membuat
+/// - Dynamic list (kartu putih rounded, penanda di kiri, teks di tengah dengan garis putus-putus,
+///   tombol (-) merah di kanan, dan tombol (+) biru di header):
+///   * Bahan          → penanda bullet (•) seperti di Detail Resep
+///   * Bahan Pelapis  → penanda bullet (•)
+///   * Buah           → penanda bullet (•)
+///   * Cara Membuat   → penanda nomor (1. 2. 3.) seperti di Detail Resep
 /// - Tombol "Simpan" biru yang langsung menambahkan dokumen ke Firestore
 class TambahResepMpasiPage extends StatefulWidget {
   const TambahResepMpasiPage({super.key});
@@ -67,6 +68,9 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
   static const Color _colorGray = Color(0xFF7F7F7F);
   static const Color _colorGreen = Color(0xFF22C55E);
 
+  // Warna penanda bullet/nomor — sama dengan Detail Resep (#262626)
+  static const Color _colorMarker = Color(0xFF262626);
+
   @override
   void initState() {
     super.initState();
@@ -106,8 +110,18 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
 
   String _getNamaBulan(int bulan) {
     const namaBulan = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     if (bulan >= 1 && bulan <= 12) return namaBulan[bulan - 1];
     return '';
@@ -123,7 +137,10 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -152,15 +169,22 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Icon(Icons.camera_alt_rounded,
-                        color: _colorPrimaryBlue, size: 22.0),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: _colorPrimaryBlue,
+                      size: 22.0,
+                    ),
                   ),
-                  title: Text('Kamera',
-                      style: GoogleFonts.lato(fontSize: 15.0, color: _colorDark)),
+                  title: Text(
+                    'Kamera',
+                    style: GoogleFonts.lato(fontSize: 15.0, color: _colorDark),
+                  ),
                   onTap: () async {
                     Navigator.of(ctx).pop();
                     if (kIsWeb) return;
-                    final file = await _picker.pickImage(source: ImageSource.camera);
+                    final file = await _picker.pickImage(
+                      source: ImageSource.camera,
+                    );
                     if (file != null && mounted) {
                       setState(() => _imagePath = file.path);
                     }
@@ -174,14 +198,21 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Icon(Icons.photo_library_rounded,
-                        color: _colorPrimaryBlue, size: 22.0),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: _colorPrimaryBlue,
+                      size: 22.0,
+                    ),
                   ),
-                  title: Text('Galeri',
-                      style: GoogleFonts.lato(fontSize: 15.0, color: _colorDark)),
+                  title: Text(
+                    'Galeri',
+                    style: GoogleFonts.lato(fontSize: 15.0, color: _colorDark),
+                  ),
                   onTap: () async {
                     Navigator.of(ctx).pop();
-                    final file = await _picker.pickImage(source: ImageSource.gallery);
+                    final file = await _picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
                     if (file != null && mounted) {
                       setState(() => _imagePath = file.path);
                     }
@@ -207,26 +238,48 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
       }
     });
     if (hasError) {
-      PediaBanner.showError(context, message: 'Mohon isi judul resep terlebih dahulu');
+      PediaBanner.showError(
+        context,
+        message: 'Mohon isi judul resep terlebih dahulu',
+      );
       return;
     }
     setState(() => _isSaving = true);
     try {
-      final bahanList = _bahanControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList();
-      final bahanPelapisList = _bahanPelapisControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList();
-      final buahList = _buahControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList();
-      final caraMembuatList = _caraMembuatControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList();
+      final bahanList = _bahanControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+      final bahanPelapisList = _bahanPelapisControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+      final buahList = _buahControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+      final caraMembuatList = _caraMembuatControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
       final energi = double.tryParse(_energiController.text.trim());
       final lemak = double.tryParse(_lemakController.text.trim());
       final protein = double.tryParse(_proteinController.text.trim());
       final porsi = int.tryParse(_porsiController.text.trim());
-      final penulis = _penulisController.text.trim().isNotEmpty ? _penulisController.text.trim() : 'Pego';
+      final penulis = _penulisController.text.trim().isNotEmpty
+          ? _penulisController.text.trim()
+          : 'Pego';
       final resepBaru = ResepMpasiModel(
         judul: judul,
         kategoriUsia: _selectedKategoriUsia,
         tanggal: _tanggal,
-        assetImagePath: (_imagePath != null && _imagePath!.startsWith('assets/')) ? _imagePath : null,
-        imageUrl: (_imagePath != null && !_imagePath!.startsWith('assets/')) ? _imagePath : null,
+        assetImagePath:
+            (_imagePath != null && _imagePath!.startsWith('assets/'))
+            ? _imagePath
+            : null,
+        imageUrl: (_imagePath != null && !_imagePath!.startsWith('assets/'))
+            ? _imagePath
+            : null,
         penulis: penulis,
         energiKkal: energi,
         lemakGr: lemak,
@@ -270,7 +323,10 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       child: GestureDetector(
                         onTap: _showImagePickerOptions,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 4.0,
+                          ),
                           child: Text(
                             'Unggah Foto',
                             style: GoogleFonts.lato(
@@ -335,32 +391,28 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                     const SizedBox(height: 20.0),
                     _buildKategoriUsiaSelector(),
                     const SizedBox(height: 24.0),
-                    // Dynamic section gaya Gambar 2
+                    // Dynamic section (penanda bullet / nomor seperti Detail Resep)
                     _buildDynamicSection(
                       title: 'Bahan',
                       controllers: _bahanControllers,
-                      icon: Icons.restaurant_menu_rounded,
                       hintText: 'Nama Bahan',
                     ),
                     const SizedBox(height: 20.0),
                     _buildDynamicSection(
                       title: 'Bahan Pelapis',
                       controllers: _bahanPelapisControllers,
-                      icon: Icons.soup_kitchen_outlined,
                       hintText: 'Nama Bahan Pelapis',
                     ),
                     const SizedBox(height: 20.0),
                     _buildDynamicSection(
                       title: 'Buah',
                       controllers: _buahControllers,
-                      icon: Icons.apple_outlined,
                       hintText: 'Nama Buah',
                     ),
                     const SizedBox(height: 20.0),
                     _buildDynamicSection(
                       title: 'Cara Membuat',
                       controllers: _caraMembuatControllers,
-                      icon: Icons.format_list_numbered_rounded,
                       hintText: 'Cara Membuat',
                       isNumbered: true,
                     ),
@@ -393,7 +445,11 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                 borderRadius: BorderRadius.circular(24.0),
                 child: const Padding(
                   padding: EdgeInsets.all(4.0),
-                  child: Icon(Icons.arrow_back, size: 24.0, color: Colors.black),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24.0,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             ),
@@ -437,23 +493,49 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
 
   Widget _buildImageWidget(String path) {
     if (path.startsWith('assets/')) {
-      return Image.asset(path, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
     }
     if (kIsWeb || path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(path, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
     }
-    return Image.file(File(path), fit: BoxFit.cover, width: double.infinity, height: double.infinity);
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+    );
   }
 
   Widget _buildPenulisField() {
     return Row(
       children: [
-        Text('Ditulis oleh ', style: GoogleFonts.lato(fontSize: 13.0, color: _colorMuted)),
+        Text(
+          'Ditulis oleh ',
+          style: GoogleFonts.lato(fontSize: 13.0, color: _colorMuted),
+        ),
         Expanded(
           child: TextField(
             controller: _penulisController,
-            style: GoogleFonts.lato(fontSize: 13.0, fontWeight: FontWeight.w600, color: _colorDark),
-            decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none),
+            style: GoogleFonts.lato(
+              fontSize: 13.0,
+              fontWeight: FontWeight.w600,
+              color: _colorDark,
+            ),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              border: InputBorder.none,
+            ),
           ),
         ),
       ],
@@ -485,7 +567,11 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           style: GoogleFonts.lato(fontSize: 14.0, color: Colors.black),
           decoration: InputDecoration(
             hintText: placeholder,
-            hintStyle: GoogleFonts.lato(fontSize: 14.0, color: _colorGray, fontWeight: FontWeight.normal),
+            hintStyle: GoogleFonts.lato(
+              fontSize: 14.0,
+              color: _colorGray,
+              fontWeight: FontWeight.normal,
+            ),
             border: InputBorder.none,
             isDense: true,
             contentPadding: EdgeInsets.zero,
@@ -500,17 +586,45 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildNutrisiItem(icon: Icons.bolt_rounded, label: 'Energi', unit: 'kkal', controller: _energiController)),
+            Expanded(
+              child: _buildNutrisiItem(
+                icon: Icons.bolt_rounded,
+                label: 'Energi',
+                unit: 'kkal',
+                controller: _energiController,
+              ),
+            ),
             const SizedBox(width: 12.0),
-            Expanded(child: _buildNutrisiItem(icon: Icons.grain_rounded, label: 'Lemak', unit: 'gr', controller: _lemakController)),
+            Expanded(
+              child: _buildNutrisiItem(
+                icon: Icons.grain_rounded,
+                label: 'Lemak',
+                unit: 'gr',
+                controller: _lemakController,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12.0),
         Row(
           children: [
-            Expanded(child: _buildNutrisiItem(icon: Icons.donut_small_rounded, label: 'Protein', unit: 'gr', controller: _proteinController)),
+            Expanded(
+              child: _buildNutrisiItem(
+                icon: Icons.donut_small_rounded,
+                label: 'Protein',
+                unit: 'gr',
+                controller: _proteinController,
+              ),
+            ),
             const SizedBox(width: 12.0),
-            Expanded(child: _buildNutrisiItem(icon: Icons.soup_kitchen_outlined, label: 'Porsi', unit: 'porsi', controller: _porsiController)),
+            Expanded(
+              child: _buildNutrisiItem(
+                icon: Icons.soup_kitchen_outlined,
+                label: 'Porsi',
+                unit: 'porsi',
+                controller: _porsiController,
+              ),
+            ),
           ],
         ),
       ],
@@ -552,11 +666,21 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           child: Center(
             child: TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: GoogleFonts.lato(fontSize: 14.0, fontWeight: FontWeight.bold, color: _colorDark),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: GoogleFonts.lato(
+                fontSize: 14.0,
+                fontWeight: FontWeight.bold,
+                color: _colorDark,
+              ),
               decoration: InputDecoration(
                 hintText: '0',
-                hintStyle: GoogleFonts.lato(fontSize: 14.0, color: const Color(0xFFCBD5E1), fontWeight: FontWeight.bold),
+                hintStyle: GoogleFonts.lato(
+                  fontSize: 14.0,
+                  color: const Color(0xFFCBD5E1),
+                  fontWeight: FontWeight.bold,
+                ),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
@@ -573,7 +697,14 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Kategori Usia', style: GoogleFonts.lato(fontSize: 14.0, fontWeight: FontWeight.bold, color: _colorDark)),
+        Text(
+          'Kategori Usia',
+          style: GoogleFonts.lato(
+            fontSize: 14.0,
+            fontWeight: FontWeight.bold,
+            color: _colorDark,
+          ),
+        ),
         const SizedBox(height: 8.0),
         Wrap(
           spacing: 8.0,
@@ -583,12 +714,17 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
             return GestureDetector(
               onTap: () => setState(() => _selectedKategoriUsia = usia),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14.0,
+                  vertical: 8.0,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFFEBF5FF) : Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(
-                    color: isSelected ? _colorPrimaryBlue : const Color(0xFFCBD5E1),
+                    color: isSelected
+                        ? _colorPrimaryBlue
+                        : const Color(0xFFCBD5E1),
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -608,17 +744,52 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
     );
   }
 
+  /// Penanda di sebelah kiri tiap item, disamakan dengan Detail Resep:
+  /// - bullet bulat kecil (5x5, #262626) untuk Bahan / Bahan Pelapis / Buah
+  /// - nomor bold ("1.", "2.", ...) untuk Cara Membuat
+  Widget _buildItemMarker(int index, bool isNumbered) {
+    if (isNumbered) {
+      return SizedBox(
+        width: 24.0,
+        child: Text(
+          '${index + 1}.',
+          style: GoogleFonts.lato(
+            fontSize: 15.0,
+            fontWeight: FontWeight.bold,
+            color: _colorMarker,
+            height: 1.4,
+          ),
+        ),
+      );
+    }
+    return const SizedBox(
+      width: 24.0,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: EdgeInsets.only(left: 4.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: _colorMarker,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox(width: 5.0, height: 5.0),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDynamicSection({
     required String title,
     required List<TextEditingController> controllers,
-    required IconData icon,
     required String hintText,
     bool isNumbered = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Section: Judul di kiri, Icon (+) lingkaran biru di kanan (Sesuai Gambar 2)
+        // Header Section: Judul di kiri, Icon (+) lingkaran biru di kanan
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -645,7 +816,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           ],
         ),
         const SizedBox(height: 8.0),
-        // Kotak Card Putih Melengkung dengan bayangan halus (Sesuai Gambar 2)
+        // Kotak Card Putih Melengkung dengan bayangan halus
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -665,17 +836,18 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14.0,
+                      vertical: 12.0,
+                    ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: isNumbered
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.center,
                       children: [
-                        // Icon di sebelah kiri item (Sesuai Gambar 2)
-                        Icon(
-                          icon,
-                          size: 20.0,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(width: 12.0),
+                        // Penanda bullet / nomor di sebelah kiri (sama dengan Detail Resep)
+                        _buildItemMarker(index, isNumbered),
+                        const SizedBox(width: 6.0),
                         // TextField di tengah
                         Expanded(
                           child: TextField(
@@ -687,7 +859,9 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                             ),
                             decoration: InputDecoration(
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 2.0),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 2.0,
+                              ),
                               hintText: isNumbered
                                   ? 'Langkah ${index + 1}...'
                                   : '$hintText...',
@@ -699,7 +873,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                             ),
                           ),
                         ),
-                        // Tombol (-) lingkaran merah di sebelah kanan item (Sesuai Gambar 2)
+                        // Tombol (-) lingkaran merah di sebelah kanan item
                         if (controllers.length > 1)
                           GestureDetector(
                             onTap: () {
@@ -720,14 +894,14 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       ],
                     ),
                   ),
-                  // Garis putus-putus di bawah item (Sesuai Gambar 2)
+                  // Garis putus-putus di bawah item
                   if (!isLast)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14.0),
                       child: SizedBox(
                         height: 1.0,
                         child: CustomPaint(
-                          painter: _DashedLinePainter(),
+                          painter: const _DashedLinePainter(),
                           child: const SizedBox.expand(),
                         ),
                       ),
@@ -751,7 +925,9 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           backgroundColor: _colorPrimaryBlue,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
         ),
         child: _isSaving
             ? const SizedBox(
@@ -876,7 +1052,12 @@ class _DashedRRectPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(strokeWidth / 2, strokeWidth / 2, size.width - strokeWidth, size.height - strokeWidth),
+      Rect.fromLTWH(
+        strokeWidth / 2,
+        strokeWidth / 2,
+        size.width - strokeWidth,
+        size.height - strokeWidth,
+      ),
       Radius.circular(radius),
     );
     final path = Path()..addRRect(rrect);
@@ -885,7 +1066,10 @@ class _DashedRRectPainter extends CustomPainter {
       double distance = 0.0;
       while (distance < metric.length) {
         final length = math.min(dashWidth, metric.length - distance);
-        dashedPath.addPath(metric.extractPath(distance, distance + length), Offset.zero);
+        dashedPath.addPath(
+          metric.extractPath(distance, distance + length),
+          Offset.zero,
+        );
         distance += dashWidth + dashSpace;
       }
     }
