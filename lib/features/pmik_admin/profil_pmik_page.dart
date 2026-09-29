@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +24,7 @@ class ProfilPmikPage extends StatefulWidget {
 
 class _ProfilPmikPageState extends State<ProfilPmikPage> {
   final int _selectedIndex = 3; // Profil aktif
+  final ImagePicker _picker = ImagePicker();
 
   String? _avatarPath;
   StaffAccount? _pmik;
@@ -65,6 +67,138 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     final savedPath = prefs.getString('pmik_avatar_${_pmik?.id}');
     if (savedPath != null && mounted) {
       setState(() => _avatarPath = savedPath);
+    }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Ubah Foto Profil',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: Color(0xFF0891B2),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Ambil Foto dari Kamera',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: Color(0xFF0891B2),
+                      size: 24,
+                    ),
+                  ),
+                  title: Text(
+                    'Pilih Foto dari Galeri',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() => _avatarPath = picked.path);
+        final prefs = await SharedPreferences.getInstance();
+        if (_pmik?.id != null) {
+          await prefs.setString('pmik_avatar_${_pmik!.id}', picked.path);
+          await StaffAuthService().updateStaffAccount(
+            _pmik!.id,
+            avatarPath: picked.path,
+          );
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Berhasil memperbarui foto profil',
+                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: const Color(0xFF16A34A),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[ProfilPmikPage] _pickImage error: $e');
     }
   }
 
@@ -426,20 +560,53 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             ],
           ),
         ),
-        // Avatar melayang
+        // Avatar melayang dengan badge kamera
         Positioned(
           top: 0,
-          child: CircleAvatar(
-            radius: avatarRadius,
-            backgroundColor: const Color(0xFFE0F2FE),
-            backgroundImage: _avatarPath != null
-                ? FileImage(File(_avatarPath!)) as ImageProvider
-                : null,
-            child: _avatarPath == null
-                ? Icon(Icons.person_rounded,
-                    size: avatarRadius * 1.1,
-                    color: const Color(0xFF0891B2))
-                : null,
+          child: GestureDetector(
+            onTap: _showImagePickerOptions,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: avatarRadius,
+                  backgroundColor: const Color(0xFFE0F2FE),
+                  backgroundImage: _avatarPath != null
+                      ? FileImage(File(_avatarPath!)) as ImageProvider
+                      : null,
+                  child: _avatarPath == null
+                      ? Icon(Icons.person_rounded,
+                          size: avatarRadius * 1.1,
+                          color: const Color(0xFF0891B2))
+                      : null,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0891B2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x33000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      size: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

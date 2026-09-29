@@ -68,6 +68,24 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
     );
   }
 
+  void _showDoctorOfflineMessage(DoctorModel doctor) {
+    _searchFocusNode.unfocus();
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${doctor.name} sedang offline dan tidak dapat diajak konsultasi saat ini.',
+          style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: const Color(0xFF64748B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -415,7 +433,12 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+        border: Border.all(
+          color: doctor.isOnline
+              ? const Color(0xFFBFDBFE)
+              : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -430,7 +453,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _navigateToDetail(doctor),
+          onTap: doctor.isOnline
+              ? () => _navigateToDetail(doctor)
+              : () => _showDoctorOfflineMessage(doctor),
           splashColor: colorPrimaryBlue.withValues(alpha: 0.08),
           highlightColor: colorPrimaryBlue.withValues(alpha: 0.04),
           child: Padding(
@@ -604,38 +629,76 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                   ),
                 ),
 
-                // Sisi Bawah: Tombol "Detail Dokter" biru
+                // Sisi Bawah: Tombol Aksi (Detail Dokter jika online, Sedang Offline jika offline)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    GestureDetector(
-                      onTap: () => _navigateToDetail(doctor),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 8.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorPrimaryBlue,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorPrimaryBlue.withValues(alpha: 0.25),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                    if (doctor.isOnline)
+                      GestureDetector(
+                        onTap: () => _navigateToDetail(doctor),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0,
+                            vertical: 8.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorPrimaryBlue,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorPrimaryBlue.withValues(alpha: 0.25),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            'Detail Dokter',
+                            style: GoogleFonts.lato(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                          ],
+                          ),
                         ),
-                        child: Text(
-                          'Detail Dokter',
-                          style: GoogleFonts.lato(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () => _showDoctorOfflineMessage(doctor),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14.0,
+                            vertical: 8.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFFCBD5E1),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.do_not_disturb_on_outlined,
+                                size: 14,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Sedang Offline',
+                                style: GoogleFonts.lato(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ],

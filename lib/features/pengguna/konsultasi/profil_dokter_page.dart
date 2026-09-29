@@ -32,6 +32,7 @@ class ProfilDokterPage extends StatelessWidget {
   const ProfilDokterPage({super.key, required this.doctor, this.child});
 
   void _onChatDokterPressed(BuildContext context) {
+    if (!doctor.isOnline) return;
     // Alur resmi: Profil Dokter → Menunggu Persetujuan → Formulir → Chat
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -455,11 +456,16 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: () => _onChatDokterPressed(context),
+              onPressed: doctor.isOnline ? () => _onChatDokterPressed(context) : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3985E7),
+                backgroundColor: doctor.isOnline
+                    ? const Color(0xFF3985E7)
+                    : const Color(0xFFCBD5E1),
+                disabledBackgroundColor: const Color(0xFFE2E8F0),
                 elevation: 0,
-                shadowColor: const Color(0xFF3985E7).withValues(alpha: 0.3),
+                shadowColor: doctor.isOnline
+                    ? const Color(0xFF3985E7).withValues(alpha: 0.3)
+                    : Colors.transparent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -469,11 +475,11 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Konsultasi Sekarang',
+                doctor.isOnline ? 'Konsultasi Sekarang' : 'Dokter Sedang Offline',
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
                 ),
               ),
             ),
