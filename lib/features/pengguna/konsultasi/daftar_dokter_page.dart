@@ -3,17 +3,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-<<<<<<< HEAD
-import '../../../core/services/booking_service.dart';
-import '../../../core/services/child_service.dart';
-import '../../../core/services/doctor_service.dart';
-=======
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/notification_service.dart';
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
@@ -21,7 +15,6 @@ import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda/beranda_page.dart';
 import '../beranda/notifikasi_page.dart';
 import 'profil_dokter_page.dart';
-import 'status_booking_page.dart';
 
 /// Halaman Konsultasi POV Pengguna di PediaGrow.
 ///
@@ -372,107 +365,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               // 2. Tab Bar (Daftar Dokter | Jadwal Konsultasi)
               _buildTabBar(),
 
-<<<<<<< HEAD
-                                // Banner Booking Aktif (jika ada)
-                                ValueListenableBuilder<BookingConsultationModel?>(
-                                  valueListenable:
-                                      BookingService().activeBookingNotifier,
-                                  builder: (context, activeBooking, _) {
-                                    if (activeBooking == null ||
-                                        activeBooking.status ==
-                                            BookingStatus.completed ||
-                                        activeBooking.status ==
-                                            BookingStatus.cancelled) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return _buildActiveBookingBanner(
-                                      activeBooking,
-                                    );
-                                  },
-                                ),
-
-                                // Search Bar (Cari nama dokter)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                  ),
-                                  child: _buildSearchBar(),
-                                ),
-
-                                const SizedBox(height: 18),
-
-                                // Judul Bagian "Daftar Dokter"
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                  ),
-                                  child: Text(
-                                    'Daftar Dokter',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF000000),
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                // Daftar Dokter Dinamis (Reaktif terhadap database/PMIK)
-                                ValueListenableBuilder<List<DoctorModel>>(
-                                  valueListenable:
-                                      DoctorService().doctorsNotifier,
-                                  builder: (context, allDoctors, _) {
-                                    final filteredDoctors = _searchQuery.isEmpty
-                                        ? allDoctors
-                                        : DoctorService().filterDoctors(
-                                            _searchQuery,
-                                          );
-
-                                    if (filteredDoctors.isEmpty) {
-                                      return _buildEmptyState();
-                                    }
-
-                                    return Column(
-                                      children: [
-                                        for (
-                                          int i = 0;
-                                          i < filteredDoctors.length;
-                                          i++
-                                        ) ...[
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0,
-                                            ),
-                                            child: _buildDoctorCard(
-                                              filteredDoctors[i],
-                                            ),
-                                          ),
-                                          if (i != filteredDoctors.length - 1)
-                                            const SizedBox(height: 14),
-                                        ],
-                                      ],
-                                    );
-                                  },
-                                ),
-
-                                // Spacer fleksibel agar ilustrasi tetap menempel di bawah
-                                const Spacer(),
-
-                                const SizedBox(height: 20),
-
-                                // Ilustrasi Pemandangan Hutan, Rumput & Tenda (Reusable)
-                                const IllustrationForestFooter(
-                                  fit: BoxFit.fitWidth,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-=======
               // 3. Tab Bar View
               Expanded(
                 child: TabBarView(
@@ -481,7 +373,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                     _buildDaftarDokterTab(),
                     _buildJadwalKonsultasiTab(),
                   ],
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
                 ),
               ),
             ],
@@ -985,11 +876,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                     color: Color(0xFFF1F5F9),
                   ),
                 ),
-<<<<<<< HEAD
-
-                // Sisi Bawah: Tombol Aksi (Booking Konsultasi jika online, Sedang Offline jika offline)
-=======
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -999,11 +885,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16.0,
-<<<<<<< HEAD
-                            vertical: 8.0,
-=======
                             vertical: 7.0,
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
                           ),
                           decoration: BoxDecoration(
                             color: _colorPrimaryBlue,
@@ -1017,26 +899,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               ),
                             ],
                           ),
-<<<<<<< HEAD
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.calendar_month_rounded,
-                                size: 15,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Booking Konsultasi',
-                                style: GoogleFonts.lato(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-=======
                           child: Text(
                             'Detail Dokter',
                             style: GoogleFonts.lato(
@@ -1044,7 +906,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
                           ),
                         ),
                       )
@@ -1477,65 +1338,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
       );
     }
     return _fallbackAvatar();
-  }
-
-  /// Banner booking aktif yang dapat diklik untuk melihat status booking
-  Widget _buildActiveBookingBanner(BookingConsultationModel booking) {
-    final isReady = booking.isTimeReady;
-    final bannerColor = isReady ? const Color(0xFFF0FDF4) : const Color(0xFFEFF6FF);
-    final borderColor = isReady ? const Color(0xFF86EFAC) : const Color(0xFFBFDBFE);
-    final textColor = isReady ? const Color(0xFF16A34A) : const Color(0xFF1D4ED8);
-    final iconColor = isReady ? const Color(0xFF16A34A) : const Color(0xFF2B7AE8);
-    final iconData = isReady ? Icons.check_circle_rounded : Icons.access_time_filled_rounded;
-    final label = isReady
-        ? 'Waktu konsultasi tiba! Isi formulir sekarang →'
-        : 'Jadwal aktif: ${booking.doctor.name} · ${booking.timeSlot}';
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => StatusBookingPage(booking: booking),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: 12,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: bannerColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 1.2),
-        ),
-        child: Row(
-          children: [
-            Icon(iconData, size: 18, color: iconColor),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.lato(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 18,
-              color: textColor,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _fallbackAvatar() {
