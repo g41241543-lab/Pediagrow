@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import 'menunggu_persetujuan_page.dart';
@@ -37,13 +36,16 @@ class ProfilDokterPage extends StatelessWidget {
   void _onChatDokterPressed(BuildContext context) {
     if (!doctor.isOnline) return;
 
-    // Alur: Profil Dokter → Pilih Anak (bottom sheet) → Menunggu Persetujuan
+    // Alur: Profil Dokter → Pilih Anak (bottom sheet) → Booking Dokter
     PilihAnakPage.show(
       context,
       onChildSelected: (selectedChild) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => MenungguPersetujuanPage(child: selectedChild),
+            builder: (_) => MenungguPersetujuanPage(
+              doctor: doctor,
+              child: selectedChild,
+            ),
           ),
         );
       },
@@ -513,7 +515,7 @@ class ProfilDokterPage extends StatelessWidget {
               ),
               child: Text(
                 doctor.isOnline
-                    ? 'Konsultasi Sekarang'
+                    ? 'Booking Sekarang'
                     : 'Dokter Sedang Offline',
                 style: GoogleFonts.lato(
                   fontSize: 14,

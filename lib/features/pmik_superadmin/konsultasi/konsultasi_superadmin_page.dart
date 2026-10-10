@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,19 +19,23 @@ class _KonsultasiItem {
   final String id;
   final String childName;
   final String childAge;
-  final String childGender; // 'male' | 'female'
+  final String childGender; // 'Laki-laki' | 'Perempuan'
+  final String? childPhotoUrl; // URL foto anak dari Firebase (field: photo_url)
   final String doctorName;
-  final String status; // 'berlangsung' | 'menunggu_konfirmasi'
-  final bool awaitsPayment; // hanya berlaku untuk tab berlangsung
+  final String status; // 'berlangsung' | 'jadwal'
+  final String? scheduledDate;
+  final String? scheduledTime;
 
   const _KonsultasiItem({
     required this.id,
     required this.childName,
     required this.childAge,
     required this.childGender,
+    this.childPhotoUrl,
     required this.doctorName,
     required this.status,
-    this.awaitsPayment = false,
+    this.scheduledDate,
+    this.scheduledTime,
   });
 }
 
@@ -39,7 +45,8 @@ final List<_KonsultasiItem> _mockBerlangsung = [
     id: 'k1',
     childName: 'Devaro Ramadhan',
     childAge: '1 tahun 2 bulan 13 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
+    childPhotoUrl: null,
     doctorName: 'dr. Ahmad Nuri, Sp. A',
     status: 'berlangsung',
   ),
@@ -47,7 +54,8 @@ final List<_KonsultasiItem> _mockBerlangsung = [
     id: 'k2',
     childName: 'Arfa Zivano Kayfan',
     childAge: '0 tahun 4 bulan 23 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
+    childPhotoUrl: null,
     doctorName: 'dr. Ririn Esterina, Sp.A',
     status: 'berlangsung',
   ),
@@ -55,16 +63,15 @@ final List<_KonsultasiItem> _mockBerlangsung = [
     id: 'k3',
     childName: 'Naya Seiza Putri',
     childAge: '0 tahun 8 bulan 20 hari',
-    childGender: 'female',
+    childGender: 'Perempuan',
     doctorName: 'dr. Ririn Esterina, Sp.A',
     status: 'berlangsung',
-    awaitsPayment: true,
   ),
   const _KonsultasiItem(
     id: 'k4',
     childName: 'Zafran Aditya',
     childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
     doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
     status: 'berlangsung',
   ),
@@ -72,68 +79,82 @@ final List<_KonsultasiItem> _mockBerlangsung = [
     id: 'k5',
     childName: 'Aisha Arunika Zahra',
     childAge: '0 tahun 5 bulan 0 hari',
-    childGender: 'female',
+    childGender: 'Perempuan',
     doctorName: 'dr. Ririn Esterina, Sp.A',
     status: 'berlangsung',
   ),
 ];
 
-final List<_KonsultasiItem> _mockMenunggu = [
+final List<_KonsultasiItem> _mockJadwal = [
   const _KonsultasiItem(
-    id: 'm1',
+    id: 'j1',
     childName: 'Amara Adiratna',
     childAge: '1 tahun 2 bulan 10 hari',
-    childGender: 'female',
+    childGender: 'Perempuan',
     doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Senin, 13 Okt 2026',
+    scheduledTime: '09:00',
   ),
   const _KonsultasiItem(
-    id: 'm2',
+    id: 'j2',
     childName: 'Kaia Anastasya',
     childAge: '1 tahun 3 bulan 3 hari',
-    childGender: 'female',
+    childGender: 'Perempuan',
     doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Selasa, 14 Okt 2026',
+    scheduledTime: '10:30',
   ),
   const _KonsultasiItem(
-    id: 'm3',
+    id: 'j3',
     childName: 'Zafran Aditya',
     childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
     doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Rabu, 15 Okt 2026',
+    scheduledTime: '08:00',
   ),
   const _KonsultasiItem(
-    id: 'm4',
+    id: 'j4',
     childName: 'Arlo Gavindra',
     childAge: '0 tahun 11 bulan 21 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
     doctorName: 'dr. Devina Marchita I. S., Sp.A',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Kamis, 16 Okt 2026',
+    scheduledTime: '11:00',
   ),
   const _KonsultasiItem(
-    id: 'm5',
+    id: 'j5',
     childName: 'Amara Adiratna',
     childAge: '1 tahun 10 bulan 09 hari',
-    childGender: 'female',
+    childGender: 'Perempuan',
     doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Jumat, 17 Okt 2026',
+    scheduledTime: '13:00',
   ),
   const _KonsultasiItem(
-    id: 'm6',
+    id: 'j6',
     childName: 'Zalvian Sadewa',
     childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
     doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Senin, 20 Okt 2026',
+    scheduledTime: '09:30',
   ),
   const _KonsultasiItem(
-    id: 'm7',
+    id: 'j7',
     childName: 'Mahesa Putra',
     childAge: '1 tahun 1 bulan 16 hari',
-    childGender: 'male',
+    childGender: 'Laki-laki',
     doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'menunggu_konfirmasi',
+    status: 'jadwal',
+    scheduledDate: 'Selasa, 21 Okt 2026',
+    scheduledTime: '15:00',
   ),
 ];
 
@@ -142,11 +163,11 @@ final List<_KonsultasiItem> _mockMenunggu = [
 /// Halaman Konsultasi untuk Superadmin.
 ///
 /// Menampilkan dua tab:
-/// - "Sedang Berlangsung" — daftar konsultasi aktif.
-/// - "Menunggu Konfirmasi" — daftar permintaan yang belum dikonfirmasi dokter.
+/// - "Sedang Berlangsung" — daftar sesi konsultasi chat yang aktif.
+/// - "Jadwal Konsultasi" — daftar jadwal yang telah di-booking oleh pengguna.
 ///
-/// Superadmin hanya bisa melihat data; tombol Tolak/Terima dan Masuk Ruang
-/// Chat tidak aktif bagi superadmin — sesuai ketentuan akses.
+/// Superadmin hanya bisa melihat data; tidak dapat masuk ruang chat
+/// sesuai ketentuan akses — hanya dokter dan pengguna terkait yang bisa.
 class KonsultasiSuperadminPage extends StatefulWidget {
   const KonsultasiSuperadminPage({super.key});
 
@@ -307,7 +328,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: _buildHeader(),
@@ -317,15 +338,13 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         bottom: false,
         child: Column(
           children: [
-            // Tab bar
             _buildTabBar(),
-            // Tab views
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
                   _buildBerlangsungTab(),
-                  _buildMenungguKonfirmasiTab(),
+                  _buildJadwalKonsultasiTab(),
                 ],
               ),
             ),
@@ -371,12 +390,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       color: Colors.white,
       child: TabBar(
         controller: _tabController,
-        // Garis biru selebar penuh tiap tab (seperti di halaman detail anak)
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        // Garis abu-abu tipis di sepanjang bawah tab bar
         dividerColor: const Color(0xFFE2E8F0),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
@@ -387,11 +404,57 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         ),
         labelColor: _colorTextBlack,
         unselectedLabelColor: _colorLabelGrey,
-        tabs: const [
-          Tab(height: 48, text: 'Sedang Berlangsung'),
-          Tab(height: 48, text: 'Menunggu Konfirmasi'),
+        tabs: [
+          Tab(
+            height: 48,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Sedang Berlangsung'),
+                const SizedBox(width: 6),
+                _buildTabBadge(_mockBerlangsung.length, isFirstTab: true),
+              ],
+            ),
+          ),
+          Tab(
+            height: 48,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Jadwal Konsultasi'),
+                const SizedBox(width: 6),
+                _buildTabBadge(_mockJadwal.length, isFirstTab: false),
+              ],
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTabBadge(int count, {required bool isFirstTab}) {
+    return AnimatedBuilder(
+      animation: _tabController,
+      builder: (context, child) {
+        final isThisTabActive =
+            (isFirstTab && _tabController.index == 0) ||
+            (!isFirstTab && _tabController.index == 1);
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE2E8F0),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            '$count',
+            style: GoogleFonts.lato(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: isThisTabActive ? Colors.white : _colorLabelGrey,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -406,6 +469,11 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             child: IntrinsicHeight(
               child: Column(
                 children: [
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildActiveSessionBanner(),
+                  ),
                   const SizedBox(height: 12),
                   ..._mockBerlangsung.map(
                     (item) => Padding(
@@ -428,28 +496,89 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
+  Widget _buildActiveSessionBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _colorPrimaryBlue.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _colorPrimaryBlue.withOpacity(0.22),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: _colorPrimaryBlue.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.chat_bubble_rounded,
+              size: 18,
+              color: _colorPrimaryBlue,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sesi Konsultasi Aktif',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: _colorPrimaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBerlangsungCard(_KonsultasiItem item) {
+    final isFemale = item.childGender == 'Perempuan';
     return Container(
       decoration: BoxDecoration(
         color: _colorCardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 6,
+            color: Color(0x08000000),
+            blurRadius: 8,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Baris atas: avatar + nama + usia (+ badge jika ada)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
               children: [
-                _buildAvatarBubble(item.childGender, 40),
+                _buildChildAvatar(
+                  photoUrl: item.childPhotoUrl,
+                  isFemale: isFemale,
+                  size: 44,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -467,15 +596,32 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               ),
                             ),
                           ),
+                          _buildStatusBadge(
+                            'Berlangsung',
+                            const Color(0xFF10B981),
+                            const Color(0xFFD1FAE5),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.childAge,
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: _colorLabelGrey,
-                        ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            isFemale ? Icons.female : Icons.male,
+                            size: 14,
+                            color: isFemale
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFF3B82F6),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            item.childAge,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              color: _colorLabelGrey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -483,18 +629,22 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               ],
             ),
           ),
-          // Divider
           const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-          // Baris bawah: dokter + tombol
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Row(
               children: [
+                const Icon(
+                  Icons.medical_services_rounded,
+                  size: 14,
+                  color: _colorLabelGrey,
+                ),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     item.doctorName,
                     style: GoogleFonts.lato(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: _colorLabelGrey,
                     ),
                   ),
@@ -510,6 +660,13 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                     decoration: BoxDecoration(
                       color: _colorPrimaryBlue,
                       borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _colorPrimaryBlue.withOpacity(0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       'Masuk Ruang Chat',
@@ -529,8 +686,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  // ─── TAB 2: MENUNGGU KONFIRMASI ───────────────────────────────────────────
-  Widget _buildMenungguKonfirmasiTab() {
+  // ─── TAB 2: JADWAL KONSULTASI ──────────────────────────────────────────────
+  Widget _buildJadwalKonsultasiTab() {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -540,20 +697,19 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             child: IntrinsicHeight(
               child: Column(
                 children: [
-                  const SizedBox(height: 12),
-                  // Info banner
+                  const SizedBox(height: 14),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildInfoBanner(),
+                    child: _buildScheduleBanner(),
                   ),
-                  const SizedBox(height: 10),
-                  ..._mockMenunggu.map(
+                  const SizedBox(height: 12),
+                  ..._mockJadwal.map(
                     (item) => Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 6,
                       ),
-                      child: _buildMenungguCard(item),
+                      child: _buildJadwalCard(item),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -568,33 +724,56 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildInfoBanner() {
+  Widget _buildScheduleBanner() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBF5FF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _colorPrimaryBlue.withOpacity(0.3), width: 1),
+        color: _colorPrimaryBlue.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _colorPrimaryBlue.withOpacity(0.22),
+          width: 1,
+        ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.lock_outline_rounded,
-            size: 20,
-            color: _colorPrimaryBlue,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: _colorPrimaryBlue.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.calendar_month_rounded,
+              size: 18,
+              color: _colorPrimaryBlue,
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'Untuk memastikan keputusan diambil oleh pihak yang bertanggung jawab, '
-              'permintaan konsultasi hanya dapat ditolak dan diterima oleh dokter yang menangani.',
-              style: GoogleFonts.lato(
-                fontSize: 12.5,
-                color: _colorPrimaryBlue,
-                height: 1.5,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Jadwal Booking Pengguna',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: _colorPrimaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -602,34 +781,40 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildMenungguCard(_KonsultasiItem item) {
+  Widget _buildJadwalCard(_KonsultasiItem item) {
+    final isFemale = item.childGender == 'Perempuan';
     return Container(
       decoration: BoxDecoration(
         color: _colorCardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 6,
+            color: Color(0x08000000),
+            blurRadius: 8,
             offset: Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Baris atas: avatar + nama + usia + badge
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildAvatarBubble(item.childGender, 40),
+                _buildChildAvatar(
+                  photoUrl: item.childPhotoUrl,
+                  isFemale: isFemale,
+                  size: 44,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
@@ -642,37 +827,32 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFBEB),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFFFDE68A),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              'Menunggu Dokter',
-                              style: GoogleFonts.lato(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFFB45309),
-                              ),
-                            ),
+                          _buildStatusBadge(
+                            'Terjadwal',
+                            _colorPrimaryBlue,
+                            const Color(0xFFEBF5FF),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.childAge,
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: _colorLabelGrey,
-                        ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            isFemale ? Icons.female : Icons.male,
+                            size: 14,
+                            color: isFemale
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFF3B82F6),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            item.childAge,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              color: _colorLabelGrey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -680,26 +860,79 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               ],
             ),
           ),
-          // Divider
+          if (item.scheduledDate != null) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F7FF),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _colorPrimaryBlue.withOpacity(0.18),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
+                      color: _colorPrimaryBlue,
+                    ),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Text(
+                        item.scheduledDate!,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: _colorPrimaryBlue,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: _colorPrimaryBlue,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      item.scheduledTime ?? '-',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: _colorPrimaryBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-          // Baris bawah: dokter + tombol Tolak/Terima (disabled utk superadmin)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Row(
               children: [
+                const Icon(
+                  Icons.medical_services_rounded,
+                  size: 14,
+                  color: _colorLabelGrey,
+                ),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     item.doctorName,
                     style: GoogleFonts.lato(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: _colorLabelGrey,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                _buildDisabledActionButton('Tolak'),
-                const SizedBox(width: 8),
-                _buildDisabledActionButton('Terima'),
               ],
             ),
           ),
@@ -708,34 +941,100 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildDisabledActionButton(String label) {
+  // ─── STATUS BADGE ─────────────────────────────────────────────────────────
+  Widget _buildStatusBadge(String label, Color textColor, Color bgColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
         style: GoogleFonts.lato(
-          fontSize: 12.5,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFFCBD5E1),
+          fontSize: 10.5,
+          fontWeight: FontWeight.bold,
+          color: textColor,
         ),
       ),
     );
   }
 
-  // ─── AVATAR BUBBLE ────────────────────────────────────────────────────────
-  Widget _buildAvatarBubble(String gender, double size) {
-    final isMale = gender == 'male';
-    final bgColor = isMale ? const Color(0xFFDBEAFE) : const Color(0xFFFFE4E6);
+  // ─── CHILD AVATAR ─────────────────────────────────────────────────────────
+  /// Menampilkan foto profil anak dari Firebase jika tersedia (field photo_url),
+  /// atau fallback ke avatar wajah bayi bergambar lucu.
+  Widget _buildChildAvatar({
+    required String? photoUrl,
+    required bool isFemale,
+    required double size,
+  }) {
+    final bgColor =
+        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
+
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: bgColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Image.network(
+          photoUrl,
+          fit: BoxFit.cover,
+          width: size,
+          height: size,
+          loadingBuilder: (ctx, child, progress) {
+            if (progress == null) return child;
+            return Container(
+              color: bgColor,
+              child: Center(
+                child: SizedBox(
+                  width: size * 0.4,
+                  height: size * 0.4,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: isFemale
+                        ? const Color(0xFFEC4899)
+                        : _colorPrimaryBlue,
+                  ),
+                ),
+              ),
+            );
+          },
+          errorBuilder: (ctx, error, stack) => Container(
+            color: bgColor,
+            child: CustomPaint(
+              painter: _BabyFacePainter(isGirl: isFemale),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: !isMale)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
     );
   }
 
@@ -882,7 +1181,8 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-/// Painter wajah bayi lucu — sama dengan painter di riwayat konsultasi.
+/// Painter wajah bayi lucu — fallback jika foto profil anak tidak tersedia.
+/// Anak perempuan mendapat hiasan pita merah muda di atas kepala.
 class _BabyFacePainter extends CustomPainter {
   final bool isGirl;
   const _BabyFacePainter({this.isGirl = true});
@@ -911,7 +1211,7 @@ class _BabyFacePainter extends CustomPainter {
 
     // Lingkaran kepala
     final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, 3.14159 * 2, false, strokePaint);
+    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
 
     // Poni rambut
     final hairPath = Path();
@@ -959,6 +1259,24 @@ class _BabyFacePainter extends CustomPainter {
       cy + r * 0.18,
     );
     canvas.drawPath(smilePath, strokePaint);
+
+    // Hiasan pita untuk anak perempuan
+    if (isGirl) {
+      final bowPaint = Paint()
+        ..color = const Color(0xFFFF6B9D)
+        ..style = PaintingStyle.fill;
+      final bowPath = Path();
+      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
+      bowPath.quadraticBezierTo(
+          cx - r * 0.4, cy - r * 1.15, cx - r * 0.25, cy - r * 0.75);
+      bowPath.quadraticBezierTo(
+          cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
+      bowPath.quadraticBezierTo(
+          cx + r * 0.1, cy - r * 1.05, cx + r * 0.25, cy - r * 0.75);
+      bowPath.quadraticBezierTo(
+          cx + r * 0.4, cy - r * 1.15, cx + r * 0.1, cy - r * 0.85);
+      canvas.drawPath(bowPath, bowPaint);
+    }
   }
 
   @override
