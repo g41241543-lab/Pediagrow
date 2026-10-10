@@ -748,12 +748,12 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
               ? Image.asset(
                   photoUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
+                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
                 )
               : Image.file(
                   File(photoUrl),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
+                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
                 ))
           : _buildDefaultBabyIcon(),
     );
@@ -765,7 +765,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       child: Image.asset(
         'assets/images/default_baby_avatar.png',
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Center(
+        errorBuilder: (_, _, _) => Center(
           child: CustomPaint(
             size: const Size(34, 34),
             painter: _CuteBabyFacePainter(
@@ -1425,8 +1425,8 @@ class _CuteBabyFacePainter extends CustomPainter {
 
     final blushPaint = Paint()
       ..color = isGirl
-          ? const Color(0xFFFB7185).withOpacity(0.5)
-          : const Color(0xFF60A5FA).withOpacity(0.4)
+          ? const Color(0xFFFB7185).withValues(alpha: 0.5)
+          : const Color(0xFF60A5FA).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final fillEyePaint = Paint()

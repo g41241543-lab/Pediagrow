@@ -418,7 +418,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
       reverseTransitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
+      pageBuilder: (_, _, _) => targetPage,
       transitionsBuilder: (_, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
@@ -818,7 +818,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         return Image.network(
           _superadminAvatarPath!,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackAvatar(),
+          errorBuilder: (_, _, _) => _buildFallbackAvatar(),
         );
       }
     }

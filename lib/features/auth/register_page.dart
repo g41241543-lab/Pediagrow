@@ -4,7 +4,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/services/api_service.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/services/user_service.dart';
 
@@ -12,7 +11,6 @@ import 'auth_choice_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
 import 'widgets/google_auth_dialog.dart';
-import '../../shared/widgets/pedia_banner.dart';
 import '../pengguna/beranda/beranda_page.dart';
 
 /// Halaman Pendaftaran Akun Baru (Register Page) PediaGrow.

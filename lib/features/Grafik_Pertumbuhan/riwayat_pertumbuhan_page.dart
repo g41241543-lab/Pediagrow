@@ -36,7 +36,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
             Expanded(
               child: ValueListenableBuilder<Map<String, List<GrowthRecordModel>>>(
                 valueListenable: GrowthService().recordsNotifier,
-                builder: (context, _, __) {
+                builder: (context, _, _) {
                   final records =
                       GrowthService().getRecordsForChildNewestFirst(child.id);
 

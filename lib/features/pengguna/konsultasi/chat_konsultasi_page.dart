@@ -76,7 +76,6 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   late AnimationController _typingAnimController;
 
   // State
-  bool _showDisclaimer = true;
   bool _isDoctorTyping = false;
 
   // Data Dokter Teresolusi
@@ -843,7 +842,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             border: Border.all(color: colorWhite, width: 2.0),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
@@ -1114,7 +1113,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 4,
                   offset: const Offset(0, 1),
                 ),

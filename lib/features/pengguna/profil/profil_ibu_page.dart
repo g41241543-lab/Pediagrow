@@ -516,7 +516,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             borderRadius: BorderRadius.circular(17),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3985E7).withOpacity(0.35),
+                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -644,7 +644,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                           border: Border.all(color: Colors.white, width: 2.5),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF3985E7).withOpacity(0.3),
+                              color: const Color(0xFF3985E7).withValues(alpha: 0.3),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),

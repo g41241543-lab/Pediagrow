@@ -29,7 +29,7 @@ class UserModel {
     this.passwordHash,
   });
 
-  /// Nama/username untuk teks sapaan di header Beranda ("Hai, <greetingName>")
+  /// Nama/username untuk teks sapaan di header Beranda (`"Hai, <greetingName>"`)
   String get greetingName {
     // 1. Prioritaskan username jika ada
     if (username != null && username!.trim().isNotEmpty) {

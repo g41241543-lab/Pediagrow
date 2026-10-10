@@ -180,7 +180,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
       physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       itemCount: items.length,
-      separatorBuilder: (_, __) =>
+      separatorBuilder: (_, _) =>
           const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
       itemBuilder: (context, index) {
         final item = items[index];

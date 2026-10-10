@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,25 +21,44 @@ import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
-// WARNA KONSTANTA
+// WARNA & TOKEN DESAIN (Mengikuti Desain Referensi Super Admin)
 // ══════════════════════════════════════════════════════════════════════════════
-const _kBluePrimary = Color(0xFF2B7AE8);
-const _kTealPrimary = Color(0xFF3CC3A6);
-const _kBlueLight = Color(0xFFEFF6FF);
-const _kTealLight = Color(0xFFE6FAF7);
-const _kBorderColor = Color(0xFFC5C5C5);
-const _kTextDark = Color(0xFF1E293B);
-const _kTextGrey = Color(0xFF7F7F7F);
-const _kPink = Color(0xFFEC4899);
+const Color _kBluePrimary = Color(0xFF2B7AE8);
+const Color _kTealPrimary = Color(0xFF3CC3A6);
 
-/// Halaman Grafik Pengguna untuk Superadmin PediaGrow.
+// Background dan border kartu ringkasan
+const Color _kBlueCardBg = Color(0xFFE8F0FE);
+const Color _kBlueCardBorder = Color(0xFFCDDBF8);
+const Color _kMintCardBg = Color(0xFFE6FAF6);
+const Color _kMintCardBorder = Color(0xFFBFECE3);
+const Color _kWelcomeMintBg = Color(0xFFDFF7F2);
+
+// Warna elemen & teks
+const Color _kBorderColor = Color(0xFFCBD5E1);
+const Color _kBorderLight = Color(0xFFE2E8F0);
+const Color _kTextDark = Color(0xFF1E293B);
+const Color _kTextMuted = Color(0xFF64748B);
+const Color _kTextSubtitle = Color(0xFF475569);
+const Color _kNavBarBg = Color(0xFFF2EDED);
+
+// Warna jenis kelamin anak
+const Color _kBoyBlue = Color(0xFF2B7AE8);
+const Color _kBoyAvatarBg = Color(0xFFD6E8FE);
+const Color _kGirlPink = Color(0xFFF87171);
+const Color _kGirlAvatarBg = Color(0xFFFFDFD9);
+
+/// Halaman Grafik Pengguna untuk Super Admin PediaGrow.
 ///
-/// Menampilkan:
-/// - Kartu sambutan hijau mint dengan ilustrasi
-/// - Ringkasan total pengguna & anak terdaftar
-/// - Grafik batang berkelompok (pengguna & anak per bulan)
-/// - Data jenis kelamin anak
-/// - Dataset pengguna dengan lazy loading + unduh PDF/Excel
+/// Fitur Tampilan:
+/// 1. SafeArea & Header (tinggi 56dp, tombol back 12dp dari kiri, judul 12dp setelahnya).
+/// 2. Card Sambutan hijau mint dengan ilustrasi Super Admin perempuan memegang tablet.
+/// 3. Dua Card Ringkasan berdampingan: Total Pengguna (biru muda) & Total Anak (mint).
+/// 4. Card Grafik Batang "Jumlah Pengguna & Anak Terdaftar" dengan scroll horizontal,
+///    sumbu Y tetap (100 - 0), gridline horizontal, legenda, serta nilai di atas batang.
+/// 5. Card Data Anak Berdasarkan Jenis Kelamin dengan avatar ilustrasi dan persentase.
+/// 6. Bagian Dataset Pengguna dengan tombol "Unduh" (PDF/Excel + notifikasi "File berhasil disimpan")
+///    serta tabel data scroll horizontal.
+/// 7. Bottom Navigation Bar konsisten 4 menu (Beranda, Konsultasi, Riwayat Konsultasi, Profil).
 class GrafikPenggunaPage extends StatefulWidget {
   const GrafikPenggunaPage({super.key});
 
@@ -49,63 +68,79 @@ class GrafikPenggunaPage extends StatefulWidget {
 
 class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   // ── Firestore ──────────────────────────────────────────────────────────────
-  final _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // ── State Data ─────────────────────────────────────────────────────────────
   bool _isLoading = true;
+  String? _errorMessage;
+
   int _totalPengguna = 0;
   int _totalAnak = 0;
   int _anakLakiLaki = 0;
   int _anakPerempuan = 0;
 
-  // Data per bulan (index 0 = Jan, 11 = Des)
+  // Data jumlah pendaftaran per bulan tahun berjalan (Index 0 = Januari, 11 = Desember)
   final List<int> _penggunaBulan = List.filled(12, 0);
   final List<int> _anakBulan = List.filled(12, 0);
 
-  // Dataset pengguna untuk tabel (lazy)
+  // Dataset pengguna untuk tabel
   final List<UserModel> _allUsers = [];
   static const int _pageSize = 20;
   int _loadedCount = 0;
-  bool _hasMore = true;
+  bool _hasMore = false;
   bool _isLoadingMore = false;
-  final ScrollController _tableScrollCtrl = ScrollController();
+  final ScrollController _pageScrollCtrl = ScrollController();
 
-  // ── Download state ─────────────────────────────────────────────────────────
+  // ── State Unduh ────────────────────────────────────────────────────────────
   bool _isDownloading = false;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi MediaStore sekali di awal (diperlukan sebelum saveFile)
     if (Platform.isAndroid) {
       MediaStore.ensureInitialized();
       MediaStore.appFolder = 'PediaGrow';
     }
     _loadData();
-    _tableScrollCtrl.addListener(_onTableScroll);
   }
 
   @override
   void dispose() {
-    _tableScrollCtrl.removeListener(_onTableScroll);
-    _tableScrollCtrl.dispose();
+    _pageScrollCtrl.dispose();
     super.dispose();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // LOAD DATA
+  // PENGAMBILAN DATA (FIRESTORE USERS & CHILDREN)
   // ══════════════════════════════════════════════════════════════════════════
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       await Future.wait([
         _loadUsers(),
         _loadChildren(),
       ]);
-    } catch (_) {}
-    if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      debugPrint('[GrafikPengguna] Error loadData: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Gagal memuat data pengguna dan anak. Silakan periksa koneksi internet Anda.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
+  /// Memuat data pengguna dari collection 'users' Firestore.
+  /// Menghitung total pengguna, dataset tabel, dan pendaftaran per bulan.
   Future<void> _loadUsers() async {
     final snap = await _firestore.collection('users').get();
     final now = DateTime.now();
@@ -126,6 +161,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
           data['joinedAt'] ??
           data['timestamp'] ??
           data['date_created'];
+
       if (raw is Timestamp) {
         regDate = raw.toDate();
       } else if (raw is String) {
@@ -134,9 +170,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
         regDate = DateTime.fromMillisecondsSinceEpoch(raw);
       }
 
-      // Filter hanya untuk tahun berjalan dan bulan pendaftaran akun
+      // TODO: Hubungkan ke backend aggregation API jika sistem backend khusus telah tersedia
       if (regDate != null && regDate.year == currentYear) {
-        final monthIdx = regDate.month - 1; // 0 = Jan, 11 = Des
+        final monthIdx = regDate.month - 1;
         if (monthIdx >= 0 && monthIdx < 12) {
           counts[monthIdx]++;
         }
@@ -147,6 +183,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     _allUsers
       ..clear()
       ..addAll(users);
+
     _totalPengguna = users.length;
     _loadedCount = math.min(_pageSize, users.length);
     _hasMore = users.length > _pageSize;
@@ -156,6 +193,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     }
   }
 
+  /// Memuat data anak dari collection 'children' Firestore.
+  /// Menghitung total anak, perbandingan jenis kelamin, dan pendaftaran per bulan.
   Future<void> _loadChildren() async {
     final snap = await _firestore.collection('children').get();
     final now = DateTime.now();
@@ -165,13 +204,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
 
     for (final doc in snap.docs) {
       final data = doc.data();
-      final rawGender = (data['gender'] ?? data['jenis_kelamin'] ?? '').toString().trim().toUpperCase();
-      final isLaki = rawGender == 'L' || rawGender == 'LAKI-LAKI';
-
       final bool deleted = data['deleted'] == true || data['isDeleted'] == true;
       if (deleted) continue;
 
       total++;
+
+      final rawGender = (data['gender'] ?? data['jenis_kelamin'] ?? '')
+          .toString()
+          .trim()
+          .toUpperCase();
+      final isLaki = rawGender == 'L' ||
+          rawGender == 'LAKI-LAKI' ||
+          rawGender == 'LAKI';
       if (isLaki) {
         laki++;
       } else {
@@ -197,9 +241,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
         }
       }
 
-      // Filter hanya untuk tahun berjalan dan bulan pendaftaran profil anak
+      // TODO: Hubungkan ke API pelaporan bulanan bila data anak diarsipkan per periode
       if (regDate != null && regDate.year == currentYear) {
-        final monthIdx = regDate.month - 1; // 0 = Jan, 11 = Des
+        final monthIdx = regDate.month - 1;
         if (monthIdx >= 0 && monthIdx < 12) {
           counts[monthIdx]++;
         }
@@ -213,16 +257,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
 
     for (int i = 0; i < 12; i++) {
       _anakBulan[i] = counts[i];
-    }
-  }
-
-  // ── Lazy loading tabel ─────────────────────────────────────────────────────
-  void _onTableScroll() {
-    if (_tableScrollCtrl.position.pixels >=
-            _tableScrollCtrl.position.maxScrollExtent - 80 &&
-        _hasMore &&
-        !_isLoadingMore) {
-      _loadMoreUsers();
     }
   }
 
@@ -241,7 +275,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // FORMAT ANGKA DENGAN PEMISAH TITIK
+  // FORMAT ANGKA & TEKS
   // ══════════════════════════════════════════════════════════════════════════
   String _formatNumber(int n) {
     final str = n.toString();
@@ -255,8 +289,33 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     return buf.toString().split('').reversed.join();
   }
 
+  /// Memecah nama menjadi Nama Depan dan Nama Belakang sesuai tampilan desain referensi
+  String _firstName(String fullName) {
+    final trimmed = fullName.trim();
+    if (trimmed.isEmpty) return '-';
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.length <= 1) return parts.first;
+    return parts.sublist(0, parts.length - 1).join(' ');
+  }
+
+  String _lastName(String fullName) {
+    final trimmed = fullName.trim();
+    if (trimmed.isEmpty) return '-';
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.length <= 1) return '-';
+    return parts.last;
+  }
+
+  String _formatGender(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return 'Perempuan';
+    final g = raw.trim().toUpperCase();
+    if (g == 'L' || g == 'LAKI-LAKI' || g == 'LAKI') return 'Laki-laki';
+    if (g == 'P' || g == 'PEREMPUAN') return 'Perempuan';
+    return raw;
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
-  // DOWNLOAD
+  // FITUR UNDUH DATASET (PDF & EXCEL + NOTIFIKASI SUKSES)
   // ══════════════════════════════════════════════════════════════════════════
   void _showDownloadSheet() {
     showModalBottomSheet(
@@ -281,19 +340,16 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     setState(() => _isDownloading = true);
 
     try {
-      // API ≤28: minta izin runtime; API ≥29: tidak perlu
       if (!await _ensureStoragePermission()) return;
 
       final now = DateTime.now();
       final dateStr =
           '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
 
-      // Build PDF
       final pdf = pw.Document();
-      const cols = ['Nama Depan', 'Nama Belakang', 'Email'];
-
+      const cols = ['Nama Depan', 'Nama Belakang', 'Jenis Kelamin', 'Email'];
       final users = List<UserModel>.from(_allUsers);
-      const rowsPerPage = 30;
+      const rowsPerPage = 28;
       final totalPages = (users.length / rowsPerPage).ceil().clamp(1, 9999);
 
       for (int pageIdx = 0; pageIdx < totalPages; pageIdx++) {
@@ -308,22 +364,23 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 if (pageIdx == 0) ...[
-                  pw.Text('Dataset Pengguna',
+                  pw.Text('Dataset Pengguna PediaGrow',
                       style: pw.TextStyle(
                           fontSize: 18, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 4),
                   pw.Text(
                     'Dibuat: ${now.day}/${now.month}/${now.year}',
-                    style: const pw.TextStyle(fontSize: 11),
+                    style: const pw.TextStyle(fontSize: 10),
                   ),
-                  pw.SizedBox(height: 16),
+                  pw.SizedBox(height: 14),
                 ],
                 pw.Table(
                   border: pw.TableBorder.all(color: PdfColors.grey300),
                   columnWidths: {
                     0: const pw.FlexColumnWidth(2),
                     1: const pw.FlexColumnWidth(2),
-                    2: const pw.FlexColumnWidth(3),
+                    2: const pw.FlexColumnWidth(2),
+                    3: const pw.FlexColumnWidth(3),
                   },
                   children: [
                     pw.TableRow(
@@ -355,6 +412,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                             padding: const pw.EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 4),
                             child: pw.Text(_lastName(u.name),
+                                style: const pw.TextStyle(fontSize: 9)),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 4),
+                            child: pw.Text(_formatGender(u.gender),
                                 style: const pw.TextStyle(fontSize: 9)),
                           ),
                           pw.Padding(
@@ -416,20 +479,26 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
 
       sheet.getRangeByIndex(1, 1).setText('Nama Depan');
       sheet.getRangeByIndex(1, 2).setText('Nama Belakang');
-      sheet.getRangeByIndex(1, 3).setText('Email');
-      sheet.getRangeByIndex(1, 1, 1, 3).cellStyle.bold = true;
+      sheet.getRangeByIndex(1, 3).setText('Jenis Kelamin');
+      sheet.getRangeByIndex(1, 4).setText('Email');
+      sheet.getRangeByIndex(1, 5).setText('No. Telepon');
+      sheet.getRangeByIndex(1, 1, 1, 5).cellStyle.bold = true;
 
       final users = List<UserModel>.from(_allUsers);
       for (int i = 0; i < users.length; i++) {
         final u = users[i];
         sheet.getRangeByIndex(i + 2, 1).setText(_firstName(u.name));
         sheet.getRangeByIndex(i + 2, 2).setText(_lastName(u.name));
-        sheet.getRangeByIndex(i + 2, 3).setText(u.email);
+        sheet.getRangeByIndex(i + 2, 3).setText(_formatGender(u.gender));
+        sheet.getRangeByIndex(i + 2, 4).setText(u.email);
+        sheet.getRangeByIndex(i + 2, 5).setText(u.phone ?? '-');
       }
 
       sheet.autoFitColumn(1);
       sheet.autoFitColumn(2);
       sheet.autoFitColumn(3);
+      sheet.autoFitColumn(4);
+      sheet.autoFitColumn(5);
 
       final List<int> raw = workbook.saveAsStream();
       workbook.dispose();
@@ -444,9 +513,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
 
       if (!mounted) return;
       setState(() => _isDownloading = false);
-      _showSuccessSnackbar(filePath, fileName,
-          mimeType:
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      _showSuccessSnackbar(
+        filePath,
+        fileName,
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isDownloading = false);
@@ -454,36 +526,15 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     }
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
-  String _firstName(String fullName) {
-    final parts = fullName.trim().split(' ');
-    return parts.first;
-  }
-
-  String _lastName(String fullName) {
-    final parts = fullName.trim().split(' ');
-    return parts.length > 1 ? parts.sublist(1).join(' ') : '';
-  }
-
-  /// Memeriksa dan meminta izin penyimpanan HANYA pada Android API ≤ 28.
-  /// Android 10 (API 29) ke atas menggunakan MediaStore dan TIDAK memerlukan izin penyimpanan sama sekali.
-  /// Mengembalikan [true] jika proses unduh boleh dilanjutkan.
   Future<bool> _ensureStoragePermission() async {
     if (!Platform.isAndroid) return true;
-
     try {
       final androidInfo = await DeviceInfoPlugin().androidInfo;
-      // Android 10 (API 29) ke atas: MediaStore digunakan langsung tanpa meminta izin penyimpanan apapun.
-      if (androidInfo.version.sdkInt >= 29) {
-        return true;
-      }
-    } catch (e) {
-      debugPrint('Error reading Android SDK version: $e');
-      // Jika terjadi kendala membaca info OS, jangan blokir proses unduh
+      if (androidInfo.version.sdkInt >= 29) return true;
+    } catch (_) {
       return true;
     }
 
-    // Hanya untuk Android 9 (API 28) ke bawah:
     final status = await Permission.storage.status;
     if (status.isGranted) return true;
 
@@ -496,19 +547,15 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     return false;
   }
 
-  /// Menyimpan file ke folder Downloads publik menggunakan MediaStore (API ≥ 29)
-  /// serta menyimpan salinan lokal agar tombol "Buka" dapat membuka file via [OpenFilex].
   Future<String?> _saveToDownloads({
     required String fileName,
     required Uint8List bytes,
     required String mimeType,
   }) async {
-    // 1. Simpan ke Documents lokal agar selalu dapat diakses oleh FileProvider OpenFilex
     final docsDir = await getApplicationDocumentsDirectory();
     final localFile = File('${docsDir.path}/$fileName');
     await localFile.writeAsBytes(bytes, flush: true);
 
-    // 2. Simpan juga ke folder Downloads publik via MediaStore di Android
     if (Platform.isAndroid) {
       try {
         final mediaStore = MediaStore();
@@ -518,11 +565,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
           dirName: DirName.download,
         );
       } catch (e) {
-        debugPrint('MediaStore saveFile error: $e');
+        debugPrint('[GrafikPengguna] MediaStore saveFile error: $e');
       }
     }
 
-    // Mengembalikan path file lokal yang dapat dibuka oleh OpenFilex
     return localFile.path;
   }
 
@@ -538,8 +584,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     );
   }
 
-  /// Snackbar sukses unduh. Menampilkan tombol aksi "Buka" yang membuka file.
-  void _showSuccessSnackbar(String? filePath, String fileName, {String? mimeType}) {
+  /// Menampilkan notifikasi persis seperti pada Gambar 2 desain referensi:
+  /// Bar hitam floating bertuliskan "File berhasil disimpan" dan tombol aksi "Buka".
+  void _showSuccessSnackbar(String? filePath, String fileName,
+      {String? mimeType}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
@@ -552,7 +600,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
             Expanded(
               child: Text(
                 'File berhasil disimpan',
-                style: GoogleFonts.lato(color: Colors.white),
+                style: GoogleFonts.lato(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             if (filePath != null)
@@ -569,12 +621,14 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                   }
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Text(
                     'Buka',
                     style: GoogleFonts.lato(
                       color: const Color(0xFF38BDF8),
                       fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
                 ),
@@ -586,81 +640,95 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // BUILD
+  // BUILD UTAMA
   // ══════════════════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      bottomNavigationBar: _buildNavBar(),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // ── HEADER FIXED ────────────────────────────────────────────
+            // ── HEADER FIXED (56dp dari atas layar) ──────────────────────
             _buildHeader(),
 
-            // ── KONTEN SCROLLABLE ────────────────────────────────────────
+            // ── KONTEN UTAMA VERTICAL SCROLLING ──────────────────────────
             Expanded(
               child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: _kBluePrimary))
-                  : SingleChildScrollView(
-                      controller: _tableScrollCtrl,
-                      physics: const ClampingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          _buildWelcomeCard(),
-                          const SizedBox(height: 16),
-                          _buildTotalCards(),
-                          const SizedBox(height: 24),
-                          _buildGrafikSection(),
-                          const SizedBox(height: 16),
-                          _buildGenderSection(),
-                          const SizedBox(height: 24),
-                          _buildDatasetSection(),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
+                  ? _buildLoadingSkeleton()
+                  : _errorMessage != null
+                      ? _buildErrorView()
+                      : SingleChildScrollView(
+                          controller: _pageScrollCtrl,
+                          physics: const ClampingScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 12),
+                              // 1. Card Sambutan Hijau Mint
+                              _buildWelcomeCard(),
+                              const SizedBox(height: 16),
+
+                              // 2. Card Ringkasan Total Pengguna & Anak
+                              _buildTotalCards(),
+                              const SizedBox(height: 24),
+
+                              // 3. Card Grafik Batang
+                              _buildGrafikSection(),
+                              const SizedBox(height: 16),
+
+                              // 4. Card Data Anak Berdasarkan Jenis Kelamin
+                              _buildGenderSection(),
+                              const SizedBox(height: 24),
+
+                              // 5. Dataset Pengguna (Tabel & Unduh)
+                              _buildDatasetSection(),
+                              const SizedBox(height: 32),
+                            ],
+                          ),
+                        ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildNavBar(),
     );
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // HEADER
+  // 1. HEADER (Tinggi 56dp, Back 12dp dari kiri, Judul 12dp setelahnya)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      height: 56,
+      height: 56.0,
       color: Colors.white,
-      padding: const EdgeInsets.only(left: 12, right: 16),
+      padding: const EdgeInsets.only(left: 12.0, right: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Tombol Kembali berjarak 12dp dari tepi kiri layar
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24),
+            child: const Icon(
+              Icons.arrow_back,
+              color: _kTextDark,
+              size: 24.0,
             ),
           ),
-          const SizedBox(width: 12),
+          // Jarak 12dp antara tombol kembali dan judul
+          const SizedBox(width: 12.0),
+          // Judul "Grafik Pengguna" sejajar secara vertikal
           Expanded(
             child: Text(
               'Grafik Pengguna',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
-                fontSize: 20,
+                fontSize: 20.0,
                 fontWeight: FontWeight.bold,
                 color: _kTextDark,
               ),
@@ -672,28 +740,28 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // KARTU SAMBUTAN HIJAU MINT
+  // 2. CARD SAMBUTAN HIJAU MINT DENGAN ILUSTRASI SUPER ADMIN
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildWelcomeCard() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(17),
+      borderRadius: BorderRadius.circular(16.0),
       child: Container(
         width: double.infinity,
-        height: 120,
+        height: 124.0,
         decoration: BoxDecoration(
-          color: const Color(0xFFDFF7F2), // Hijau mint muda sesuai desain Figma
-          borderRadius: BorderRadius.circular(17),
+          color: _kWelcomeMintBg,
+          borderRadius: BorderRadius.circular(16.0),
         ),
         child: Stack(
           clipBehavior: Clip.hardEdge,
           children: [
-            // Teks di sisi kiri rata kiri dan tersusun vertikal berurutan
+            // Teks Sapaan di sisi kiri
             Padding(
               padding: const EdgeInsets.only(
                 left: 18.0,
                 top: 16.0,
                 bottom: 16.0,
-                right: 115.0,
+                right: 120.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,27 +770,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                   Text(
                     'Selamat datang,',
                     style: GoogleFonts.lato(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2EA98D),
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.w600,
+                      color: _kTextDark,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 3.0),
                   Text(
                     'Super Admin',
                     style: GoogleFonts.lato(
-                      fontSize: 18,
+                      fontSize: 18.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1E293B),
+                      color: _kTextDark,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 4.0),
                   Text(
                     'Kelola data pengguna dan anak secara keseluruhan',
                     style: GoogleFonts.lato(
                       fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF7F7F7F),
+                      fontWeight: FontWeight.normal,
+                      color: _kTextMuted,
                       height: 1.35,
                     ),
                   ),
@@ -730,21 +798,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
               ),
             ),
 
-            // Ilustrasi perempuan memegang tablet di sisi kanan (tidak keluar batas kartu)
+            // Ilustrasi Super Admin perempuan memegang tablet di sisi kanan
             Positioned(
-              right: 0,
-              bottom: 0,
+              right: 8.0,
+              bottom: 0.0,
               child: SizedBox(
-                width: 105,
-                height: 120,
+                width: 110.0,
+                height: 124.0,
                 child: Image.asset(
                   'assets/images/admin_woman_tablet.png',
                   fit: BoxFit.contain,
                   alignment: Alignment.bottomRight,
                   errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.medical_services_rounded,
-                    size: 60,
-                    color: Color(0xFF3985E7),
+                    Icons.admin_panel_settings_rounded,
+                    size: 64.0,
+                    color: _kBluePrimary,
                   ),
                 ),
               ),
@@ -756,82 +824,80 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // KARTU TOTAL (dua berdampingan - background mint/teal sangat muda sesuai Figma)
+  // 3. CARD RINGKASAN TOTAL PENGGUNA & ANAK (Berdampingan Sesuai Desain)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildTotalCards() {
-    const mintBg = Color(0xFFDFF7F2); // Mint/teal sangat muda sama seperti kartu sambutan
-
     return Row(
       children: [
-        // Total Pengguna (angka biru aksen)
+        // Total Pengguna (Nuansa Biru Muda)
         Expanded(
-          child: _buildTotalCard(
+          child: _buildSummaryCard(
             label: 'Total Pengguna',
             value: _totalPengguna,
-            satuan: 'Pengguna',
-            bgColor: mintBg,
-            valueColor: _kBluePrimary,
+            unit: 'Pengguna',
+            bgColor: _kBlueCardBg,
+            borderColor: _kBlueCardBorder,
           ),
         ),
-        const SizedBox(width: 12),
-        // Total Anak (angka teal aksen)
+        const SizedBox(width: 12.0),
+        // Total Anak Terdaftar (Nuansa Hijau Muda/Mint)
         Expanded(
-          child: _buildTotalCard(
+          child: _buildSummaryCard(
             label: 'Total Anak Terdaftar',
             value: _totalAnak,
-            satuan: 'Anak',
-            bgColor: mintBg,
-            valueColor: _kTealPrimary,
+            unit: 'Anak',
+            bgColor: _kMintCardBg,
+            borderColor: _kMintCardBorder,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTotalCard({
+  Widget _buildSummaryCard({
     required String label,
     required int value,
-    required String satuan,
+    required String unit,
     required Color bgColor,
-    required Color valueColor,
+    required Color borderColor,
   }) {
     return Container(
-      height: 110,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      height: 112.0,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       decoration: BoxDecoration(
-        color: bgColor, // Mint/teal sangat muda (#DFF7F2)
-        borderRadius: BorderRadius.circular(17),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: borderColor, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Label atas: font weight bold
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.lato(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF7F7F7F),
+              fontSize: 12.0,
+              fontWeight: FontWeight.w600,
+              color: _kTextSubtitle,
             ),
           ),
-          // Angka besar: font weight bold
           Text(
             _formatNumber(value),
             style: GoogleFonts.lato(
-              fontSize: 28,
+              fontSize: 26.0,
               fontWeight: FontWeight.bold,
-              color: valueColor,
+              color: _kTextDark,
               height: 1.1,
             ),
           ),
-          // Label satuan: font weight bold
           Text(
-            satuan,
+            unit,
             style: GoogleFonts.lato(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF7F7F7F),
+              fontSize: 12.0,
+              fontWeight: FontWeight.w600,
+              color: _kTextSubtitle,
             ),
           ),
         ],
@@ -840,7 +906,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // SEKSI GRAFIK BATANG
+  // 4. SEKSI GRAFIK BATANG (Jumlah Pengguna & Anak Terdaftar)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildGrafikSection() {
     return Column(
@@ -849,45 +915,53 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
         Text(
           'Ringkasan Pengguna & Anak',
           style: GoogleFonts.lato(
-            fontSize: 16,
+            fontSize: 16.0,
             fontWeight: FontWeight.bold,
             color: _kTextDark,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12.0),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(color: _kBorderColor, width: 1),
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: _kBorderLight, width: 1.0),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Jumlah Pengguna & Anak Terdaftar',
                 style: GoogleFonts.lato(
-                  fontSize: 14,
+                  fontSize: 14.0,
                   fontWeight: FontWeight.bold,
                   color: _kTextDark,
                 ),
               ),
-              const SizedBox(height: 10),
-              // Legend dua warna: Pengguna (biru) dan Anak (teal) dengan kotak legend
+              const SizedBox(height: 12.0),
+
+              // Legenda: Pengguna (Biru Muda/Biru) dan Anak (Toska/Hijau)
               Row(
                 children: [
-                  _buildLegendBox(_kBluePrimary, 'Pengguna'),
-                  const SizedBox(width: 16),
-                  _buildLegendBox(_kTealPrimary, 'Anak'),
+                  _buildLegendPill(
+                    color: const Color(0xFFDCEBFE),
+                    label: 'Pengguna',
+                  ),
+                  const SizedBox(width: 20.0),
+                  _buildLegendPill(
+                    color: const Color(0xFF52C4B1),
+                    label: 'Anak',
+                  ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Container dengan tinggi eksplisit minimal 220dp (di sini 270dp)
+              const SizedBox(height: 18.0),
+
+              // Area Diagram Batang dengan Sumbu Y Fixed & Plot Scroll Horizontal
               SizedBox(
-                height: 270,
-                child: _buildBarChart(),
+                height: 280.0,
+                child: _buildBarChartArea(),
               ),
             ],
           ),
@@ -896,68 +970,72 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     );
   }
 
-  Widget _buildLegendBox(Color color, String label) {
+  Widget _buildLegendPill({required Color color, required String label}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 12,
-          height: 12,
+          width: 18.0,
+          height: 14.0,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(3),
+            borderRadius: BorderRadius.circular(4.0),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8.0),
         Text(
           label,
           style: GoogleFonts.lato(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF64748B),
+            fontSize: 12.0,
+            fontWeight: FontWeight.w600,
+            color: _kTextDark,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBarChart() {
-    final now = DateTime.now();
+  Widget _buildBarChartArea() {
     const bulanNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
 
-    // Bulan yang ditampilkan mulai Januari tahun berjalan sampai bulan berjalan (minimal 6 bulan)
-    final monthCount = math.max(now.month, 6).clamp(1, 12);
-
+    // Mengambil nilai puncak data untuk menentukan skala sumbu Y
     int peakData = 0;
-    for (int i = 0; i < monthCount; i++) {
+    for (int i = 0; i < 12; i++) {
       if (_penggunaBulan[i] > peakData) peakData = _penggunaBulan[i];
       if (_anakBulan[i] > peakData) peakData = _anakBulan[i];
     }
 
     final scale = _YAxisScale.calculate(peakData);
 
-    // chartPlotHeight: area bersih untuk batang (tidak termasuk label angka di atas)
-    // topPadding    : ruang di atas area batang agar label angka tidak terpotong
-    // xLabelHeight  : tinggi label bulan (teks) + gap di bawah batang
     const chartPlotHeight = 220.0;
-    const topPadding      = 24.0;  // ruang untuk label nilai di atas batang tertinggi
-    const xLabelHeight    = 28.0;  // tinggi area label bulan (teks + gap)
-    const barWidth  = 14.0;
-    const barGap    = 4.0;
-    const groupGap  = 20.0;
-    const yAxisWidth = 32.0;
+    const topPadding = 22.0;
+    const xLabelHeight = 28.0;
+    const barWidth = 14.0;
+    const barGap = 4.0;
+    const groupGap = 32.0;
+    const yAxisWidth = 30.0;
 
-    final plotWidth = monthCount * (barWidth * 2 + barGap + groupGap) + 20.0;
-    // Total tinggi widget grafik = padding atas + area batang + area label X
+    const monthCount = 12;
+    final plotWidth = monthCount * (barWidth * 2 + barGap + groupGap) + 16.0;
     const totalHeight = topPadding + chartPlotHeight + xLabelHeight;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Sumbu Y tetap di kiri — mulai dari bawah topPadding agar sejajar dengan area batang
+        // ── SUMBU Y TETAP DI KIRI (100 - 0) ──────────────────────────
         Padding(
           padding: const EdgeInsets.only(top: topPadding),
           child: SizedBox(
@@ -970,44 +1048,43 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                 return Text(
                   '$val',
                   style: GoogleFonts.lato(
-                    fontSize: 8.5,
+                    fontSize: 10.0,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF94A3B8),
+                    color: _kTextMuted,
                   ),
                 );
               }).toList(),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 8.0),
 
-        // Area Diagram Batang (Scrollable horizontal jika tidak muat)
+        // ── AREA BATANG HORIZONTAL SCROLLING ─────────────────────────
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: SizedBox(
-              width: math.max(plotWidth, 260),
+              width: math.max(plotWidth, 320.0),
               height: totalHeight,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Garis bantu horizontal — dimulai dari topPadding ke bawah
+                  // Garis Bantu Horizontal (Gridline)
                   Positioned(
                     top: topPadding,
                     left: 0,
                     right: 0,
                     height: chartPlotHeight,
                     child: CustomPaint(
-                      size: Size(math.max(plotWidth, 260), chartPlotHeight),
+                      size: Size(math.max(plotWidth, 320.0), chartPlotHeight),
                       painter: _GridPainter(
-                        yMax: scale.maxVal,
                         lineCount: scale.lineCount,
                       ),
                     ),
                   ),
 
-                  // Batang + label angka + label bulan
+                  // Pasangan Batang Per Bulan + Label Nilai + Label Bulan
                   Positioned(
                     top: 0,
                     left: 0,
@@ -1018,7 +1095,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                       children: List.generate(monthCount, (i) {
                         final valPengguna = _penggunaBulan[i];
                         final valAnak = _anakBulan[i];
-                        // Tinggi batang dihitung dalam area chartPlotHeight saja
+
                         final penggunaH = scale.maxVal > 0
                             ? (valPengguna / scale.maxVal * chartPlotHeight)
                                 .clamp(0.0, chartPlotHeight)
@@ -1030,19 +1107,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
 
                         return Padding(
                           padding: EdgeInsets.only(
-                            left: i == 0 ? 8 : 0,
-                            right: i < monthCount - 1 ? groupGap : 8,
+                            left: i == 0 ? 12.0 : 0.0,
+                            right: i < monthCount - 1 ? groupGap : 16.0,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              // Area batang — tinggi = chartPlotHeight
-                              // topPadding di atas sudah memberi ruang label angka
                               SizedBox(
                                 height: chartPlotHeight,
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
+                                    // Batang Pengguna (Biru)
                                     _buildBar(
                                       height: penggunaH,
                                       color: _kBluePrimary,
@@ -1050,6 +1126,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                                       width: barWidth,
                                     ),
                                     const SizedBox(width: barGap),
+                                    // Batang Anak (Toska)
                                     _buildBar(
                                       height: anakH,
                                       color: _kTealPrimary,
@@ -1059,18 +1136,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              // Label bulan sumbu X
+                              const SizedBox(height: 6.0),
+                              // Nama Bulan di Bawah Batang
                               Text(
                                 bulanNames[i],
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.lato(
-                                  fontSize: 10,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF64748B),
+                                  color: _kTextDark,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 4.0),
                             ],
                           ),
                         );
@@ -1092,13 +1169,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     required int value,
     required double width,
   }) {
-    // Jika nilai 0, batang dan label angka tidak muncul sama sekali
     if (value <= 0) {
       return SizedBox(width: width);
     }
 
-    // Column dengan label angka di atas batang
-    // Headroom pada chartPlotHeight (margin 18%+) menjamin tidak akan overflow
     return SizedBox(
       width: width,
       child: Column(
@@ -1110,21 +1184,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
               '$value',
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
-                fontSize: 8.5,
+                fontSize: 9.0,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: _kTextDark,
               ),
             ),
           ),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 600),
+            duration: const Duration(milliseconds: 500),
             curve: Curves.easeOut,
             width: width,
             height: math.max(height, 4.0),
             decoration: BoxDecoration(
               color: color,
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(4)),
+                  const BorderRadius.vertical(top: Radius.circular(3.0)),
             ),
           ),
         ],
@@ -1133,7 +1207,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // GENDER SECTION
+  // 5. CARD DATA ANAK BERDASARKAN JENIS KELAMIN
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildGenderSection() {
     final total = _anakLakiLaki + _anakPerempuan;
@@ -1146,49 +1220,45 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: _kBorderColor),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _kBorderLight, width: 1.0),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Data Anak Berdasarkan Jenis Kelamin',
             style: GoogleFonts.lato(
-              fontSize: 14,
+              fontSize: 14.0,
               fontWeight: FontWeight.bold,
               color: _kTextDark,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 16.0),
           Row(
             children: [
-              // Laki-laki
+              // Kolom Laki-laki
               Expanded(
-                child: _buildGenderBlock(
-                  icon: Icons.face_rounded,
-                  iconColor: _kBluePrimary,
+                child: _buildGenderItem(
+                  isBoy: true,
                   label: 'Laki-laki',
                   count: displayLaki,
                   pct: lakiPct,
-                  color: _kBluePrimary,
+                  accentColor: _kBoyBlue,
+                  bgColor: _kBoyAvatarBg,
                 ),
               ),
-              Container(
-                width: 1,
-                height: 64,
-                color: _kBorderColor,
-              ),
-              // Perempuan
+              const SizedBox(width: 8.0),
+              // Kolom Perempuan
               Expanded(
-                child: _buildGenderBlock(
-                  icon: Icons.face_3_rounded,
-                  iconColor: _kPink,
+                child: _buildGenderItem(
+                  isBoy: false,
                   label: 'Perempuan',
                   count: displayPr,
                   pct: prPct,
-                  color: _kPink,
+                  accentColor: _kGirlPink,
+                  bgColor: _kGirlAvatarBg,
                 ),
               ),
             ],
@@ -1198,42 +1268,70 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     );
   }
 
-  Widget _buildGenderBlock({
-    required IconData icon,
-    required Color iconColor,
+  Widget _buildGenderItem({
+    required bool isBoy,
     required String label,
     required int count,
     required double pct,
-    required Color color,
+    required Color accentColor,
+    required Color bgColor,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 36, color: iconColor),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: GoogleFonts.lato(fontSize: 12, color: _kTextGrey),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          _formatNumber(count),
-          style: GoogleFonts.lato(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: color,
+        // Avatar Ilustrasi Wajah Anak
+        Container(
+          width: 44.0,
+          height: 44.0,
+          decoration: BoxDecoration(
+            color: bgColor,
+            shape: BoxShape.circle,
+          ),
+          child: CustomPaint(
+            painter: isBoy ? _BoyAvatarPainter() : _GirlAvatarPainter(),
           ),
         ),
-        Text(
-          '(${pct.toStringAsFixed(1)}%)',
-          style: GoogleFonts.lato(fontSize: 12, color: _kTextGrey),
+        const SizedBox(width: 10.0),
+
+        // Info Jumlah & Persentase
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.lato(
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.bold,
+                  color: _kTextDark,
+                ),
+              ),
+              const SizedBox(height: 2.0),
+              Text(
+                _formatNumber(count),
+                style: GoogleFonts.lato(
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.bold,
+                  color: accentColor,
+                ),
+              ),
+              Text(
+                '(${pct.toStringAsFixed(1).replaceAll('.', ',')}%)',
+                style: GoogleFonts.lato(
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.w600,
+                  color: accentColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // DATASET SECTION
+  // 6. DATASET PENGGUNA (Tabel Horizontal Scroll & Tombol Unduh)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildDatasetSection() {
     final visible = _allUsers.take(_loadedCount).toList();
@@ -1241,13 +1339,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Baris label + tombol unduh
+        // Baris Judul & Tombol Unduh Pill
         Row(
           children: [
             Text(
               'Dataset Pengguna',
               style: GoogleFonts.lato(
-                fontSize: 15,
+                fontSize: 15.0,
                 fontWeight: FontWeight.bold,
                 color: _kTextDark,
               ),
@@ -1255,60 +1353,94 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
             const Spacer(),
             _isDownloading
                 ? const SizedBox(
-                    width: 24,
-                    height: 24,
+                    width: 22.0,
+                    height: 22.0,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
+                      strokeWidth: 2.0,
                       color: _kBluePrimary,
                     ),
                   )
-                : OutlinedButton.icon(
-                    onPressed: _showDownloadSheet,
-                    icon: const Icon(
-                      Icons.download_rounded,
-                      size: 16,
-                      color: _kBluePrimary,
-                    ),
-                    label: Text(
-                      'Unduh',
-                      style: GoogleFonts.lato(
-                        fontSize: 13,
-                        color: _kBluePrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: _kBluePrimary),
+                : InkWell(
+                    onTap: _showDownloadSheet,
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        horizontal: 14.0,
+                        vertical: 6.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(color: _kBorderColor, width: 1.0),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.download_rounded,
+                            size: 15.0,
+                            color: _kTextSubtitle,
+                          ),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            'Unduh',
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: _kTextSubtitle,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12.0),
 
-        // Tabel
+        // Tabel Dataset Pengguna yang Dapat Digeser Horizontal
         Container(
+          width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: _kBorderColor),
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            border: Border.all(color: _kBorderLight, width: 1.0),
+            borderRadius: BorderRadius.circular(12.0),
           ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: _buildTable(visible),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11.0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: _buildTable(visible),
+            ),
           ),
         ),
 
-        // Loading more indicator
-        if (_isLoadingMore)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
+        // Indikator lazy load atau tombol muat data lebih
+        if (_hasMore)
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0),
             child: Center(
-              child: CircularProgressIndicator(
-                  color: _kBluePrimary, strokeWidth: 2.5),
+              child: _isLoadingMore
+                  ? const SizedBox(
+                      width: 20.0,
+                      height: 20.0,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                        color: _kBluePrimary,
+                      ),
+                    )
+                  : TextButton(
+                      onPressed: _loadMoreUsers,
+                      child: Text(
+                        'Muat lebih banyak data',
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: _kBluePrimary,
+                        ),
+                      ),
+                    ),
             ),
           ),
       ],
@@ -1316,8 +1448,29 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   Widget _buildTable(List<UserModel> users) {
-    const colWidths = [130.0, 130.0, 200.0];
-    const headers = ['Nama Depan', 'Nama Belakang', 'Email'];
+    const colWidths = [140.0, 140.0, 130.0, 200.0, 140.0];
+    const headers = [
+      'Nama Depan',
+      'Nama Belakang',
+      'Jenis Kelamin',
+      'Email',
+      'No. Telepon'
+    ];
+
+    if (users.isEmpty) {
+      return Container(
+        width: 380.0,
+        padding: const EdgeInsets.symmetric(vertical: 36.0),
+        alignment: Alignment.center,
+        child: Text(
+          'Belum ada dataset pengguna terdaftar',
+          style: GoogleFonts.lato(
+            fontSize: 13.0,
+            color: _kTextMuted,
+          ),
+        ),
+      );
+    }
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -1325,30 +1478,23 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
+          // Baris Header
           Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(11)),
-            ),
+            color: const Color(0xFFF8FAFC),
             child: Row(
               children: List.generate(headers.length, (i) {
                 return Container(
                   width: colWidths[i],
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
-                  decoration: i < headers.length - 1
-                      ? const BoxDecoration(
-                          border: Border(
-                              right: BorderSide(
-                                  color: _kBorderColor, width: 0.5)))
-                      : null,
+                    horizontal: 14.0,
+                    vertical: 12.0,
+                  ),
                   child: Text(
                     headers[i],
                     style: GoogleFonts.lato(
-                      fontSize: 12,
+                      fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                       color: _kTextDark,
                     ),
@@ -1357,13 +1503,20 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
               }),
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: _kBorderColor),
+          const Divider(height: 1, thickness: 1, color: _kBorderLight),
 
-          // Data rows
+          // Baris Data Pengguna
           ...List.generate(users.length, (idx) {
             final u = users[idx];
             final isLast = idx == users.length - 1;
-            final cells = [_firstName(u.name), _lastName(u.name), u.email];
+            final cells = [
+              _firstName(u.name),
+              _lastName(u.name),
+              _formatGender(u.gender),
+              u.email,
+              u.phone ?? '-',
+            ];
+
             return Column(
               children: [
                 Row(
@@ -1371,27 +1524,23 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                     return Container(
                       width: colWidths[ci],
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: ci < cells.length - 1
-                          ? const BoxDecoration(
-                              border: Border(
-                                  right: BorderSide(
-                                      color: _kBorderColor, width: 0.5)))
-                          : null,
+                        horizontal: 14.0,
+                        vertical: 12.0,
+                      ),
                       child: Text(
                         cells[ci],
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: const Color(0xFF334155),
-                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.0,
+                          color: const Color(0xFF334155),
+                        ),
                       ),
                     );
                   }),
                 ),
                 if (!isLast)
-                  const Divider(height: 1, thickness: 1, color: _kBorderColor),
+                  const Divider(height: 1, thickness: 1, color: _kBorderLight),
               ],
             );
           }),
@@ -1401,15 +1550,16 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // BOTTOM NAVIGATION BAR
+  // 7. BOTTOM NAVIGATION BAR (Konsisten 4 Menu Super Admin)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildNavBar() {
     final navItems = [
       _NavItem(icon: Icons.home_outlined, label: 'Beranda'),
       _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Konsultasi'),
       _NavItem(
-          icon: Icons.find_in_page_outlined,
-          label: 'Riwayat Konsultasi'),
+        icon: Icons.find_in_page_outlined,
+        label: 'Riwayat Konsultasi',
+      ),
       _NavItem(icon: Icons.person_outline_rounded, label: 'Profil'),
     ];
 
@@ -1417,7 +1567,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
       width: double.infinity,
       height: 68.0,
       decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
+        color: _kNavBarBg,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
         boxShadow: [
           BoxShadow(
             color: Color(0x18000000),
@@ -1487,14 +1638,15 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
       case 1:
         Navigator.of(context).push(
           MaterialPageRoute(
-              builder: (_) => const KonsultasiSuperadminPage()),
+            builder: (_) => const KonsultasiSuperadminPage(),
+          ),
         );
         break;
       case 2:
         Navigator.of(context).push(
           MaterialPageRoute(
-              builder: (_) =>
-                  const DaftarRiwayatKonsultasiAdminPage()),
+            builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
+          ),
         );
         break;
       case 3:
@@ -1504,15 +1656,111 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
         break;
     }
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // KONDISI LOADING & ERROR
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildLoadingSkeleton() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Column(
+        children: [
+          Container(
+            height: 124.0,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 112.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: Container(
+                  height: 112.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(16.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24.0),
+          Container(
+            height: 260.0,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: _kBluePrimary,
+                strokeWidth: 2.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48.0,
+              color: Color(0xFFEF4444),
+            ),
+            const SizedBox(height: 12.0),
+            Text(
+              _errorMessage ?? 'Terjadi kesalahan memuat data',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lato(
+                fontSize: 14.0,
+                color: _kTextDark,
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _loadData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kBluePrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              child: const Text('Coba lagi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CUSTOM PAINTER — Garis bantu horizontal grid
+// CUSTOM PAINTER: GRIDLINE HORIZONTAL
 // ══════════════════════════════════════════════════════════════════════════════
 class _GridPainter extends CustomPainter {
-  final int yMax;
   final int lineCount;
-  const _GridPainter({required this.yMax, required this.lineCount});
+  const _GridPainter({required this.lineCount});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1536,16 +1784,16 @@ class _GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GridPainter old) =>
-      old.yMax != yMax || old.lineCount != lineCount;
+      old.lineCount != lineCount;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Y-AXIS SCALE CALCULATOR
-// ══════════════════════════════════════════════════════════════════════════════
+// KALKULATOR SKALA SUMBU Y
+// ══════════════════════════════════════════════════════════════════════════
 class _YAxisScale {
   final int maxVal;
   final int lineCount;
-  final List<int> ticks; // dari atas ke bawah (maxVal → 0)
+  final List<int> ticks; // Dari maxVal ke 0
 
   const _YAxisScale({
     required this.maxVal,
@@ -1553,48 +1801,26 @@ class _YAxisScale {
     required this.ticks,
   });
 
-  /// Menghitung skala Y-axis yang rapi berdasarkan nilai puncak data.
-  /// - Jika peak == 0, tampilkan skala 0..5 dengan 5 garis.
-  /// - Jika tidak, bulatkan ke atas ke kelipatan yang rapi (2, 5, 10, 20, 50, dst.)
-  ///   lalu bagi menjadi 4–5 interval garis bantu.
+  /// Mengikuti skala pada gambar desain: default 100 dengan step 10
+  /// [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0].
+  /// Jika data puncak melebihi 100, skala membesar secara proporsional.
   factory _YAxisScale.calculate(int peak) {
-    if (peak == 0) {
-      return _YAxisScale(
-        maxVal: 5,
-        lineCount: 5,
-        ticks: [5, 4, 3, 2, 1, 0],
+    if (peak <= 100) {
+      return const _YAxisScale(
+        maxVal: 100,
+        lineCount: 10,
+        ticks: [100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0],
       );
     }
 
-    // Tambahkan margin 15% ke atas agar batang tertinggi tidak menyentuh tepi container
     final peakWithMargin = (peak * 1.15).ceil();
+    int interval = 20;
+    if (peakWithMargin > 200) interval = 50;
+    if (peakWithMargin > 500) interval = 100;
 
-    // Tentukan interval yang rapi berdasarkan nilai setelah margin
-    int interval;
-    if (peakWithMargin <= 4) {
-      interval = 1;
-    } else if (peakWithMargin <= 10) {
-      interval = 2;
-    } else if (peakWithMargin <= 20) {
-      interval = 5;
-    } else if (peakWithMargin <= 50) {
-      interval = 10;
-    } else if (peakWithMargin <= 100) {
-      interval = 20;
-    } else if (peakWithMargin <= 200) {
-      interval = 50;
-    } else {
-      interval = 100;
-    }
-
-    // Bulatkan maxVal ke atas ke kelipatan interval
     int maxVal = ((peakWithMargin / interval).ceil()) * interval;
-    if (maxVal <= peak) {
-      maxVal += interval;
-    }
     final lineCount = maxVal ~/ interval;
 
-    // Buat daftar tick dari atas (maxVal) ke bawah (0)
     final ticks = <int>[];
     for (int i = lineCount; i >= 0; i--) {
       ticks.add(i * interval);
@@ -1609,8 +1835,172 @@ class _YAxisScale {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// BOTTOM SHEET UNDUH
+// CUSTOM PAINTER: AVATAR WAJAH ANAK LAKI-LAKI & PEREMPUAN
+// Menggambar ilustrasi wajah anak yang lucu dan jernih persis seperti desain referensi
+// ══════════════════════════════════════════════════════════════════════════
+class _BoyAvatarPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width * 0.34;
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+
+    final eyePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.fill;
+
+    // Lingkaran Kepala
+    canvas.drawCircle(center, radius, linePaint);
+
+    // Telinga Kiri & Kanan
+    canvas.drawArc(
+      Rect.fromCircle(
+          center: Offset(center.dx - radius, center.dy), radius: 3.5),
+      -math.pi / 2,
+      math.pi,
+      false,
+      linePaint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+          center: Offset(center.dx + radius, center.dy), radius: 3.5),
+      math.pi / 2,
+      math.pi,
+      false,
+      linePaint,
+    );
+
+    // Rambut Poni Anak Laki-laki
+    final hairPath = Path();
+    hairPath.moveTo(center.dx - radius * 0.85, center.dy - radius * 0.3);
+    hairPath.quadraticBezierTo(
+      center.dx - radius * 0.4,
+      center.dy - radius * 0.85,
+      center.dx,
+      center.dy - radius * 0.35,
+    );
+    hairPath.quadraticBezierTo(
+      center.dx + radius * 0.4,
+      center.dy - radius * 0.85,
+      center.dx + radius * 0.85,
+      center.dy - radius * 0.3,
+    );
+    canvas.drawPath(hairPath, linePaint);
+
+    // Mata (Dua Titik)
+    canvas.drawCircle(
+      Offset(center.dx - radius * 0.35, center.dy - radius * 0.05),
+      1.5,
+      eyePaint,
+    );
+    canvas.drawCircle(
+      Offset(center.dx + radius * 0.35, center.dy - radius * 0.05),
+      1.5,
+      eyePaint,
+    );
+
+    // Senyum Lengkung
+    final smilePath = Path();
+    smilePath.moveTo(center.dx - radius * 0.3, center.dy + radius * 0.35);
+    smilePath.quadraticBezierTo(
+      center.dx,
+      center.dy + radius * 0.65,
+      center.dx + radius * 0.3,
+      center.dy + radius * 0.35,
+    );
+    canvas.drawPath(smilePath, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _GirlAvatarPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width * 0.34;
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+
+    final eyePaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.fill;
+
+    // Lingkaran Kepala
+    canvas.drawCircle(center, radius, linePaint);
+
+    // Kuncir Rambut Kiri & Kanan (Pigtails)
+    canvas.drawArc(
+      Rect.fromCircle(
+          center: Offset(center.dx - radius * 0.95, center.dy - radius * 0.35),
+          radius: 4.5),
+      0,
+      2 * math.pi,
+      false,
+      linePaint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+          center: Offset(center.dx + radius * 0.95, center.dy - radius * 0.35),
+          radius: 4.5),
+      0,
+      2 * math.pi,
+      false,
+      linePaint,
+    );
+
+    // Rambut Poni Anak Perempuan
+    final hairPath = Path();
+    hairPath.moveTo(center.dx - radius * 0.8, center.dy - radius * 0.2);
+    hairPath.quadraticBezierTo(
+      center.dx,
+      center.dy - radius * 0.6,
+      center.dx + radius * 0.8,
+      center.dy - radius * 0.2,
+    );
+    canvas.drawPath(hairPath, linePaint);
+
+    // Mata (Dua Titik)
+    canvas.drawCircle(
+      Offset(center.dx - radius * 0.35, center.dy - radius * 0.05),
+      1.5,
+      eyePaint,
+    );
+    canvas.drawCircle(
+      Offset(center.dx + radius * 0.35, center.dy - radius * 0.05),
+      1.5,
+      eyePaint,
+    );
+
+    // Senyum Lengkung
+    final smilePath = Path();
+    smilePath.moveTo(center.dx - radius * 0.3, center.dy + radius * 0.35);
+    smilePath.quadraticBezierTo(
+      center.dx,
+      center.dy + radius * 0.65,
+      center.dx + radius * 0.3,
+      center.dy + radius * 0.35,
+    );
+    canvas.drawPath(smilePath, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
+// MODAL BOTTOM SHEET PILIHAN FORMAT UNDUH
+// ══════════════════════════════════════════════════════════════════════════
 class _DownloadBottomSheet extends StatelessWidget {
   final void Function(String format) onSelect;
   const _DownloadBottomSheet({required this.onSelect});
@@ -1620,27 +2010,27 @@ class _DownloadBottomSheet extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
+          // Handle Bar
           Padding(
-            padding: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.only(top: 12.0),
             child: Container(
-              width: 40,
-              height: 4,
+              width: 40.0,
+              height: 4.0,
               decoration: BoxDecoration(
                 color: const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(2.0),
               ),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 0),
             child: Row(
               children: [
                 Column(
@@ -1649,16 +2039,16 @@ class _DownloadBottomSheet extends StatelessWidget {
                     Text(
                       'Unduh Dataset',
                       style: GoogleFonts.lato(
-                        fontSize: 16,
+                        fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                         color: _kTextDark,
                       ),
                     ),
                     Text(
-                      'Pilih format file',
+                      'Pilih format file dokumen',
                       style: GoogleFonts.lato(
-                        fontSize: 13,
-                        color: _kTextGrey,
+                        fontSize: 13.0,
+                        color: _kTextMuted,
                       ),
                     ),
                   ],
@@ -1666,28 +2056,31 @@ class _DownloadBottomSheet extends StatelessWidget {
                 const Spacer(),
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close_rounded,
-                      color: _kTextGrey, size: 22),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: _kTextMuted,
+                    size: 22.0,
+                  ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: _kBorderColor),
+          const SizedBox(height: 12.0),
+          const Divider(height: 1, color: _kBorderLight),
 
-          // PDF option
+          // Pilihan PDF
           _buildOption(
             context,
             icon: Icons.picture_as_pdf_rounded,
             iconColor: const Color(0xFFEF4444),
-            label: 'PDF',
+            label: 'PDF (.pdf)',
             format: 'pdf',
           ),
 
-          const Divider(height: 1, thickness: 0.5, color: _kBorderColor),
+          const Divider(height: 1, thickness: 0.5, color: _kBorderLight),
 
-          // Excel option
+          // Pilihan Excel
           _buildOption(
             context,
             icon: Icons.grid_on_rounded,
@@ -1696,7 +2089,7 @@ class _DownloadBottomSheet extends StatelessWidget {
             format: 'excel',
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 20.0),
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
       ),
@@ -1713,21 +2106,25 @@ class _DownloadBottomSheet extends StatelessWidget {
     return InkWell(
       onTap: () => onSelect(format),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
         child: Row(
           children: [
-            Icon(icon, color: iconColor, size: 24),
-            const SizedBox(width: 14),
+            Icon(icon, color: iconColor, size: 24.0),
+            const SizedBox(width: 14.0),
             Expanded(
               child: Text(
                 label,
                 style: GoogleFonts.lato(
-                  fontSize: 14,
+                  fontSize: 14.0,
                   color: _kTextDark,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: _kTextGrey, size: 20),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: _kTextMuted,
+              size: 20.0,
+            ),
           ],
         ),
       ),
@@ -1736,8 +2133,8 @@ class _DownloadBottomSheet extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════════════════════════
+// DATA MODEL ITEM NAVIGASI
+// ══════════════════════════════════════════════════════════════════════════
 class _NavItem {
   final IconData icon;
   final String label;

@@ -136,8 +136,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, animation, __, child) {
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -424,7 +424,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12.0),
+      separatorBuilder: (_, _) => const SizedBox(height: 12.0),
       itemBuilder: (context, index) => _buildConsultationCard(items[index]),
     );
   }
@@ -608,7 +608,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
         color: const Color(0xFFEBF5FF),
         borderRadius: BorderRadius.circular(10.0),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.35),
+          color: _colorPrimaryBlue.withValues(alpha: 0.35),
           width: 1.0,
         ),
       ),
@@ -798,7 +798,7 @@ class _BabyFacePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withOpacity(0.4)
+      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final cx = w * 0.5;

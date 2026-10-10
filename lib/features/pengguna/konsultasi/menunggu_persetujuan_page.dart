@@ -484,7 +484,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: colorPrimaryBlue.withOpacity(auraOpacity * 0.65),
+                color: colorPrimaryBlue.withValues(alpha: auraOpacity * 0.65),
                 blurRadius: 36,
                 spreadRadius: 6,
               ),
@@ -515,7 +515,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
               border: Border.all(color: Colors.white, width: 2.5),
               boxShadow: [
                 BoxShadow(
-                  color: colorPrimaryBlue.withOpacity(0.35),
+                  color: colorPrimaryBlue.withValues(alpha: 0.35),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -548,7 +548,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
             width: height * 0.85,
             height: height * 0.85,
             decoration: BoxDecoration(
-              color: const Color(0xFF0288D1).withOpacity(0.9),
+              color: const Color(0xFF0288D1).withValues(alpha: 0.9),
               shape: BoxShape.circle,
             ),
           ),
@@ -729,7 +729,7 @@ class MenungguPersetujuanPageState extends State<MenungguPersetujuanPage>
               width: 7 * scale,
               height: 7 * scale,
               decoration: BoxDecoration(
-                color: color.withOpacity(opacity),
+                color: color.withValues(alpha: opacity),
                 shape: BoxShape.circle,
               ),
             );

@@ -672,10 +672,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return gender;
   }
 
-  String _formatShortDate(DateTime? dt) {
-    if (dt == null) return '-';
-    return '${dt.day}/${dt.month}/${dt.year}';
-  }
 
   String _formatChildAge(ChildModel child) {
     if (child.birthDate != null) {
@@ -729,6 +725,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
   // Warna #F2EDED, tinggi 68dp, identik dengan halaman Beranda Superadmin
   // =========================================================================
+  // ignore: unused_element
   Widget _buildFixedNavBar() {
     const navItems = [
       _NavItem(icon: Icons.home_rounded, label: 'Beranda'),

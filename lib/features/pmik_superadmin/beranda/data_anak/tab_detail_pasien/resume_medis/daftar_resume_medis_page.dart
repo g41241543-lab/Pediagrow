@@ -125,7 +125,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                       physics: const BouncingScrollPhysics(),
                       itemCount: filteredItems.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
+                      separatorBuilder: (_, _) => const SizedBox(height: 14),
                       itemBuilder: (context, index) {
                         final resume = filteredItems[index];
                         return _buildResumeCard(resume);
@@ -299,13 +299,13 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                                   ? Image.network(
                                       resume.doctorPhoto!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
+                                      errorBuilder: (_, _, _) =>
                                           _buildDoctorAvatarFallback(),
                                     )
                                   : Image.asset(
                                       resume.doctorPhoto!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) =>
+                                      errorBuilder: (_, _, _) =>
                                           _buildDoctorAvatarFallback(),
                                     ))
                             : _buildDoctorAvatarFallback(),
