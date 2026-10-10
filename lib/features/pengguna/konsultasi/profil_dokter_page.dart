@@ -5,36 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
-<<<<<<< HEAD
+import '../../../core/services/child_service.dart';
 import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
 ///
 /// Alur booking: Profil Dokter → [BookingKonsultasiPage] → [StatusBookingPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
-=======
-import 'menunggu_persetujuan_page.dart';
-import 'pilih_anak_page.dart';
-
-/// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
-///
-/// Alur navigasi: Profil Dokter → [PilihAnakPage] → [MenungguPersetujuanPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
-///
-/// Disesuaikan persis dengan acuan desain:
-/// 1. Header: Tombol kembali + judul "Profil Dokter Anak"
-/// 2. Kartu Utama Profil Dokter:
-///    - Foto avatar sirkular yang overlapping di bagian atas kartu
-///    - Indikator badge hijau di sudut avatar
-///    - Nama dokter (center, bold)
-///    - Spesialisasi "Spesialis Anak" (center)
-///    - Bagian statistik: Pengalaman (tahun) di sisi kiri, garis pemisah vertikal,
-///      dan Nomor STR di sisi kanan
-/// 3. Bagian "Tempat Praktik":
-///    - Judul section "Tempat Praktik"
-///    - Kartu berisikan daftar rumah sakit/klinik praktik dokter dengan ikon fasyankes
-///      dan garis divider horizontal
-/// 4. Bottom Action Bar:
-///    - Tombol oranye "Konsultasi Sekarang" → navigasi ke [PilihAnakPage]
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
   final ChildModel? child;
@@ -43,7 +19,6 @@ class ProfilDokterPage extends StatelessWidget {
 
   void _onBookingDokterPressed(BuildContext context) {
     if (!doctor.isOnline) return;
-<<<<<<< HEAD
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -69,22 +44,6 @@ class ProfilDokterPage extends StatelessWidget {
         },
         transitionDuration: const Duration(milliseconds: 350),
       ),
-=======
-
-    // Alur: Profil Dokter → Pilih Anak (bottom sheet) → Booking Dokter
-    PilihAnakPage.show(
-      context,
-      onChildSelected: (selectedChild) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MenungguPersetujuanPage(
-              doctor: doctor,
-              child: selectedChild,
-            ),
-          ),
-        );
-      },
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
     );
   }
 
@@ -529,13 +488,7 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-<<<<<<< HEAD
               onPressed: doctor.isOnline ? () => _onBookingDokterPressed(context) : null,
-=======
-              onPressed: doctor.isOnline
-                  ? () => _onChatDokterPressed(context)
-                  : null,
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
               style: ElevatedButton.styleFrom(
                 backgroundColor: doctor.isOnline
                     ? const Color(0xFF3985E7)
@@ -553,7 +506,6 @@ class ProfilDokterPage extends StatelessWidget {
                   vertical: 12,
                 ),
               ),
-<<<<<<< HEAD
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -572,19 +524,6 @@ class ProfilDokterPage extends StatelessWidget {
                     ),
                   ),
                 ],
-=======
-              child: Text(
-                doctor.isOnline
-                    ? 'Booking Sekarang'
-                    : 'Dokter Sedang Offline',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: doctor.isOnline
-                      ? Colors.white
-                      : const Color(0xFF94A3B8),
-                ),
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
               ),
             ),
           ],

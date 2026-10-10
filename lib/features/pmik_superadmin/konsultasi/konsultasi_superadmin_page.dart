@@ -501,10 +501,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -514,7 +514,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -541,7 +541,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -662,7 +662,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: _colorPrimaryBlue.withOpacity(0.25),
+                          color: _colorPrimaryBlue.withValues(alpha: 0.25),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -729,18 +729,12 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-<<<<<<< HEAD
         color: const Color(0xFFEBF5FF),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _colorPrimaryBlue.withValues(alpha: 0.3), width: 1),
-=======
-        color: _colorPrimaryBlue.withOpacity(0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.3),
           width: 1,
         ),
->>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
       ),
       child: Row(
         children: [
@@ -748,7 +742,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -775,7 +769,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -877,7 +871,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   color: const Color(0xFFF0F7FF),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _colorPrimaryBlue.withOpacity(0.18),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.18),
                     width: 1,
                   ),
                 ),
@@ -986,7 +980,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           color: bgColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1034,7 +1028,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
