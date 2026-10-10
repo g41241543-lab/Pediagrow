@@ -1,6 +1,7 @@
 import 'child_model.dart';
 import 'doctor_model.dart';
 
+<<<<<<< HEAD
 enum BookingStatus {
   scheduled, // Terjadwal, menunggu waktu
   ready,     // Waktu tiba, diarahkan mengisi formulir
@@ -10,10 +11,14 @@ enum BookingStatus {
 }
 
 /// Model data untuk pemesanan jadwal (Booking) konsultasi dokter anak.
+=======
+/// Model data untuk jadwal booking konsultasi dokter oleh pengguna.
+>>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
 class BookingConsultationModel {
   final String id;
   final DoctorModel doctor;
   final ChildModel child;
+<<<<<<< HEAD
   final DateTime bookingDate; // Tanggal janji temu
   final String timeSlot; // misal: "09:00 - 09:30"
   final DateTime scheduledStartDateTime;
@@ -23,12 +28,18 @@ class BookingConsultationModel {
   final double? weightKg;
   final double? heightCm;
   final String? complaint;
+=======
+  final DateTime scheduledDate;
+  final String scheduledTimeSlot; // Contoh: '09:00 - 09:30 WIB'
+  final String status; // 'Terjadwal' | 'Selesai' | 'Dibatalkan'
+>>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
   final DateTime createdAt;
 
   const BookingConsultationModel({
     required this.id,
     required this.doctor,
     required this.child,
+<<<<<<< HEAD
     required this.bookingDate,
     required this.timeSlot,
     required this.scheduledStartDateTime,
@@ -50,6 +61,15 @@ class BookingConsultationModel {
   }
 
   /// Format tanggal Indonesia: "Senin, 12 Oktober 2026"
+=======
+    required this.scheduledDate,
+    required this.scheduledTimeSlot,
+    this.status = 'Terjadwal',
+    required this.createdAt,
+  });
+
+  /// Format tanggal standar Indonesia: "Senin, 13 Okt 2026"
+>>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
   String get formattedDate {
     const days = [
       'Senin',
@@ -61,6 +81,7 @@ class BookingConsultationModel {
       'Minggu',
     ];
     const months = [
+<<<<<<< HEAD
       'Januari',
       'Februari',
       'Maret',
@@ -115,4 +136,27 @@ class BookingConsultationModel {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+=======
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+
+    final dayName = days[scheduledDate.weekday - 1];
+    final dayNum = scheduledDate.day;
+    final monthName = months[scheduledDate.month - 1];
+    final year = scheduledDate.year;
+
+    return '$dayName, $dayNum $monthName $year';
+  }
+>>>>>>> b1d1817c7b7ec594c2e8c0b2f211cc738c6d7e85
 }

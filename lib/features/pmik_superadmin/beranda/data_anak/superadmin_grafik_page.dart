@@ -132,9 +132,6 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                                       widget.child.weightKg,
                                   heightCm: latestRecord?.heightCm ??
                                       widget.child.heightCm,
-                                  headCircumferenceCm:
-                                      latestRecord?.headCircumferenceCm ??
-                                          widget.child.headCircumferenceCm,
                                 ),
                               ),
 
