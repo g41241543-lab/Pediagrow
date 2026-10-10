@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
@@ -11,6 +13,7 @@ import '../../../core/services/notification_service.dart';
 import '../beranda/beranda_page.dart';
 import '../beranda/notifikasi_page.dart';
 import 'profil_dokter_page.dart';
+import 'status_booking_page.dart';
 
 /// Halaman "Konsultasi Dokter" (Daftar Dokter) untuk Pengguna PediaGrow.
 ///
@@ -148,6 +151,24 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 const SizedBox(height: 12),
+
+                                // Banner Booking Aktif (jika ada)
+                                ValueListenableBuilder<BookingConsultationModel?>(
+                                  valueListenable:
+                                      BookingService().activeBookingNotifier,
+                                  builder: (context, activeBooking, _) {
+                                    if (activeBooking == null ||
+                                        activeBooking.status ==
+                                            BookingStatus.completed ||
+                                        activeBooking.status ==
+                                            BookingStatus.cancelled) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return _buildActiveBookingBanner(
+                                      activeBooking,
+                                    );
+                                  },
+                                ),
 
                                 // Search Bar (Cari nama dokter)
                                 Padding(
@@ -631,7 +652,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                   ),
                 ),
 
-                // Sisi Bawah: Tombol Aksi (Detail Dokter jika online, Sedang Offline jika offline)
+                // Sisi Bawah: Tombol Aksi (Booking Konsultasi jika online, Sedang Offline jika offline)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -640,7 +661,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                         onTap: () => _navigateToDetail(doctor),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0,
+                            horizontal: 16.0,
                             vertical: 8.0,
                           ),
                           decoration: BoxDecoration(
@@ -654,13 +675,24 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
                               ),
                             ],
                           ),
-                          child: Text(
-                            'Detail Dokter',
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.calendar_month_rounded,
+                                size: 15,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Booking Konsultasi',
+                                style: GoogleFonts.lato(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       )
@@ -743,6 +775,65 @@ class _DaftarDokterPageState extends State<DaftarDokterPage> {
       );
     }
     return _fallbackAvatar();
+  }
+
+  /// Banner booking aktif yang dapat diklik untuk melihat status booking
+  Widget _buildActiveBookingBanner(BookingConsultationModel booking) {
+    final isReady = booking.isTimeReady;
+    final bannerColor = isReady ? const Color(0xFFF0FDF4) : const Color(0xFFEFF6FF);
+    final borderColor = isReady ? const Color(0xFF86EFAC) : const Color(0xFFBFDBFE);
+    final textColor = isReady ? const Color(0xFF16A34A) : const Color(0xFF1D4ED8);
+    final iconColor = isReady ? const Color(0xFF16A34A) : const Color(0xFF2B7AE8);
+    final iconData = isReady ? Icons.check_circle_rounded : Icons.access_time_filled_rounded;
+    final label = isReady
+        ? 'Waktu konsultasi tiba! Isi formulir sekarang →'
+        : 'Jadwal aktif: ${booking.doctor.name} · ${booking.timeSlot}';
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => StatusBookingPage(booking: booking),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          bottom: 12,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bannerColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Icon(iconData, size: 18, color: iconColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: textColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _fallbackAvatar() {

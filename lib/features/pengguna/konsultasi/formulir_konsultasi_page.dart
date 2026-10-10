@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
@@ -314,6 +315,18 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
     final effectiveDoctor =
         widget.doctor ?? widget.consultation?.doctor ?? DoctorModel.defaultDoctor;
+
+    // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
+    final activeBooking = BookingService().activeBookingNotifier.value;
+    if (activeBooking != null &&
+        activeBooking.doctor.id == effectiveDoctor.id) {
+      BookingService().updateBookingForm(
+        bookingId: activeBooking.id,
+        weightKg: weight,
+        heightCm: height,
+        complaint: complaint,
+      );
+    }
 
     // Navigasi ke halaman Chat Konsultasi Dokter yang sudah tersedia
     Navigator.push(

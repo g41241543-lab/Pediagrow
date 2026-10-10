@@ -115,12 +115,12 @@ class UserModel {
       email: map['email']?.toString() ?? '',
       avatarPath: (map['avatarPath'] ?? map['avatar_url'] ?? map['photoUrl'])?.toString(),
       phone: (map['phone'] ?? map['nomor_telepon'] ?? map['no_hp'])?.toString(),
-      gender: map['gender']?.toString(),
-      birthDate: (map['birthDate'] ?? map['tanggal_lahir'])?.toString(),
-      province: map['province']?.toString(),
-      city: map['city']?.toString(),
-      district: map['district']?.toString(),
-      subDistrict: map['subDistrict']?.toString(),
+      gender: (map['gender'] ?? map['jenis_kelamin'] ?? map['jk'])?.toString(),
+      birthDate: (map['birthDate'] ?? map['tanggal_lahir'] ?? map['tgl_lahir'])?.toString(),
+      province: (map['province'] ?? map['provinsi'])?.toString(),
+      city: (map['city'] ?? map['kota'] ?? map['kabupaten'])?.toString(),
+      district: (map['district'] ?? map['kecamatan'])?.toString(),
+      subDistrict: (map['subDistrict'] ?? map['kelurahan'] ?? map['desa'] ?? map['kelurahan_desa'])?.toString(),
       passwordHash: (map['passwordHash'] ?? map['password'])?.toString(),
     );
   }
