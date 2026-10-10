@@ -77,7 +77,10 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       final soal = await SoalService.getAllSoal();
       if (!mounted) return;
       setState(() {
-        _soalList = soal;
+        // Revisi S-1: Tampilkan hanya 10 soal pertama (ID 1–10).
+        // Soal 11–20 tetap ada di database, tidak dihapus.
+        // Untuk mengaktifkan kembali, ubah batas di sini.
+        _soalList = soal.take(10).toList();
         _isLoading = false;
       });
     } catch (e) {

@@ -95,7 +95,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
     );
   }
 
-  /// Toggle Tab 3 Pilihan: Berat Badan, Tinggi Badan, Lingkar Kepala
+  /// Toggle Tab 2 Pilihan: Berat Badan, Tinggi Badan
   Widget _buildTabToggle() {
     return Container(
       decoration: BoxDecoration(
@@ -116,13 +116,6 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
             child: _buildTabButton(
               title: 'Tinggi Badan',
               indicator: ChartIndicatorType.height,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _buildTabButton(
-              title: 'Lingkar Kepala',
-              indicator: ChartIndicatorType.headCircumference,
             ),
           ),
         ],

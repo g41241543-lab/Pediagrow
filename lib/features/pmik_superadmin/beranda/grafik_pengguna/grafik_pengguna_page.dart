@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 import '../../../../models/user_model.dart';
@@ -19,6 +20,7 @@ import '../beranda_superadmin_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
+import 'preview_dataset_page.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // WARNA KONSTANTA
@@ -266,11 +268,14 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
       builder: (_) => _DownloadBottomSheet(
         onSelect: (format) {
           Navigator.of(context).pop();
-          if (format == 'pdf') {
-            _downloadPdf();
-          } else {
-            _downloadExcel();
-          }
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PreviewDatasetPage(
+                users: _allUsers,
+                format: format,
+              ),
+            ),
+          );
         },
       ),
     );
@@ -290,96 +295,191 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
 
       // Build PDF
       final pdf = pw.Document();
-      const cols = ['Nama Depan', 'Nama Belakang', 'Email'];
+      pw.Font fontRegular;
+      pw.Font fontBold;
+      try {
+        fontRegular = await PdfGoogleFonts.latoRegular();
+        fontBold = await PdfGoogleFonts.latoBold();
+      } catch (_) {
+        fontRegular = pw.Font.helvetica();
+        fontBold = pw.Font.helveticaBold();
+      }
 
-      final users = List<UserModel>.from(_allUsers);
-      const rowsPerPage = 30;
-      final totalPages = (users.length / rowsPerPage).ceil().clamp(1, 9999);
+      final pediaTeal = PdfColor.fromHex('3CC3A6');
+      final growBlue = PdfColor.fromHex('2B7AE8');
+      final textBlack = PdfColor.fromHex('1E293B');
 
-      for (int pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-        final start = pageIdx * rowsPerPage;
-        final end = math.min(start + rowsPerPage, users.length);
-        final pageUsers = users.sublist(start, end);
+      final formattedDate =
+          '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
 
-        pdf.addPage(
-          pw.Page(
-            pageFormat: PdfPageFormat.a4,
-            build: (context) => pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                if (pageIdx == 0) ...[
-                  pw.Text('Dataset Pengguna',
-                      style: pw.TextStyle(
-                          fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                  pw.SizedBox(height: 4),
-                  pw.Text(
-                    'Dibuat: ${now.day}/${now.month}/${now.year}',
-                    style: const pw.TextStyle(fontSize: 11),
-                  ),
-                  pw.SizedBox(height: 16),
-                ],
-                pw.Table(
-                  border: pw.TableBorder.all(color: PdfColors.grey300),
-                  columnWidths: {
-                    0: const pw.FlexColumnWidth(2),
-                    1: const pw.FlexColumnWidth(2),
-                    2: const pw.FlexColumnWidth(3),
-                  },
-                  children: [
-                    pw.TableRow(
-                      decoration:
-                          const pw.BoxDecoration(color: PdfColors.grey200),
-                      children: cols
-                          .map(
-                            (c) => pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 4),
-                              child: pw.Text(c,
-                                  style: pw.TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: pw.FontWeight.bold)),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    for (final u in pageUsers)
-                      pw.TableRow(
+      const headers = [
+        'Nama Lengkap',
+        'Email',
+        'Jenis Kelamin',
+        'Tanggal Lahir',
+        'Provinsi',
+        'Kota/Kabupaten',
+        'Kecamatan',
+        'Kelurahan/Desa',
+      ];
+
+      final tableData = _allUsers.map((u) {
+        return [
+          u.name.isNotEmpty ? u.name : '-',
+          u.email.isNotEmpty ? u.email : '-',
+          u.gender?.isNotEmpty == true ? u.gender! : '-',
+          u.birthDate?.isNotEmpty == true ? u.birthDate! : '-',
+          u.province?.isNotEmpty == true ? u.province! : '-',
+          u.city?.isNotEmpty == true ? u.city! : '-',
+          u.district?.isNotEmpty == true ? u.district! : '-',
+          u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-',
+        ];
+      }).toList();
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4.landscape,
+          margin: const pw.EdgeInsets.all(28),
+          theme: pw.ThemeData.withFont(base: fontRegular, bold: fontBold),
+          header: (pw.Context context) {
+            if (context.pageNumber == 1) {
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
-                            child: pw.Text(_firstName(u.name),
-                                style: const pw.TextStyle(fontSize: 9)),
+                          pw.RichText(
+                            text: pw.TextSpan(
+                              children: [
+                                pw.TextSpan(
+                                  text: 'Pedia',
+                                  style: pw.TextStyle(
+                                    font: fontBold,
+                                    fontSize: 22,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: pediaTeal,
+                                  ),
+                                ),
+                                pw.TextSpan(
+                                  text: 'Grow',
+                                  style: pw.TextStyle(
+                                    font: fontBold,
+                                    fontSize: 22,
+                                    fontWeight: pw.FontWeight.bold,
+                                    color: growBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
-                            child: pw.Text(_lastName(u.name),
-                                style: const pw.TextStyle(fontSize: 9)),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
-                            child: pw.Text(u.email,
-                                style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                            'Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan',
+                            style: pw.TextStyle(
+                              font: fontRegular,
+                              fontSize: 9,
+                              color: PdfColors.grey700,
+                            ),
                           ),
                         ],
                       ),
-                  ],
-                ),
-                pw.Spacer(),
-                pw.Align(
-                  alignment: pw.Alignment.centerRight,
-                  child: pw.Text(
-                    'Halaman ${pageIdx + 1} / $totalPages',
-                    style: const pw.TextStyle(fontSize: 9),
+                      pw.Text(
+                        formattedDate,
+                        style: pw.TextStyle(
+                          font: fontBold,
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.grey800,
+                        ),
+                      ),
+                    ],
                   ),
+                  pw.SizedBox(height: 8),
+                  pw.Divider(color: pediaTeal, thickness: 1.5),
+                  pw.SizedBox(height: 10),
+                  pw.Center(
+                    child: pw.Text(
+                      'LAPORAN DATASET PENGGUNA',
+                      style: pw.TextStyle(
+                        font: fontBold,
+                        fontSize: 13,
+                        fontWeight: pw.FontWeight.bold,
+                        color: textBlack,
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(height: 12),
+                ],
+              );
+            }
+            return pw.SizedBox(height: 10);
+          },
+          footer: (pw.Context context) {
+            return pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  pw.Text(
+                    'Dokumen dibuat otomatis oleh Aplikasi PediaGrow',
+                    style: pw.TextStyle(
+                      font: fontRegular,
+                      fontSize: 7.5,
+                      color: PdfColors.grey600,
+                    ),
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    'Halaman ${context.pageNumber} dari ${context.pagesCount}',
+                    style: pw.TextStyle(
+                      font: fontRegular,
+                      fontSize: 7.5,
+                      color: PdfColors.grey600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          build: (pw.Context context) => [
+            pw.TableHelper.fromTextArray(
+              headers: headers,
+              data: tableData,
+              headerStyle: pw.TextStyle(
+                font: fontBold,
+                fontSize: 8.5,
+                fontWeight: pw.FontWeight.bold,
+                color: textBlack,
+              ),
+              cellStyle: pw.TextStyle(
+                font: fontRegular,
+                fontSize: 7.5,
+                color: textBlack,
+              ),
+              headerDecoration: pw.BoxDecoration(
+                color: PdfColor.fromHex('F1F5F9'),
+              ),
+              rowDecoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
                 ),
-              ],
+              ),
+              headerAlignment: pw.Alignment.centerLeft,
+              cellAlignment: pw.Alignment.centerLeft,
+              headerPadding:
+                  const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              cellPadding:
+                  const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4),
             ),
-          ),
-        );
-      }
+          ],
+        ),
+      );
 
       final bytes = await pdf.save();
       final fileName = 'dataset_pengguna_$dateStr.pdf';
@@ -410,26 +510,91 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
       final dateStr =
           '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
 
+      final formattedDate =
+          '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+
       final workbook = xlsio.Workbook();
       final sheet = workbook.worksheets[0];
       sheet.name = 'Dataset Pengguna';
 
-      sheet.getRangeByIndex(1, 1).setText('Nama Depan');
-      sheet.getRangeByIndex(1, 2).setText('Nama Belakang');
-      sheet.getRangeByIndex(1, 3).setText('Email');
-      sheet.getRangeByIndex(1, 1, 1, 3).cellStyle.bold = true;
+      // 1. Kop Dokumen
+      final logoCell = sheet.getRangeByIndex(1, 1);
+      logoCell.setText('PediaGrow');
+      logoCell.cellStyle.fontSize = 16;
+      logoCell.cellStyle.bold = true;
+      logoCell.cellStyle.fontColor = '#3CC3A6';
 
-      final users = List<UserModel>.from(_allUsers);
-      for (int i = 0; i < users.length; i++) {
-        final u = users[i];
-        sheet.getRangeByIndex(i + 2, 1).setText(_firstName(u.name));
-        sheet.getRangeByIndex(i + 2, 2).setText(_lastName(u.name));
-        sheet.getRangeByIndex(i + 2, 3).setText(u.email);
+      final dateCell = sheet.getRangeByIndex(1, 8);
+      dateCell.setText(formattedDate);
+      dateCell.cellStyle.bold = true;
+      dateCell.cellStyle.hAlign = xlsio.HAlignType.right;
+
+      final taglineCell = sheet.getRangeByIndex(2, 1);
+      taglineCell.setText('Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan');
+      taglineCell.cellStyle.fontSize = 9;
+      taglineCell.cellStyle.fontColor = '#64748B';
+
+      // 2. Judul Laporan
+      sheet.getRangeByIndex(4, 1, 4, 8).merge();
+      final titleCell = sheet.getRangeByIndex(4, 1);
+      titleCell.setText('LAPORAN DATASET PENGGUNA');
+      titleCell.cellStyle.fontSize = 13;
+      titleCell.cellStyle.bold = true;
+      titleCell.cellStyle.hAlign = xlsio.HAlignType.center;
+
+      // 3. Header Tabel (Row 6)
+      const headers = [
+        'Nama Lengkap',
+        'Email',
+        'Jenis Kelamin',
+        'Tanggal Lahir',
+        'Provinsi',
+        'Kota/Kabupaten',
+        'Kecamatan',
+        'Kelurahan/Desa',
+      ];
+
+      for (int col = 0; col < headers.length; col++) {
+        final cell = sheet.getRangeByIndex(6, col + 1);
+        cell.setText(headers[col]);
+        cell.cellStyle.bold = true;
+        cell.cellStyle.backColor = '#F1F5F9';
+        cell.cellStyle.hAlign = xlsio.HAlignType.center;
       }
 
-      sheet.autoFitColumn(1);
-      sheet.autoFitColumn(2);
-      sheet.autoFitColumn(3);
+      // 4. Data baris (mulai baris 7)
+      for (int i = 0; i < _allUsers.length; i++) {
+        final u = _allUsers[i];
+        final row = 7 + i;
+        sheet.getRangeByIndex(row, 1).setText(u.name.isNotEmpty ? u.name : '-');
+        sheet.getRangeByIndex(row, 2).setText(u.email.isNotEmpty ? u.email : '-');
+        sheet.getRangeByIndex(row, 3).setText(
+            u.gender?.isNotEmpty == true ? u.gender! : '-');
+        sheet.getRangeByIndex(row, 4).setText(
+            u.birthDate?.isNotEmpty == true ? u.birthDate! : '-');
+        sheet.getRangeByIndex(row, 5).setText(
+            u.province?.isNotEmpty == true ? u.province! : '-');
+        sheet.getRangeByIndex(row, 6).setText(
+            u.city?.isNotEmpty == true ? u.city! : '-');
+        sheet.getRangeByIndex(row, 7).setText(
+            u.district?.isNotEmpty == true ? u.district! : '-');
+        sheet.getRangeByIndex(row, 8).setText(
+            u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-');
+      }
+
+      // 5. Footer Dokumen
+      final footerRow = 7 + _allUsers.length + 1;
+      sheet.getRangeByIndex(footerRow, 1, footerRow, 8).merge();
+      final footerCell = sheet.getRangeByIndex(footerRow, 1);
+      footerCell.setText('Dokumen dibuat otomatis oleh Aplikasi PediaGrow');
+      footerCell.cellStyle.fontSize = 9;
+      footerCell.cellStyle.fontColor = '#94A3B8';
+      footerCell.cellStyle.hAlign = xlsio.HAlignType.right;
+
+      // Lebar kolom menyesuaikan isi
+      for (int col = 1; col <= 8; col++) {
+        sheet.autoFitColumn(col);
+      }
 
       final List<int> raw = workbook.saveAsStream();
       workbook.dispose();
@@ -1316,8 +1481,26 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   Widget _buildTable(List<UserModel> users) {
-    const colWidths = [130.0, 130.0, 200.0];
-    const headers = ['Nama Depan', 'Nama Belakang', 'Email'];
+    const colWidths = [
+      150.0,
+      180.0,
+      110.0,
+      110.0,
+      130.0,
+      130.0,
+      120.0,
+      120.0,
+    ];
+    const headers = [
+      'Nama Lengkap',
+      'Email',
+      'Jenis Kelamin',
+      'Tanggal Lahir',
+      'Provinsi',
+      'Kota/Kabupaten',
+      'Kecamatan',
+      'Kelurahan/Desa',
+    ];
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -1328,10 +1511,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
         children: [
           // Header row
           Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(11)),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(11)),
             ),
             child: Row(
               children: List.generate(headers.length, (i) {
@@ -1363,7 +1545,16 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
           ...List.generate(users.length, (idx) {
             final u = users[idx];
             final isLast = idx == users.length - 1;
-            final cells = [_firstName(u.name), _lastName(u.name), u.email];
+            final cells = [
+              u.name.isNotEmpty ? u.name : '-',
+              u.email.isNotEmpty ? u.email : '-',
+              u.gender?.isNotEmpty == true ? u.gender! : '-',
+              u.birthDate?.isNotEmpty == true ? u.birthDate! : '-',
+              u.province?.isNotEmpty == true ? u.province! : '-',
+              u.city?.isNotEmpty == true ? u.city! : '-',
+              u.district?.isNotEmpty == true ? u.district! : '-',
+              u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-',
+            ];
             return Column(
               children: [
                 Row(
@@ -1401,16 +1592,17 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // BOTTOM NAVIGATION BAR
+  // BOTTOM NAVIGATION BAR — Superadmin (sama dengan Beranda Superadmin)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildNavBar() {
+    // Index aktif: tidak ada (halaman ini bukan salah satu dari 4 tab utama)
+    const int selectedIndex = -1;
+
     final navItems = [
-      _NavItem(icon: Icons.home_outlined, label: 'Beranda'),
-      _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Konsultasi'),
-      _NavItem(
-          icon: Icons.find_in_page_outlined,
-          label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_outline_rounded, label: 'Profil'),
+      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
+      _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
+      _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
     return Container(
@@ -1432,7 +1624,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
+            final isSelected = i == selectedIndex;
             final item = navItems[i];
+
             return Expanded(
               child: GestureDetector(
                 onTap: () => _onNavTap(i),
@@ -1443,23 +1637,67 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(item.icon, size: 24.0, color: Colors.black),
-                      const SizedBox(height: 3.0),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            item.label,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 11.0,
-                              color: Colors.black,
+                      if (isSelected) ...[
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 4.0,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.icon,
+                            size: 22.0,
+                            color: const Color(0xFF72A9F4),
+                          ),
+                        ),
+                        const SizedBox(height: 2.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF1E293B),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ] else ...[
+                        Icon(
+                          item.icon,
+                          size: 24.0,
+                          color: const Color(0xFF9E9E9E),
+                        ),
+                        const SizedBox(height: 3.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF9E9E9E),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

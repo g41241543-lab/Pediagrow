@@ -44,7 +44,9 @@ class GameController {
   /// sebanyak [totalSoalPerPutaran] secara acak tanpa duplikat.
   /// Jika bank soal ≤ [totalSoalPerPutaran], semua soal dipakai (juga diacak).
   static Future<List<SoalModel>> generatePutaranBaru() async {
-    final bankSoal = await _loadBankSoal();
+    final rawBankSoal = await _loadBankSoal();
+    // Revisi S-1: Soal nomor 11 sampai 20 tidak diikutsertakan dalam pengacakan kuis
+    final bankSoal = rawBankSoal.where((s) => s.id <= 10).toList();
     bankSoal.shuffle();
 
     if (bankSoal.length <= totalSoalPerPutaran) {
