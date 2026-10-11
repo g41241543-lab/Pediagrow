@@ -370,8 +370,8 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       );
     }
 
-    // Navigasi ke halaman Chat Konsultasi Dokter yang sudah tersedia
-    Navigator.push(
+    // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => ChatKonsultasiPage(

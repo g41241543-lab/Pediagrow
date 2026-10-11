@@ -147,48 +147,30 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   String? _errorMessage;
   bool _isDownloading = false;
 
-  // ── Baseline Dummy Constants (Grafik Pengguna) ─────────────────────────────
-  // Grafik default dasar agar bentuk grafik selalu terlihat penuh & proporsional
-  static const int _baseDummyPengguna = 1250;
-  static const int _baseDummyAnak = 840;
-  static const int _baseDummyAnakLaki = 437;
-  static const int _baseDummyAnakPr = 403;
-
-  static const List<int> _baseMonthlyPengguna = [
-    85, 92, 78, 45, 88, 76, 95, 52, 80, 84, 79, 65
-  ];
-  static const List<int> _baseMonthlyAnak = [
-    62, 74, 58, 38, 70, 61, 78, 41, 65, 68, 62, 53
-  ];
-
   // ── State Real-Time Data (Grafik Pengguna) ──────────────────────────────────
-  int _totalPengguna = _baseDummyPengguna;
-  int _totalAnak = _baseDummyAnak;
-  int _anakLakiLaki = _baseDummyAnakLaki;
-  int _anakPerempuan = _baseDummyAnakPr;
+  int _totalPengguna = 0;
+  int _totalAnak = 0;
+  int _anakLakiLaki = 0;
+  int _anakPerempuan = 0;
 
   final List<int> _penggunaBulan = List.filled(12, 0);
   final List<int> _anakBulan = List.filled(12, 0);
 
   final List<UserDemographicRow> _userRows = [];
 
-  // ── Baseline Dummy (Hasil Cek Stunting Sesuai Screenshot Lampiran) ───────────
-  static const List<MonthlyStuntingData> _baseMonthlyStunting = [
-    MonthlyStuntingData(month: 'Jan', tidakStunting: 52, stunting: 46),
-    MonthlyStuntingData(month: 'Feb', tidakStunting: 43, stunting: 38),
-    MonthlyStuntingData(month: 'Mar', tidakStunting: 36, stunting: 31),
-    MonthlyStuntingData(month: 'Apr', tidakStunting: 18, stunting: 12),
-    MonthlyStuntingData(month: 'Mei', tidakStunting: 52, stunting: 15),
-    MonthlyStuntingData(month: 'Jun', tidakStunting: 43, stunting: 12),
-    MonthlyStuntingData(month: 'Jul', tidakStunting: 36, stunting: 39),
-    MonthlyStuntingData(month: 'Agu', tidakStunting: 18, stunting: 16),
-    MonthlyStuntingData(month: 'Sep', tidakStunting: 52, stunting: 4),
-    MonthlyStuntingData(month: 'Okt', tidakStunting: 43, stunting: 13),
-    MonthlyStuntingData(month: 'Nov', tidakStunting: 36, stunting: 22),
-    MonthlyStuntingData(month: 'Des', tidakStunting: 18, stunting: 12),
+  static const List<String> _bulanLabels = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
   ];
 
-  List<MonthlyStuntingData> _stuntingChartData = List.from(_baseMonthlyStunting);
+  List<MonthlyStuntingData> _stuntingChartData = List.generate(
+    12,
+    (i) => MonthlyStuntingData(
+      month: _bulanLabels[i],
+      tidakStunting: 0,
+      stunting: 0,
+    ),
+  );
   final List<StuntingRecordRow> _stuntingRows = [];
 
   @override
@@ -434,10 +416,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
     final combinedUsers = [...loadedUsers, ...dummyUsers];
 
-    // Gabungkan baseline dummy + data riil agar grafik otomatis bertambah
-    _totalPengguna = _baseDummyPengguna + loadedUsers.length;
+    // Gunakan hanya data riil dari Firestore
+    _totalPengguna = loadedUsers.length;
     for (int i = 0; i < 12; i++) {
-      _penggunaBulan[i] = _baseMonthlyPengguna[i] + realCounts[i];
+      _penggunaBulan[i] = realCounts[i];
     }
 
     _userRows
@@ -486,13 +468,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       debugPrint('[GrafikPengguna] Error _loadChildrenData: $e');
     }
 
-    // Gabungkan baseline dummy + anak riil
-    _anakLakiLaki = _baseDummyAnakLaki + realLaki;
-    _anakPerempuan = _baseDummyAnakPr + realPr;
+    // Gunakan hanya data riil dari Firestore
+    _anakLakiLaki = realLaki;
+    _anakPerempuan = realPr;
     _totalAnak = _anakLakiLaki + _anakPerempuan;
 
     for (int i = 0; i < 12; i++) {
-      _anakBulan[i] = _baseMonthlyAnak[i] + realCounts[i];
+      _anakBulan[i] = realCounts[i];
     }
   }
 
@@ -663,13 +645,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       ),
     ];
 
-    // Gabungkan chart data: baseline + data nyata bulan berjalan
+    // Gunakan hanya data riil dari database yang terdaftar
     _stuntingChartData = List.generate(12, (i) {
-      final base = _baseMonthlyStunting[i];
       return MonthlyStuntingData(
-        month: base.month,
-        tidakStunting: base.tidakStunting + realTidak[i],
-        stunting: base.stunting + realStunting[i],
+        month: _bulanLabels[i],
+        tidakStunting: realTidak[i],
+        stunting: realStunting[i],
       );
     });
 
@@ -1493,7 +1474,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   Widget _buildHeader() {
     final title = _tabController.index == 0
         ? 'Grafik Pengguna'
-        : 'Rekapitulasi';
+        : 'Grafik Stunting';
 
     return Container(
       width: double.infinity,
@@ -1534,87 +1515,52 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // TAB SELECTOR ELEGAN UNTUK 1 MENU DENGAN 2 FITUR
+  // TAB SELECTOR — GAYA KONSULTASI (UNDERLINE INDICATOR)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildTabSelector() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 8.0),
-      padding: const EdgeInsets.all(4.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTabButton(
-              index: 0,
-              icon: Icons.people_alt_rounded,
-              label: 'Grafik Pengguna',
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: const UnderlineTabIndicator(
+          borderSide: BorderSide(color: _kBluePrimary, width: 3),
+        ),
+        dividerColor: const Color(0xFFE2E8F0),
+        dividerHeight: 1,
+        labelPadding: EdgeInsets.zero,
+        labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
+        unselectedLabelStyle: GoogleFonts.lato(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        labelColor: _kTextDark,
+        unselectedLabelColor: _kTextMuted,
+        onTap: (_) => setState(() {}),
+        tabs: const [
+          Tab(
+            height: 48,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.people_alt_rounded, size: 17),
+                SizedBox(width: 6),
+                Text('Grafik Pengguna'),
+              ],
             ),
           ),
-          const SizedBox(width: 4.0),
-          Expanded(
-            child: _buildTabButton(
-              index: 1,
-              icon: Icons.bar_chart_rounded,
-              label: 'Hasil Cek Stunting',
+          Tab(
+            height: 48,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bar_chart_rounded, size: 17),
+                SizedBox(width: 6),
+                Text('Grafik Stunting'),
+              ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTabButton({
-    required int index,
-    required IconData icon,
-    required String label,
-  }) {
-    final isSelected = _tabController.index == index;
-
-    return GestureDetector(
-      onTap: () {
-        _tabController.animateTo(index);
-        setState(() {});
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(9.0),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 4.0,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 17.0,
-              color: isSelected ? _kBluePrimary : _kTextMuted,
-            ),
-            const SizedBox(width: 6.0),
-            Text(
-              label,
-              style: GoogleFonts.lato(
-                fontSize: 13.0,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? _kBluePrimary : _kTextMuted,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1899,8 +1845,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     const topPadding = 20.0;
     const xLabelHeight = 26.0;
     const barWidth = 12.0;
-    const barGap = 4.0;
-    const groupGap = 24.0;
+    const barGap = 0.0;
+    const groupGap = 14.0;
     const yAxisWidth = 28.0;
 
     const monthCount = 12;
@@ -2063,7 +2009,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             height: math.max(height, 3.0),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(3.0)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(4.0)),
             ),
           ),
         ],
@@ -2480,20 +2426,26 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                       child: SizedBox(
                                         width: 15.0,
                                         height: totalH,
-                                        child: Column(
-                                          children: [
-                                            // Atas: Stunting (Kuning-Oranye Emas)
-                                            Container(
-                                              height: stuntingH,
-                                              color: _kOrangeStuntingChart,
-                                            ),
-                                            // Bawah: Tidak Stunting (Biru)
-                                            Expanded(
-                                              child: Container(
-                                                color: _kBlueStuntingChart,
+                                        child: ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(
+                                            top: Radius.circular(4.0),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              // Atas: Stunting (Kuning-Oranye Emas)
+                                              if (stuntingH > 0)
+                                                Container(
+                                                  height: stuntingH,
+                                                  color: _kOrangeStuntingChart,
+                                                ),
+                                              // Bawah: Tidak Stunting (Biru)
+                                              Expanded(
+                                                child: Container(
+                                                  color: _kBlueStuntingChart,
+                                                ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -3053,6 +3005,8 @@ class _YAxisScale {
 // ══════════════════════════════════════════════════════════════════════════════
 // CUSTOM PAINTER: AVATAR ANAK LAKI-LAKI & PEREMPUAN
 // ══════════════════════════════════════════════════════════════════════════════
+/// Painter avatar anak laki-laki:
+/// Background biru (diatur di container induk), tanpa pipi merah muda.
 class _BoyAvatarPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -3060,18 +3014,19 @@ class _BoyAvatarPainter extends CustomPainter {
     final radius = size.width * 0.34;
 
     final linePaint = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF1E3A5F)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
       ..strokeCap = StrokeCap.round;
 
     final eyePaint = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF1E3A5F)
       ..style = PaintingStyle.fill;
 
+    // Wajah
     canvas.drawCircle(center, radius, linePaint);
 
-    // Telinga
+    // Telinga kiri
     canvas.drawArc(
       Rect.fromCircle(
           center: Offset(center.dx - radius, center.dy), radius: 3.5),
@@ -3080,6 +3035,7 @@ class _BoyAvatarPainter extends CustomPainter {
       false,
       linePaint,
     );
+    // Telinga kanan
     canvas.drawArc(
       Rect.fromCircle(
           center: Offset(center.dx + radius, center.dy), radius: 3.5),
@@ -3089,7 +3045,7 @@ class _BoyAvatarPainter extends CustomPainter {
       linePaint,
     );
 
-    // Rambut
+    // Rambut pendek (laki-laki)
     final hairPath = Path();
     hairPath.moveTo(center.dx - radius * 0.85, center.dy - radius * 0.3);
     hairPath.quadraticBezierTo(
@@ -3106,12 +3062,13 @@ class _BoyAvatarPainter extends CustomPainter {
     );
     canvas.drawPath(hairPath, linePaint);
 
-    // Mata
+    // Mata kiri
     canvas.drawCircle(
       Offset(center.dx - radius * 0.35, center.dy - radius * 0.05),
       1.5,
       eyePaint,
     );
+    // Mata kanan
     canvas.drawCircle(
       Offset(center.dx + radius * 0.35, center.dy - radius * 0.05),
       1.5,
@@ -3128,12 +3085,15 @@ class _BoyAvatarPainter extends CustomPainter {
       center.dy + radius * 0.35,
     );
     canvas.drawPath(smilePath, linePaint);
+    // Tidak ada pipi (blush) untuk laki-laki
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Painter avatar anak perempuan:
+/// Background pink (diatur di container induk), dengan pipi merah muda.
 class _GirlAvatarPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -3141,18 +3101,23 @@ class _GirlAvatarPainter extends CustomPainter {
     final radius = size.width * 0.34;
 
     final linePaint = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF8B1A4A)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
       ..strokeCap = StrokeCap.round;
 
     final eyePaint = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF8B1A4A)
       ..style = PaintingStyle.fill;
 
+    final blushPaint = Paint()
+      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.5)
+      ..style = PaintingStyle.fill;
+
+    // Wajah
     canvas.drawCircle(center, radius, linePaint);
 
-    // Kuncir
+    // Kuncir kiri
     canvas.drawArc(
       Rect.fromCircle(
           center: Offset(center.dx - radius * 0.95, center.dy - radius * 0.35),
@@ -3162,6 +3127,7 @@ class _GirlAvatarPainter extends CustomPainter {
       false,
       linePaint,
     );
+    // Kuncir kanan
     canvas.drawArc(
       Rect.fromCircle(
           center: Offset(center.dx + radius * 0.95, center.dy - radius * 0.35),
@@ -3172,7 +3138,7 @@ class _GirlAvatarPainter extends CustomPainter {
       linePaint,
     );
 
-    // Rambut
+    // Rambut panjang (perempuan)
     final hairPath = Path();
     hairPath.moveTo(center.dx - radius * 0.8, center.dy - radius * 0.2);
     hairPath.quadraticBezierTo(
@@ -3183,16 +3149,30 @@ class _GirlAvatarPainter extends CustomPainter {
     );
     canvas.drawPath(hairPath, linePaint);
 
-    // Mata
+    // Mata kiri
     canvas.drawCircle(
       Offset(center.dx - radius * 0.35, center.dy - radius * 0.05),
       1.5,
       eyePaint,
     );
+    // Mata kanan
     canvas.drawCircle(
       Offset(center.dx + radius * 0.35, center.dy - radius * 0.05),
       1.5,
       eyePaint,
+    );
+
+    // Pipi kiri (blush — hanya perempuan)
+    canvas.drawCircle(
+      Offset(center.dx - radius * 0.55, center.dy + radius * 0.15),
+      size.width * 0.065,
+      blushPaint,
+    );
+    // Pipi kanan (blush — hanya perempuan)
+    canvas.drawCircle(
+      Offset(center.dx + radius * 0.55, center.dy + radius * 0.15),
+      size.width * 0.065,
+      blushPaint,
     );
 
     // Senyum

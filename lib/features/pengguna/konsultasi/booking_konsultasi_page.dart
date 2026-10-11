@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
@@ -17,8 +18,7 @@ import 'status_booking_page.dart';
 /// 2. Pilih Anak (dari ChildService / Tambah Anak baru)
 /// 3. Pilih Tanggal (Date picker horizontal 14 hari)
 /// 4. Pilih Jam (Slot waktu praktik pagi, siang, sore/malam realtime)
-/// 5. Opsi Tambahkan ke Google Kalender
-/// 6. Konfirmasi Booking -> [StatusBookingPage]
+/// 5. Konfirmasi Booking -> [StatusBookingPage] (otomatis tersambung ke Google Kalender)
 class BookingKonsultasiPage extends StatefulWidget {
   final DoctorModel doctor;
   final ChildModel? initialChild;
@@ -43,7 +43,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   late ChildModel? _selectedChild;
   late DateTime _selectedDate;
   DoctorTimeSlot? _selectedSlot;
-  bool _syncGoogleCalendar = true;
 
   late List<DateTime> _upcomingDates;
   late List<DoctorTimeSlot> _availableSlots;
@@ -131,7 +130,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       return;
     }
 
-    // 1. Simpan booking ke BookingService
+    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
     final booking = BookingService().createBooking(
       doctor: widget.doctor,
       child: _selectedChild!,
@@ -139,14 +138,19 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       slot: _selectedSlot!,
     );
 
-    // 2. Hubungkan ke Google Kalender jika dicentang
-    if (_syncGoogleCalendar && booking.googleCalendarUrl != null) {
-      await BookingService().launchGoogleCalendar(booking.googleCalendarUrl!);
-    }
+    // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
+    NotificationService().addBookingReminderNotification(
+      doctorName: widget.doctor.name,
+      childName: _selectedChild!.name,
+      dateFormatted:
+          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+      timeSlot: _selectedSlot!.time,
+      scheduledTime: booking.scheduledStartDateTime,
+    );
 
     if (!mounted) return;
 
-    // 3. Navigasi ke Halaman Status / Tiket Booking
+    // 3. Langsung menuju halaman Status Booking tanpa beralih membuka Google Kalender
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, anim, secAnim) => StatusBookingPage(
@@ -205,11 +209,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                     // Step 3: Pilih Jam / Slot Waktu Praktik
                     _buildTimeSlotSection(),
-                    const SizedBox(height: 24),
-
-                    // Step 4: Sambungkan Google Kalender
-                    _buildGoogleCalendarCard(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
                   ],
                 ),
               ),
@@ -740,68 +740,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Step 4: Sambungkan Google Kalender ────────────────────────────────────
-  Widget _buildGoogleCalendarCard() {
-    return Container(
-      padding: const EdgeInsets.all(14.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: const Color(0xFF86EFAC)),
-            ),
-            child: const Icon(
-              Icons.calendar_today_rounded,
-              color: Color(0xFF16A34A),
-              size: 22.0,
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sambungkan ke Google Kalender',
-                  style: GoogleFonts.lato(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF166534),
-                  ),
-                ),
-                const SizedBox(height: 3.0),
-                Text(
-                  'Otomatis menambahkan jadwal dan alarm pengingat konsultasi ke Google Calendar Anda.',
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    height: 1.35,
-                    color: const Color(0xFF15803D),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: _syncGoogleCalendar,
-            onChanged: (val) {
-              setState(() => _syncGoogleCalendar = val);
-            },
-            activeThumbColor: const Color(0xFF16A34A),
-            activeTrackColor: const Color(0xFF86EFAC),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ── Bottom Confirm Bar ───────────────────────────────────────────────────
   Widget _buildBottomConfirmBar() {

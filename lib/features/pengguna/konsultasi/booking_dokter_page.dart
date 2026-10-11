@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -153,6 +154,15 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
 
     // Simpan ke BookingService
     BookingService().addBooking(newBooking);
+
+    // Otomatis jadwalkan notifikasi pengingat kalender
+    NotificationService().addBookingReminderNotification(
+      doctorName: _doctor.name,
+      childName: _child.name,
+      dateFormatted: newBooking.formattedDate,
+      timeSlot: _selectedTimeSlot,
+      scheduledTime: newBooking.bookingDate,
+    );
 
     // Tampilkan dialog sukses
     showDialog(
@@ -589,7 +599,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _availableDates.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
               final date = _availableDates[i];
               final isSelected = _isSameDay(date, _selectedDate);
@@ -805,7 +815,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         child: Image.network(
           photoUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
+          errorBuilder: (_, _, _) => Container(
             color: bgColor,
             child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
           ),
