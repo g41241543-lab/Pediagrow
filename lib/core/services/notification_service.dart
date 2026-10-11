@@ -173,6 +173,28 @@ class NotificationService {
     addNotification(newItem);
   }
 
+  /// Menambahkan notifikasi pengingat otomatis jadwal booking konsultasi
+  /// yang tersambung dengan Google Kalender dan sistem pengingat PediaGrow.
+  void addBookingReminderNotification({
+    required String doctorName,
+    required String childName,
+    required String dateFormatted,
+    required String timeSlot,
+    DateTime? scheduledTime,
+  }) {
+    final now = DateTime.now();
+    final id = 'booking_reminder_${now.microsecondsSinceEpoch}';
+    final newItem = NotificationItem(
+      id: id,
+      title: 'Pengingat Jadwal Konsultasi',
+      message:
+          'Pengingat Kalender: Jadwal konsultasi anak $childName bersama $doctorName pada $dateFormatted ($timeSlot) telah tiba. Silakan masuk ke ruang konsultasi.',
+      date: scheduledTime ?? now,
+      type: NotificationType.consultation,
+    );
+    addNotification(newItem);
+  }
+
   /// Menghapus seluruh notifikasi (untuk testing atau reset ke empty state)
   void clearNotifications() {
     notificationsNotifier.value = [];

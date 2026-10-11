@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/booking_consultation_model.dart';
 import '../../models/child_model.dart';
 import '../../models/doctor_model.dart';
+import 'google_calendar_service.dart';
 import 'jadwal_dokter_service.dart';
 
 /// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
@@ -30,6 +31,8 @@ class BookingService {
     if (activeBookingNotifier.value == null) {
       activeBookingNotifier.value = booking;
     }
+    // Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
+    GoogleCalendarService().syncBookingToGoogleCalendar(booking);
   }
 
   /// Menghasilkan slot waktu yang tersedia untuk dokter pada tanggal tertentu
@@ -117,6 +120,9 @@ class BookingService {
       ..insert(0, newBooking);
     bookingsNotifier.value = updated;
     activeBookingNotifier.value = newBooking;
+
+    // Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
+    GoogleCalendarService().syncBookingToGoogleCalendar(newBooking);
 
     return newBooking;
   }

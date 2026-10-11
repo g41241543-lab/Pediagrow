@@ -544,7 +544,113 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _onBackPressed() {
-    Navigator.of(context).maybePop();
+    _showStayInChatDialog();
+  }
+
+  /// Menampilkan dialog bahwa pengguna tidak dapat kembali ke halaman formulir
+  /// dan harus tetap di ruang konsultasi sampai sesi diakhiri secara resmi.
+  void _showStayInChatDialog() {
+    FocusScope.of(context).unfocus();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEBF5FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: Color(0xFF2A85FF),
+                    size: 28,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Sesi Konsultasi Berlangsung',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Anda tidak dapat kembali ke halaman sebelumnya selama sesi konsultasi berlangsung. Harap tetap di room konsultasi sampai percakapan diakhiri.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 13.5,
+                  color: colorTextSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _onAkhiriKonsultasiPressed();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorEndRed,
+                        side: const BorderSide(color: Color(0xFFFEB2B2)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                      child: Text(
+                        'Akhiri Sesi',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorPrimaryBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                      child: Text(
+                        'Tetap di Chat',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _onAkhiriKonsultasiPressed() {
@@ -763,23 +869,30 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: colorWhite,
-      resizeToAvoidBottomInset: true,
-      body: Column(
-        children: [
-          // 1. Header Dokter Fixed (Biru #2A85FF, meluas menutupi status bar)
-          _buildHeader(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _showStayInChatDialog();
+      },
+      child: Scaffold(
+        backgroundColor: colorWhite,
+        resizeToAvoidBottomInset: true,
+        body: Column(
+          children: [
+            // 1. Header Dokter Fixed (Biru #2A85FF, meluas menutupi status bar)
+            _buildHeader(),
 
-          // 2. Disclaimer Medis Fixed (Stay, sudut kotak tidak melengkung, tanpa tombol X)
-          _buildDisclaimer(),
+            // 2. Disclaimer Medis Fixed (Stay, sudut kotak tidak melengkung, tanpa tombol X)
+            _buildDisclaimer(),
 
-          // 3. Area Chat List (Scrollable)
-          Expanded(child: _buildChatList()),
+            // 3. Area Chat List (Scrollable)
+            Expanded(child: _buildChatList()),
 
-          // 4. Input Pesan Fixed di Bagian Bawah
-          _buildInputArea(),
-        ],
+            // 4. Input Pesan Fixed di Bagian Bawah
+            _buildInputArea(),
+          ],
+        ),
       ),
     );
   }

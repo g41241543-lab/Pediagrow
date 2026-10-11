@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/services/booking_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../beranda/beranda_page.dart';
 import 'formulir_konsultasi_page.dart';
@@ -72,25 +71,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     );
   }
 
-  Future<void> _openGoogleCalendar() async {
-    if (_currentBooking.googleCalendarUrl != null) {
-      final success = await BookingService().launchGoogleCalendar(
-        _currentBooking.googleCalendarUrl!,
-      );
-      if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Tidak dapat membuka Google Kalender di perangkat ini',
-              style: GoogleFonts.lato(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF1E293B),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -556,7 +536,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                   ),
                 ),
                 Text(
-                  'Pengingat jadwal telah disiapkan untuk agenda konsultasi ini.',
+                  'Pengingat otomatis aktif dan notifikasi kalender akan muncul saat jadwal tiba.',
                   style: GoogleFonts.lato(
                     fontSize: 11.5,
                     color: _kTextMuted,
@@ -565,22 +545,34 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               ],
             ),
           ),
-          OutlinedButton(
-            onPressed: _openGoogleCalendar,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _kPrimaryBlue,
-              side: const BorderSide(color: _kPrimaryBlue),
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 5.0,
             ),
-            child: Text(
-              'Buka',
-              style: GoogleFonts.lato(
-                fontSize: 12.0,
-                fontWeight: FontWeight.bold,
-              ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(20.0),
+              border: Border.all(color: const Color(0xFF86EFAC)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 14.0,
+                  color: Color(0xFF16A34A),
+                ),
+                const SizedBox(width: 4.0),
+                Text(
+                  'Aktif',
+                  style: GoogleFonts.lato(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF166534),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

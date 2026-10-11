@@ -730,12 +730,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         color: _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: doctor.isOnline
-              ? const Color(0xFFBFDBFE)
-              : _colorBorder,
+          color: doctor.isOnline ? const Color(0xFFBFDBFE) : borderColor,
           width: 1,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: _colorPrimaryBlue.withValues(alpha: 0.08),
             blurRadius: 10,
@@ -755,9 +753,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: doctor.isOnline
-              ? () => _navigateToDetail(doctor)
-              : () => _showDoctorOfflineMessage(doctor),
+          onTap: () => _navigateToDetail(doctor),
           child: Padding(
             padding: const EdgeInsets.all(14.0),
             child: Column(
