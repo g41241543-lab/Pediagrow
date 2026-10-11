@@ -15,16 +15,17 @@ class ResumeMedisService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _collectionName = 'resume_medis';
 
-  /// Stream daftar resume medis untuk anak tertentu.
-  /// Jika di database Firestore belum ada dokumen, akan mengembalikan data default/sample
-  /// yang sudah disesuaikan dengan nama anak dan data kelahiran anak.
+  /// Stream daftar resume medis untuk anak tertentu dari Firestore.
+  /// Mengembalikan list kosong apabila belum ada data resume medis untuk anak tersebut.
   Stream<List<ResumeMedisModel>> streamResumeMedis({
     required ChildModel child,
     String? userId,
   }) {
     final collection = _firestore.collection(_collectionName);
 
-    // Filter berdasarkan child_id bila child.id tersedia
+    // Filter berdasarkan child_id bila child.id tersedia.
+    // Sengaja tidak pakai orderBy di Firestore agar tidak perlu composite index.
+    // Sorting dilakukan di sisi Dart setelah data diterima.
     Query<Map<String, dynamic>> query = collection;
     if (child.id.isNotEmpty) {
       query = query.where('child_id', isEqualTo: child.id);
@@ -33,43 +34,53 @@ class ResumeMedisService {
     }
 
     return query.snapshots().map((snapshot) {
-      if (snapshot.docs.isEmpty) {
-        // Fallback ke data template contoh sesuai desain
-        return ResumeMedisModel.getSampleData(
-          childName: child.name.isNotEmpty ? child.name : 'Arfa Zivano Kayfan',
-          childId: child.id,
-          userId: userId ?? '',
-          bbLahir: (child.birthWeightKg != null && child.birthWeightKg! > 0)
-              ? child.birthWeightKg!
-              : 2.4,
-          tbLahir: (child.birthHeightCm != null && child.birthHeightCm! > 0)
-              ? child.birthHeightCm!
-              : 44.0,
-        );
-      }
-
-      return snapshot.docs
+      if (snapshot.docs.isEmpty) return <ResumeMedisModel>[];
+      final items = snapshot.docs
           .map((doc) => ResumeMedisModel.fromFirestore(doc))
           .toList();
-    }).handleError((error) {
-      // Jika terjadi error (misal index Firestore belum dibuat / offline),
-      // kembalikan sample data agar UI tetap tampil rapi sesuai desain
-      return ResumeMedisModel.getSampleData(
-        childName: child.name.isNotEmpty ? child.name : 'Arfa Zivano Kayfan',
-        childId: child.id,
-        userId: userId ?? '',
-        bbLahir: (child.birthWeightKg != null && child.birthWeightKg! > 0)
-            ? child.birthWeightKg!
-            : 2.4,
-        tbLahir: (child.birthHeightCm != null && child.birthHeightCm! > 0)
-            ? child.birthHeightCm!
-            : 44.0,
-      );
-    });
+      // Sort terbaru di atas
+      items.sort((a, b) {
+        final aDate = a.createdAt ?? DateTime(2000);
+        final bDate = b.createdAt ?? DateTime(2000);
+        return bDate.compareTo(aDate);
+      });
+      return items;
+    }).handleError((_) => <ResumeMedisModel>[]);
   }
 
   /// Tambah dokumen resume medis ke Firestore
-  Future<void> addResumeMedis(ResumeMedisModel resume) async {
-    await _firestore.collection(_collectionName).add(resume.toMap());
+  /// Mengembalikan ID dokumen yang baru dibuat
+  Future<String> addResumeMedis(ResumeMedisModel resume) async {
+    final ref = await _firestore.collection(_collectionName).add(resume.toMap());
+    return ref.id;
+  }
+
+  /// Update dokumen resume medis yang sudah ada (untuk fitur Edit oleh Dokter)
+  Future<void> updateResumeMedis(String resumeId, Map<String, dynamic> data) async {
+    await _firestore.collection(_collectionName).doc(resumeId).update({
+      ...data,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Ambil satu dokumen resume medis berdasarkan ID
+  Future<ResumeMedisModel?> getResumeMedisById(String resumeId) async {
+    final doc = await _firestore.collection(_collectionName).doc(resumeId).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return ResumeMedisModel.fromFirestore(doc);
+  }
+
+  /// Stream resume medis berdasarkan sessionId (untuk langsung menampilkan
+  /// resume setelah dokter menyimpannya dari halaman Buat Resume Medis)
+  Stream<ResumeMedisModel?> streamResumeMedisBySessionId(String sessionId) {
+    return _firestore
+        .collection(_collectionName)
+        .where('session_id', isEqualTo: sessionId)
+        .limit(1)
+        .snapshots()
+        .map((snap) {
+      if (snap.docs.isEmpty) return null;
+      return ResumeMedisModel.fromFirestore(snap.docs.first);
+    });
   }
 }

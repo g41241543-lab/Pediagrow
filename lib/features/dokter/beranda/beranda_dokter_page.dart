@@ -6,11 +6,11 @@ import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
 import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import '../../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
-import '../../pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
+import 'data_pasien/data_pasien_page.dart';
+import '../konsultasi/konsultasi_dokter_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil_dokter_page.dart';
 
@@ -928,7 +928,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
         // Beranda aktif
         break;
       case 1:
-        _navigateTo(const KonsultasiSuperadminPage());
+        _navigateTo(const KonsultasiDokterPage());
         break;
       case 2:
         _navigateTo(const DaftarRiwayatKonsultasiAdminPage());

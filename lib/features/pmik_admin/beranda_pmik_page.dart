@@ -10,6 +10,11 @@ import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
 import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
+import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import 'beranda/data_anak/data_pasien_page.dart';
+import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import 'profil_pmik_page.dart';
 
 /// Halaman Beranda PMIK Admin PediaGrow.
@@ -436,7 +441,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'konsultasi',
                         featureName: 'Konsultasi',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const KonsultasiPmikAdminPage()),
                       ),
                     ),
                     _buildMenuCard(
@@ -447,7 +453,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'riwayat_konsultasi',
                         featureName: 'Riwayat Konsultasi',
-                        onAllowed: () {},
+                        onAllowed: () => _navigateTo(
+                          const DaftarRiwayatKonsultasiAdminPage(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -458,7 +466,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'data_pasien',
                         featureName: 'Data Pasien',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const DataPasienPage()),
                       ),
                     ),
                     _buildMenuCard(
@@ -469,7 +478,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'kelola_artikel',
                         featureName: 'Kelola Artikel',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const DaftarArtikelAdminPage()),
                       ),
                     ),
                     _buildMenuCard(
@@ -495,7 +505,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'kelola_resep_mpasi',
                         featureName: 'Kelola Resep MPASI',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const DaftarResepMpasiAdminPage()),
                       ),
                     ),
                   ],
@@ -742,7 +753,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     return GestureDetector(
       onTap: () {
         if (index == _selectedIndex) return;
-        if (index == 3) {
+        if (index == 1) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const KonsultasiPmikAdminPage()),
+          );
+        } else if (index == 2) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
+            ),
+          );
+        } else if (index == 3) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
           );

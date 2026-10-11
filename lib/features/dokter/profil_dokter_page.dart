@@ -12,6 +12,8 @@ import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_dokter_page.dart';
+import 'konsultasi/konsultasi_dokter_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
 /// Halaman Profil Dokter PediaGrow.
 ///
@@ -495,10 +497,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         );
         return;
       case 1:
-        targetPage = const _PlaceholderPage(title: 'Konsultasi');
+        targetPage = const KonsultasiDokterPage();
         break;
       case 2:
-        targetPage = const _PlaceholderPage(title: 'Riwayat Konsultasi');
+        targetPage = const DaftarRiwayatKonsultasiAdminPage();
         break;
       default:
         return;
@@ -1224,21 +1226,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-
-// ─── PLACEHOLDER ──────────────────────────────────────────────────────────────
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
     );
   }
 }

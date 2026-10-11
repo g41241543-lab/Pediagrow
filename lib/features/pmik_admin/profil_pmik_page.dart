@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
-import 'beranda_pmik_page.dart';
+import 'beranda/beranda_pmik_page.dart';
 
 /// Halaman Profil PMIK Admin PediaGrow.
 ///
@@ -246,13 +246,17 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        child: Text('Batal',
-                            style: GoogleFonts.lato(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF475569))),
+                        child: Text(
+                          'Batal',
+                          style: GoogleFonts.lato(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -266,7 +270,8 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           StaffAuthService().logout();
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
-                                builder: (_) => const AuthChoicePage()),
+                              builder: (_) => const AuthChoicePage(),
+                            ),
                             (route) => false,
                           );
                         },
@@ -274,13 +279,17 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           backgroundColor: const Color(0xFFDC2626),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        child: Text('Keluar',
-                            style: GoogleFonts.lato(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
+                        child: Text(
+                          'Keluar',
+                          style: GoogleFonts.lato(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -384,8 +393,11 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: Color(0xFFF97316), size: 20),
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: Color(0xFFF97316),
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -469,8 +481,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   // ─── PROFILE CARD ─────────────────────────────────────────────────────────
   Widget _buildProfileCard() {
     const double avatarRadius = 46.0;
-    final name =
-        _pmik?.name.isNotEmpty == true ? _pmik!.name : 'Nama PMIK';
+    final name = _pmik?.name.isNotEmpty == true ? _pmik!.name : 'Nama PMIK';
     final email = _pmik?.email ?? '';
     final roleLabel = _pmik?.pmikRoleDisplay ?? 'PMIK Admin';
 
@@ -575,9 +586,11 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       ? FileImage(File(_avatarPath!)) as ImageProvider
                       : null,
                   child: _avatarPath == null
-                      ? Icon(Icons.person_rounded,
+                      ? Icon(
+                          Icons.person_rounded,
                           size: avatarRadius * 1.1,
-                          color: const Color(0xFF0891B2))
+                          color: const Color(0xFF0891B2),
+                        )
                       : null,
                 ),
                 Positioned(
@@ -637,17 +650,24 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  maxLines: 1,
-                  style: GoogleFonts.lato(
-                      fontSize: 11, color: const Color(0xFF94A3B8))),
-              Text(value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A))),
+              Text(
+                label,
+                maxLines: 1,
+                style: GoogleFonts.lato(
+                  fontSize: 11,
+                  color: const Color(0xFF94A3B8),
+                ),
+              ),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
             ],
           ),
         ),
@@ -694,7 +714,9 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 14.0),
+                  horizontal: 16.0,
+                  vertical: 14.0,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -705,8 +727,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
-                      child: Icon(item.icon,
-                          size: 20, color: item.iconColor),
+                      child: Icon(item.icon, size: 20, color: item.iconColor),
                     ),
                     const SizedBox(width: 12),
                     Column(
@@ -733,8 +754,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 ),
               ),
               if (i < items.length - 1)
-                const Divider(
-                    height: 1, indent: 66, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, indent: 66, color: Color(0xFFF1F5F9)),
             ],
           );
         }),
@@ -766,7 +786,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               _buildNavItem(0, Icons.home_rounded, 'Beranda'),
               _buildNavItem(1, Icons.chat_bubble_outline_rounded, 'Konsultasi'),
               _buildNavItem(
-                  2, Icons.receipt_long_rounded, 'Riwayat\nKonsultasi'),
+                2,
+                Icons.receipt_long_rounded,
+                'Riwayat\nKonsultasi',
+              ),
               _buildNavItem(3, Icons.person_rounded, 'Profil'),
             ],
           ),
@@ -785,11 +808,13 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 24,
-                color: isSelected
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8)),
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected
+                  ? const Color(0xFF3985E7)
+                  : const Color(0xFF94A3B8),
+            ),
             const SizedBox(height: 3),
             Text(
               label,
@@ -797,8 +822,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               maxLines: 2,
               style: GoogleFonts.lato(
                 fontSize: 10.5,
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? const Color(0xFF3985E7)
                     : const Color(0xFF94A3B8),
