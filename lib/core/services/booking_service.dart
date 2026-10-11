@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/booking_consultation_model.dart';
 import '../../models/child_model.dart';
 import '../../models/doctor_model.dart';
+import 'jadwal_dokter_service.dart';
 
 /// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
 /// dan integrasi pengingat ke Google Kalender.
@@ -32,64 +33,56 @@ class BookingService {
   }
 
   /// Menghasilkan slot waktu yang tersedia untuk dokter pada tanggal tertentu
-  /// Mengelompokkan slot waktu menjadi Pagi, Siang, dan Sore/Malam
+  /// Dihitung dinamis dari JadwalDokterService dikurangi Cuti dan Booking
   List<DoctorTimeSlot> getAvailableSlotsForDoctor({
     required DoctorModel doctor,
     required DateTime date,
   }) {
-    final now = DateTime.now();
-    final isToday = date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+    final slots = JadwalDokterService().hitungSlotKosong(
+      dokterId: doctor.id,
+      tanggal: date,
+    );
 
-    // Slot standar jam praktik konsultasi dokter anak
-    final rawSlots = [
-      const DoctorTimeSlot(time: '08:30 - 09:00', startHour: 8, startMinute: 30, period: 'Pagi'),
-      const DoctorTimeSlot(time: '09:00 - 09:30', startHour: 9, startMinute: 0, period: 'Pagi'),
-      const DoctorTimeSlot(time: '10:00 - 10:30', startHour: 10, startMinute: 0, period: 'Pagi'),
-      const DoctorTimeSlot(time: '11:00 - 11:30', startHour: 11, startMinute: 0, period: 'Pagi'),
-      const DoctorTimeSlot(time: '13:00 - 13:30', startHour: 13, startMinute: 0, period: 'Siang'),
-      const DoctorTimeSlot(time: '14:00 - 14:30', startHour: 14, startMinute: 0, period: 'Siang'),
-      const DoctorTimeSlot(time: '15:30 - 16:00', startHour: 15, startMinute: 30, period: 'Sore'),
-      const DoctorTimeSlot(time: '16:30 - 17:00', startHour: 16, startMinute: 30, period: 'Sore'),
-      const DoctorTimeSlot(time: '19:00 - 19:30', startHour: 19, startMinute: 0, period: 'Malam'),
-      const DoctorTimeSlot(time: '20:00 - 20:30', startHour: 20, startMinute: 0, period: 'Malam'),
-    ];
-
-    // Cek ketersediaan berdasarkan jam saat ini jika hari ini
-    return rawSlots.map((slot) {
-      bool available = true;
-      if (isToday) {
-        final slotTime = DateTime(date.year, date.month, date.day, slot.startHour, slot.startMinute);
-        if (slotTime.isBefore(now)) {
-          available = false; // Jam sudah lewat
-        }
+    return slots.map((slot) {
+      final hour = slot.startDateTime.hour;
+      String period = 'Pagi';
+      if (hour >= 11 && hour < 15) {
+        period = 'Siang';
+      } else if (hour >= 15 && hour < 18) {
+        period = 'Sore';
+      } else if (hour >= 18) {
+        period = 'Malam';
       }
 
-      // Cek apakah sudah pernah di-booking
-      final isAlreadyBooked = bookingsNotifier.value.any((b) =>
-          b.doctor.id == doctor.id &&
-          b.bookingDate.year == date.year &&
-          b.bookingDate.month == date.month &&
-          b.bookingDate.day == date.day &&
-          b.timeSlot == slot.time &&
-          b.status != 'Dibatalkan');
-
-      if (isAlreadyBooked) {
-        available = false;
-      }
-
-      return slot.copyWith(isAvailable: available);
+      return DoctorTimeSlot(
+        time: slot.timeLabel,
+        startHour: slot.startDateTime.hour,
+        startMinute: slot.startDateTime.minute,
+        period: period,
+        isAvailable: slot.isAvailable,
+      );
     }).toList();
   }
 
-  /// Membuat booking baru
+  /// Membuat booking baru dengan validasi race condition
   BookingConsultationModel createBooking({
     required DoctorModel doctor,
     required ChildModel child,
     required DateTime date,
     required DoctorTimeSlot slot,
   }) {
+    // Validasi race condition: cek ketersediaan slot terkini
+    final currentSlots = JadwalDokterService().hitungSlotKosong(
+      dokterId: doctor.id,
+      tanggal: date,
+    );
+    final isStillAvailable = currentSlots.any(
+      (s) => s.timeLabel == slot.time && s.isAvailable,
+    );
+    if (!isStillAvailable) {
+      throw StateError('Slot sudah dipesan, pilih jam lain');
+    }
+
     final startDt = DateTime(
       date.year,
       date.month,

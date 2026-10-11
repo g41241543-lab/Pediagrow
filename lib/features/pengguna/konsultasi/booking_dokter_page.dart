@@ -246,7 +246,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     final isFemale = _child.gender.toLowerCase() == 'perempuan';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: _buildHeader(),
@@ -330,13 +330,20 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _colorBorder, width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -448,13 +455,20 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _colorBorder, width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
           ),
         ],
       ),

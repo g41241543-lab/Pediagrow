@@ -12,12 +12,13 @@ import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_dokter_page.dart';
+import 'konsultasi/konsultasi_dokter_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
 /// Halaman Profil Dokter PediaGrow.
 ///
 /// - Hanya foto profil yang dapat diubah oleh dokter sendiri.
 /// - Semua informasi lain hanya dapat diedit oleh Superadmin.
-/// - Terdapat toggle Online/Offline di pojok kanan atas header.
 class ProfilDokterPage extends StatefulWidget {
   const ProfilDokterPage({super.key});
 
@@ -32,7 +33,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   String? _avatarPath;
   StaffAccount? _dokter;
   DoctorModel? _doctorModel;
-  bool _isOnline = false; // Status online/offline dokter
 
   @override
   void initState() {
@@ -87,7 +87,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     if (doc != null) {
       setState(() {
         _doctorModel = doc;
-        _isOnline = doc.isOnline;
         if ((_avatarPath == null || _avatarPath!.isEmpty) &&
             doc.avatarUrl != null &&
             doc.avatarUrl!.isNotEmpty) {
@@ -118,13 +117,11 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     }
     final prefs = await SharedPreferences.getInstance();
     final savedPath = prefs.getString('dokter_avatar_${_dokter?.id}');
-    final savedOnline = prefs.getBool('dokter_online_${_dokter?.id}') ?? false;
     if (mounted) {
       setState(() {
         if (savedPath != null && (_avatarPath == null || _avatarPath!.isEmpty)) {
           _avatarPath = savedPath;
         }
-        _isOnline = savedOnline;
       });
     }
 
@@ -149,72 +146,20 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
       if (doc != null && mounted) {
         final foundDoc = doc;
-        final prefs = await SharedPreferences.getInstance();
         setState(() {
           _doctorModel = foundDoc;
-          _isOnline = foundDoc.isOnline;
           if ((_avatarPath == null || _avatarPath!.isEmpty) &&
               foundDoc.avatarUrl != null &&
               foundDoc.avatarUrl!.isNotEmpty) {
             _avatarPath = foundDoc.avatarUrl;
           }
         });
-        if (staffId.isNotEmpty) {
-          await prefs.setBool('dokter_online_$staffId', foundDoc.isOnline);
-        }
       }
     } catch (e) {
       debugPrint('[ProfilDokterPage] _syncDoctorFromFirestore error: $e');
     }
   }
 
-  // ─── ONLINE TOGGLE ────────────────────────────────────────────────────────
-  Future<void> _toggleOnlineStatus() async {
-    final newStatus = !_isOnline;
-    setState(() => _isOnline = newStatus);
-    final prefs = await SharedPreferences.getInstance();
-    if (_dokter?.id != null) {
-      await prefs.setBool('dokter_online_${_dokter!.id}', newStatus);
-    }
-
-    try {
-      DoctorModel? doc = _doctorModel;
-      if (doc == null) {
-        if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
-          doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
-        }
-        if (doc == null && _dokter?.email != null) {
-          doc = await DoctorService().findDoctorByEmail(_dokter!.email);
-        }
-      }
-      if (doc != null) {
-        _doctorModel = doc.copyWith(isOnline: newStatus);
-        await DoctorService().updateOnlineStatus(doc.id, newStatus);
-      }
-    } catch (e) {
-      debugPrint('[ProfilDokterPage] _toggleOnlineStatus error: $e');
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            newStatus
-                ? 'Status Anda sekarang Online — pasien dapat menemukan Anda'
-                : 'Status Anda sekarang Offline — pasien tidak dapat berkonsultasi',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: newStatus
-              ? const Color(0xFF16A34A)
-              : const Color(0xFF64748B),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-    }
-  }
 
   void _showImagePickerOptions() {
     showModalBottomSheet(
@@ -495,10 +440,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         );
         return;
       case 1:
-        targetPage = const _PlaceholderPage(title: 'Konsultasi');
+        targetPage = const KonsultasiDokterPage();
         break;
       case 2:
-        targetPage = const _PlaceholderPage(title: 'Riwayat Konsultasi');
+        targetPage = const DaftarRiwayatKonsultasiAdminPage();
         break;
       default:
         return;
@@ -649,48 +594,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     letterSpacing: -0.2,
                   ),
                 ),
-                const Spacer(),
-                // Online/Offline Toggle
-                GestureDetector(
-                  onTap: _toggleOnlineStatus,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 52,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: _isOnline
-                          ? const Color(0xFF16A34A)
-                          : const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Stack(
-                      children: [
-                        AnimatedAlign(
-                          duration: const Duration(milliseconds: 200),
-                          alignment: _isOnline
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            margin: const EdgeInsets.all(3),
-                            width: 22,
-                            height: 22,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x30000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -747,75 +650,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Status badge
-              if (_isOnline)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF16A34A),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Online',
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF16A34A),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF94A3B8),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Offline',
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
               Text(
                 name,
@@ -1224,21 +1058,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-
-// ─── PLACEHOLDER ──────────────────────────────────────────────────────────────
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
     );
   }
 }

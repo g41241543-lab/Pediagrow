@@ -1,10 +1,10 @@
-import 'dart:convert';
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import 'stunting_rf_model.dart';
 
 /// Kategori Status Hasil Prediksi Stunting
+///
+/// Catatan: model Random Forest hanya membedakan 2 kelas (Yes/No), sehingga
+/// hanya [normal] dan [berisikoStunting] yang dihasilkan. [severelyStunted]
+/// dan [tinggi] dipertahankan agar kode UI lain tetap bisa dikompilasi.
 enum StuntingStatusCategory {
   normal,
   berisikoStunting,
@@ -71,7 +71,7 @@ class StuntingInputData {
     return '$years tahun $months bulan $days Hari';
   }
 
-  /// Mapping fitur untuk REST API backend Python
+  /// Mapping fitur (tetap dipertahankan, mis. untuk disimpan ke backend PHP)
   Map<String, dynamic> toFeatureMap() {
     final isGirl =
         gender.toLowerCase().contains('perempuan') ||
@@ -94,13 +94,22 @@ class StuntingInputData {
 class StuntingPredictionResult {
   final StuntingStatusCategory status;
   final String statusLabel;
+
+  /// Perkiraan z-score dari tabel WHO yang disederhanakan. BUKAN keluaran
+  /// Random Forest; hanya info tambahan untuk tampilan.
   final double zScoreHeightForAge;
   final double zScoreWeightForAge;
+
+  /// Tingkat kesepakatan 200 pohon (0.5 - 1.0), bukan peluang medis.
   final double confidenceProbability;
   final String description;
   final List<String> recommendations;
   final bool isFromRemoteApi;
   final String modelName;
+
+  /// false jika input di luar rentang data training (usia 1-59 bulan, dll).
+  /// UI sebaiknya menampilkan peringatan ketika nilainya false.
+  final bool isInTrainingRange;
 
   const StuntingPredictionResult({
     required this.status,
@@ -112,6 +121,7 @@ class StuntingPredictionResult {
     required this.recommendations,
     this.isFromRemoteApi = false,
     this.modelName = 'Random Forest Classifier (GridSearchCV Tuned)',
+    this.isInTrainingRange = true,
   });
 
   factory StuntingPredictionResult.fromJson(Map<String, dynamic> json) {
@@ -154,153 +164,109 @@ class StuntingPredictionResult {
   }
 }
 
-/// Service Machine Learning Stunting:
-/// Menggabungkan inference via backend REST API (jika server aktif)
-/// dan fallback engine Random Forest + GridSearchCV lokal yang akurat.
+/// Service Machine Learning Stunting.
+///
+/// Seluruh inferensi Random Forest (200 pohon, hasil GridSearchCV) berjalan
+/// langsung di dalam aplikasi lewat [StuntingRandomForest]; tidak memakai
+/// server Python, REST API, maupun koneksi internet.
 class StuntingMlService {
-  /// IP WiFi laptop/PC untuk testing di HP Android fisik.
-  /// HARUS SAMA dengan ApiService.defaultDeviceIp di
-  /// lib/core/services/api_service.dart, karena server Python (serve.py)
-  /// dan backend PHP diasumsikan berjalan di laptop yang sama.
+  /// Rentang usia (bulan) pada data training. Dipakai juga untuk validasi form.
+  static const int minSupportedAgeMonths = 1;
+  static const int maxSupportedAgeMonths = 59;
+
+  /// Dipertahankan hanya agar file lain yang masih mereferensikannya tidak
+  /// error saat build. Tidak lagi berpengaruh karena tidak ada panggilan HTTP.
+  @Deprecated('Tidak dipakai lagi: model Random Forest sudah tertanam di aplikasi.')
   static const String defaultDeviceIp = '10.125.173.83';
 
-  /// Override manual (opsional) -- isi lewat halaman pengaturan developer
-  /// kalau perlu menunjuk ke server ML di alamat lain.
+  @Deprecated('Tidak dipakai lagi: model Random Forest sudah tertanam di aplikasi.')
   static String? backendBaseUrlOverride;
 
-  /// Daftar kandidat base URL backend ML sesuai platform yang sedang
-  /// menjalankan aplikasi, mengikuti pola yang sama dengan ApiService.
-  static List<String> _candidateBaseUrls() {
-    if (backendBaseUrlOverride != null && backendBaseUrlOverride!.isNotEmpty) {
-      return [backendBaseUrlOverride!];
-    }
-    if (kIsWeb) {
-      return ['http://localhost:5000'];
-    }
-    try {
-      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        return ['http://127.0.0.1:5000'];
-      } else if (Platform.isAndroid) {
-        // Coba emulator dulu (10.0.2.2), baru IP WiFi LAN untuk HP fisik
-        return ['http://$defaultDeviceIp:5000'];
-      }
-    } catch (_) {}
-    return ['http://$defaultDeviceIp:5000'];
-  }
-
-  /// Memprediksi status stunting dengan data mining
+  /// Memprediksi status stunting. Tetap `Future` agar pemanggil yang memakai
+  /// `await` tidak perlu diubah.
   static Future<StuntingPredictionResult> predict(
     StuntingInputData input,
   ) async {
-    final candidateUrls = _candidateBaseUrls();
-
-    for (final baseUrl in candidateUrls) {
-      try {
-        final uri = Uri.parse('$baseUrl/predict_stunting');
-        final response = await http
-            .post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode(input.toFeatureMap()),
-            )
-            .timeout(const Duration(milliseconds: 2500));
-
-        if (response.statusCode == 200) {
-          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-          return StuntingPredictionResult.fromJson(decoded);
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint(
-            'Backend ($baseUrl) error: $e, mencoba opsi berikutnya...',
-          );
-        }
-      }
-    }
-
-    if (kDebugMode) {
-      debugPrint(
-        'Semua REST API backend tidak merespons, menggunakan Local Ensemble.',
-      );
-    }
-
-    // 2. Local Tuned Random Forest Engine (GridSearchCV Optimized)
-    return _runLocalRandomForestInference(input);
+    return _runEmbeddedRandomForest(input);
   }
 
-  /// Engine klasifikasi Random Forest berbasis standar WHO Child Growth Standards
-  /// dengan parameter optimal GridSearchCV (n_estimators: 100, max_depth: 8,
-  /// min_samples_split: 4, criterion: gini).
-  static StuntingPredictionResult _runLocalRandomForestInference(
+  static StuntingPredictionResult _runEmbeddedRandomForest(
     StuntingInputData input,
   ) {
-    final isGirl = input.gender.toLowerCase().contains('perempuan');
+    final g = input.gender.toLowerCase();
+    final isGirl = g.contains('perempuan') || g.contains('female');
     final months = input.ageInMonths;
 
-    // Perhitungan Z-Score WHO HAZ (Height-for-Age Z-score)
-    final double medianHeight = _getWhoMedianHeight(months, isGirl);
-    final double sdHeight = _getWhoHeightSd(months, isGirl);
-    final double haz = (input.currentHeightCm - medianHeight) / sdHeight;
+    // Urutan fitur HARUS sama dengan training:
+    // Gender(female=0, male=1), Age, Birth Weight, Birth Length,
+    // Body Weight, Body Length, Breastfeeding(No=0, Yes=1)
+    final features = <double>[
+      isGirl ? 0.0 : 1.0,
+      months.toDouble(),
+      input.birthWeightKg,
+      input.birthHeightCm,
+      input.currentWeightKg,
+      input.currentHeightCm,
+      input.isExclusiveBreastfeeding ? 1.0 : 0.0,
+    ];
 
-    // Perhitungan Z-Score WHO WAZ (Weight-for-Age Z-score)
-    final double medianWeight = _getWhoMedianWeight(months, isGirl);
-    final double sdWeight = _getWhoWeightSd(months, isGirl);
-    final double waz = (input.currentWeightKg - medianWeight) / sdWeight;
+    final pYes = StuntingRandomForest.predictProbaYes(features);
+    final isStunting = pYes > 0.5; // seri 0.5 -> "No", sama seperti scikit-learn
+    final confidence =
+        ((isStunting ? pYes : 1.0 - pYes) * 1000).round() / 1000;
 
-    // Decision Tree Feature Voting (Tree Ensemble)
-    double riskScore = 0.0;
-    if (haz < -2.0) riskScore += 0.55;
-    if (haz < -3.0) riskScore += 0.25;
-    if (waz < -2.0) riskScore += 0.15;
-    if (!input.isExclusiveBreastfeeding) riskScore += 0.10;
-    if (input.birthWeightKg < 2.5) riskScore += 0.10;
-    if (input.birthHeightCm < 48.0) riskScore += 0.05;
+    final inRange =
+        months >= minSupportedAgeMonths &&
+        months <= maxSupportedAgeMonths &&
+        input.birthWeightKg >= 1.8 &&
+        input.birthWeightKg <= 4 &&
+        input.birthHeightCm >= 42 &&
+        input.birthHeightCm <= 53 &&
+        input.currentWeightKg >= 2.9 &&
+        input.currentWeightKg <= 24.5 &&
+        input.currentHeightCm >= 53 &&
+        input.currentHeightCm <= 111;
 
-    StuntingStatusCategory status;
-    String statusLabel;
-    String desc;
-    List<String> recs;
-    double confidence;
+    const outOfRangeNote =
+        ' Perhatian: data si Kecil berada di luar rentang data pelatihan model '
+        '(usia 1-59 bulan), sehingga hasil ini kurang dapat diandalkan.';
 
-    if (haz < -3.0) {
-      status = StuntingStatusCategory.severelyStunted;
-      statusLabel = 'Sangat Pendek (Severely Stunted)';
-      desc = 'Pertumbuhan tinggi si Kecil berada di bawah batas -3 SD WHO. Diperlukan penanganan intensif bersama dokter spesialis anak.';
-      recs = [
-        'Konsultasikan segera dengan Dokter Spesialis Anak atau Fasyankes terdekat.',
-        'Evaluasi asupan protein hewani harian (telur, ikan, ayam, daging, susu).',
-        'Pastikan sanitasi lingkungan bersih dan pantau potensi infeksi berulang.',
-      ];
-      confidence = (0.94 + (riskScore * 0.04)).clamp(0.85, 0.99);
-    } else if (haz < -2.0) {
+    // Perkiraan z-score WHO (hanya info tambahan, bukan keluaran model)
+    final haz =
+        (input.currentHeightCm - _getWhoMedianHeight(months, isGirl)) /
+        _getWhoHeightSd(months, isGirl);
+    final waz =
+        (input.currentWeightKg - _getWhoMedianWeight(months, isGirl)) /
+        _getWhoWeightSd(months, isGirl);
+
+    final StuntingStatusCategory status;
+    final String statusLabel;
+    final String desc;
+    final List<String> recs;
+
+    if (isStunting) {
       status = StuntingStatusCategory.berisikoStunting;
-      statusLabel = 'Berisiko Stunting (Pendek)';
-      desc = 'Tinggi badan si Kecil berada di rentang -2 sampai -3 SD WHO. Intervensi nutrisi dini dapat membantu mengejar pertumbuhan optimal.';
+      statusLabel = 'Berisiko Stunting';
+      desc =
+          'Model Random Forest mengenali pola data si Kecil yang mirip dengan '
+          'kasus stunting pada data pelatihan. Hasil ini adalah skrining awal, '
+          'bukan diagnosis; konfirmasikan dengan pengukuran dan tenaga kesehatan.';
       recs = [
         'Tingkatkan porsi makanan bergizi kaya protein hewani dan mikronutrien.',
         'Lakukan pemantauan rutin tinggi dan berat badan setiap bulan di Posyandu.',
         'Manfaatkan fitur Konsultasi Dokter PediaGrow untuk evaluasi pola asuh & MPASI.',
       ];
-      confidence = (0.91 + (riskScore * 0.05)).clamp(0.85, 0.98);
-    } else if (haz > 2.5) {
-      status = StuntingStatusCategory.tinggi;
-      statusLabel = 'Tinggi di Atas Rata-rata';
-      desc = 'Pertumbuhan tinggi badan si Kecil melampaui rata-rata standar WHO seusianya.';
-      recs = [
-        'Pertahankan pola gizi seimbang dan aktivitas fisik yang teratur.',
-        'Pastikan asupan kalsium dan vitamin D mencukupi.',
-      ];
-      confidence = 0.95;
     } else {
       status = StuntingStatusCategory.normal;
-      statusLabel = 'Normal (Pertumbuhan Optimal)';
-      desc = 'Selamat! Pertumbuhan tinggi dan berat badan si Kecil berada dalam standar WHO yang sangat baik.';
+      statusLabel = 'Normal (Pertumbuhan Sesuai)';
+      desc =
+          'Pola data si Kecil mirip dengan anak berpertumbuhan normal pada data '
+          'pelatihan model. Tetap lakukan pemantauan tumbuh kembang secara rutin.';
       recs = [
         'Pertahankan pola makan bergizi seimbang dengan kombinasi protein hewani & nabati.',
         'Lanjutkan pemantauan tumbuh kembang bulanan secara berkala.',
         'Dukung aktivitas bermain dan istirahat yang cukup untuk perkembangan optimal.',
       ];
-      confidence = 0.96;
     }
 
     return StuntingPredictionResult(
@@ -309,14 +275,15 @@ class StuntingMlService {
       zScoreHeightForAge: haz,
       zScoreWeightForAge: waz,
       confidenceProbability: confidence,
-      description: desc,
+      description: inRange ? desc : '$desc$outOfRangeNote',
       recommendations: recs,
       isFromRemoteApi: false,
-      modelName: 'Random Forest Classifier (GridSearchCV Tuned)',
+      modelName: 'Random Forest (200 pohon, GridSearchCV) - berjalan di aplikasi',
+      isInTrainingRange: inRange,
     );
   }
 
-  // WHO Growth Standard Tables (0 - 60 Bulan)
+  // Tabel pendekatan WHO (0 - 60 bulan) -- hanya untuk perkiraan z-score tampilan.
   static double _getWhoMedianHeight(int months, bool isGirl) {
     if (months <= 0) return isGirl ? 49.1 : 49.9;
     if (months <= 3) return isGirl ? 59.8 : 61.4;

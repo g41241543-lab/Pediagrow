@@ -213,6 +213,60 @@ class ApiService {
     return [];
   }
 
+  /// Menambahkan artikel baru (hanya Superadmin/PMIK, dokter ditolak 403)
+  static Future<Map<String, dynamic>> addArticle(
+    Map<String, dynamic> data, {
+    String? role,
+  }) async {
+    if (role?.toLowerCase() == 'dokter') {
+      return {
+        'status': 'gagal',
+        'code': 403,
+        'pesan': '403 Forbidden: Dokter hanya memiliki izin baca (read-only)',
+      };
+    }
+    final root = await getEffectiveBaseUrl();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$root/pmik/add_article.php'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(data),
+          )
+          .timeout(_timeoutDuration);
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'gagal', 'pesan': 'Koneksi gagal: $e'};
+    }
+  }
+
+  /// Menghapus artikel (hanya Superadmin/PMIK, dokter ditolak 403)
+  static Future<Map<String, dynamic>> deleteArticle(
+    int articleId, {
+    String? role,
+  }) async {
+    if (role?.toLowerCase() == 'dokter') {
+      return {
+        'status': 'gagal',
+        'code': 403,
+        'pesan': '403 Forbidden: Dokter hanya memiliki izin baca (read-only)',
+      };
+    }
+    final root = await getEffectiveBaseUrl();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$root/pmik/delete_article.php'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id': articleId}),
+          )
+          .timeout(_timeoutDuration);
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'gagal', 'pesan': 'Koneksi gagal: $e'};
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // RESEP MPASI (Tabel: resep_mpasi)
   // ---------------------------------------------------------------------------
@@ -237,6 +291,60 @@ class ApiService {
       debugPrint('ApiService.getRecipes error: $e');
     }
     return [];
+  }
+
+  /// Menambahkan resep baru (hanya Superadmin/PMIK, dokter ditolak 403)
+  static Future<Map<String, dynamic>> addRecipe(
+    Map<String, dynamic> data, {
+    String? role,
+  }) async {
+    if (role?.toLowerCase() == 'dokter') {
+      return {
+        'status': 'gagal',
+        'code': 403,
+        'pesan': '403 Forbidden: Dokter hanya memiliki izin baca (read-only)',
+      };
+    }
+    final root = await getEffectiveBaseUrl();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$root/pmik/add_recipe.php'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(data),
+          )
+          .timeout(_timeoutDuration);
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'gagal', 'pesan': 'Koneksi gagal: $e'};
+    }
+  }
+
+  /// Menghapus resep (hanya Superadmin/PMIK, dokter ditolak 403)
+  static Future<Map<String, dynamic>> deleteRecipe(
+    int recipeId, {
+    String? role,
+  }) async {
+    if (role?.toLowerCase() == 'dokter') {
+      return {
+        'status': 'gagal',
+        'code': 403,
+        'pesan': '403 Forbidden: Dokter hanya memiliki izin baca (read-only)',
+      };
+    }
+    final root = await getEffectiveBaseUrl();
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$root/pmik/delete_recipe.php'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id': recipeId}),
+          )
+          .timeout(_timeoutDuration);
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      return {'status': 'gagal', 'pesan': 'Koneksi gagal: $e'};
+    }
   }
 
   // ---------------------------------------------------------------------------

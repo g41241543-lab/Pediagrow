@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/artikel_model.dart';
+import '../../models/staff_account_model.dart';
+import 'staff_auth_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Artikel Kesehatan di Cloud Firestore
@@ -196,8 +198,17 @@ class ArtikelService {
   // MANAJEMEN DATA OLEH PMIK (ADMIN & SUPERADMIN)
   // ---------------------------------------------------------------------------
 
+  void _checkWritePermission() {
+    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+      throw StateError(
+        '403 Forbidden: Role Dokter hanya memiliki hak akses baca (read-only) untuk Artikel Kesehatan',
+      );
+    }
+  }
+
   /// Tambah artikel baru. Mengembalikan ID dokumen.
   Future<String> tambahArtikel(ArtikelModel artikel) async {
+    _checkWritePermission();
     final Map<String, dynamic> data = {
       ...artikel.toFirestore(),
       'createdAt': FieldValue.serverTimestamp(),
@@ -219,6 +230,7 @@ class ArtikelService {
   /// Perbarui artikel yang ada. Mengembalikan 1 jika berhasil,
   /// 0 jika artikel tidak punya ID.
   Future<int> updateArtikel(ArtikelModel artikel) async {
+    _checkWritePermission();
     final id = artikel.id;
     if (id == null || id.isEmpty) return 0;
     await _colNonNull.doc(id).update({
@@ -231,6 +243,7 @@ class ArtikelService {
 
   /// Hapus artikel. Mengembalikan 1 jika berhasil.
   Future<int> hapusArtikel(String id, {String judul = 'Artikel'}) async {
+    _checkWritePermission();
     await _colNonNull.doc(id).delete();
     await SuperadminNotificationService().notifyArtikelHapus(judul);
     return 1;
@@ -239,6 +252,7 @@ class ArtikelService {
   /// Kosongkan seluruh artikel (untuk menguji tampilan kosong).
   /// Hati-hati: ini menghapus data di Firestore untuk semua pengguna.
   Future<void> clearAllArticles() async {
+    _checkWritePermission();
     final existing = await _colNonNull.get();
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in existing.docs) {
@@ -249,6 +263,7 @@ class ArtikelService {
 
   /// Hapus semua artikel lalu isi ulang dengan 3 artikel default.
   Future<void> resetToDefault() async {
+    _checkWritePermission();
     final existing = await _colNonNull.get();
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in existing.docs) {

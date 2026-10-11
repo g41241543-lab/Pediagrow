@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -36,6 +38,11 @@ class ChatKonsultasiPage extends StatefulWidget {
   final double? heightCm;
   final String? complaint;
 
+  // ID sesi konsultasi aktif di Firestore (opsional; jika null pakai mode offline)
+  final String? sessionId;
+  // ID pengguna yang login (Firebase Auth UID)
+  final String? userId;
+
   const ChatKonsultasiPage({
     super.key,
     this.namaDokter,
@@ -47,6 +54,8 @@ class ChatKonsultasiPage extends StatefulWidget {
     this.weightKg,
     this.heightCm,
     this.complaint,
+    this.sessionId,
+    this.userId,
   });
 
   @override
@@ -88,8 +97,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   late String _effectiveChildAge;
   late String _effectiveChildGender;
 
-  // List pesan percakapan dinamis
+  // List pesan lokal (fallback offline)
   late List<Map<String, dynamic>> _messages;
+
+  // Stream Firestore – aktif jika sessionId tersedia
+  Stream<List<ChatMessageModel>>? _messageStream;
 
   @override
   void initState() {
@@ -99,14 +111,20 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _resolveChildData();
     _initMessages();
 
+    // Jika sessionId ada, gunakan stream Firestore (real-time)
+    if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+      _messageStream =
+          ChatMessageService.instance.streamPesan(widget.sessionId!);
+    } else {
+      // Mode offline: simulasi dokter menyapa
+      _scheduleInitialDoctorGreeting();
+    }
+
     // Animasi gelombang tiga titik (...) bergerak
     _typingAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat();
-
-    // Simulasi respons sambutan awal dokter setelah halaman terbuka
-    _scheduleInitialDoctorGreeting();
   }
 
   void _resolveDoctorData() {
@@ -215,7 +233,26 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   void _sendMessage() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
+    _textController.clear();
 
+    // Jika ada sessionId → kirim ke Firestore (real-time, dokter menerima)
+    if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+      final uid = widget.userId ?? '';
+      ChatMessageService.instance.kirimTeks(
+        sessionId: widget.sessionId!,
+        senderId: uid,
+        senderRole: MessageSender.user,
+        text: text,
+      );
+      // Tandai pesan dokter sebagai sudah dibaca
+      ChatMessageService.instance.tandaiSudahDibaca(
+        sessionId: widget.sessionId!,
+        readerRole: MessageSender.user,
+      );
+      return;
+    }
+
+    // Fallback offline (tanpa sessionId) — seperti semula
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -228,7 +265,6 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'timestamp': timeStr,
         'isRead': true,
       });
-      _textController.clear();
     });
 
     _scrollToBottom();
@@ -956,11 +992,53 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // 3. AREA CHAT LIST (Scrollable)
   // ===========================================================================
 
+  // Helper konversi ChatMessageModel (Firestore) → Map lokal yang dipakai widget
+  Map<String, dynamic> _firestoreToLocal(ChatMessageModel msg) {
+    final t = msg.timestamp;
+    final timeStr =
+        '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';
+    return {
+      'sender': msg.senderRole == MessageSender.dokter ? 'doctor' : 'user',
+      'type': msg.type == MessageType.formulir
+          ? 'attachment'
+          : msg.type == MessageType.image
+              ? 'user_attachment'
+              : 'text',
+      'message': msg.text ?? '',
+      'imageUrl': msg.imageUrl,
+      'title': 'Formulir Keluhan Pasien',
+      'timestamp': timeStr,
+      'isRead': msg.isRead,
+    };
+  }
+
   Widget _buildChatList() {
+    // Mode real-time Firestore
+    if (_messageStream != null) {
+      return StreamBuilder<List<ChatMessageModel>>(
+        stream: _messageStream,
+        builder: (context, snap) {
+          final firestoreMsgs = snap.data ?? [];
+          // Scroll to bottom saat pesan baru datang
+          if (firestoreMsgs.isNotEmpty) {
+            _scrollToBottom();
+          }
+          final items =
+              firestoreMsgs.map(_firestoreToLocal).toList();
+          return _buildMessageListView(items);
+        },
+      );
+    }
+
+    // Mode offline / fallback
+    return _buildMessageListView(_messages);
+  }
+
+  Widget _buildMessageListView(List<Map<String, dynamic>> items) {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      itemCount: _messages.length + (_isDoctorTyping ? 2 : 1),
+      itemCount: items.length + (_isDoctorTyping ? 2 : 1),
       itemBuilder: (context, index) {
         // Item index 0: Badge Tanggal "Hari ini"
         if (index == 0) {
@@ -980,8 +1058,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         }
 
         final messageIndex = index - 1;
-        if (messageIndex < _messages.length) {
-          final item = _messages[messageIndex];
+        if (messageIndex < items.length) {
+          final item = items[messageIndex];
           final isUser = item['sender'] == 'user';
           final type = item['type'] ?? 'text';
 

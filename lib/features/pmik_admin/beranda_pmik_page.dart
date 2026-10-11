@@ -10,6 +10,20 @@ import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
 import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
+<<<<<<< HEAD
+import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import 'beranda/data_anak/data_pasien_page.dart';
+import 'konsultasi/konsultasi_pmik_admin_page.dart';
+=======
+import '../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
+import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+import '../pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
+import '../pmik_superadmin/profil/hak_akses/hak_akses_page.dart';
+import '../../widgets/hak_akses_logo.dart';
+>>>>>>> 52a877c16288a3d0d044862838fa18e9da7456a0
 import 'profil_pmik_page.dart';
 
 /// Halaman Beranda PMIK Admin PediaGrow.
@@ -408,6 +422,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           const SizedBox(height: 28),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
+<<<<<<< HEAD
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -436,7 +451,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'konsultasi',
                         featureName: 'Konsultasi',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const KonsultasiPmikAdminPage()),
                       ),
                     ),
                     _buildMenuCard(
@@ -447,7 +463,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'riwayat_konsultasi',
                         featureName: 'Riwayat Konsultasi',
-                        onAllowed: () {},
+                        onAllowed: () => _navigateTo(
+                          const DaftarRiwayatKonsultasiAdminPage(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -458,7 +476,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'data_pasien',
                         featureName: 'Data Pasien',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const DataPasienPage()),
                       ),
                     ),
                     _buildMenuCard(
@@ -469,7 +488,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'kelola_artikel',
                         featureName: 'Kelola Artikel',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const DaftarArtikelAdminPage()),
                       ),
                     ),
                     _buildMenuCard(
@@ -495,13 +515,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       onTap: () => _handleMenuTap(
                         permissionKey: 'kelola_resep_mpasi',
                         featureName: 'Kelola Resep MPASI',
-                        onAllowed: () {},
+                        onAllowed: () =>
+                            _navigateTo(const DaftarResepMpasiAdminPage()),
                       ),
                     ),
                   ],
                 ),
               ],
             ),
+=======
+            child: _build6MenuGrid(context),
+>>>>>>> 52a877c16288a3d0d044862838fa18e9da7456a0
           ),
           const SizedBox(height: 28),
           Padding(
@@ -527,54 +551,354 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     );
   }
 
-  Widget _buildMenuCard({
-    required IconData icon,
-    required Color color,
-    required Color bgColor,
-    required String label,
+  // =========================================================================
+  // 6 CARD MENU PMIK ADMIN
+  // =========================================================================
+  Widget _build6MenuGrid(BuildContext context) {
+    return ValueListenableBuilder<StaffAccount?>(
+      valueListenable: StaffAuthService().currentStaffNotifier,
+      builder: (context, staff, _) {
+        final canRekap = _canAccessFeature('rekapitulasi');
+        final canPasien = _canAccessFeature('data_pasien');
+        final canResep = _canAccessFeature('daftar_resep_mpasi');
+        final canArtikel = _canAccessFeature('daftar_artikel_kesehatan');
+        final canHakAkses = _canAccessFeature('hak_akses');
+        final canPermainan = _canAccessFeature('permainan');
+
+        return Column(
+          children: [
+            // Baris 1: Rekapitulasi, Data Pasien, Daftar Resep MPASI
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Rekapitulasi',
+                    customIcon: _buildRekapitulasiLogo(),
+                    blobColor: const Color(0xFFD97706),
+                    isLocked: !canRekap,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'rekapitulasi',
+                      featureName: 'Rekapitulasi',
+                      onAllowed: () =>
+                          _navigateTo(const RekapitulasiStuntingPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Data\nPasien',
+                    imageAsset: 'assets/images/data_pasien_logo.png',
+                    blobColor: const Color(0xFF3CC3A6),
+                    isLocked: !canPasien,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'data_pasien',
+                      featureName: 'Data Pasien',
+                      onAllowed: () => _navigateTo(const DataPasienPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Daftar Resep\nMPASI',
+                    imageAsset: 'assets/images/resep_mpasi_logo.png',
+                    blobColor: const Color(0xFF10B981),
+                    isLocked: !canResep,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_resep_mpasi',
+                      featureName: 'Daftar Resep MPASI',
+                      onAllowed: () =>
+                          _navigateTo(const DaftarResepMpasiAdminPage()),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Baris 2: Daftar Artikel Kesehatan, Kelola Hak Akses, Permainan
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Daftar Artikel\nKesehatan',
+                    imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                    blobColor: const Color(0xFF6366F1),
+                    isLocked: !canArtikel,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_artikel_kesehatan',
+                      featureName: 'Daftar Artikel Kesehatan',
+                      onAllowed: () =>
+                          _navigateTo(const DaftarArtikelAdminPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Kelola\nHak Akses',
+                    customIcon: HakAksesLogo(isDisabled: !canHakAkses),
+                    blobColor: const Color(0xFF0284C7),
+                    isLocked: !canHakAkses,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'hak_akses',
+                      featureName: 'Kelola Hak Akses',
+                      onAllowed: () => _navigateTo(const HakAksesPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Permainan\n',
+                    imageAsset: 'assets/images/permainan_logo.png',
+                    blobColor: const Color(0xFFF59E0B),
+                    logoOffsetX: 5,
+                    isLocked: !canPermainan,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'permainan',
+                      featureName: 'Permainan',
+                      onAllowed: () => _navigateTo(const PermainanAdminPage()),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Logo Rekapitulasi: binder/catatan kuning berklip
+  Widget _buildRekapitulasiLogo() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8CF47),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2B025), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD97706).withValues(alpha: 0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 4,
+            left: 4,
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                color: const Color(0xFF64748B),
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+              alignment: Alignment.center,
+              child: Container(
+                width: 3.5,
+                height: 3.5,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 8,
+            left: 17,
+            right: 6,
+            child: Container(
+              height: 2.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB48316).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 15,
+            left: 8,
+            right: 6,
+            child: Container(
+              height: 2.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB48316).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 22,
+            left: 8,
+            right: 12,
+            child: Container(
+              height: 2.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB48316).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem({
+    required String title,
     required VoidCallback onTap,
+    required Color blobColor,
+    String? imageAsset,
+    IconData? icon,
+    Color? iconColor,
+    Widget? customIcon,
+    double cardInset = 6,
+    double imageSize = 40,
+    double logoOffsetX = 0,
+    bool isLocked = false,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x08000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: cardInset),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isLocked
+                      ? const Color(0xFFF8FAFC)
+                      : const Color(0xFFECF6FF),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Opacity(
+                        opacity: isLocked ? 0.35 : 1.0,
+                        child: _buildTileDecoration(blobColor),
+                      ),
+                      Center(
+                        child: Opacity(
+                          opacity: isLocked ? 0.45 : 1.0,
+                          child: Transform.translate(
+                            offset: Offset(logoOffsetX, 0),
+                            child: customIcon ??
+                                (imageAsset != null
+                                    ? Image.asset(
+                                        imageAsset,
+                                        height: imageSize,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, _, _) => Icon(
+                                          icon ?? Icons.widgets_rounded,
+                                          size: imageSize,
+                                          color: iconColor ??
+                                              const Color(0xFF3985E7),
+                                        ),
+                                      )
+                                    : Icon(
+                                        icon ?? Icons.widgets_rounded,
+                                        size: imageSize,
+                                        color: iconColor ??
+                                            const Color(0xFF3985E7),
+                                      )),
+                          ),
+                        ),
+                      ),
+                      if (isLocked)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF64748B),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
+              color: isLocked
+                  ? const Color(0xFF94A3B8)
+                  : const Color(0xFF000000),
+              height: 1.25,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTileDecoration(Color blobColor) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned(
+            top: -10,
+            right: -10,
+            child: Container(
+              width: 45,
+              height: 45,
               decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: Icon(icon, size: 26, color: color),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF334155),
-                height: 1.3,
+                borderRadius: BorderRadius.circular(16),
+                color: blobColor.withValues(alpha: 0.09),
               ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: -10,
+            left: -8,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -742,7 +1066,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     return GestureDetector(
       onTap: () {
         if (index == _selectedIndex) return;
-        if (index == 3) {
+        if (index == 1) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const KonsultasiPmikAdminPage()),
+          );
+        } else if (index == 2) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
+            ),
+          );
+        } else if (index == 3) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
           );

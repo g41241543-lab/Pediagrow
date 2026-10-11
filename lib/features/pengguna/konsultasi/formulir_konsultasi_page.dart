@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/konsultasi_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -274,7 +277,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     return isValid;
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     // Tutup keyboard
     FocusScope.of(context).unfocus();
 
@@ -316,6 +319,45 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     final effectiveDoctor =
         widget.doctor ?? widget.consultation?.doctor ?? DoctorModel.defaultDoctor;
 
+    final currentUser = UserService().currentUser;
+    final parentName = currentUser.name.isNotEmpty && currentUser.name != 'Tamu'
+        ? currentUser.name
+        : 'Orang Tua $_effectiveName';
+    final userId = currentUser.id.isNotEmpty
+        ? currentUser.id
+        : 'user-${DateTime.now().millisecondsSinceEpoch}';
+
+    String? sessionId;
+    try {
+      sessionId = await KonsultasiService.instance.buatSesi(
+        childId: childData.id,
+        childName: childData.name,
+        userId: userId,
+        parentName: parentName,
+        doctorId: effectiveDoctor.id.isNotEmpty
+            ? effectiveDoctor.id
+            : effectiveDoctor.name,
+        doctorName: effectiveDoctor.name,
+        keluhanAwal: complaint,
+        weightKg: weight,
+        heightCm: height,
+        childPhotoUrl: childData.photoUrl,
+        childGender: childData.gender,
+        childAge: childData.ageDescription,
+      );
+
+      // Kirim dokumen formulir keluhan awal ke pesan chat
+      await ChatMessageService.instance.kirimFormulir(
+        sessionId: sessionId,
+        senderId: userId,
+        keluhanText: complaint,
+      );
+    } catch (e) {
+      debugPrint('Gagal buat sesi di Firestore: $e');
+    }
+
+    if (!mounted) return;
+
     // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
     final activeBooking = BookingService().activeBookingNotifier.value;
     if (activeBooking != null &&
@@ -339,6 +381,8 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           weightKg: weight,
           heightCm: height,
           complaint: complaint,
+          sessionId: sessionId,
+          userId: userId,
         ),
       ),
     );

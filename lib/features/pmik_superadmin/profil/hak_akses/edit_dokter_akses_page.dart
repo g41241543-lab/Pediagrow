@@ -6,10 +6,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/doctor_service.dart';
+import '../../../../core/services/jadwal_dokter_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
+import '../../../../models/jadwal_praktik_model.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
 
 /// Halaman Edit Dokter oleh Superadmin PediaGrow.
 ///
@@ -363,7 +366,11 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 _buildTempatPraktikSection(),
                 const SizedBox(height: 20.0),
 
-                // 3. SECTION HAK AKSES
+                // 3. SECTION JADWAL KONSULTASI STANDAR
+                _buildJadwalStandarSection(),
+                const SizedBox(height: 20.0),
+
+                // 4. SECTION HAK AKSES
                 _buildHakAksesSection(),
                 const SizedBox(height: 24.0),
 
@@ -920,6 +927,175 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   }
 
   // ---------------------------------------------------------------------------
+  // SECTION JADWAL KONSULTASI STANDAR (SUPERADMIN)
+  // ---------------------------------------------------------------------------
+  Widget _buildJadwalStandarSection() {
+    final List<JadwalPraktikModel> jadwalList =
+        JadwalDokterService().getJadwalDokter(widget.doctor.id);
+    final activeDays = jadwalList.where((j) => j.aktif).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Jadwal Konsultasi Standar',
+              style: GoogleFonts.lato(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF000000),
+              ),
+            ),
+            GestureDetector(
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AturJadwalDokterPage(
+                      dokterId: widget.doctor.id,
+                      doctorName: _namaCtrl.text,
+                      isSuperadmin: true,
+                    ),
+                  ),
+                );
+                if (mounted) setState(() {});
+              },
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.edit_calendar_rounded,
+                    color: Color(0xFF0284C7),
+                    size: 18.0,
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    'Kelola',
+                    style: GoogleFonts.lato(
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0284C7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 10.0,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0F2FE),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today_rounded,
+                      color: Color(0xFF0284C7),
+                      size: 20.0,
+                    ),
+                  ),
+                  const SizedBox(width: 12.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Jadwal Rutin Mingguan',
+                          style: GoogleFonts.lato(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 2.0),
+                        Text(
+                          activeDays.isEmpty
+                              ? 'Belum ada hari praktik aktif yang diatur.'
+                              : '${activeDays.length} hari aktif per minggu (${activeDays.map((e) => e.namaHari).join(', ')})',
+                          style: GoogleFonts.lato(
+                            fontSize: 12.0,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14.0),
+              InkWell(
+                onTap: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AturJadwalDokterPage(
+                        dokterId: widget.doctor.id,
+                        doctorName: _namaCtrl.text,
+                        isSuperadmin: true,
+                      ),
+                    ),
+                  );
+                  if (mounted) setState(() {});
+                },
+                borderRadius: BorderRadius.circular(10.0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F9FF),
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.settings_suggest_rounded,
+                        color: Color(0xFF0284C7),
+                        size: 18.0,
+                      ),
+                      const SizedBox(width: 8.0),
+                      Text(
+                        'Buka Pengaturan Jadwal & Cuti',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0284C7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // SECTION HAK AKSES (16 TOGGLE)
   // ---------------------------------------------------------------------------
   Widget _buildHakAksesSection() {
@@ -977,19 +1153,55 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               ),
                             ),
                           ),
-                          Switch(
-                            value: isChecked,
-                            activeThumbColor: const Color(0xFF3985E7),
-                            activeTrackColor:
-                                const Color(0xFF3985E7).withValues(alpha: 0.5),
-                            inactiveThumbColor: const Color(0xFFFFFFFF),
-                            inactiveTrackColor: const Color(0xFF94A3B8),
-                            onChanged: (val) {
-                              setState(() {
-                                _permissions[item.key] = val;
-                              });
-                            },
-                          ),
+                          if (item.key == 'daftar_resep_mpasi' ||
+                              item.key == 'daftar_artikel_kesehatan')
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(12.0),
+                                border: Border.all(
+                                  color: const Color(0xFFBFDBFE),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.visibility_outlined,
+                                    size: 14.0,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Text(
+                                    'Hanya Lihat',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Switch(
+                              value: isChecked,
+                              activeThumbColor: const Color(0xFF3985E7),
+                              activeTrackColor:
+                                  const Color(0xFF3985E7).withValues(alpha: 0.5),
+                              inactiveThumbColor: const Color(0xFFFFFFFF),
+                              inactiveTrackColor: const Color(0xFF94A3B8),
+                              onChanged: (val) {
+                                setState(() {
+                                  _permissions[item.key] = val;
+                                });
+                              },
+                            ),
                         ],
                       ),
                     ),

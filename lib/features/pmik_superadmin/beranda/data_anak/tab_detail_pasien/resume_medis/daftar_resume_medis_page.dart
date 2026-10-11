@@ -24,10 +24,17 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
+  late final Stream<List<ResumeMedisModel>> _resumeStream;
+  List<ResumeMedisModel>? _initialData;
 
   @override
   void initState() {
     super.initState();
+    _initialData = ResumeMedisService().getCached(widget.child.id, widget.child.name);
+    _resumeStream = ResumeMedisService().streamResumeMedis(
+      child: widget.child,
+      userId: widget.user?.id,
+    );
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -66,12 +73,11 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               // ── 3. List Resume Medis (Stream Firestore) ────────────────
               Expanded(
                 child: StreamBuilder<List<ResumeMedisModel>>(
-                  stream: ResumeMedisService().streamResumeMedis(
-                    child: widget.child,
-                    userId: widget.user?.id,
-                  ),
+                  initialData: _initialData,
+                  stream: _resumeStream,
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (snapshot.connectionState == ConnectionState.waiting &&
+                        !snapshot.hasData) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Color(0xFF2B7AE8),
@@ -253,7 +259,11 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => DetailResumeMedisPage(resume: resume),
+              builder: (_) => DetailResumeMedisPage(
+                resume: resume,
+                child: widget.child,
+                parentUser: widget.user,
+              ),
             ),
           );
         },

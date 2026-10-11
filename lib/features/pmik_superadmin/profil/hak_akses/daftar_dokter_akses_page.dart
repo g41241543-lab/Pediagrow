@@ -14,6 +14,7 @@ import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'edit_dokter_akses_page.dart';
 import 'hapus_dokter_akses_page.dart';
 import 'tambah_dokter_akses_page.dart';
+import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
 
 /// Halaman Daftar Dokter untuk Superadmin PediaGrow.
 ///
@@ -497,8 +498,52 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
               vertical: 8.0,
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // Tombol Kelola Jadwal Praktik (Biru Medis #0284C7)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AturJadwalDokterPage(
+                          dokterId: doctor.id,
+                          doctorName: doctor.name,
+                          isSuperadmin: true,
+                        ),
+                      ),
+                    );
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    height: 36.0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F9FF),
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(color: const Color(0xFFBAE6FD)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.calendar_month_rounded,
+                          size: 16.0,
+                          color: Color(0xFF0284C7),
+                        ),
+                        const SizedBox(width: 5.0),
+                        Text(
+                          'Jadwal Praktik',
+                          style: GoogleFonts.lato(
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0284C7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Spacer(),
                 // Tombol Hapus (Merah)
                 GestureDetector(
                   onTap: () => _confirmDelete(doctor),
