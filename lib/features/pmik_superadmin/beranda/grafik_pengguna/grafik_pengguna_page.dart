@@ -16,12 +16,15 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
+import '../../../../core/services/pdf_report_service.dart';
 import '../../../../models/user_model.dart';
 import '../../../Grafik_Pertumbuhan/services/growth_service.dart';
 import '../beranda_superadmin_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
+import 'pdf_preview_screen.dart';
+import '../../../../shared/widgets/child_avatar.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // WARNA & TOKEN DESAIN
@@ -721,167 +724,25 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  Future<void> _downloadUsersPdf() async {
-    if (_isDownloading) return;
-    setState(() => _isDownloading = true);
-
-    try {
-      if (!await _ensureStoragePermission()) return;
-
-      final now = DateTime.now();
-      final dateStr =
-          '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-      final pdf = pw.Document();
-
-      const cols = [
-        'No',
-        'Nama Depan',
-        'Nama Belakang',
-        'Jenis Kelamin',
-        'Umur',
-        'Provinsi',
-        'Kota',
-        'Kecamatan',
-        'Kelurahan/Desa'
-      ];
-
-      final users = List<UserDemographicRow>.from(_userRows);
-      const rowsPerPage = 20;
-      final totalPages = (users.length / rowsPerPage).ceil().clamp(1, 999);
-
-      for (int pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-        final start = pageIdx * rowsPerPage;
-        final end = math.min(start + rowsPerPage, users.length);
-        final pageUsers = users.sublist(start, end);
-
-        pdf.addPage(
-          pw.Page(
-            pageFormat: PdfPageFormat.a4.landscape,
-            margin: const pw.EdgeInsets.all(24),
-            build: (context) => pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                if (pageIdx == 0) ...[
-                  pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text(
-                            'Dataset Pengguna PediaGrow',
-                            style: pw.TextStyle(
-                              fontSize: 18,
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.blue800,
-                            ),
-                          ),
-                          pw.SizedBox(height: 3),
-                          pw.Text(
-                            'Sistem Pemantauan Tumbuh Kembang & Demografi Anak',
-                            style: const pw.TextStyle(
-                              fontSize: 10,
-                              color: PdfColors.grey700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.Text(
-                        'Tanggal Unduh: ${now.day}/${now.month}/${now.year}',
-                        style: const pw.TextStyle(
-                          fontSize: 10,
-                          color: PdfColors.grey600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 14),
-                ],
-                pw.Table(
-                  border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.7),
-                  columnWidths: {
-                    0: const pw.FlexColumnWidth(0.7),
-                    1: const pw.FlexColumnWidth(1.8),
-                    2: const pw.FlexColumnWidth(1.8),
-                    3: const pw.FlexColumnWidth(1.5),
-                    4: const pw.FlexColumnWidth(1.2),
-                    5: const pw.FlexColumnWidth(1.8),
-                    6: const pw.FlexColumnWidth(2.0),
-                    7: const pw.FlexColumnWidth(1.8),
-                    8: const pw.FlexColumnWidth(1.8),
-                  },
-                  children: [
-                    pw.TableRow(
-                      decoration: const pw.BoxDecoration(
-                        color: PdfColor.fromInt(0xFFF1F5F9),
-                      ),
-                      children: cols
-                          .map(
-                            (c) => pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 5,
-                              ),
-                              child: pw.Text(
-                                c,
-                                style: pw.TextStyle(
-                                  fontSize: 8.5,
-                                  fontWeight: pw.FontWeight.bold,
-                                  color: PdfColors.grey900,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    for (int i = 0; i < pageUsers.length; i++)
-                      pw.TableRow(
-                        children: [
-                          _buildPdfCell('${start + i + 1}'),
-                          _buildPdfCell(pageUsers[i].namaDepan),
-                          _buildPdfCell(pageUsers[i].namaBelakang),
-                          _buildPdfCell(pageUsers[i].jenisKelamin),
-                          _buildPdfCell(pageUsers[i].umur),
-                          _buildPdfCell(pageUsers[i].provinsi),
-                          _buildPdfCell(pageUsers[i].kota),
-                          _buildPdfCell(pageUsers[i].kecamatan),
-                          _buildPdfCell(pageUsers[i].kelurahanDesa),
-                        ],
-                      ),
-                  ],
-                ),
-                pw.Spacer(),
-                pw.Align(
-                  alignment: pw.Alignment.centerRight,
-                  child: pw.Text(
-                    'Halaman ${pageIdx + 1} dari $totalPages',
-                    style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
-                  ),
-                ),
-              ],
-            ),
+  /// Menampilkan pratinjau PDF Dataset Pengguna sebelum diunduh
+  void _downloadUsersPdf() {
+    final usersSnapshot = List<UserDemographicRow>.from(_userRows);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PdfPreviewScreen(
+          title: 'Pratinjau Dataset Pengguna',
+          fileName:
+              'dataset_pengguna_${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}.pdf',
+          buildPdf: (_) => PdfReportService.generateDatasetPenggunaPdf(
+            users: usersSnapshot,
+            totalPengguna: _totalPengguna,
+            totalAnak: _totalAnak,
           ),
-        );
-      }
-
-      final bytes = await pdf.save();
-      final fileName = 'dataset_pengguna_$dateStr.pdf';
-      final filePath = await _saveToDownloads(
-        fileName: fileName,
-        bytes: Uint8List.fromList(bytes),
-        mimeType: 'application/pdf',
-      );
-
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSuccessSnackbar(filePath, fileName, mimeType: 'application/pdf');
-    } catch (e) {
-      debugPrint('[GrafikPengguna] Error download PDF: $e');
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSnackbar('Gagal mengunduh PDF dataset pengguna, coba lagi');
-    }
+        ),
+      ),
+    );
   }
+
 
   pw.Widget _buildPdfCell(String text) {
     return pw.Padding(
@@ -892,6 +753,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       ),
     );
   }
+
 
   Future<void> _downloadUsersCsv() async {
     if (_isDownloading) return;
@@ -1036,170 +898,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  Future<void> _downloadStuntingPdf() async {
-    if (_isDownloading) return;
-    setState(() => _isDownloading = true);
-
-    try {
-      if (!await _ensureStoragePermission()) return;
-
-      final now = DateTime.now();
-      final dateStr =
-          '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-      final pdf = pw.Document();
-
-      const cols = [
-        'No',
-        'Nama Anak',
-        'Umur',
-        'BB (kg)',
-        'TB (cm)',
-        'Hasil Cek Stunting'
-      ];
-      final rows = List<StuntingRecordRow>.from(_stuntingRows);
-      const rowsPerPage = 22;
-      final totalPages = (rows.length / rowsPerPage).ceil().clamp(1, 999);
-
-      for (int pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-        final start = pageIdx * rowsPerPage;
-        final end = math.min(start + rowsPerPage, rows.length);
-        final pageRows = rows.sublist(start, end);
-
-        pdf.addPage(
-          pw.Page(
-            pageFormat: PdfPageFormat.a4,
-            margin: const pw.EdgeInsets.all(28),
-            build: (context) => pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                if (pageIdx == 0) ...[
-                  pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text(
-                            'Rekapitulasi Hasil Cek Stunting',
-                            style: pw.TextStyle(
-                              fontSize: 18,
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.blue900,
-                            ),
-                          ),
-                          pw.SizedBox(height: 3),
-                          pw.Text(
-                            'PediaGrow - Laporan Pemantauan Gizi Anak',
-                            style: const pw.TextStyle(
-                              fontSize: 10,
-                              color: PdfColors.grey700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.Text(
-                        'Tanggal: ${now.day}/${now.month}/${now.year}',
-                        style: const pw.TextStyle(
-                          fontSize: 10,
-                          color: PdfColors.grey600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 16),
-                ],
-                pw.Table(
-                  border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.8),
-                  columnWidths: {
-                    0: const pw.FlexColumnWidth(0.8),
-                    1: const pw.FlexColumnWidth(3.0),
-                    2: const pw.FlexColumnWidth(3.0),
-                    3: const pw.FlexColumnWidth(1.4),
-                    4: const pw.FlexColumnWidth(1.4),
-                    5: const pw.FlexColumnWidth(2.2),
-                  },
-                  children: [
-                    pw.TableRow(
-                      decoration: const pw.BoxDecoration(
-                        color: PdfColor.fromInt(0xFFF1F5F9),
-                      ),
-                      children: cols
-                          .map(
-                            (c) => pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                              child: pw.Text(
-                                c,
-                                style: pw.TextStyle(
-                                  fontSize: 9.5,
-                                  fontWeight: pw.FontWeight.bold,
-                                  color: PdfColors.grey900,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    for (int i = 0; i < pageRows.length; i++)
-                      pw.TableRow(
-                        children: [
-                          _buildPdfCell('${start + i + 1}'),
-                          _buildPdfCell(pageRows[i].namaAnak),
-                          _buildPdfCell(pageRows[i].umur),
-                          _buildPdfCell(pageRows[i].bb),
-                          _buildPdfCell(pageRows[i].tb),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            child: pw.Text(
-                              pageRows[i].hasil,
-                              style: pw.TextStyle(
-                                fontSize: 8.5,
-                                fontWeight: pw.FontWeight.bold,
-                                color: pageRows[i].isStunting
-                                    ? PdfColors.red800
-                                    : PdfColors.green800,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-                pw.Spacer(),
-                pw.Align(
-                  alignment: pw.Alignment.centerRight,
-                  child: pw.Text(
-                    'Halaman ${pageIdx + 1} dari $totalPages',
-                    style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
-                  ),
-                ),
-              ],
-            ),
+  /// Menampilkan pratinjau PDF Rekapitulasi Hasil Cek Stunting sebelum diunduh
+  void _downloadStuntingPdf() {
+    final stuntingSnapshot = List<StuntingRecordRow>.from(_stuntingRows);
+    final totalStunting = stuntingSnapshot.where((r) => r.isStunting).length;
+    final totalNormal = stuntingSnapshot.length - totalStunting;
+    final now = DateTime.now();
+    final dateStr =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PdfPreviewScreen(
+          title: 'Pratinjau Hasil Cek Stunting',
+          fileName: 'rekapitulasi_stunting_$dateStr.pdf',
+          buildPdf: (_) => PdfReportService.generateRekapitulasiStuntingPdf(
+            records: stuntingSnapshot,
+            totalStunting: totalStunting,
+            totalNormal: totalNormal,
           ),
-        );
-      }
-
-      final bytes = await pdf.save();
-      final fileName = 'rekapitulasi_stunting_$dateStr.pdf';
-      final filePath = await _saveToDownloads(
-        fileName: fileName,
-        bytes: Uint8List.fromList(bytes),
-        mimeType: 'application/pdf',
-      );
-
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSuccessSnackbar(filePath, fileName, mimeType: 'application/pdf');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSnackbar('Gagal mengunduh PDF rekapitulasi stunting');
-    }
+        ),
+      ),
+    );
   }
 
   Future<void> _downloadStuntingCsv() async {
@@ -1625,52 +1344,65 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Card Sambutan ──────────────────────────────────────────────────────────
+  // ── Card Sambutan Sesuai Referensi Desain ───────────────────────────────────
   Widget _buildWelcomeCard() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: Container(
         width: double.infinity,
-        height: 124.0,
-        color: _kWelcomeMintBg,
+        height: 132.0,
+        color: const Color(0xFFE2F3EE),
         child: Stack(
           children: [
             Positioned(
               left: 20.0,
-              top: 18.0,
-              right: 130.0,
+              top: 16.0,
+              right: 125.0,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'PediaGrow Analytics',
+                    'Selamat datang,',
                     style: GoogleFonts.lato(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F766E),
+                      fontSize: 13.5,
+                      color: const Color(0xFF1E293B),
                     ),
                   ),
-                  const SizedBox(height: 5.0),
+                  const SizedBox(height: 2.0),
                   Text(
-                    'Pantau pertumbuhan demografi pengguna dan anak secara real-time.',
+                    'Super Admin',
                     style: GoogleFonts.lato(
-                      fontSize: 11.5,
-                      height: 1.35,
-                      color: const Color(0xFF134E4A),
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 6.0),
+                  Text(
+                    'Kelola data pengguna dan\nanak secara keseluruhan',
+                    style: GoogleFonts.lato(
+                      fontSize: 12.0,
+                      height: 1.3,
+                      color: const Color(0xFF334155),
                     ),
                   ),
                 ],
               ),
             ),
-            // Ilustrasi Grafis Tablet & Karakter
+            // Ilustrasi Super Admin dengan Tablet Sesuai Asset Referensi
             Positioned(
-              right: 12.0,
-              bottom: 8.0,
-              child: Icon(
-                Icons.analytics_rounded,
-                size: 96.0,
-                color: const Color(0xFF2DD4BF).withValues(alpha: 0.35),
+              right: 14.0,
+              bottom: 0.0,
+              top: 8.0,
+              child: Image.asset(
+                'assets/images/admin_woman_tablet.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.analytics_rounded,
+                  size: 80.0,
+                  color: Color(0xFF2DD4BF),
+                ),
               ),
             ),
           ],
@@ -1679,112 +1411,108 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Card Total Pengguna & Anak ─────────────────────────────────────────────
+  // ── Card Total Pengguna & Anak Sesuai Referensi Desain ──────────────────────
   Widget _buildTotalCards() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Total Pengguna
-        Expanded(
-          child: Container(
-            height: 110.0,
-            decoration: BoxDecoration(
-              color: _kBlueCardBg,
-              borderRadius: BorderRadius.circular(16.0),
-              border: Border.all(color: _kBlueCardBorder, width: 1.0),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        Row(
+          children: [
+            // Total Pengguna
+            Expanded(
+              child: Container(
+                height: 116.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5EFFF),
+                  borderRadius: BorderRadius.circular(16.0),
+                  border: Border.all(color: const Color(0xFFCDDBF8), width: 1.0),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Total Pengguna',
                       style: GoogleFonts.lato(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w600,
-                        color: _kTextSubtitle,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
-                    const Icon(
-                      Icons.person_outline_rounded,
-                      size: 20.0,
-                      color: _kBluePrimary,
+                    Text(
+                      _formatNumber(_totalPengguna),
+                      style: GoogleFonts.lato(
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Pengguna',
+                      style: GoogleFonts.lato(
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF0F172A),
+                      ),
                     ),
                   ],
                 ),
-                Text(
-                  _formatNumber(_totalPengguna),
-                  style: GoogleFonts.lato(
-                    fontSize: 26.0,
-                    fontWeight: FontWeight.bold,
-                    color: _kBluePrimary,
-                  ),
-                ),
-                Text(
-                  'Terdaftar aktif di sistem',
-                  style: GoogleFonts.lato(
-                    fontSize: 10.5,
-                    color: _kTextMuted,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 12.0),
+            const SizedBox(width: 12.0),
 
-        // Total Anak
-        Expanded(
-          child: Container(
-            height: 110.0,
-            decoration: BoxDecoration(
-              color: _kMintCardBg,
-              borderRadius: BorderRadius.circular(16.0),
-              border: Border.all(color: _kMintCardBorder, width: 1.0),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+            // Total Anak Terdaftar
+            Expanded(
+              child: Container(
+                height: 116.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEDF7F4),
+                  borderRadius: BorderRadius.circular(16.0),
+                  border: Border.all(color: const Color(0xFFCFE9E0), width: 1.0),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total Anak',
+                      'Total Anak Terdaftar',
                       style: GoogleFonts.lato(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w600,
-                        color: _kTextSubtitle,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
-                    const Icon(
-                      Icons.child_care_rounded,
-                      size: 20.0,
-                      color: _kTealPrimary,
+                    Text(
+                      _formatNumber(_totalAnak),
+                      style: GoogleFonts.lato(
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Anak',
+                      style: GoogleFonts.lato(
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF0F172A),
+                      ),
                     ),
                   ],
                 ),
-                Text(
-                  _formatNumber(_totalAnak),
-                  style: GoogleFonts.lato(
-                    fontSize: 26.0,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0D9488),
-                  ),
-                ),
-                Text(
-                  'Dalam pemantauan tumbuh',
-                  style: GoogleFonts.lato(
-                    fontSize: 10.5,
-                    color: _kTextMuted,
-                  ),
-                ),
-              ],
+              ),
             ),
+          ],
+        ),
+        const SizedBox(height: 20.0),
+        Text(
+          'Ringkasan Pengguna & Anak',
+          style: GoogleFonts.lato(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF0F172A),
           ),
         ),
       ],
@@ -2092,16 +1820,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 44.0,
-            height: 44.0,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            child: CustomPaint(
-              painter: isBoy ? _BoyAvatarPainter() : _GirlAvatarPainter(),
-            ),
+          ChildAvatar(
+            gender: isBoy ? 'Laki-laki' : 'Perempuan',
+            size: 44.0,
           ),
           const SizedBox(width: 10.0),
           Expanded(

@@ -12,6 +12,7 @@ import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'chat_konsultasi_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman "Formulir Konsultasi" PediaGrow.
@@ -817,20 +818,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   }
 
   Widget _buildDefaultBabyIcon() {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Image.asset(
-        'assets/images/default_baby_avatar.png',
-        fit: BoxFit.contain,
-        errorBuilder: (_, _, _) => Center(
-          child: CustomPaint(
-            size: const Size(34, 34),
-            painter: _CuteBabyFacePainter(
-              isGirl: _effectiveGender.toLowerCase().contains('perempuan'),
-            ),
-          ),
-        ),
-      ),
+    return ChildAvatar(
+      gender: _effectiveGender,
+      size: 44,
     );
   }
 

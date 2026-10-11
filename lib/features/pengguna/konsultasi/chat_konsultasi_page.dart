@@ -5,13 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/resume_medis_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../models/resume_medis_model.dart';
 import 'konfirmasi_selesai_dialog.dart';
+import 'konsultasi_selesai_dialog.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Chat Konsultasi Dokter PediaGrow.
@@ -655,7 +660,96 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   void _onAkhiriKonsultasiPressed() {
     FocusScope.of(context).unfocus();
-    showKonfirmasiSelesaiDialog(context);
+    showKonfirmasiSelesaiDialog(
+      context,
+      onConfirmed: () async {
+        await _selesaikanKonsultasiDanBuatRiwayat();
+        if (mounted) {
+          showKonsultasiSelesaiDialog(context);
+        }
+      },
+    );
+  }
+
+  /// Membuat dan menyimpan Resume Medis / Riwayat Konsultasi secara instan
+  /// begitu konsultasi diakhiri oleh pengguna.
+  Future<void> _selesaikanKonsultasiDanBuatRiwayat() async {
+    try {
+      final now = DateTime.now();
+      const monthNames = [
+        '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      final formattedDate = '${now.day} ${monthNames[now.month]} ${now.year}';
+      final hourStr = now.hour.toString().padLeft(2, '0');
+      final minStr = now.minute.toString().padLeft(2, '0');
+      final formattedTime = '$hourStr.$minStr WIB';
+
+      final effectiveChild = widget.child ?? ChildService().activeChild;
+      final effectiveUserId = widget.userId ??
+          effectiveChild?.userId ??
+          UserService().currentUser.id;
+
+      final complaintText = (widget.complaint?.trim().isNotEmpty == true)
+          ? widget.complaint!.trim()
+          : 'Konsultasi keluhan kesehatan dan pemantauan tumbuh kembang anak';
+
+      final shortComplaint = complaintText.length > 60
+          ? '${complaintText.substring(0, 60)}...'
+          : complaintText;
+
+      final resume = ResumeMedisModel(
+        id: '',
+        childId: effectiveChild?.id ?? '',
+        userId: effectiveUserId,
+        doctorName: _effectiveDoctorName,
+        doctorSpecialization: _effectiveDoctorSpecialist,
+        doctorPhoto: _effectiveDoctorPhoto,
+        childName: _effectiveChildName,
+        childAgeAtConsultation: _effectiveChildAge,
+        consultationDate: formattedDate,
+        consultationTime: formattedTime,
+        bbLahir: effectiveChild?.birthWeightKg ?? 2.4,
+        bbSaatIni: widget.weightKg ?? effectiveChild?.currentWeightKg ?? 3.4,
+        tbLahir: effectiveChild?.birthHeightCm ?? 44.0,
+        tbSaatIni: widget.heightCm ?? effectiveChild?.currentHeightCm ?? 51.0,
+        complaint: complaintText,
+        complaintShort: shortComplaint,
+        doctorAssessment:
+            'Pemeriksaan klinis dan konsultasi telah dilaksanakan. Kondisi umum anak baik dan stabil. Keluhan yang dialami dalam observasi penanganan harian orang tua.',
+        summary:
+            'Konsultasi telah selesai. Edukasi nutrisi seimbang, hidrasi, dan pemantauan berkala telah diberikan.',
+        recommendations: const [
+          'Berikan asupan gizi seimbang dan cairan yang cukup sesuai usia anak.',
+          'Pantau suhu tubuh dan perkembangan keluhan anak secara berkala.',
+          'Jaga higienitas makanan dan lingkungan di sekitar anak.',
+          'Segera hubungi faskes atau dokter spesialis anak bila keluhan berlanjut.'
+        ],
+        prescription: 'Sesuai arahan klinis dokter anak',
+        status: 'Selesai',
+        sessionId: widget.sessionId,
+        createdAt: now,
+      );
+
+      await ResumeMedisService().addResumeMedis(resume);
+
+      // Perbarui status sesi konsultasi di Firestore jika tersedia
+      if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+        try {
+          await FirebaseFirestore.instance
+              .collection('consultations')
+              .doc(widget.sessionId)
+              .update({
+            'status': 'Selesai',
+            'ended_at': FieldValue.serverTimestamp(),
+          });
+        } catch (e) {
+          debugPrint('[ChatKonsultasi] Error updating consultation status: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('[ChatKonsultasi] Error selesaikanKonsultasiDanBuatRiwayat: $e');
+    }
   }
 
   // ===========================================================================

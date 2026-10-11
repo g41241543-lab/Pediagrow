@@ -10,20 +10,14 @@ import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
 import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
-<<<<<<< HEAD
 import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
 import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
-import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import 'beranda/data_anak/data_pasien_page.dart';
-import 'konsultasi/konsultasi_pmik_admin_page.dart';
-=======
-import '../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
-import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
-import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
 import '../pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
 import '../pmik_superadmin/profil/hak_akses/hak_akses_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../widgets/hak_akses_logo.dart';
->>>>>>> 52a877c16288a3d0d044862838fa18e9da7456a0
+import 'beranda/data_anak/data_pasien_page.dart';
+import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import 'profil_pmik_page.dart';
 
 /// Halaman Beranda PMIK Admin PediaGrow.
@@ -422,110 +416,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           const SizedBox(height: 28),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-<<<<<<< HEAD
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Menu',
-                  style: GoogleFonts.lato(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                GridView.count(
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.9,
-                  children: [
-                    _buildMenuCard(
-                      icon: Icons.chat_bubble_outline_rounded,
-                      color: const Color(0xFF3985E7),
-                      bgColor: const Color(0xFFEFF6FF),
-                      label: 'Konsultasi',
-                      onTap: () => _handleMenuTap(
-                        permissionKey: 'konsultasi',
-                        featureName: 'Konsultasi',
-                        onAllowed: () =>
-                            _navigateTo(const KonsultasiPmikAdminPage()),
-                      ),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.receipt_long_rounded,
-                      color: const Color(0xFF7C3AED),
-                      bgColor: const Color(0xFFF5F3FF),
-                      label: 'Riwayat\nKonsultasi',
-                      onTap: () => _handleMenuTap(
-                        permissionKey: 'riwayat_konsultasi',
-                        featureName: 'Riwayat Konsultasi',
-                        onAllowed: () => _navigateTo(
-                          const DaftarRiwayatKonsultasiAdminPage(),
-                        ),
-                      ),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.people_rounded,
-                      color: const Color(0xFF0891B2),
-                      bgColor: const Color(0xFFECFEFF),
-                      label: 'Data Pasien',
-                      onTap: () => _handleMenuTap(
-                        permissionKey: 'data_pasien',
-                        featureName: 'Data Pasien',
-                        onAllowed: () =>
-                            _navigateTo(const DataPasienPage()),
-                      ),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.article_rounded,
-                      color: const Color(0xFFEA580C),
-                      bgColor: const Color(0xFFFFF7ED),
-                      label: 'Artikel',
-                      onTap: () => _handleMenuTap(
-                        permissionKey: 'kelola_artikel',
-                        featureName: 'Kelola Artikel',
-                        onAllowed: () =>
-                            _navigateTo(const DaftarArtikelAdminPage()),
-                      ),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.bar_chart_rounded,
-                      color: const Color(0xFF16A34A),
-                      bgColor: const Color(0xFFF0FDF4),
-                      label: 'Rekapitulasi',
-                      onTap: () => _handleMenuTap(
-                        permissionKey: 'rekapitulasi',
-                        featureName: 'Rekapitulasi',
-                        onAllowed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const RekapitulasiStuntingPage(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    _buildMenuCard(
-                      icon: Icons.restaurant_menu_rounded,
-                      color: const Color(0xFFDC2626),
-                      bgColor: const Color(0xFFFEF2F2),
-                      label: 'Resep\nMPASI',
-                      onTap: () => _handleMenuTap(
-                        permissionKey: 'kelola_resep_mpasi',
-                        featureName: 'Kelola Resep MPASI',
-                        onAllowed: () =>
-                            _navigateTo(const DaftarResepMpasiAdminPage()),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-=======
             child: _build6MenuGrid(context),
->>>>>>> 52a877c16288a3d0d044862838fa18e9da7456a0
           ),
           const SizedBox(height: 28),
           Padding(

@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
 import '../beranda/beranda_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
@@ -506,7 +507,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         child: isLocalFile
                             ? Image.file(File(path), fit: BoxFit.contain)
                             : Image.asset(
-                                'assets/images/default_baby_avatar.png',
+                                ChildAvatar.assetPathFor(gender: _selectedGender),
                                 fit: BoxFit.contain,
                               ),
                       ),
@@ -837,6 +838,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                       width: 96,
                       height: 96,
                       decoration: BoxDecoration(
+                        color: ChildAvatar.bgColorFor(gender: _selectedGender),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: const Color(0xFF3985E7),
@@ -845,8 +847,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         image: DecorationImage(
                           image: isLocal
                               ? FileImage(File(_fotoProfilPath!))
-                              : const AssetImage(
-                                  'assets/images/default_baby_avatar.png',
+                              : AssetImage(
+                                  ChildAvatar.assetPathFor(
+                                    gender: _selectedGender,
+                                  ),
                                 ) as ImageProvider,
                           fit: BoxFit.cover,
                         ),

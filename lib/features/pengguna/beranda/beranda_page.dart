@@ -750,14 +750,10 @@ class _BerandaPageState extends State<BerandaPage> {
                                   fit: BoxFit.cover,
                                 )
                               : Image.asset(
-                                  'assets/images/default_baby_avatar.png',
+                                  isMale
+                                      ? 'assets/images/baby_avatar_boy.png'
+                                      : 'assets/images/baby_avatar_girl.png',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) =>
-                                      const CustomPaint(
-                                        painter: _BabyFacePainter(
-                                          outlineColor: Color(0xFF1E293B),
-                                        ),
-                                      ),
                                 ),
                         ),
                       ),
@@ -874,17 +870,7 @@ class _BerandaPageState extends State<BerandaPage> {
                                         fit: BoxFit.cover,
                                       )
                                     : Image.asset(
-                                        'assets/images/default_baby_avatar.png',
-                                        width: 260,
-                                        height: 260,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) =>
-                                            const Icon(
-                                              Icons.child_care,
-                                              size: 120,
-                                              color: Colors.white,
-                                            ),
-                                      ),
+                                        '(isMale ? 'assets/images/baby_avatar_boy.png' : 'assets/images/baby_avatar_girl.png'), width: 260, height: 260, fit: BoxFit.cover,
                               ),
                             ),
                           ),
@@ -2273,3 +2259,4 @@ class _BabyFacePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

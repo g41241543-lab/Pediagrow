@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/child_service.dart';
 import '../../models/child_model.dart';
 import 'pertumbuhan_grafik_page.dart';
+import '../../shared/widgets/child_avatar.dart';
 import '../../shared/widgets/pedia_banner.dart';
 
 /// Helper function global untuk menghitung umur anak secara presisi kalender
@@ -444,27 +445,9 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
   }
 
   Widget _buildBabyAvatar(bool isGirl, String? photoUrl) {
-    final bgColor = isGirl ? const Color(0xFFFFD8E4) : const Color(0xFFD6EEFF);
-    final iconColor = isGirl ? const Color(0xFFE83D84) : const Color(0xFF2B7AE8);
-
-    return Container(
-      width: 46,
-      height: 46,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.25),
-          width: 1.5,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.child_care_rounded,
-          color: iconColor,
-          size: 26,
-        ),
-      ),
+    return ChildAvatar(
+      isGirl: isGirl,
+      size: 46,
     );
   }
 }

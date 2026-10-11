@@ -90,6 +90,33 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     _resumeSub?.cancel();
 
     if (child == null) {
+      final userId = UserService().currentUser.id;
+      if (userId.isNotEmpty) {
+        setState(() => _isLoading = true);
+        _resumeSub = ResumeMedisService()
+            .streamResumeMedis(
+              child: const ChildModel(id: '', name: '', gender: '', birthDate: null),
+              userId: userId,
+            )
+            .listen(
+          (resumes) {
+            if (!mounted) return;
+            setState(() {
+              _riwayatList = resumes.map(_toRiwayat).toList();
+              _isLoading = false;
+              _errorMessage = null;
+            });
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() {
+              _isLoading = false;
+              _errorMessage = 'Gagal memuat data. Silakan coba lagi.';
+            });
+          },
+        );
+        return;
+      }
       setState(() {
         _riwayatList = [];
         _isLoading = false;

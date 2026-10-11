@@ -12,6 +12,7 @@ import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import 'daftar_dokter_page.dart';
 import 'pilih_anak_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 
 /// Halaman formulir booking dokter anak oleh pengguna.
 ///
@@ -800,34 +801,29 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     required bool isFemale,
     required double size,
   }) {
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
-
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
+          color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
         ),
         clipBehavior: Clip.antiAlias,
         child: Image.network(
           photoUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Container(
-            color: bgColor,
-            child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+          errorBuilder: (_, _, _) => ChildAvatar(
+            isGirl: isFemale,
+            size: size,
           ),
         ),
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+    return ChildAvatar(
+      isGirl: isFemale,
+      size: size,
     );
   }
 }

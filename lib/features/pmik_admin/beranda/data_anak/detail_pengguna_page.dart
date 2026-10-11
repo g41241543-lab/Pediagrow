@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
+import '../../../../shared/widgets/child_avatar.dart';
 import '../../../../models/user_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 
@@ -441,12 +442,12 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               Container(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFDCEEFF),
+                decoration: BoxDecoration(
+                  color: ChildAvatar.bgColorFor(gender: child.gender),
                   shape: BoxShape.circle,
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: _buildChildAvatar(child.photoUrl),
+                child: _buildChildAvatar(child.photoUrl, child.gender),
               ),
               const SizedBox(width: 14),
 
@@ -604,13 +605,10 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // ──────────────────────────────────────────────────────────────
   // HELPER — avatar anak
   // ──────────────────────────────────────────────────────────────
-  Widget _buildChildAvatar(String? imagePath) {
-    final fallback = Image.asset(
-      'assets/images/default_baby_avatar.png',
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => const Center(
-        child: Icon(Icons.face_rounded, size: 20, color: _colorPrimaryBlue),
-      ),
+  Widget _buildChildAvatar(String? imagePath, [String? gender]) {
+    final fallback = ChildAvatar(
+      gender: gender,
+      size: 48,
     );
     if (imagePath == null || imagePath.trim().isEmpty) return fallback;
     final trimmed = imagePath.trim();
