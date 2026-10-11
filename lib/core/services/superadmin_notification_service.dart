@@ -385,4 +385,18 @@ class SuperadminNotificationService {
       await prefs.setBool('${_reminderHistoryKey}_$key', true);
     }
   }
+
+  /// Notifikasi ketika terjadi override/perubahan jadwal dokter atau pembatalan booking akibat cuti.
+  Future<void> notifyJadwalOverride(String message) async {
+    final now = DateTime.now();
+    final item = SuperadminNotificationItem(
+      id: 'jadwal_override_${now.millisecondsSinceEpoch}',
+      title: 'Perubahan Jadwal Dokter',
+      message: message,
+      date: now,
+      type: SuperadminNotificationType.dokter,
+      actionType: SuperadminActionType.edit,
+    );
+    await addNotification(item);
+  }
 }

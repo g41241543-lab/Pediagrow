@@ -271,53 +271,34 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       child: Row(
         children: [
           // Avatar Dokter
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12.0),
-                child: Container(
-                  width: 54.0,
-                  height: 54.0,
-                  color: const Color(0xFFE2E8F0),
-                  child: widget.doctor.avatarUrl != null &&
-                          widget.doctor.avatarUrl!.isNotEmpty
-                      ? (widget.doctor.avatarUrl!.startsWith('http')
-                          ? Image.network(
-                              widget.doctor.avatarUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  const Icon(Icons.person, color: _kTextMuted),
-                            )
-                          : Image.file(
-                              File(widget.doctor.avatarUrl!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) =>
-                                  const Icon(Icons.person, color: _kTextMuted),
-                            ))
-                      : (widget.doctor.assetImagePath != null
-                          ? Image.asset(
-                              widget.doctor.assetImagePath!,
-                              fit: BoxFit.cover,
-                            )
-                          : const Icon(Icons.person, color: _kTextMuted)),
-                ),
-              ),
-              Positioned(
-                right: 2,
-                top: 2,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: widget.doctor.isOnline
-                        ? const Color(0xFF22C55E)
-                        : const Color(0xFF94A3B8),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                  ),
-                ),
-              ),
-            ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child: Container(
+              width: 54.0,
+              height: 54.0,
+              color: const Color(0xFFE2E8F0),
+              child: widget.doctor.avatarUrl != null &&
+                      widget.doctor.avatarUrl!.isNotEmpty
+                  ? (widget.doctor.avatarUrl!.startsWith('http')
+                      ? Image.network(
+                          widget.doctor.avatarUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              const Icon(Icons.person, color: _kTextMuted),
+                        )
+                      : Image.file(
+                          File(widget.doctor.avatarUrl!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              const Icon(Icons.person, color: _kTextMuted),
+                        ))
+                  : (widget.doctor.assetImagePath != null
+                      ? Image.asset(
+                          widget.doctor.assetImagePath!,
+                          fit: BoxFit.cover,
+                        )
+                      : const Icon(Icons.person, color: _kTextMuted)),
+            ),
           ),
           const SizedBox(width: 12.0),
 

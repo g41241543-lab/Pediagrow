@@ -18,7 +18,6 @@ class ProfilDokterPage extends StatelessWidget {
   const ProfilDokterPage({super.key, required this.doctor, this.child});
 
   void _onBookingDokterPressed(BuildContext context) {
-    if (!doctor.isOnline) return;
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -296,44 +295,25 @@ class ProfilDokterPage extends StatelessWidget {
           ),
         ),
 
-        // Avatar Bulat Overlapping di bagian atas kartu dengan Badge Hijau
+        // Avatar Bulat Overlapping di bagian atas kartu
         Positioned(
           top: 0,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 84,
-                height: 84,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF3985E7).withValues(alpha: 0.12),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+          child: Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3985E7).withValues(alpha: 0.12),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
-                child: ClipOval(child: _buildAvatarImage()),
-              ),
-              // Indikator Titik Hijau di sudut atas kanan avatar
-              Positioned(
-                top: 3,
-                right: 3,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.2),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
+            child: ClipOval(child: _buildAvatarImage()),
           ),
         ),
       ],
@@ -488,16 +468,11 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: doctor.isOnline ? () => _onBookingDokterPressed(context) : null,
+              onPressed: () => _onBookingDokterPressed(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: doctor.isOnline
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFFCBD5E1),
-                disabledBackgroundColor: const Color(0xFFE2E8F0),
+                backgroundColor: const Color(0xFF3985E7),
                 elevation: 0,
-                shadowColor: doctor.isOnline
-                    ? const Color(0xFF3985E7).withValues(alpha: 0.3)
-                    : Colors.transparent,
+                shadowColor: const Color(0xFF3985E7).withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -509,18 +484,18 @@ class ProfilDokterPage extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.calendar_month_rounded,
                     size: 18,
-                    color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
+                    color: Colors.white,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    doctor.isOnline ? 'Booking Konsultasi' : 'Dokter Sedang Offline',
+                    'Booking Konsultasi',
                     style: GoogleFonts.lato(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
+                      color: Colors.white,
                     ),
                   ),
                 ],

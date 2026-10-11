@@ -7,25 +7,23 @@ import '../../../models/staff_account_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
-import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import '../../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
+import '../../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import '../../../pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
 import '../../pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil_dokter_page.dart';
+import '../jadwal/atur_jadwal_dokter_page.dart';
 
 /// Halaman Beranda Dokter PediaGrow.
 ///
 /// Tampilan disesuaikan persis dengan beranda superadmin dan desain referensi dokter:
 /// - Sapaan "Hai, dokter" / "Hai, dr. [Nama]"
 /// - Card PeGo + Ilustrasi dokter
-/// - 6 Menu Grid (Ukuran, bentuk, penataan sama dengan superadmin):
-///   * Rekapitulasi (Aktif)
-///   * Data Pasien (Aktif)
-///   * Daftar Resep MPASI (Abu-abu, dinonaktifkan / bukan ranah dokter)
-///   * Daftar Artikel Kesehatan (Abu-abu, dinonaktifkan / bukan ranah dokter)
-///   * Grafik Pengguna (Aktif)
-///   * Permainan (Abu-abu, dinonaktifkan / bukan ranah dokter)
+/// - 6 Menu Grid:
+///   * Baris 1: Rekapitulasi (Aktif), Data Pasien (Aktif), Jadwal Praktik (Aktif)
+///   * Baris 2: Daftar Resep MPASI (Aktif, read-only), Daftar Artikel Kesehatan (Aktif, read-only), Permainan (Abu-abu, dinonaktifkan)
 /// - Card Slogan PeGo dengan ilustrasi dokter duduk di depan komputer
 /// - Ilustrasi landscape footer (daun hijau)
 /// - Navigation Bar 4 tab (#F2EDED)
@@ -43,6 +41,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   void _navigateTo(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
+
+
 
   // ─────────────────────────────────────────────────────────────────────────
   // BUILD
@@ -374,15 +374,13 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
   // =========================================================================
   // 6 CARD MENU DOKTER
-  // Tata letak, ukuran, bentuk persis sama dengan Superadmin:
-  // 3 kolom x 2 baris, corner radius 10.
-  // Menu non-ranah dokter: Resep MPASI, Artikel Kesehatan, Permainan
-  // berwarna abu-abu (#CBD5E1) dan tidak dapat diklik.
+  // Baris 1 (fokus pelayanan dokter): Rekapitulasi, Data Pasien, Jadwal Praktik.
+  // Baris 2 (konten edukasi, hanya lihat): Resep MPASI, Artikel, Permainan (disabled).
   // =========================================================================
   Widget _build6MenuGrid(BuildContext context) {
     return Column(
       children: [
-        // Baris 1: Rekapitulasi (Aktif), Data Pasien (Aktif), Daftar Resep MPASI (Abu-abu / Disabled)
+        // Baris 1: Rekapitulasi (Aktif), Data Pasien (Aktif), Jadwal Praktik (Aktif)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -408,11 +406,11 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
-                title: 'Daftar Resep\nMPASI',
-                imageAsset: 'assets/images/resep_mpasi_logo.png',
-                blobColor: Colors.transparent,
-                isDisabled: true,
-                onTap: null, // Dokter tidak dapat mengklik
+                title: 'Jadwal\nPraktik',
+                customIcon: _buildJadwalPraktikLogo(),
+                blobColor: const Color(0xFF0284C7),
+                isDisabled: false,
+                onTap: () => _navigateTo(const AturJadwalDokterPage()),
               ),
             ),
           ],
@@ -420,28 +418,31 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
         const SizedBox(height: 20),
 
-        // Baris 2: Daftar Artikel Kesehatan (Abu-abu / Disabled), Grafik Pengguna (Aktif), Permainan (Abu-abu / Disabled)
+        // Baris 2: Daftar Resep MPASI (Read-only), Daftar Artikel Kesehatan (Read-only), Permainan (Disabled)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: _buildMenuItem(
-                title: 'Daftar Artikel\nKesehatan',
-                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
-                blobColor: Colors.transparent,
-                isDisabled: true,
-                applyGreyscale: true,
-                onTap: null, // Dokter tidak dapat mengklik
+                title: 'Daftar Resep\nMPASI',
+                imageAsset: 'assets/images/resep_mpasi_logo.png',
+                blobColor: const Color(0xFF10B981),
+                isDisabled: false,
+                onTap: () => _navigateTo(
+                  const DaftarResepMpasiAdminPage(isReadOnly: true),
+                ),
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
-                title: 'Grafik\nPengguna',
-                imageAsset: 'assets/images/grafik_pengguna_logo.png',
-                blobColor: const Color(0xFF2563EB),
+                title: 'Daftar Artikel\nKesehatan',
+                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                blobColor: const Color(0xFF6366F1),
                 isDisabled: false,
-                onTap: () => _navigateTo(const GrafikPenggunaPage()),
+                onTap: () => _navigateTo(
+                  const DaftarArtikelPage(isReadOnly: true),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -453,12 +454,57 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 logoOffsetX: 5,
                 isDisabled: true,
                 applyGreyscale: true,
-                onTap: null, // Dokter tidak dapat mengklik
+                onTap: null,
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  /// Logo Jadwal Praktik: Kalender & Jam bernuansa biru medis (#0284C7)
+  Widget _buildJadwalPraktikLogo() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0284C7),
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Icon(
+            Icons.calendar_month_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
+          Positioned(
+            right: 4,
+            bottom: 4,
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.access_time_filled_rounded,
+                color: Color(0xFF0284C7),
+                size: 11,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

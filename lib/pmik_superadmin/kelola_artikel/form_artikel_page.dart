@@ -7,7 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/artikel_service.dart';
+import '../../../core/services/staff_auth_service.dart';
 import '../../../models/artikel_model.dart';
+import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/article_rich_text_editor.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
@@ -59,6 +61,16 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+        PediaBanner.showError(
+          context,
+          message:
+              'Akses Ditolak: Dokter hanya memiliki hak akses baca (read-only)',
+        );
+        Navigator.of(context).maybePop();
+      }
+    });
     final item = widget.artikel;
 
     // Inisialisasi controller berdasarkan mode

@@ -265,6 +265,9 @@ class StaffAccount {
 
   /// Mengecek apakah staf memiliki hak akses untuk fitur tertentu
   bool hasPermission(String permissionKey) {
+    if (permissionKey == 'hak_akses') {
+      return isSuperAdmin;
+    }
     if (isSuperAdmin) return true;
     if (permissions.isEmpty) return true;
     return permissions[permissionKey] ?? false;
