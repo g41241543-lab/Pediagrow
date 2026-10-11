@@ -747,11 +747,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         color: _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-<<<<<<< HEAD
           color: doctor.isOnline ? borderColor : _colorBorder,
-=======
-          color: doctor.isOnline ? const Color(0xFFBFDBFE) : borderColor,
->>>>>>> 8355baa19a6b371bc8378bfa375490bd9cb09140
           width: 1,
         ),
         boxShadow: [
