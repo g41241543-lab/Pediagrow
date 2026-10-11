@@ -1,17 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/booking_consultation_model.dart';
-import '../../models/child_model.dart';
-import '../../models/doctor_model.dart';
 
-/// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
-/// dan integrasi pengingat ke Google Kalender.
+/// Service singleton untuk mengelola daftar jadwal booking konsultasi dokter
+/// yang dibuat oleh pengguna, tersimpan dan tersinkronisasi di Firestore.
 class BookingService {
   static final BookingService _instance = BookingService._internal();
   factory BookingService() => _instance;
+
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  static const String _collection = 'consultation_bookings';
+
   BookingService._internal() {
-    _initDefaultBookings();
+    _initFirestoreListener();
   }
 
   /// Daftar semua riwayat / jadwal booking pengguna
@@ -24,6 +27,40 @@ class BookingService {
 
   List<BookingConsultationModel> get bookings => bookingsNotifier.value;
 
+<<<<<<< ours
+  void _initFirestoreListener() {
+    try {
+      _db
+          .collection(_collection)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final items = snapshot.docs
+              .map((doc) => BookingConsultationModel.fromDoc(doc))
+              .toList();
+          // Merge dengan memory jika ada data lokal
+          final existingIds = items.map((i) => i.id).toSet();
+          final localOnly =
+              bookingsNotifier.value.where((b) => !existingIds.contains(b.id));
+          bookingsNotifier.value = [...items, ...localOnly];
+        },
+        onError: (err) {
+          debugPrint('BookingService Firestore error: $err');
+        },
+      );
+    } catch (e) {
+      debugPrint('BookingService init error: $e');
+    }
+  }
+
+  /// Menambahkan booking konsultasi baru ke lokal notifier dan Firestore
+  Future<void> addBooking(BookingConsultationModel booking) async {
+    // 1. Update lokal langsung agar instan di UI
+    if (!bookingsNotifier.value.any((b) => b.id == booking.id)) {
+      bookingsNotifier.value = [booking, ...bookingsNotifier.value];
+    }
+=======
   void addBooking(BookingConsultationModel booking) {
     bookingsNotifier.value = [booking, ...bookingsNotifier.value];
     if (activeBookingNotifier.value == null) {
@@ -231,59 +268,31 @@ class BookingService {
       strNumber: 'STR-33.1.1.100.2.20.123456',
       placesOfPractice: ['RS Hermina Pasteur', 'Klinik Tumbuh Kembang'],
     );
+>>>>>>> theirs
 
-    const doc2 = DoctorModel(
-      id: 'doc_2',
-      name: 'dr. Ririn Esterina, Sp.A',
-      specialization: 'Spesialis Anak',
-      experienceYears: 8,
-      isOnline: true,
-      strNumber: 'STR-33.1.1.100.2.20.654321',
-      placesOfPractice: ['RSIA Melinda Bandung', 'Puskesmas Garuda'],
-    );
+    // 2. Simpan ke Firestore
+    try {
+      await _db.collection(_collection).doc(booking.id).set(booking.toMap());
+    } catch (e) {
+      debugPrint('Gagal menyimpan booking ke Firestore: $e');
+    }
+  }
 
-    const doc3 = DoctorModel(
-      id: 'doc_3',
-      name: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-      specialization: 'Spesialis Anak',
-      experienceYears: 10,
-      isOnline: true,
-      strNumber: 'STR-33.1.1.100.2.20.789101',
-      placesOfPractice: ['RS Santo Borromeus'],
-    );
+  /// Menghapus booking berdasarkan ID
+  Future<void> removeBooking(String bookingId) async {
+    bookingsNotifier.value =
+        bookingsNotifier.value.where((b) => b.id != bookingId).toList();
 
-    bookingsNotifier.value = [
-      BookingConsultationModel(
-        id: 'book_1',
-        doctor: doc1,
-        child: child1,
-        scheduledDate: DateTime.now().add(const Duration(days: 2)),
-        scheduledTimeSlot: '09:00 - 09:30 WIB',
-        status: 'Terjadwal',
-        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-      BookingConsultationModel(
-        id: 'book_2',
-        doctor: doc2,
-        child: child2,
-        scheduledDate: DateTime.now().add(const Duration(days: 4)),
-        scheduledTimeSlot: '13:30 - 14:00 WIB',
-        status: 'Terjadwal',
-        createdAt: DateTime.now().subtract(const Duration(hours: 12)),
-      ),
-      BookingConsultationModel(
-        id: 'book_3',
-        doctor: doc3,
-        child: child1,
-        scheduledDate: DateTime.now().add(const Duration(days: 7)),
-        scheduledTimeSlot: '10:30 - 11:00 WIB',
-        status: 'Terjadwal',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ];
+    try {
+      await _db.collection(_collection).doc(bookingId).delete();
+    } catch (e) {
+      debugPrint('Gagal menghapus booking dari Firestore: $e');
+    }
   }
 }
 
+<<<<<<< ours
+=======
 class DoctorTimeSlot {
   final String time;
   final int startHour;
@@ -315,3 +324,4 @@ class DoctorTimeSlot {
     );
   }
 }
+>>>>>>> theirs
