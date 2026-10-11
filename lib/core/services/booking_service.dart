@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/booking_consultation_model.dart';
+import '../../models/child_model.dart';
+import '../../models/doctor_model.dart';
 
-/// Service singleton untuk mengelola daftar jadwal booking konsultasi dokter
-/// yang dibuat oleh pengguna, tersimpan dan tersinkronisasi di Firestore.
+/// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
+/// yang tersimpan dan tersinkronisasi di Firestore serta integrasi Google Kalender.
 class BookingService {
   static final BookingService _instance = BookingService._internal();
   factory BookingService() => _instance;
@@ -27,7 +29,6 @@ class BookingService {
 
   List<BookingConsultationModel> get bookings => bookingsNotifier.value;
 
-<<<<<<< ours
   void _initFirestoreListener() {
     try {
       _db
@@ -56,15 +57,19 @@ class BookingService {
 
   /// Menambahkan booking konsultasi baru ke lokal notifier dan Firestore
   Future<void> addBooking(BookingConsultationModel booking) async {
-    // 1. Update lokal langsung agar instan di UI
+    // 1. Update lokal langsung agar responsif di UI
     if (!bookingsNotifier.value.any((b) => b.id == booking.id)) {
       bookingsNotifier.value = [booking, ...bookingsNotifier.value];
     }
-=======
-  void addBooking(BookingConsultationModel booking) {
-    bookingsNotifier.value = [booking, ...bookingsNotifier.value];
     if (activeBookingNotifier.value == null) {
       activeBookingNotifier.value = booking;
+    }
+
+    // 2. Simpan ke Firestore
+    try {
+      await _db.collection(_collection).doc(booking.id).set(booking.toMap());
+    } catch (e) {
+      debugPrint('Gagal menyimpan booking ke Firestore: $e');
     }
   }
 
@@ -120,7 +125,7 @@ class BookingService {
     }).toList();
   }
 
-  /// Membuat booking baru
+  /// Membuat booking baru dan menyimpannya ke memori serta Firestore
   BookingConsultationModel createBooking({
     required DoctorModel doctor,
     required ChildModel child,
@@ -162,6 +167,11 @@ class BookingService {
     bookingsNotifier.value = updated;
     activeBookingNotifier.value = newBooking;
 
+    // Simpan ke Firestore secara asynchronous
+    _db.collection(_collection).doc(id).set(newBooking.toMap()).catchError((e) {
+      debugPrint('Gagal menyimpan booking baru ke Firestore: $e');
+    });
+
     return newBooking;
   }
 
@@ -187,6 +197,16 @@ class BookingService {
       if (activeBookingNotifier.value?.id == bookingId) {
         activeBookingNotifier.value = updated;
       }
+
+      // Update di Firestore
+      _db.collection(_collection).doc(bookingId).update({
+        'weightKg': weightKg,
+        'heightCm': heightCm,
+        'complaint': complaint,
+        'status': 'Sedang Berlangsung',
+      }).catchError((e) {
+        debugPrint('Gagal update form booking di Firestore: $e');
+      });
     }
   }
 
@@ -240,44 +260,6 @@ class BookingService {
     return false;
   }
 
-  void _initDefaultBookings() {
-    final child1 = ChildModel(
-      id: 'child_mock_1',
-      name: 'Devaro Ramadhan',
-      gender: 'Laki-laki',
-      ageDescription: '1 tahun 2 bulan 13 hari',
-      birthDate: DateTime.now().subtract(const Duration(days: 440)),
-      photoUrl: null,
-    );
-
-    final child2 = ChildModel(
-      id: 'child_mock_2',
-      name: 'Naya Seiza Putri',
-      gender: 'Perempuan',
-      ageDescription: '0 tahun 8 bulan 20 hari',
-      birthDate: DateTime.now().subtract(const Duration(days: 260)),
-      photoUrl: null,
-    );
-
-    const doc1 = DoctorModel(
-      id: 'doc_1',
-      name: 'dr. Ahmad Nuri, Sp. A',
-      specialization: 'Spesialis Anak',
-      experienceYears: 12,
-      isOnline: true,
-      strNumber: 'STR-33.1.1.100.2.20.123456',
-      placesOfPractice: ['RS Hermina Pasteur', 'Klinik Tumbuh Kembang'],
-    );
->>>>>>> theirs
-
-    // 2. Simpan ke Firestore
-    try {
-      await _db.collection(_collection).doc(booking.id).set(booking.toMap());
-    } catch (e) {
-      debugPrint('Gagal menyimpan booking ke Firestore: $e');
-    }
-  }
-
   /// Menghapus booking berdasarkan ID
   Future<void> removeBooking(String bookingId) async {
     bookingsNotifier.value =
@@ -291,8 +273,6 @@ class BookingService {
   }
 }
 
-<<<<<<< ours
-=======
 class DoctorTimeSlot {
   final String time;
   final int startHour;
@@ -324,4 +304,3 @@ class DoctorTimeSlot {
     );
   }
 }
->>>>>>> theirs

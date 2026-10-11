@@ -71,7 +71,6 @@ class BookingConsultationModel {
         scheduledStartDateTime = scheduledStartDateTime ?? (scheduledDate ?? bookingDate ?? createdAt),
         scheduledEndDateTime = scheduledEndDateTime ?? (scheduledDate ?? bookingDate ?? createdAt);
 
-<<<<<<< HEAD
   /// Konversi dari DocumentSnapshot Firestore
   factory BookingConsultationModel.fromDoc(
     DocumentSnapshot<Map<String, dynamic>> doc,
@@ -84,7 +83,7 @@ class BookingConsultationModel {
     Map<String, dynamic> map, {
     String? id,
   }) {
-    final rawDate = map['scheduledDate'];
+    final rawDate = map['scheduledDate'] ?? map['bookingDate'];
     final DateTime scheduledDate = rawDate is Timestamp
         ? rawDate.toDate()
         : rawDate is String
@@ -98,6 +97,28 @@ class BookingConsultationModel {
             ? DateTime.tryParse(rawCreated) ?? DateTime.now()
             : DateTime.now();
 
+    final rawStart = map['scheduledStartDateTime'];
+    final DateTime? scheduledStartDateTime = rawStart is Timestamp
+        ? rawStart.toDate()
+        : rawStart is String
+            ? DateTime.tryParse(rawStart)
+            : null;
+
+    final rawEnd = map['scheduledEndDateTime'];
+    final DateTime? scheduledEndDateTime = rawEnd is Timestamp
+        ? rawEnd.toDate()
+        : rawEnd is String
+            ? DateTime.tryParse(rawEnd)
+            : null;
+
+    final rawWeight = map['weightKg'];
+    final double? weightKg =
+        rawWeight != null ? (rawWeight as num).toDouble() : null;
+
+    final rawHeight = map['heightCm'];
+    final double? heightCm =
+        rawHeight != null ? (rawHeight as num).toDouble() : null;
+
     return BookingConsultationModel(
       id: id ?? (map['id'] as String? ?? ''),
       doctor: map['doctor'] is Map<String, dynamic>
@@ -110,8 +131,15 @@ class BookingConsultationModel {
               name: map['childName'] as String? ?? 'Ananda',
             ),
       scheduledDate: scheduledDate,
-      scheduledTimeSlot: map['scheduledTimeSlot'] as String? ?? '',
+      scheduledTimeSlot:
+          (map['scheduledTimeSlot'] ?? map['timeSlot']) as String? ?? '',
+      scheduledStartDateTime: scheduledStartDateTime,
+      scheduledEndDateTime: scheduledEndDateTime,
       status: map['status'] as String? ?? 'Terjadwal',
+      googleCalendarUrl: map['googleCalendarUrl'] as String?,
+      weightKg: weightKg,
+      heightCm: heightCm,
+      complaint: map['complaint'] as String?,
       createdAt: createdAt,
     );
   }
@@ -126,13 +154,18 @@ class BookingConsultationModel {
       'doctorName': doctor.name,
       'scheduledDate': Timestamp.fromDate(scheduledDate),
       'scheduledTimeSlot': scheduledTimeSlot,
+      'scheduledStartDateTime': Timestamp.fromDate(scheduledStartDateTime),
+      'scheduledEndDateTime': Timestamp.fromDate(scheduledEndDateTime),
       'status': status,
+      'googleCalendarUrl': googleCalendarUrl,
+      'weightKg': weightKg,
+      'heightCm': heightCm,
+      'complaint': complaint,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
   /// Format tanggal standar Indonesia: "Senin, 13 Okt 2026"
-=======
   /// Cek apakah waktu saat ini sudah memasuki atau melewati jadwal konsultasi
   bool get isTimeReady {
     final now = DateTime.now();
@@ -141,7 +174,6 @@ class BookingConsultationModel {
   }
 
   /// Format tanggal standar Indonesia: "Senin, 12 Oktober 2026"
->>>>>>> 181bb67762acbad090abea19b7c52761d2163528
   String get formattedDate {
     const days = [
       'Senin',

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../models/child_model.dart';
 import '../../models/resume_medis_model.dart';
@@ -14,6 +15,20 @@ class ResumeMedisService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _collectionName = 'resume_medis';
+
+  // Fast In-Memory Cache untuk akses instan (0ms delay)
+  final Map<String, List<ResumeMedisModel>> _cache = {};
+
+  /// Ambil data cache jika sudah pernah dimuat sebelumnya
+  List<ResumeMedisModel>? getCached(String? childId, [String? childName]) {
+    if (childId != null && childId.isNotEmpty && _cache.containsKey(childId)) {
+      return _cache[childId];
+    }
+    if (childName != null && childName.isNotEmpty && _cache.containsKey(childName)) {
+      return _cache[childName];
+    }
+    return null;
+  }
 
   /// Stream daftar resume medis untuk anak tertentu dari Firestore.
   /// Mengembalikan list kosong apabila belum ada data resume medis untuk anak tersebut.
@@ -34,24 +49,73 @@ class ResumeMedisService {
     }
 
     return query.snapshots().map((snapshot) {
-      if (snapshot.docs.isEmpty) return <ResumeMedisModel>[];
+      if (snapshot.docs.isEmpty) {
+        if (child.id.isNotEmpty) _cache[child.id] = [];
+        if (child.name.isNotEmpty) _cache[child.name] = [];
+        return <ResumeMedisModel>[];
+      }
       final items = snapshot.docs
           .map((doc) => ResumeMedisModel.fromFirestore(doc))
           .toList();
+
       // Sort terbaru di atas
       items.sort((a, b) {
         final aDate = a.createdAt ?? DateTime(2000);
         final bDate = b.createdAt ?? DateTime(2000);
         return bDate.compareTo(aDate);
       });
+
+      // Update cache
+      if (child.id.isNotEmpty) _cache[child.id] = items;
+      if (child.name.isNotEmpty) _cache[child.name] = items;
+
       return items;
-    }).handleError((_) => <ResumeMedisModel>[]);
+    }).handleError((err) {
+      debugPrint('[ResumeMedisService] stream error: $err');
+      return getCached(child.id, child.name) ?? <ResumeMedisModel>[];
+    });
   }
 
   /// Tambah dokumen resume medis ke Firestore
   /// Mengembalikan ID dokumen yang baru dibuat
   Future<String> addResumeMedis(ResumeMedisModel resume) async {
     final ref = await _firestore.collection(_collectionName).add(resume.toMap());
+    final created = ResumeMedisModel(
+      id: ref.id,
+      childId: resume.childId,
+      userId: resume.userId,
+      doctorName: resume.doctorName,
+      doctorSpecialization: resume.doctorSpecialization,
+      doctorPhoto: resume.doctorPhoto,
+      childName: resume.childName,
+      childAgeAtConsultation: resume.childAgeAtConsultation,
+      consultationDate: resume.consultationDate,
+      consultationTime: resume.consultationTime,
+      bbLahir: resume.bbLahir,
+      bbSaatIni: resume.bbSaatIni,
+      tbLahir: resume.tbLahir,
+      tbSaatIni: resume.tbSaatIni,
+      complaint: resume.complaint,
+      complaintShort: resume.complaintShort,
+      doctorAssessment: resume.doctorAssessment,
+      summary: resume.summary,
+      recommendations: resume.recommendations,
+      prescription: resume.prescription,
+      status: resume.status,
+      sessionId: resume.sessionId,
+      createdAt: resume.createdAt ?? DateTime.now(),
+    );
+
+    // Update cache langsung
+    if (resume.childId.isNotEmpty) {
+      final list = _cache[resume.childId] ?? [];
+      _cache[resume.childId] = [created, ...list];
+    }
+    if (resume.childName.isNotEmpty) {
+      final list = _cache[resume.childName] ?? [];
+      _cache[resume.childName] = [created, ...list];
+    }
+
     return ref.id;
   }
 
@@ -61,6 +125,45 @@ class ResumeMedisService {
       ...data,
       'updated_at': FieldValue.serverTimestamp(),
     });
+
+    // Update di cache lokal jika ada
+    for (final key in _cache.keys) {
+      final list = _cache[key];
+      if (list != null) {
+        final idx = list.indexWhere((r) => r.id == resumeId);
+        if (idx != -1) {
+          final old = list[idx];
+          list[idx] = ResumeMedisModel(
+            id: old.id,
+            childId: old.childId,
+            userId: old.userId,
+            doctorName: old.doctorName,
+            doctorSpecialization: old.doctorSpecialization,
+            doctorPhoto: old.doctorPhoto,
+            childName: old.childName,
+            childAgeAtConsultation: old.childAgeAtConsultation,
+            consultationDate: old.consultationDate,
+            consultationTime: old.consultationTime,
+            bbLahir: old.bbLahir,
+            bbSaatIni: old.bbSaatIni,
+            tbLahir: old.tbLahir,
+            tbSaatIni: old.tbSaatIni,
+            complaint: old.complaint,
+            complaintShort: old.complaintShort,
+            doctorAssessment: data['doctor_assessment'] ?? old.doctorAssessment,
+            summary: data['summary'] ?? old.summary,
+            recommendations: (data['recommendations'] as List?)
+                    ?.map((e) => e.toString())
+                    .toList() ??
+                old.recommendations,
+            prescription: data['prescription'] ?? old.prescription,
+            status: old.status,
+            sessionId: old.sessionId,
+            createdAt: old.createdAt,
+          );
+        }
+      }
+    }
   }
 
   /// Ambil satu dokumen resume medis berdasarkan ID
