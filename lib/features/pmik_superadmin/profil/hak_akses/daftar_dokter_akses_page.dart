@@ -96,7 +96,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       PageRouteBuilder(
         pageBuilder: (_, animation, secondaryAnimation) =>
             TambahDokterAksesPage(createdByEmail: currentEmail),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
@@ -127,7 +127,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       PageRouteBuilder(
         pageBuilder: (_, animation, secondaryAnimation) =>
             EditDokterAksesPage(doctor: doctor, staffAccount: staff),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
@@ -172,9 +172,9 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     };
 
     final route = PageRouteBuilder(
-      pageBuilder: (_, __, ___) => destination,
+      pageBuilder: (_, _, _) => destination,
       transitionDuration: const Duration(milliseconds: 220),
-      transitionsBuilder: (_, animation, __, child) {
+      transitionsBuilder: (_, animation, _, child) {
         return FadeTransition(
           opacity: animation,
           child: child,
@@ -243,7 +243,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                       ),
                       physics: const BouncingScrollPhysics(),
                       itemCount: filteredDoctors.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 14.0),
                       itemBuilder: (context, index) {
                         final doctor = filteredDoctors[index];
@@ -258,7 +258,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           ],
         ),
       ),
-      bottomNavigationBar: null,
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -286,9 +286,9 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     } else {
                       Navigator.of(context).pushReplacement(
                         PageRouteBuilder(
-                          pageBuilder: (_, __, ___) =>
+                          pageBuilder: (_, _, _) =>
                               const ProfilSuperadminPage(),
-                          transitionsBuilder: (_, a, __, c) =>
+                          transitionsBuilder: (_, a, _, c) =>
                               FadeTransition(opacity: a, child: c),
                         ),
                       );
@@ -566,7 +566,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           fit: BoxFit.cover,
           width: 58.0,
           height: 58.0,
-          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+          errorBuilder: (_, _, _) => _buildAvatarFallback(),
         );
       }
       if (avatar.startsWith('assets/')) {
@@ -575,7 +575,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           fit: BoxFit.cover,
           width: 58.0,
           height: 58.0,
-          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
+          errorBuilder: (_, _, _) => _buildAvatarFallback(),
         );
       }
     }

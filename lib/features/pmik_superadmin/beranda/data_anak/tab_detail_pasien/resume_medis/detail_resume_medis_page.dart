@@ -156,12 +156,12 @@ class DetailResumeMedisPage extends StatelessWidget {
                       ? Image.network(
                           resume.doctorPhoto!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildFallbackDoctorIcon(),
+                          errorBuilder: (_, _, _) => _buildFallbackDoctorIcon(),
                         )
                       : Image.asset(
                           resume.doctorPhoto!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildFallbackDoctorIcon(),
+                          errorBuilder: (_, _, _) => _buildFallbackDoctorIcon(),
                         ))
                   : _buildFallbackDoctorIcon(),
             ),

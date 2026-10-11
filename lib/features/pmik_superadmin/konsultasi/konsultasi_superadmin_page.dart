@@ -230,8 +230,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, animation, __, child) {
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -683,10 +683,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -696,7 +696,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -723,7 +723,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -863,7 +863,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: _colorPrimaryBlue.withOpacity(0.25),
+                          color: _colorPrimaryBlue.withValues(alpha: 0.25),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -1253,10 +1253,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: const Color(0xFFEBF5FF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -1266,7 +1266,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -1293,7 +1293,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -1414,7 +1414,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   color: const Color(0xFFF0F7FF),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _colorPrimaryBlue.withOpacity(0.18),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.18),
                     width: 1,
                   ),
                 ),
@@ -1525,7 +1525,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           color: bgColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1573,7 +1573,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -1747,7 +1747,7 @@ class _BabyFacePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withOpacity(0.4)
+      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final cx = w * 0.5;

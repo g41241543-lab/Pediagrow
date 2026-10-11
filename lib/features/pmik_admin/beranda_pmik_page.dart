@@ -639,7 +639,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
+                      errorBuilder: (_, _, _) =>
                           _buildArticleImagePlaceholder(),
                     )
                   : _buildArticleImagePlaceholder(),

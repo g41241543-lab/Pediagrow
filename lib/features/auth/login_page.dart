@@ -129,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
           destination = const BerandaPmikPage();
           break;
         case StaffRole.superadmin:
-        default:
           destination = const BerandaSuperadminPage();
           break;
       }
@@ -152,6 +151,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!result.isSuccess) {
       await ChildService().loadChildrenForCurrentUser();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.errorMessage ?? 'Gagal masuk.'),
@@ -237,6 +237,7 @@ class _LoginPageState extends State<LoginPage> {
       await ChildService().loadChildrenForCurrentUser();
 
       // Berhasil — tampilkan pesan sambutan lalu navigasi
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

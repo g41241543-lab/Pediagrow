@@ -145,6 +145,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     if (result == true && mounted) {
       await _loadArticles();
+      if (!mounted) return;
       PediaBanner.showSuccess(
         context,
         message: 'Berhasil Menyimpan Artikel Baru',
@@ -160,6 +161,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     if (result == true && mounted) {
       await _loadArticles();
+      if (!mounted) return;
       PediaBanner.showSuccess(context, message: 'Berhasil Menyimpan Perubahan');
     }
   }
@@ -782,14 +784,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                       width: width,
                       height: height,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
+                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
                     )
                   : Image.network(
                       image,
                       width: width,
                       height: height,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
+                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
                     )),
       ),
     );
@@ -929,8 +931,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             } else {
               Navigator.of(context).pushAndRemoveUntil(
                 PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => const BerandaSuperadminPage(),
-                  transitionsBuilder: (_, animation, __, child) =>
+                  pageBuilder: (_, _, _) => const BerandaSuperadminPage(),
+                  transitionsBuilder: (_, animation, _, child) =>
                       FadeTransition(opacity: animation, child: child),
                   transitionDuration: const Duration(milliseconds: 200),
                 ),
@@ -941,8 +943,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           case 1:
             Navigator.of(context).push(
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const KonsultasiSuperadminPage(),
-                transitionsBuilder: (_, animation, __, child) =>
+                pageBuilder: (_, _, _) => const KonsultasiSuperadminPage(),
+                transitionsBuilder: (_, animation, _, child) =>
                     FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),
@@ -951,9 +953,9 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           case 2:
             Navigator.of(context).push(
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) =>
+                pageBuilder: (_, _, _) =>
                     const DaftarRiwayatKonsultasiAdminPage(),
-                transitionsBuilder: (_, animation, __, child) =>
+                transitionsBuilder: (_, animation, _, child) =>
                     FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),
@@ -962,8 +964,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           case 3:
             Navigator.of(context).push(
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const ProfilSuperadminPage(),
-                transitionsBuilder: (_, animation, __, child) =>
+                pageBuilder: (_, _, _) => const ProfilSuperadminPage(),
+                transitionsBuilder: (_, animation, _, child) =>
                     FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),

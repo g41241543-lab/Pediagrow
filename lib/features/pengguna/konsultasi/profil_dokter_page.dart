@@ -5,50 +5,45 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
-import 'menunggu_persetujuan_page.dart';
-import 'pilih_anak_page.dart';
+import '../../../core/services/child_service.dart';
+import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
 ///
-/// Alur navigasi: Profil Dokter → [PilihAnakPage] → [MenungguPersetujuanPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
-///
-/// Disesuaikan persis dengan acuan desain:
-/// 1. Header: Tombol kembali + judul "Profil Dokter Anak"
-/// 2. Kartu Utama Profil Dokter:
-///    - Foto avatar sirkular yang overlapping di bagian atas kartu
-///    - Indikator badge hijau di sudut avatar
-///    - Nama dokter (center, bold)
-///    - Spesialisasi "Spesialis Anak" (center)
-///    - Bagian statistik: Pengalaman (tahun) di sisi kiri, garis pemisah vertikal,
-///      dan Nomor STR di sisi kanan
-/// 3. Bagian "Tempat Praktik":
-///    - Judul section "Tempat Praktik"
-///    - Kartu berisikan daftar rumah sakit/klinik praktik dokter dengan ikon fasyankes
-///      dan garis divider horizontal
-/// 4. Bottom Action Bar:
-///    - Tombol oranye "Konsultasi Sekarang" → navigasi ke [PilihAnakPage]
+/// Alur booking: Profil Dokter → [BookingKonsultasiPage] → [StatusBookingPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
   final ChildModel? child;
 
   const ProfilDokterPage({super.key, required this.doctor, this.child});
 
-  void _onChatDokterPressed(BuildContext context) {
+  void _onBookingDokterPressed(BuildContext context) {
     if (!doctor.isOnline) return;
-
-    // Alur: Profil Dokter → Pilih Anak (bottom sheet) → Booking Dokter
-    PilihAnakPage.show(
-      context,
-      onChildSelected: (selectedChild) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MenungguPersetujuanPage(
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            BookingKonsultasiPage(
               doctor: doctor,
-              child: selectedChild,
+              initialChild: child ?? ChildService().activeChild,
             ),
-          ),
-        );
-      },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          );
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.15, 0.0),
+              end: Offset.zero,
+            ).animate(curved),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
     );
   }
 
@@ -493,9 +488,7 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: doctor.isOnline
-                  ? () => _onChatDokterPressed(context)
-                  : null,
+              onPressed: doctor.isOnline ? () => _onBookingDokterPressed(context) : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: doctor.isOnline
                     ? const Color(0xFF3985E7)
@@ -509,21 +502,28 @@ class ProfilDokterPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
+                  horizontal: 28,
                   vertical: 12,
                 ),
               ),
-              child: Text(
-                doctor.isOnline
-                    ? 'Booking Sekarang'
-                    : 'Dokter Sedang Offline',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: doctor.isOnline
-                      ? Colors.white
-                      : const Color(0xFF94A3B8),
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.calendar_month_rounded,
+                    size: 18,
+                    color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    doctor.isOnline ? 'Booking Konsultasi' : 'Dokter Sedang Offline',
+                    style: GoogleFonts.lato(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: doctor.isOnline ? Colors.white : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -324,8 +324,8 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     final isLeft = index < _selectedIndex;
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, anim, __, child) => SlideTransition(
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, anim, _, child) => SlideTransition(
         position: Tween<Offset>(
           begin: Offset(isLeft ? -0.25 : 0.25, 0.0),
           end: Offset.zero,

@@ -752,7 +752,7 @@ Referensi: Kemenkes RI, 2022''';
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildFallbackPhotoIcon(),
+        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
       );
     }
 
@@ -762,7 +762,7 @@ Referensi: Kemenkes RI, 2022''';
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildFallbackPhotoIcon(),
+        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
       );
     }
 
@@ -772,7 +772,7 @@ Referensi: Kemenkes RI, 2022''';
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildFallbackPhotoIcon(),
+        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
       );
     }
 
@@ -824,6 +824,7 @@ Referensi: Kemenkes RI, 2022''';
   }
 
   /// Area input multi-line berukuran besar untuk isi artikel (scrollable, tanpa overflow)
+  // ignore: unused_element
   Widget _buildDashedTextArea({
     required TextEditingController controller,
     required FocusNode focusNode,

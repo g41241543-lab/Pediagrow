@@ -772,7 +772,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                         imageAsset,
                                         height: imageSize,
                                         fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) => Icon(
+                                        errorBuilder: (_, _, _) => Icon(
                                           icon ?? Icons.widgets_rounded,
                                           size: imageSize,
                                           color:

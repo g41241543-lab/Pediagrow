@@ -3,7 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+<<<<<<< HEAD
 import '../../../core/services/chat_message_service.dart';
+=======
+import '../../../core/services/booking_service.dart';
+>>>>>>> 181bb67762acbad090abea19b7c52761d2163528
 import '../../../core/services/child_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/user_service.dart';
@@ -318,6 +322,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     final effectiveDoctor =
         widget.doctor ?? widget.consultation?.doctor ?? DoctorModel.defaultDoctor;
 
+<<<<<<< HEAD
     final currentUser = UserService().currentUser;
     final parentName = currentUser.name.isNotEmpty && currentUser.name != 'Tamu'
         ? currentUser.name
@@ -357,6 +362,20 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
     if (!mounted) return;
 
+=======
+    // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
+    final activeBooking = BookingService().activeBookingNotifier.value;
+    if (activeBooking != null &&
+        activeBooking.doctor.id == effectiveDoctor.id) {
+      BookingService().updateBookingForm(
+        bookingId: activeBooking.id,
+        weightKg: weight,
+        heightCm: height,
+        complaint: complaint,
+      );
+    }
+
+>>>>>>> 181bb67762acbad090abea19b7c52761d2163528
     // Navigasi ke halaman Chat Konsultasi Dokter yang sudah tersedia
     Navigator.push(
       context,
@@ -792,12 +811,12 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
               ? Image.asset(
                   photoUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
+                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
                 )
               : Image.file(
                   File(photoUrl),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
+                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
                 ))
           : _buildDefaultBabyIcon(),
     );
@@ -809,7 +828,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       child: Image.asset(
         'assets/images/default_baby_avatar.png',
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Center(
+        errorBuilder: (_, _, _) => Center(
           child: CustomPaint(
             size: const Size(34, 34),
             painter: _CuteBabyFacePainter(
@@ -1469,8 +1488,8 @@ class _CuteBabyFacePainter extends CustomPainter {
 
     final blushPaint = Paint()
       ..color = isGirl
-          ? const Color(0xFFFB7185).withOpacity(0.5)
-          : const Color(0xFF60A5FA).withOpacity(0.4)
+          ? const Color(0xFFFB7185).withValues(alpha: 0.5)
+          : const Color(0xFF60A5FA).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final fillEyePaint = Paint()

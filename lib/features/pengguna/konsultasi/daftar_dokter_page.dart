@@ -1397,7 +1397,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
       return Image.asset(
         doctor.assetImagePath!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _fallbackAvatar(),
+        errorBuilder: (_, _, _) => _fallbackAvatar(),
       );
     }
     final url = doctor.avatarUrl;
@@ -1407,13 +1407,13 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         return Image.file(
           file,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _fallbackAvatar(),
+          errorBuilder: (_, _, _) => _fallbackAvatar(),
         );
       }
       return Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _fallbackAvatar(),
+        errorBuilder: (_, _, _) => _fallbackAvatar(),
       );
     }
     return _fallbackAvatar();
@@ -1448,7 +1448,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         child: Image.network(
           photoUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
+          errorBuilder: (_, _, _) => Container(
             color: bgColor,
             child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
           ),

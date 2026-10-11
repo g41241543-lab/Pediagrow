@@ -26,7 +26,9 @@ import 'widgets/riwayat_header.dart';
 /// - Konten scrollable (ListView / SingleChildScrollView) bebas RenderFlex overflow.
 /// - Scaffold.bottomNavigationBar permanen dengan menu "Riwayat Konsultasi" aktif (Index 2).
 class DaftarRiwayatPage extends StatefulWidget {
-  const DaftarRiwayatPage({super.key});
+  final List<RiwayatKonsultasiModel>? initialRiwayatList;
+
+  const DaftarRiwayatPage({super.key, this.initialRiwayatList});
 
   @override
   State<DaftarRiwayatPage> createState() => _DaftarRiwayatPageState();
@@ -43,16 +45,23 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   @override
   void initState() {
     super.initState();
-    _init();
-    ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
-    ChildService().childrenNotifier.addListener(_onChildrenChanged);
+    if (widget.initialRiwayatList != null) {
+      _riwayatList = widget.initialRiwayatList!;
+      _isLoading = false;
+    } else {
+      _init();
+      ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
+      ChildService().childrenNotifier.addListener(_onChildrenChanged);
+    }
   }
 
   @override
   void dispose() {
-    ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
-    ChildService().childrenNotifier.removeListener(_onChildrenChanged);
-    _resumeSub?.cancel();
+    if (widget.initialRiwayatList == null) {
+      ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
+      ChildService().childrenNotifier.removeListener(_onChildrenChanged);
+      _resumeSub?.cancel();
+    }
     super.dispose();
   }
 
@@ -227,7 +236,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       );
     }
 
-    if (_activeChild == null) {
+    if (widget.initialRiwayatList == null && _activeChild == null) {
       return _buildNoChildView();
     }
 
