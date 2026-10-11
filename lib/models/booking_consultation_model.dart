@@ -119,17 +119,26 @@ class BookingConsultationModel {
     final double? heightCm =
         rawHeight != null ? (rawHeight as num).toDouble() : null;
 
+    final doctorMap = map['doctor'];
+    final DoctorModel doctor = doctorMap is Map
+        ? DoctorModel.fromMap({
+            ...Map<String, dynamic>.from(doctorMap),
+            if (doctorMap['id'] != null) 'id': doctorMap['id'].toString(),
+          })
+        : DoctorModel.defaultDoctor;
+
+    final childMap = map['child'];
+    final ChildModel child = childMap is Map
+        ? ChildModel.fromMap(Map<String, dynamic>.from(childMap))
+        : ChildModel(
+            id: '',
+            name: map['childName'] as String? ?? 'Ananda',
+          );
+
     return BookingConsultationModel(
       id: id ?? (map['id'] as String? ?? ''),
-      doctor: map['doctor'] is Map<String, dynamic>
-          ? DoctorModel.fromMap(map['doctor'] as Map<String, dynamic>)
-          : DoctorModel.defaultDoctor,
-      child: map['child'] is Map<String, dynamic>
-          ? ChildModel.fromMap(map['child'] as Map<String, dynamic>)
-          : ChildModel(
-              id: '',
-              name: map['childName'] as String? ?? 'Ananda',
-            ),
+      doctor: doctor,
+      child: child,
       scheduledDate: scheduledDate,
       scheduledTimeSlot:
           (map['scheduledTimeSlot'] ?? map['timeSlot']) as String? ?? '',
@@ -148,7 +157,10 @@ class BookingConsultationModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'doctor': doctor.toMap(),
+      'doctor': {
+        'id': doctor.id,
+        ...doctor.toMap(),
+      },
       'child': child.toMap(),
       'childName': child.name,
       'doctorName': doctor.name,

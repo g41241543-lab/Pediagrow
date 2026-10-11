@@ -28,10 +28,7 @@ import 'profil_dokter_page.dart';
 class DaftarDokterPage extends StatefulWidget {
   final int initialTabIndex;
 
-  const DaftarDokterPage({
-    super.key,
-    this.initialTabIndex = 0,
-  });
+  const DaftarDokterPage({super.key, this.initialTabIndex = 0});
 
   @override
   State<DaftarDokterPage> createState() => _DaftarDokterPageState();
@@ -95,7 +92,18 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-
+  /// Menampilkan pesan saat dokter yang dipilih sedang offline
+  void _showDoctorOfflineMessage(DoctorModel doctor) {
+    _searchFocusNode.unfocus();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('${doctor.name} sedang offline saat ini.'),
+        ),
+      );
+  }
 
   void _navigateToNotification() {
     Navigator.of(context).push(
@@ -139,8 +147,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEBF5FF),
                     borderRadius: BorderRadius.circular(20),
@@ -271,10 +281,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               decoration: BoxDecoration(
                 color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: const Color(0xFFBFDBFE),
-                  width: 0.8,
-                ),
+                border: Border.all(color: const Color(0xFFBFDBFE), width: 0.8),
               ),
               child: Text(
                 'Form keluhan akan diisi saat waktu jadwal booking tiba sebelum memulai obrolan dengan dokter.',
@@ -509,11 +516,14 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                 ValueListenableBuilder<List<ChildModel>>(
                   valueListenable: ChildService().childrenNotifier,
                   builder: (context, userChildren, _) {
-                    return ValueListenableBuilder<List<BookingConsultationModel>>(
+                    return ValueListenableBuilder<
+                      List<BookingConsultationModel>
+                    >(
                       valueListenable: BookingService().bookingsNotifier,
                       builder: (context, allBookings, _) {
-                        final userChildIds =
-                            userChildren.map((c) => c.id).toSet();
+                        final userChildIds = userChildren
+                            .map((c) => c.id)
+                            .toSet();
                         final userChildNames = userChildren
                             .map((c) => c.name.toLowerCase().trim())
                             .toSet();
@@ -551,7 +561,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE2E8F0),
+            color: isThisTabActive
+                ? _colorPrimaryBlue
+                : const Color(0xFFE2E8F0),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -615,7 +627,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
 
                         return Column(
                           children: [
-                            for (int i = 0; i < filteredDoctors.length; i++) ...[
+                            for (
+                              int i = 0;
+                              i < filteredDoctors.length;
+                              i++
+                            ) ...[
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16.0,
@@ -719,7 +735,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
 
   Widget _buildDoctorCard(DoctorModel doctor) {
     final badge = JadwalDokterService().getDoctorBadge(doctor.id);
-    final isAvailableSoon = badge.type == DoctorBadgeType.tersediaHariIni ||
+    final isAvailableSoon =
+        badge.type == DoctorBadgeType.tersediaHariIni ||
         badge.type == DoctorBadgeType.tersediaBesok;
     final borderColor = isAvailableSoon
         ? const Color(0xFFBFDBFE)
@@ -730,12 +747,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         color: _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: doctor.isOnline
-              ? const Color(0xFFBFDBFE)
-              : _colorBorder,
+          color: doctor.isOnline ? borderColor : _colorBorder,
           width: 1,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: _colorPrimaryBlue.withValues(alpha: 0.08),
             blurRadius: 10,
@@ -927,10 +942,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         Container(
           width: 6,
           height: 6,
-          decoration: BoxDecoration(
-            color: dotColor,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
         ),
         const SizedBox(width: 5),
         Flexible(
@@ -971,12 +983,15 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                   ValueListenableBuilder<List<ChildModel>>(
                     valueListenable: ChildService().childrenNotifier,
                     builder: (context, userChildren, _) {
-                      return ValueListenableBuilder<List<BookingConsultationModel>>(
+                      return ValueListenableBuilder<
+                        List<BookingConsultationModel>
+                      >(
                         valueListenable: BookingService().bookingsNotifier,
                         builder: (context, allBookings, _) {
                           // Filter jadwal hanya untuk anak milik pengguna saat ini
-                          final userChildIds =
-                              userChildren.map((c) => c.id).toSet();
+                          final userChildIds = userChildren
+                              .map((c) => c.id)
+                              .toSet();
                           final userChildNames = userChildren
                               .map((c) => c.name.toLowerCase().trim())
                               .toSet();
@@ -1090,10 +1105,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
       decoration: BoxDecoration(
         color: _colorCardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFBFDBFE),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: _colorPrimaryBlue.withValues(alpha: 0.08),
@@ -1120,210 +1132,215 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
           onTap: () => _showBookingDetailModal(booking),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Baris Atas: Identitas Anak (Pasien) & Badge Status ──────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-            child: Row(
-              children: [
-                _buildChildAvatar(
-                  photoUrl: booking.child.photoUrl,
-                  isFemale: isFemale,
-                  size: 42,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+            children: [
+              // ── Baris Atas: Identitas Anak (Pasien) & Badge Status ──────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+                child: Row(
+                  children: [
+                    _buildChildAvatar(
+                      photoUrl: booking.child.photoUrl,
+                      isFemale: isFemale,
+                      size: 42,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              booking.child.name,
-                              style: GoogleFonts.lato(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.bold,
-                                color: _colorTextBlack,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  booking.child.name,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: _colorTextBlack,
+                                  ),
+                                ),
                               ),
-                            ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEBF5FF),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Text(
+                                  booking.status,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: _colorPrimaryBlue,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEBF5FF),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Text(
-                              booking.status,
-                              style: GoogleFonts.lato(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                                color: _colorPrimaryBlue,
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isFemale
+                                      ? const Color(0xFFFDF2F8)
+                                      : const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: isFemale
+                                        ? const Color(0xFFFBCFE8)
+                                        : const Color(0xFFBFDBFE),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  isFemale
+                                      ? 'Anak Perempuan'
+                                      : 'Anak Laki-laki',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isFemale
+                                        ? const Color(0xFFDB2777)
+                                        : const Color(0xFF2563EB),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 6),
+                              Text(
+                                booking.child.ageDescription,
+                                style: GoogleFonts.lato(
+                                  fontSize: 12,
+                                  color: _colorLabelGrey,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 1.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isFemale
-                                  ? const Color(0xFFFDF2F8)
-                                  : const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isFemale
-                                    ? const Color(0xFFFBCFE8)
-                                    : const Color(0xFFBFDBFE),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Text(
-                              isFemale ? 'Anak Perempuan' : 'Anak Laki-laki',
-                              style: GoogleFonts.lato(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                                color: isFemale
-                                    ? const Color(0xFFDB2777)
-                                    : const Color(0xFF2563EB),
-                              ),
-                            ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Kotak Jadwal Tanggal & Jam ────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F7FF),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _colorPrimaryBlue.withValues(alpha: 0.18),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 13,
+                        color: _colorPrimaryBlue,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          booking.formattedDate,
+                          style: GoogleFonts.lato(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _colorPrimaryBlue,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            booking.child.ageDescription,
-                            style: GoogleFonts.lato(
-                              fontSize: 12,
-                              color: _colorLabelGrey,
-                            ),
-                          ),
-                        ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 13,
+                        color: _colorPrimaryBlue,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        booking.scheduledTimeSlot,
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _colorPrimaryBlue,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // ── Kotak Jadwal Tanggal & Jam ────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0F7FF),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: _colorPrimaryBlue.withValues(alpha: 0.18),
-                  width: 1,
-                ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today_rounded,
-                    size: 13,
-                    color: _colorPrimaryBlue,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      booking.formattedDate,
-                      style: GoogleFonts.lato(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _colorPrimaryBlue,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.access_time_rounded,
-                    size: 13,
-                    color: _colorPrimaryBlue,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    booking.scheduledTimeSlot,
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _colorPrimaryBlue,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
 
-          const SizedBox(height: 10),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const SizedBox(height: 10),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
 
-          // ── Baris Bawah: Dokter & Tombol Detail ────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.medical_services_rounded,
-                  size: 14,
-                  color: _colorLabelGrey,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    booking.doctor.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 12.5,
+              // ── Baris Bawah: Dokter & Tombol Detail ────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.medical_services_rounded,
+                      size: 14,
                       color: _colorLabelGrey,
-                      fontWeight: FontWeight.w500,
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _showBookingDetailModal(booking),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _colorPrimaryBlue,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Lihat Detail',
-                      style: GoogleFonts.lato(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        booking.doctor.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          color: _colorLabelGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _showBookingDetailModal(booking),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _colorPrimaryBlue,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Lihat Detail',
+                          style: GoogleFonts.lato(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
   Widget _buildEmptyBookingsState({bool hasNoChildren = false}) {
     return Column(
@@ -1337,9 +1354,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             shape: BoxShape.circle,
           ),
           child: Icon(
-            hasNoChildren
-                ? Icons.child_care_rounded
-                : Icons.event_note_rounded,
+            hasNoChildren ? Icons.child_care_rounded : Icons.event_note_rounded,
             size: 32,
             color: _colorPrimaryBlue,
           ),
@@ -1416,8 +1431,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     required bool isFemale,
     required double size,
   }) {
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
+    final bgColor = isFemale
+        ? const Color(0xFFFFE4E6)
+        : const Color(0xFFDBEAFE);
 
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
@@ -1598,13 +1614,24 @@ class _BabyFacePainter extends CustomPainter {
       final bowPath = Path();
       bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
       bowPath.quadraticBezierTo(
-          cx - r * 0.4, cy - r * 1.15, cx - r * 0.25, cy - r * 0.75);
+        cx - r * 0.4,
+        cy - r * 1.15,
+        cx - r * 0.25,
+        cy - r * 0.75,
+      );
+      bowPath.quadraticBezierTo(cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
       bowPath.quadraticBezierTo(
-          cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
+        cx + r * 0.1,
+        cy - r * 1.05,
+        cx + r * 0.25,
+        cy - r * 0.75,
+      );
       bowPath.quadraticBezierTo(
-          cx + r * 0.1, cy - r * 1.05, cx + r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.4, cy - r * 1.15, cx + r * 0.1, cy - r * 0.85);
+        cx + r * 0.4,
+        cy - r * 1.15,
+        cx + r * 0.1,
+        cy - r * 0.85,
+      );
       canvas.drawPath(bowPath, bowPaint);
     }
   }

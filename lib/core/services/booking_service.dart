@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -7,12 +8,23 @@ import '../../models/doctor_model.dart';
 import 'jadwal_dokter_service.dart';
 
 /// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
-/// dan integrasi pengingat ke Google Kalender.
+/// yang tersimpan dan tersinkronisasi di Firestore serta integrasi Google Kalender.
 class BookingService {
   static final BookingService _instance = BookingService._internal();
   factory BookingService() => _instance;
+
+  FirebaseFirestore? get _db {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static const String _collection = 'consultation_bookings';
+
   BookingService._internal() {
-    _initDefaultBookings();
+    _initFirestoreListener();
   }
 
   /// Daftar semua riwayat / jadwal booking pengguna
@@ -25,10 +37,70 @@ class BookingService {
 
   List<BookingConsultationModel> get bookings => bookingsNotifier.value;
 
-  void addBooking(BookingConsultationModel booking) {
-    bookingsNotifier.value = [booking, ...bookingsNotifier.value];
+  void _initFirestoreListener() {
+    final db = _db;
+    if (db == null) {
+      _initDefaultBookings();
+      return;
+    }
+
+    try {
+      db
+          .collection(_collection)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final items = snapshot.docs
+              .map((doc) => BookingConsultationModel.fromDoc(doc))
+              .toList();
+
+          if (items.isEmpty) {
+            if (bookingsNotifier.value.isEmpty) {
+              _initDefaultBookings();
+            }
+          } else {
+            // Sinkronkan data Firestore dan pertahankan data lokal baru jika belum ter-push
+            final existingIds = items.map((i) => i.id).toSet();
+            final localOnly = bookingsNotifier.value.where(
+              (b) => !existingIds.contains(b.id) && !b.id.startsWith('book_'),
+            );
+            bookingsNotifier.value = [...items, ...localOnly];
+          }
+        },
+        onError: (err) {
+          debugPrint('BookingService Firestore error: $err');
+          if (bookingsNotifier.value.isEmpty) {
+            _initDefaultBookings();
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint('BookingService init error: $e');
+      if (bookingsNotifier.value.isEmpty) {
+        _initDefaultBookings();
+      }
+    }
+  }
+
+  /// Menambahkan booking konsultasi baru ke lokal notifier dan Firestore
+  Future<void> addBooking(BookingConsultationModel booking) async {
+    // 1. Update lokal langsung agar responsif di UI
+    if (!bookingsNotifier.value.any((b) => b.id == booking.id)) {
+      bookingsNotifier.value = [booking, ...bookingsNotifier.value];
+    }
     if (activeBookingNotifier.value == null) {
       activeBookingNotifier.value = booking;
+    }
+
+    // 2. Simpan ke Firestore
+    try {
+      final db = _db;
+      if (db != null) {
+        await db.collection(_collection).doc(booking.id).set(booking.toMap());
+      }
+    } catch (e) {
+      debugPrint('Gagal menyimpan booking ke Firestore: $e');
     }
   }
 
@@ -118,6 +190,14 @@ class BookingService {
     bookingsNotifier.value = updated;
     activeBookingNotifier.value = newBooking;
 
+    // Simpan ke Firestore secara asynchronous
+    final db = _db;
+    if (db != null) {
+      db.collection(_collection).doc(id).set(newBooking.toMap()).catchError((e) {
+        debugPrint('Gagal menyimpan booking baru ke Firestore: $e');
+      });
+    }
+
     return newBooking;
   }
 
@@ -143,6 +223,53 @@ class BookingService {
       if (activeBookingNotifier.value?.id == bookingId) {
         activeBookingNotifier.value = updated;
       }
+
+      // Update di Firestore
+      final db = _db;
+      if (db != null) {
+        db.collection(_collection).doc(bookingId).update({
+          'weightKg': weightKg,
+          'heightCm': heightCm,
+          'complaint': complaint,
+          'status': 'Sedang Berlangsung',
+        }).catchError((e) {
+          debugPrint('Gagal update form booking di Firestore: $e');
+        });
+      }
+    }
+  }
+
+  /// Memperbarui status booking (misal: 'Dibatalkan', 'Selesai', 'Siap Konsultasi')
+  Future<void> updateBookingStatus(String bookingId, String status) async {
+    final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
+    final idx = list.indexWhere((b) => b.id == bookingId);
+    if (idx != -1) {
+      list[idx] = list[idx].copyWith(status: status);
+      bookingsNotifier.value = list;
+    }
+
+    try {
+      final db = _db;
+      if (db != null) {
+        await db.collection(_collection).doc(bookingId).update({'status': status});
+      }
+    } catch (e) {
+      debugPrint('Gagal update status booking di Firestore: $e');
+    }
+  }
+
+  /// Menghapus booking berdasarkan ID
+  Future<void> removeBooking(String bookingId) async {
+    bookingsNotifier.value =
+        bookingsNotifier.value.where((b) => b.id != bookingId).toList();
+
+    try {
+      final db = _db;
+      if (db != null) {
+        await db.collection(_collection).doc(bookingId).delete();
+      }
+    } catch (e) {
+      debugPrint('Gagal menghapus booking dari Firestore: $e');
     }
   }
 
@@ -170,7 +297,8 @@ class BookingService {
 
     final datesParam = '${formatUtc(startUtc)}/${formatUtc(endUtc)}';
     final title = 'Konsultasi Dokter: ${doctor.name} - PediaGrow';
-    final details = 'Jadwal konsultasi kesehatan anak: ${child.name} '
+    final details =
+        'Jadwal konsultasi kesehatan anak: ${child.name} '
         'bersama ${doctor.name} (${doctor.specialization}) '
         'melalui sesi chat aplikasi PediaGrow.';
     const location = 'Aplikasi PediaGrow (Online Chat)';
