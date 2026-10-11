@@ -140,9 +140,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                 if (name.isNotEmpty &&
                                     name.toLowerCase() != 'dokter' &&
                                     name.toLowerCase() != 'superadmin') {
-                                  final isDr = name
-                                          .toLowerCase()
-                                          .startsWith('dr.') ||
+                                  final isDr =
+                                      name.toLowerCase().startsWith('dr.') ||
                                       name.toLowerCase().startsWith('dr ');
                                   greeting =
                                       'Hai, ${isDr ? name : 'dr. $name'}';
@@ -470,10 +469,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8CF47),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFE2B025),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFE2B025), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFD97706).withValues(alpha: 0.25),
@@ -562,7 +558,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     bool isDisabled = false,
     bool applyGreyscale = false,
   }) {
-    Widget iconWidget = customIcon ??
+    Widget iconWidget =
+        customIcon ??
         (imageAsset != null
             ? Image.asset(
                 imageAsset,
@@ -584,10 +581,26 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     if (isDisabled && applyGreyscale) {
       iconWidget = ColorFiltered(
         colorFilter: const ColorFilter.matrix(<double>[
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0, 0, 0, 1, 0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ]),
         child: iconWidget,
       );

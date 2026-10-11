@@ -10,7 +10,6 @@ import '../../auth/auth_choice_page.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import 'hak_akses/hak_akses_page.dart';
 import '../../../models/staff_account_model.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
@@ -25,8 +24,7 @@ import '../../../models/staff_account_model.dart';
 ///    menampilkan data Anita Setyowati, S.Tr. RMIK, Pengalaman, dan No. STR.
 ///    Dapat diubah fotonya dari galeri maupun kamera dengan badge kamera standar PediaGrow.
 /// 4. Kartu Informasi Umum (Tanggal Lahir dan Pendidikan).
-/// 5. Tombol aksi "HAK AKSES" (menuju halaman pengelolaan hak akses Dokter & PMIK)
-///    dan tombol "LOGOUT" (dengan dialog konfirmasi keluar).
+/// 5. Informasi Hak Akses (status hak akses penuh Superadmin) dan tombol "LOGOUT".
 /// 6. Bottom Navigation Bar permanen 4 menu pada [Scaffold.bottomNavigationBar]
 ///    dengan menu "Profil" aktif sesuai desain PediaGrow.
 class ProfilSuperadminPage extends StatefulWidget {
@@ -251,14 +249,6 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     } catch (e) {
       debugPrint('[ProfilSuperadminPage] _pickImage error: $e');
     }
-  }
-
-  void _navigateToHakAkses() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const HakAksesPage(),
-      ),
-    );
   }
 
   void _showLogoutConfirmationDialog() {
@@ -487,31 +477,38 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               const SizedBox(height: 20.0),
 
-              // 4. TOMBOL HAK AKSES (Warna Toska #38C1A2)
-              SizedBox(
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: _navigateToHakAkses,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF38C1A2),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+              // 4. INFORMASI HAK AKSES SUPERADMIN
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.shield_outlined,
+                      color: Color(0xFF059669),
+                      size: 22,
                     ),
-                  ),
-                  child: Text(
-                    'HAK AKSES',
-                    style: GoogleFonts.lato(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                      color: Colors.white,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Akun ini memiliki hak akses penuh sebagai Superadmin. '
+                        'Pengelolaan hak akses staf dan dokter dapat dilakukan melalui menu Kelola Hak Akses di Beranda.',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          color: const Color(0xFF065F46),
+                          height: 1.4,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 24.0),
 
               // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
               SizedBox(

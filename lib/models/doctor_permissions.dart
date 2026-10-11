@@ -47,12 +47,12 @@ class DoctorPermissions {
     DoctorPermissionItem(
       key: 'daftar_resep_mpasi',
       label: 'Daftar Resep MPASI',
-      defaultValue: false,
+      defaultValue: true,
     ),
     DoctorPermissionItem(
       key: 'daftar_artikel_kesehatan',
       label: 'Daftar Artikel Kesehatan',
-      defaultValue: false,
+      defaultValue: true,
     ),
     DoctorPermissionItem(
       key: 'grafik_pengguna',

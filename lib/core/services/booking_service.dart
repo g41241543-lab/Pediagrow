@@ -1,22 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/booking_consultation_model.dart';
 import '../../models/child_model.dart';
 import '../../models/doctor_model.dart';
+import 'jadwal_dokter_service.dart';
 
 /// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
-/// yang tersimpan dan tersinkronisasi di Firestore serta integrasi Google Kalender.
+/// dan integrasi pengingat ke Google Kalender.
 class BookingService {
   static final BookingService _instance = BookingService._internal();
   factory BookingService() => _instance;
-
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  static const String _collection = 'consultation_bookings';
-
   BookingService._internal() {
-    _initFirestoreListener();
+    _initDefaultBookings();
   }
 
   /// Daftar semua riwayat / jadwal booking pengguna
@@ -29,109 +25,64 @@ class BookingService {
 
   List<BookingConsultationModel> get bookings => bookingsNotifier.value;
 
-  void _initFirestoreListener() {
-    try {
-      _db
-          .collection(_collection)
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .listen(
-        (snapshot) {
-          final items = snapshot.docs
-              .map((doc) => BookingConsultationModel.fromDoc(doc))
-              .toList();
-          // Merge dengan memory jika ada data lokal
-          final existingIds = items.map((i) => i.id).toSet();
-          final localOnly =
-              bookingsNotifier.value.where((b) => !existingIds.contains(b.id));
-          bookingsNotifier.value = [...items, ...localOnly];
-        },
-        onError: (err) {
-          debugPrint('BookingService Firestore error: $err');
-        },
-      );
-    } catch (e) {
-      debugPrint('BookingService init error: $e');
-    }
-  }
-
-  /// Menambahkan booking konsultasi baru ke lokal notifier dan Firestore
-  Future<void> addBooking(BookingConsultationModel booking) async {
-    // 1. Update lokal langsung agar responsif di UI
-    if (!bookingsNotifier.value.any((b) => b.id == booking.id)) {
-      bookingsNotifier.value = [booking, ...bookingsNotifier.value];
-    }
+  void addBooking(BookingConsultationModel booking) {
+    bookingsNotifier.value = [booking, ...bookingsNotifier.value];
     if (activeBookingNotifier.value == null) {
       activeBookingNotifier.value = booking;
-    }
-
-    // 2. Simpan ke Firestore
-    try {
-      await _db.collection(_collection).doc(booking.id).set(booking.toMap());
-    } catch (e) {
-      debugPrint('Gagal menyimpan booking ke Firestore: $e');
     }
   }
 
   /// Menghasilkan slot waktu yang tersedia untuk dokter pada tanggal tertentu
-  /// Mengelompokkan slot waktu menjadi Pagi, Siang, dan Sore/Malam
+  /// Dihitung dinamis dari JadwalDokterService dikurangi Cuti dan Booking
   List<DoctorTimeSlot> getAvailableSlotsForDoctor({
     required DoctorModel doctor,
     required DateTime date,
   }) {
-    final now = DateTime.now();
-    final isToday = date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+    final slots = JadwalDokterService().hitungSlotKosong(
+      dokterId: doctor.id,
+      tanggal: date,
+    );
 
-    // Slot standar jam praktik konsultasi dokter anak
-    final rawSlots = [
-      const DoctorTimeSlot(time: '08:30 - 09:00', startHour: 8, startMinute: 30, period: 'Pagi'),
-      const DoctorTimeSlot(time: '09:00 - 09:30', startHour: 9, startMinute: 0, period: 'Pagi'),
-      const DoctorTimeSlot(time: '10:00 - 10:30', startHour: 10, startMinute: 0, period: 'Pagi'),
-      const DoctorTimeSlot(time: '11:00 - 11:30', startHour: 11, startMinute: 0, period: 'Pagi'),
-      const DoctorTimeSlot(time: '13:00 - 13:30', startHour: 13, startMinute: 0, period: 'Siang'),
-      const DoctorTimeSlot(time: '14:00 - 14:30', startHour: 14, startMinute: 0, period: 'Siang'),
-      const DoctorTimeSlot(time: '15:30 - 16:00', startHour: 15, startMinute: 30, period: 'Sore'),
-      const DoctorTimeSlot(time: '16:30 - 17:00', startHour: 16, startMinute: 30, period: 'Sore'),
-      const DoctorTimeSlot(time: '19:00 - 19:30', startHour: 19, startMinute: 0, period: 'Malam'),
-      const DoctorTimeSlot(time: '20:00 - 20:30', startHour: 20, startMinute: 0, period: 'Malam'),
-    ];
-
-    // Cek ketersediaan berdasarkan jam saat ini jika hari ini
-    return rawSlots.map((slot) {
-      bool available = true;
-      if (isToday) {
-        final slotTime = DateTime(date.year, date.month, date.day, slot.startHour, slot.startMinute);
-        if (slotTime.isBefore(now)) {
-          available = false; // Jam sudah lewat
-        }
+    return slots.map((slot) {
+      final hour = slot.startDateTime.hour;
+      String period = 'Pagi';
+      if (hour >= 11 && hour < 15) {
+        period = 'Siang';
+      } else if (hour >= 15 && hour < 18) {
+        period = 'Sore';
+      } else if (hour >= 18) {
+        period = 'Malam';
       }
 
-      // Cek apakah sudah pernah di-booking
-      final isAlreadyBooked = bookingsNotifier.value.any((b) =>
-          b.doctor.id == doctor.id &&
-          b.bookingDate.year == date.year &&
-          b.bookingDate.month == date.month &&
-          b.bookingDate.day == date.day &&
-          b.timeSlot == slot.time &&
-          b.status != 'Dibatalkan');
-
-      if (isAlreadyBooked) {
-        available = false;
-      }
-
-      return slot.copyWith(isAvailable: available);
+      return DoctorTimeSlot(
+        time: slot.timeLabel,
+        startHour: slot.startDateTime.hour,
+        startMinute: slot.startDateTime.minute,
+        period: period,
+        isAvailable: slot.isAvailable,
+      );
     }).toList();
   }
 
-  /// Membuat booking baru dan menyimpannya ke memori serta Firestore
+  /// Membuat booking baru dengan validasi race condition
   BookingConsultationModel createBooking({
     required DoctorModel doctor,
     required ChildModel child,
     required DateTime date,
     required DoctorTimeSlot slot,
   }) {
+    // Validasi race condition: cek ketersediaan slot terkini
+    final currentSlots = JadwalDokterService().hitungSlotKosong(
+      dokterId: doctor.id,
+      tanggal: date,
+    );
+    final isStillAvailable = currentSlots.any(
+      (s) => s.timeLabel == slot.time && s.isAvailable,
+    );
+    if (!isStillAvailable) {
+      throw StateError('Slot sudah dipesan, pilih jam lain');
+    }
+
     final startDt = DateTime(
       date.year,
       date.month,
@@ -167,11 +118,6 @@ class BookingService {
     bookingsNotifier.value = updated;
     activeBookingNotifier.value = newBooking;
 
-    // Simpan ke Firestore secara asynchronous
-    _db.collection(_collection).doc(id).set(newBooking.toMap()).catchError((e) {
-      debugPrint('Gagal menyimpan booking baru ke Firestore: $e');
-    });
-
     return newBooking;
   }
 
@@ -197,16 +143,6 @@ class BookingService {
       if (activeBookingNotifier.value?.id == bookingId) {
         activeBookingNotifier.value = updated;
       }
-
-      // Update di Firestore
-      _db.collection(_collection).doc(bookingId).update({
-        'weightKg': weightKg,
-        'heightCm': heightCm,
-        'complaint': complaint,
-        'status': 'Sedang Berlangsung',
-      }).catchError((e) {
-        debugPrint('Gagal update form booking di Firestore: $e');
-      });
     }
   }
 
@@ -260,16 +196,84 @@ class BookingService {
     return false;
   }
 
-  /// Menghapus booking berdasarkan ID
-  Future<void> removeBooking(String bookingId) async {
-    bookingsNotifier.value =
-        bookingsNotifier.value.where((b) => b.id != bookingId).toList();
+  void _initDefaultBookings() {
+    final child1 = ChildModel(
+      id: 'child_mock_1',
+      name: 'Devaro Ramadhan',
+      gender: 'Laki-laki',
+      ageDescription: '1 tahun 2 bulan 13 hari',
+      birthDate: DateTime.now().subtract(const Duration(days: 440)),
+      photoUrl: null,
+    );
 
-    try {
-      await _db.collection(_collection).doc(bookingId).delete();
-    } catch (e) {
-      debugPrint('Gagal menghapus booking dari Firestore: $e');
-    }
+    final child2 = ChildModel(
+      id: 'child_mock_2',
+      name: 'Naya Seiza Putri',
+      gender: 'Perempuan',
+      ageDescription: '0 tahun 8 bulan 20 hari',
+      birthDate: DateTime.now().subtract(const Duration(days: 260)),
+      photoUrl: null,
+    );
+
+    const doc1 = DoctorModel(
+      id: 'doc_1',
+      name: 'dr. Ahmad Nuri, Sp. A',
+      specialization: 'Spesialis Anak',
+      experienceYears: 12,
+      isOnline: true,
+      strNumber: 'STR-33.1.1.100.2.20.123456',
+      placesOfPractice: ['RS Hermina Pasteur', 'Klinik Tumbuh Kembang'],
+    );
+
+    const doc2 = DoctorModel(
+      id: 'doc_2',
+      name: 'dr. Ririn Esterina, Sp.A',
+      specialization: 'Spesialis Anak',
+      experienceYears: 8,
+      isOnline: true,
+      strNumber: 'STR-33.1.1.100.2.20.654321',
+      placesOfPractice: ['RSIA Melinda Bandung', 'Puskesmas Garuda'],
+    );
+
+    const doc3 = DoctorModel(
+      id: 'doc_3',
+      name: 'dr. B. Gebyar Tri Baskoro, Sp.A',
+      specialization: 'Spesialis Anak',
+      experienceYears: 10,
+      isOnline: true,
+      strNumber: 'STR-33.1.1.100.2.20.789101',
+      placesOfPractice: ['RS Santo Borromeus'],
+    );
+
+    bookingsNotifier.value = [
+      BookingConsultationModel(
+        id: 'book_1',
+        doctor: doc1,
+        child: child1,
+        scheduledDate: DateTime.now().add(const Duration(days: 2)),
+        scheduledTimeSlot: '09:00 - 09:30 WIB',
+        status: 'Terjadwal',
+        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+      ),
+      BookingConsultationModel(
+        id: 'book_2',
+        doctor: doc2,
+        child: child2,
+        scheduledDate: DateTime.now().add(const Duration(days: 4)),
+        scheduledTimeSlot: '13:30 - 14:00 WIB',
+        status: 'Terjadwal',
+        createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+      ),
+      BookingConsultationModel(
+        id: 'book_3',
+        doctor: doc3,
+        child: child1,
+        scheduledDate: DateTime.now().add(const Duration(days: 7)),
+        scheduledTimeSlot: '10:30 - 11:00 WIB',
+        status: 'Terjadwal',
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+    ];
   }
 }
 

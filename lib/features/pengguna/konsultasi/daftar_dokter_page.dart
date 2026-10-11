@@ -7,10 +7,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../models/jadwal_praktik_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda/beranda_page.dart';
@@ -93,23 +95,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-  void _showDoctorOfflineMessage(DoctorModel doctor) {
-    _searchFocusNode.unfocus();
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${doctor.name} sedang offline dan tidak dapat diajak konsultasi saat ini.',
-          style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: const Color(0xFF64748B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
+
 
   void _navigateToNotification() {
     Navigator.of(context).push(
@@ -732,15 +718,24 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   }
 
   Widget _buildDoctorCard(DoctorModel doctor) {
+    final badge = JadwalDokterService().getDoctorBadge(doctor.id);
+    final isAvailableSoon = badge.type == DoctorBadgeType.tersediaHariIni ||
+        badge.type == DoctorBadgeType.tersediaBesok;
+    final borderColor = isAvailableSoon
+        ? const Color(0xFFBFDBFE)
+        : _colorBorder;
+
     return Container(
       decoration: BoxDecoration(
         color: _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFBFDBFE),
-          width: 1.2,
+          color: doctor.isOnline
+              ? const Color(0xFFBFDBFE)
+              : _colorBorder,
+          width: 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: _colorPrimaryBlue.withValues(alpha: 0.08),
             blurRadius: 10,
@@ -760,9 +755,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
-          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
           onTap: doctor.isOnline
               ? () => _navigateToDetail(doctor)
               : () => _showDoctorOfflineMessage(doctor),
@@ -775,70 +767,27 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Avatar Dokter
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 58,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECF6FF),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _colorPrimaryBlue.withValues(alpha: 0.15),
-                              width: 1.5,
-                            ),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: _buildAvatar(doctor),
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECF6FF),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: _colorPrimaryBlue.withValues(alpha: 0.15),
+                          width: 1.5,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: -2,
-                          child: Container(
-                            width: 13,
-                            height: 13,
-                            decoration: BoxDecoration(
-                              color: doctor.isOnline
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFF94A3B8),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _buildAvatar(doctor),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: doctor.isOnline
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFF94A3B8),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                doctor.isOnline ? 'Online' : 'Offline',
-                                style: GoogleFonts.lato(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: doctor.isOnline
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Badge Jadwal Dinamis
+                          _buildAvailabilityBadge(badge),
                           const SizedBox(height: 3),
                           Text(
                             doctor.name,
@@ -909,56 +858,34 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    if (doctor.isOnline)
-                      GestureDetector(
-                        onTap: () => _navigateToDetail(doctor),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 7.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _colorPrimaryBlue,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    _colorPrimaryBlue.withValues(alpha: 0.25),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            'Detail Dokter',
-                            style: GoogleFonts.lato(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
+                    GestureDetector(
+                      onTap: () => _navigateToDetail(doctor),
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14.0,
+                          horizontal: 16.0,
                           vertical: 7.0,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                          color: _colorPrimaryBlue,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: _colorBorder, width: 1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _colorPrimaryBlue.withValues(alpha: 0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Text(
-                          'Sedang Offline',
+                          'Detail Dokter',
                           style: GoogleFonts.lato(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF94A3B8),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ],
@@ -966,6 +893,59 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
           ),
         ),
       ),
+    );
+  }
+
+  /// Membangun badge ketersediaan jadwal dokter dengan warna yang sesuai
+  Widget _buildAvailabilityBadge(DoctorBadgeInfo badge) {
+    Color dotColor;
+    Color textColor;
+    String label = badge.label;
+
+    switch (badge.type) {
+      case DoctorBadgeType.tersediaHariIni:
+        dotColor = const Color(0xFF10B981); // hijau
+        textColor = const Color(0xFF059669);
+        break;
+      case DoctorBadgeType.tersediaBesok:
+        dotColor = const Color(0xFF3B82F6); // biru
+        textColor = const Color(0xFF2563EB);
+        break;
+      case DoctorBadgeType.jadwalTerdekat:
+        dotColor = const Color(0xFFF59E0B); // kuning/amber
+        textColor = const Color(0xFFD97706);
+        break;
+      case DoctorBadgeType.belumAdaJadwal:
+        dotColor = const Color(0xFF94A3B8); // abu-abu
+        textColor = const Color(0xFF64748B);
+        break;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: dotColor,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
