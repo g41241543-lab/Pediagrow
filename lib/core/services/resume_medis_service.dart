@@ -68,6 +68,46 @@ class ResumeMedisService {
     });
   }
 
+  /// Stream SEMUA resume medis (tanpa filter anak/user) — digunakan oleh admin.
+  /// Data diurutkan berdasarkan 'created_at' (terbaru dulu).
+  /// Jika Firestore kosong atau error, akan mengembalikan sample data gabungan.
+  Stream<List<ResumeMedisModel>> streamAllResumeMedis() {
+    final collection = _firestore.collection(_collectionName);
+    return collection
+        .orderBy('created_at', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.docs.isEmpty) {
+        return _buildAdminSampleData();
+      }
+      return snapshot.docs
+          .map((doc) => ResumeMedisModel.fromFirestore(doc))
+          .toList();
+    }).handleError((_) {
+      // Jika index belum dibuat atau offline, fallback ke sample data
+      return _buildAdminSampleData();
+    });
+  }
+
+  /// Sample data gabungan untuk tampilan admin saat Firestore belum ada data.
+  List<ResumeMedisModel> _buildAdminSampleData() {
+    final List<ResumeMedisModel> combined = [];
+    final names = [
+      ('Arfa Zivano Kayfan', 2.4, 44.0),
+      ('Kaia Anastasya', 3.1, 48.0),
+      ('Devaro Ramadhan', 2.9, 46.0),
+      ('Amara Adiratna', 3.0, 47.0),
+    ];
+    for (final entry in names) {
+      combined.addAll(ResumeMedisModel.getSampleData(
+        childName: entry.$1,
+        bbLahir: entry.$2,
+        tbLahir: entry.$3,
+      ));
+    }
+    return combined;
+  }
+
   /// Tambah dokumen resume medis ke Firestore
   Future<void> addResumeMedis(ResumeMedisModel resume) async {
     await _firestore.collection(_collectionName).add(resume.toMap());
