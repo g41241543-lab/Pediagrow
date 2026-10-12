@@ -37,8 +37,24 @@ class GoogleCalendarService {
       GoogleSignInAccount? account = _googleCalendarSignIn.currentUser;
       account ??= await _googleCalendarSignIn.signInSilently();
 
-      // 2. Jika akun terautentikasi dan memiliki token, kirim event langsung ke API Google Kalender
+      // 2. Jika belum ada sesi silent, coba login native (dialog bawaan OS, bukan web browser)
+      if (account == null) {
+        try {
+          account = await _googleCalendarSignIn.signIn();
+        } catch (e) {
+          debugPrint('[GoogleCalendarService] Info sign-in native kalender: $e');
+        }
+      }
+
+      // 3. Jika akun terautentikasi dan memiliki token, kirim event langsung ke API Google Kalender
       if (account != null) {
+        try {
+          final hasScope = await _googleCalendarSignIn.canAccessScopes([_calendarScope]);
+          if (!hasScope) {
+            await _googleCalendarSignIn.requestScopes([_calendarScope]);
+          }
+        } catch (_) {}
+
         final auth = await account.authentication;
         final accessToken = auth.accessToken;
 
@@ -55,7 +71,7 @@ class GoogleCalendarService {
         }
       }
 
-      // 3. Fallback: URL kalender dan pengingat siap di latar belakang sistem
+      // 4. Jadwal pengingat otomatis tetap aktif di sistem PediaGrow
       debugPrint(
           '[GoogleCalendarService] Event & pengingat jadwal Google Kalender berhasil didaftarkan di background.');
       return true;
@@ -72,21 +88,19 @@ class GoogleCalendarService {
     required BookingConsultationModel booking,
   }) async {
     try {
-      final startIso = booking.scheduledStartDateTime.toIso8601String();
-      final endIso = booking.scheduledEndDateTime.toIso8601String();
+      final startIso = booking.scheduledStartDateTime.toUtc().toIso8601String();
+      final endIso = booking.scheduledEndDateTime.toUtc().toIso8601String();
 
       final body = jsonEncode({
         'summary': 'Konsultasi Dokter: ${booking.doctor.name} - PediaGrow',
         'description':
             'Jadwal konsultasi kesehatan anak (${booking.child.name}) bersama ${booking.doctor.name} (${booking.doctor.specialization}).\nPengingat otomatis dari Google Kalender PediaGrow.',
-        'location': 'Aplikasi PediaGrow',
+        'location': 'Aplikasi PediaGrow (Ruang Konsultasi)',
         'start': {
           'dateTime': startIso,
-          'timeZone': DateTime.now().timeZoneName,
         },
         'end': {
           'dateTime': endIso,
-          'timeZone': DateTime.now().timeZoneName,
         },
         // Alarm notifikasi Google Kalender otomatis muncul di HP saat jadwal tiba (0 menit) & 15 menit sebelumnya
         'reminders': {
@@ -108,6 +122,8 @@ class GoogleCalendarService {
         body: body,
       );
 
+      debugPrint(
+          '[GoogleCalendarService] Status API: ${response.statusCode}');
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       debugPrint('[GoogleCalendarService] Gagal insert event via API: $e');

@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/resume_medis_service.dart';
 import '../../../core/services/user_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
@@ -42,6 +43,7 @@ class ChatKonsultasiPage extends StatefulWidget {
   final double? weightKg;
   final double? heightCm;
   final String? complaint;
+  final BookingConsultationModel? booking;
 
   // ID sesi konsultasi aktif di Firestore (opsional; jika null pakai mode offline)
   final String? sessionId;
@@ -59,6 +61,7 @@ class ChatKonsultasiPage extends StatefulWidget {
     this.weightKg,
     this.heightCm,
     this.complaint,
+    this.booking,
     this.sessionId,
     this.userId,
   });
@@ -108,6 +111,16 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // Stream Firestore – aktif jika sessionId tersedia
   Stream<List<ChatMessageModel>>? _messageStream;
 
+  Timer? _sessionExpiryTimer;
+
+  BookingConsultationModel? get _effectiveBooking =>
+      widget.booking ?? BookingService().activeBookingNotifier.value;
+
+  String get _effectiveSessionId =>
+      widget.sessionId ??
+      _effectiveBooking?.sessionId ??
+      'session_${_effectiveBooking?.id ?? 'default'}';
+
   @override
   void initState() {
     super.initState();
@@ -116,13 +129,31 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _resolveChildData();
     _initMessages();
 
+    // Jika waktu booking konsultasi sudah habis saat masuk, tutup ruangan
+    if (_effectiveBooking != null && _effectiveBooking!.isExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _handleAlreadyExpired();
+      });
+    } else {
+      // Timer cek realtime apakah waktu konsultasi telah habis
+      _sessionExpiryTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted && _effectiveBooking != null && _effectiveBooking!.isExpired) {
+          _handleTimeExpired();
+        }
+      });
+    }
+
     // Jika sessionId ada, gunakan stream Firestore (real-time)
     if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
       _messageStream =
           ChatMessageService.instance.streamPesan(widget.sessionId!);
     } else {
-      // Mode offline: simulasi dokter menyapa
-      _scheduleInitialDoctorGreeting();
+      // Mode offline: simulasi dokter menyapa jika belum ada sapaan
+      final hasDoctorGreeting =
+          _messages.any((m) => m['sender'] == 'doctor');
+      if (!hasDoctorGreeting) {
+        _scheduleInitialDoctorGreeting();
+      }
     }
 
     // Animasi gelombang tiga titik (...) bergerak
@@ -130,6 +161,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _sessionExpiryTimer?.cancel();
+    _textController.dispose();
+    _scrollController.dispose();
+    _typingAnimController.dispose();
+    super.dispose();
   }
 
   void _resolveDoctorData() {
@@ -163,6 +203,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _initMessages() {
+    final cached =
+        ChatMessageService.instance.getCachedMessages(_effectiveSessionId);
+    if (cached != null && cached.isNotEmpty) {
+      _messages = List<Map<String, dynamic>>.from(cached);
+      return;
+    }
+
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -177,6 +224,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'isRead': true,
       },
     ];
+    ChatMessageService.instance
+        .saveCachedMessages(_effectiveSessionId, _messages);
   }
 
   /// Dokter membaca formulir dan menyapa pasien secara formal & personal
@@ -205,6 +254,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'isRead': true,
           });
         });
+        ChatMessageService.instance
+            .saveCachedMessages(_effectiveSessionId, _messages);
         _scrollToBottom();
       });
     });
@@ -221,14 +272,6 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     } else {
       return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Pasien untuk $childName sudah saya terima.\n\nBagaimana kondisi $childName hari ini? Silakan ceritakan keluhan atau gejala yang sedang dirasakan si kecil ya Mom’s.';
     }
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    _scrollController.dispose();
-    _typingAnimController.dispose();
-    super.dispose();
   }
 
   // ===========================================================================
@@ -272,6 +315,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       });
     });
 
+    ChatMessageService.instance
+        .saveCachedMessages(_effectiveSessionId, _messages);
+
     _scrollToBottom();
 
     // Munculkan indikator dokter mengetik (...)
@@ -300,6 +346,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'isRead': true,
           });
         });
+        ChatMessageService.instance
+            .saveCachedMessages(_effectiveSessionId, _messages);
         _scrollToBottom();
       });
     });
@@ -671,8 +719,56 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  /// Membuat dan menyimpan Resume Medis / Riwayat Konsultasi secara instan
-  /// begitu konsultasi diakhiri oleh pengguna.
+  /// Dipanggil saat timer mendeteksi waktu booking habis secara realtime
+  void _handleTimeExpired() {
+    _sessionExpiryTimer?.cancel();
+    if (!mounted) return;
+    final booking = _effectiveBooking;
+    if (booking != null) {
+      BookingService().updateBookingStatus(booking.id, 'Selesai');
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Waktu Konsultasi Berakhir', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: const Text('Waktu sesi konsultasi telah habis. Ruang chat ini ditutup secara otomatis.', style: TextStyle(fontSize: 13.5, height: 1.4)),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2B7AE8), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () { Navigator.of(ctx).pop(); if (mounted) Navigator.of(context).pop(); },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dipanggil segera saat masuk ke chat room namun booking sudah expired
+  void _handleAlreadyExpired() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Sesi Tidak Tersedia', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          content: const Text('Waktu sesi konsultasi ini telah berakhir. Ruang chat tidak dapat dibuka lagi.', style: TextStyle(fontSize: 13.5, height: 1.4)),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF64748B), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              onPressed: () { Navigator.of(ctx).pop(); if (mounted) Navigator.of(context).pop(); },
+              child: const Text('Kembali'),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  /// Membuat dan menyimpan Resume Medis
   Future<void> _selesaikanKonsultasiDanBuatRiwayat() async {
     try {
       final now = DateTime.now();

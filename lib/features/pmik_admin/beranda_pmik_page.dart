@@ -10,13 +10,22 @@ import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
 import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
+<<<<<<< HEAD
 import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
 import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+=======
+import '../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
+import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+>>>>>>> 077e18d1a33a5dc339e4b61775bdd474e4ad40ec
 import '../pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
 import '../pmik_superadmin/profil/hak_akses/hak_akses_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../widgets/hak_akses_logo.dart';
+<<<<<<< HEAD
 import 'beranda/data_anak/data_pasien_page.dart';
+=======
+>>>>>>> 077e18d1a33a5dc339e4b61775bdd474e4ad40ec
 import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import 'profil_pmik_page.dart';
 
@@ -698,7 +707,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                           opacity: isLocked ? 0.45 : 1.0,
                           child: Transform.translate(
                             offset: Offset(logoOffsetX, 0),
-                            child: customIcon ??
+                            child:
+                                customIcon ??
                                 (imageAsset != null
                                     ? Image.asset(
                                         imageAsset,
@@ -707,14 +717,16 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                         errorBuilder: (_, _, _) => Icon(
                                           icon ?? Icons.widgets_rounded,
                                           size: imageSize,
-                                          color: iconColor ??
+                                          color:
+                                              iconColor ??
                                               const Color(0xFF3985E7),
                                         ),
                                       )
                                     : Icon(
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
-                                        color: iconColor ??
+                                        color:
+                                            iconColor ??
                                             const Color(0xFF3985E7),
                                       )),
                           ),

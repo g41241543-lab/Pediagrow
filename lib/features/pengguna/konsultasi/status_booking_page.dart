@@ -4,15 +4,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../beranda/beranda_page.dart';
+import 'chat_konsultasi_page.dart';
 import 'formulir_konsultasi_page.dart';
 
 /// Halaman "Status Booking Konsultasi" PediaGrow.
 ///
-/// Menampilkan tiket booking, integrasi Google Kalender, dan status waktu konsultasi.
-/// Ketika sudah masuk waktunya, pengguna diarahkan untuk mengisi formulir konsultasi
-/// (BB, TB, dan keluhan), lalu lanjut ke chat dokter.
+/// Menampilkan tiket booking, integrasi Google Kalender, dan status waktu konsultasi secara realtime.
+/// - Belum tiba jadwal: Menunggu waktu tiba (tombol non-aktif, info pengingat menyatu).
+/// - Saat jadwal tiba: Tombol aktif menjadi "Isi Formulir Konsultasi" (pertama kali).
+/// - Setelah isi formulir: Langsung beralih ke Room Chat, dan selama rentang booking pengguna
+///   dapat membuka room konsultasi kapan saja dengan riwayat chat tersimpan.
+/// - Waktu booking habis: Room konsultasi ditutup dan tidak dapat dibuka lagi.
 class StatusBookingPage extends StatefulWidget {
   final BookingConsultationModel booking;
 
@@ -34,7 +39,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   static const Color _kBorderLight = Color(0xFFE2E8F0);
 
   late BookingConsultationModel _currentBooking;
-  bool _forceReady = false;
   Timer? _tickerTimer;
 
   @override
@@ -42,9 +46,12 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     super.initState();
     _currentBooking = widget.booking;
 
-    // Timer cek waktu secara berkala setiap 10 detik
-    _tickerTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted && !_forceReady) {
+    BookingService().bookingsNotifier.addListener(_syncBookingFromService);
+    BookingService().activeBookingNotifier.addListener(_syncBookingFromService);
+
+    // Timer cek waktu real-time setiap detik agar peralihan status jadwal presisi
+    _tickerTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
         setState(() {});
       }
     });
@@ -53,11 +60,24 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   @override
   void dispose() {
     _tickerTimer?.cancel();
+    BookingService().bookingsNotifier.removeListener(_syncBookingFromService);
+    BookingService().activeBookingNotifier.removeListener(_syncBookingFromService);
     super.dispose();
   }
 
-  bool get _isSessionReady {
-    return _forceReady || _currentBooking.isTimeReady;
+  void _syncBookingFromService() {
+    if (!mounted) return;
+    final allBookings = BookingService().bookingsNotifier.value;
+    final found = allBookings.where((b) => b.id == _currentBooking.id);
+    if (found.isNotEmpty) {
+      setState(() {
+        _currentBooking = found.first;
+      });
+    } else if (BookingService().activeBookingNotifier.value?.id == _currentBooking.id) {
+      setState(() {
+        _currentBooking = BookingService().activeBookingNotifier.value!;
+      });
+    }
   }
 
   void _onIsiFormulirPressed() {
@@ -66,19 +86,54 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         builder: (_) => FormulirKonsultasiPage(
           doctor: _currentBooking.doctor,
           child: _currentBooking.child,
+          booking: _currentBooking,
         ),
       ),
-    );
+    ).then((_) {
+      _syncBookingFromService();
+    });
+  }
+
+  void _onMasukRoomKonsultasiPressed() {
+    if (_currentBooking.isExpired) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Waktu sesi konsultasi telah berakhir.',
+            style: GoogleFonts.lato(color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFFE53E3E),
+        ),
+      );
+      return;
+    }
+
+    final effectiveSessionId =
+        _currentBooking.sessionId ?? 'session_${_currentBooking.id}';
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatKonsultasiPage(
+          doctor: _currentBooking.doctor,
+          child: _currentBooking.child,
+          weightKg: _currentBooking.weightKg,
+          heightCm: _currentBooking.heightCm,
+          complaint: _currentBooking.complaint,
+          sessionId: effectiveSessionId,
+          booking: _currentBooking,
+        ),
+      ),
+    ).then((_) {
+      _syncBookingFromService();
+    });
   }
 
 
   @override
   Widget build(BuildContext context) {
-    final isReady = _isSessionReady;
-
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomBar(isReady),
+      bottomNavigationBar: _buildBottomBar(),
       body: SafeArea(
         child: Column(
           children: [
@@ -96,7 +151,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                     const SizedBox(height: 12),
 
                     // Banner Status Waktu (Ready vs Waiting)
-                    _buildTimeStatusBanner(isReady),
+                    _buildTimeStatusBanner(),
                     const SizedBox(height: 18),
 
                     // Kartu Tiket Booking Janji Temu
@@ -108,7 +163,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                     const SizedBox(height: 20),
 
                     // Informasi Alur Konsultasi
-                    _buildFlowGuideCard(isReady),
+                    _buildFlowGuideCard(),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -165,8 +220,58 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
   // ── Banner Status Waktu ───────────────────────────────────────────────────
-  Widget _buildTimeStatusBanner(bool isReady) {
-    if (isReady) {
+  Widget _buildTimeStatusBanner() {
+    if (_currentBooking.isExpired) {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14.0),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: const BoxDecoration(
+                color: Color(0xFF64748B),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.timer_off_outlined, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Waktu Konsultasi Telah Berakhir',
+                    style: GoogleFonts.lato(
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF334155),
+                    ),
+                  ),
+                  const SizedBox(height: 3.0),
+                  Text(
+                    'Batas waktu sesi booking ini telah selesai. Ruangan chat telah ditutup dan tidak dapat dibuka lagi.',
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      height: 1.35,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_currentBooking.isInTimeWindow) {
+      final hasForm = _currentBooking.hasFilledForm;
       return Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -191,7 +296,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Waktu Konsultasi Telah Tiba!',
+                    hasForm ? 'Sesi Konsultasi Sedang Aktif' : 'Waktu Konsultasi Telah Tiba!',
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.bold,
@@ -200,7 +305,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                   ),
                   const SizedBox(height: 3.0),
                   Text(
-                    'Silakan isi formulir konsultasi (BB, TB, dan keluhan anak) terlebih dahulu agar dokter dapat mempelajari kondisi pasien sebelum chat dimulai.',
+                    hasForm
+                        ? 'Sesi chat sedang berlangsung. Anda dapat langsung membuka room konsultasi untuk melanjutkan obrolan bersama dokter.'
+                        : 'Silakan isi formulir konsultasi (BB, TB, dan keluhan anak) terlebih dahulu agar dokter dapat mempelajari kondisi pasien sebelum chat dimulai.',
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
                       height: 1.35,
@@ -247,41 +354,42 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ),
           const SizedBox(height: 6.0),
           Text(
-            'Sesi konsultasi akan dibuka secara otomatis saat waktu janji temu tiba. Anda akan diarahkan untuk mengisi formulir kondisi anak.',
+            'Sesi konsultasi dokter bersifat realtime. Sistem akan otomatis mengaktifkan ruang konsultasi begitu jadwal janji temu tiba.',
             style: GoogleFonts.lato(
               fontSize: 12.5,
               height: 1.35,
               color: const Color(0xFF1E40AF),
             ),
           ),
-          const SizedBox(height: 10.0),
-          // Tombol Simulasi untuk Kemudahan Testing Pengguna
-          InkWell(
-            onTap: () {
-              setState(() => _forceReady = true);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: _kPrimaryBlue),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.flash_on_rounded, size: 15, color: _kPrimaryBlue),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Masuk Waktu Konsultasi Sekarang (Mulai)',
+          const SizedBox(height: 12.0),
+          // Keterangan menyatu terintegrasi (bukan button yang beralih halaman)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.notifications_active_outlined,
+                  size: 16.0,
+                  color: _kPrimaryBlue,
+                ),
+                const SizedBox(width: 8.0),
+                Expanded(
+                  child: Text(
+                    'Pengingat Google Kalender aktif: Tombol ruang konsultasi akan otomatis aktif saat jadwal tiba.',
                     style: GoogleFonts.lato(
                       fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: _kPrimaryBlue,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1E40AF),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -581,7 +689,11 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
   // ── Informasi Alur Konsultasi ─────────────────────────────────────────────
-  Widget _buildFlowGuideCard(bool isReady) {
+  Widget _buildFlowGuideCard() {
+    final isInWindow = _currentBooking.isInTimeWindow;
+    final hasFilled = _currentBooking.hasFilledForm;
+    final isDone = _currentBooking.status.toLowerCase() == 'selesai';
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -604,21 +716,22 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           _buildFlowStep(
             number: '1',
             title: 'Pilih Dokter & Booking Jadwal',
-            subtitle: 'Jadwal janji temu berhasil dipesan.',
+            subtitle: 'Jadwal janji temu berhasil dipesan & terhubung ke Google Kalender.',
             isDone: true,
           ),
           _buildFlowStep(
             number: '2',
             title: 'Masuk Waktu Konsultasi & Isi Formulir',
-            subtitle: 'Lengkapi berat badan, tinggi badan, dan keluhan anak.',
-            isDone: isReady,
-            isActive: isReady,
+            subtitle: 'Lengkapi berat badan, tinggi badan, dan keluhan anak saat jadwal tiba.',
+            isDone: hasFilled,
+            isActive: isInWindow && !hasFilled,
           ),
           _buildFlowStep(
             number: '3',
             title: 'Mulai Chat dengan Dokter',
-            subtitle: 'Konsultasi interaktif langsung bersama dokter spesialis.',
-            isDone: false,
+            subtitle: 'Konsultasi interaktif langsung bersama dokter spesialis selama rentang booking.',
+            isDone: isDone,
+            isActive: isInWindow && hasFilled,
           ),
         ],
       ),
@@ -687,7 +800,38 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
   // ── Bottom Action Bar ─────────────────────────────────────────────────────
-  Widget _buildBottomBar(bool isReady) {
+  Widget _buildBottomBar() {
+    final isExpired = _currentBooking.isExpired;
+    final isBefore = _currentBooking.isBeforeStart;
+    final hasFilled = _currentBooking.hasFilledForm;
+
+    String buttonText;
+    IconData buttonIcon;
+    Color buttonBg;
+    VoidCallback? onTap;
+
+    if (isExpired) {
+      buttonText = 'Waktu Konsultasi Telah Berakhir';
+      buttonIcon = Icons.timer_off_outlined;
+      buttonBg = const Color(0xFFCBD5E1);
+      onTap = null;
+    } else if (isBefore) {
+      buttonText = 'Menunggu Waktu Konsultasi Tiba';
+      buttonIcon = Icons.lock_clock;
+      buttonBg = const Color(0xFFCBD5E1);
+      onTap = null;
+    } else if (hasFilled) {
+      buttonText = 'Masuk ke Room Konsultasi';
+      buttonIcon = Icons.chat_bubble_outline_rounded;
+      buttonBg = _kPrimaryBlue;
+      onTap = _onMasukRoomKonsultasiPressed;
+    } else {
+      buttonText = 'Isi Formulir Konsultasi Sekarang';
+      buttonIcon = Icons.edit_document;
+      buttonBg = _kOrangePrimary;
+      onTap = _onIsiFormulirPressed;
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
       decoration: const BoxDecoration(
@@ -706,9 +850,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           width: double.infinity,
           height: 48.0,
           child: ElevatedButton(
-            onPressed: isReady ? _onIsiFormulirPressed : null,
+            onPressed: onTap,
             style: ElevatedButton.styleFrom(
-              backgroundColor: isReady ? _kOrangePrimary : const Color(0xFFCBD5E1),
+              backgroundColor: buttonBg,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
@@ -719,14 +863,12 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  isReady ? Icons.edit_document : Icons.lock_clock,
+                  buttonIcon,
                   size: 18.0,
                 ),
                 const SizedBox(width: 8.0),
                 Text(
-                  isReady
-                      ? 'Isi Formulir Konsultasi Sekarang'
-                      : 'Menunggu Waktu Konsultasi Tiba',
+                  buttonText,
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
                     fontWeight: FontWeight.bold,

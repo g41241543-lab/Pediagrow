@@ -8,6 +8,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/user_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -23,6 +24,7 @@ class FormulirKonsultasiPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ConsultationModel? consultation;
   final ChildModel? child;
+  final BookingConsultationModel? booking;
   final String? namaAnak;
   final String? jenisKelamin;
   final String? usiaAnak;
@@ -32,6 +34,7 @@ class FormulirKonsultasiPage extends StatefulWidget {
     this.doctor,
     this.consultation,
     this.child,
+    this.booking,
     this.namaAnak,
     this.jenisKelamin,
     this.usiaAnak,
@@ -360,16 +363,18 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     if (!mounted) return;
 
     // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
-    final activeBooking = BookingService().activeBookingNotifier.value;
-    if (activeBooking != null &&
-        activeBooking.doctor.id == effectiveDoctor.id) {
+    final targetBooking = widget.booking ?? BookingService().activeBookingNotifier.value;
+    if (targetBooking != null) {
       BookingService().updateBookingForm(
-        bookingId: activeBooking.id,
+        bookingId: targetBooking.id,
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
+        sessionId: targetBooking.sessionId ?? sessionId,
       );
     }
+
+    final effectiveSessionId = targetBooking?.sessionId ?? sessionId;
 
     // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
     Navigator.pushReplacement(
@@ -382,8 +387,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           weightKg: weight,
           heightCm: height,
           complaint: complaint,
-          sessionId: sessionId,
+          sessionId: effectiveSessionId,
           userId: userId,
+          booking: targetBooking,
         ),
       ),
     );

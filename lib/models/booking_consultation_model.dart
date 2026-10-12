@@ -25,6 +25,7 @@ class BookingConsultationModel {
   final double? weightKg;
   final double? heightCm;
   final String? complaint;
+  final String? sessionId;
   final DateTime createdAt;
 
   // Getter alias untuk fleksibilitas kode
@@ -65,6 +66,7 @@ class BookingConsultationModel {
     this.weightKg,
     this.heightCm,
     this.complaint,
+    this.sessionId,
     required this.createdAt,
   })  : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
         scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
@@ -119,17 +121,26 @@ class BookingConsultationModel {
     final double? heightCm =
         rawHeight != null ? (rawHeight as num).toDouble() : null;
 
+    final doctorMap = map['doctor'];
+    final DoctorModel doctor = doctorMap is Map
+        ? DoctorModel.fromMap({
+            ...Map<String, dynamic>.from(doctorMap),
+            if (doctorMap['id'] != null) 'id': doctorMap['id'].toString(),
+          })
+        : DoctorModel.defaultDoctor;
+
+    final childMap = map['child'];
+    final ChildModel child = childMap is Map
+        ? ChildModel.fromMap(Map<String, dynamic>.from(childMap))
+        : ChildModel(
+            id: '',
+            name: map['childName'] as String? ?? 'Ananda',
+          );
+
     return BookingConsultationModel(
       id: id ?? (map['id'] as String? ?? ''),
-      doctor: map['doctor'] is Map<String, dynamic>
-          ? DoctorModel.fromMap(map['doctor'] as Map<String, dynamic>)
-          : DoctorModel.defaultDoctor,
-      child: map['child'] is Map<String, dynamic>
-          ? ChildModel.fromMap(map['child'] as Map<String, dynamic>)
-          : ChildModel(
-              id: '',
-              name: map['childName'] as String? ?? 'Ananda',
-            ),
+      doctor: doctor,
+      child: child,
       scheduledDate: scheduledDate,
       scheduledTimeSlot:
           (map['scheduledTimeSlot'] ?? map['timeSlot']) as String? ?? '',
@@ -140,6 +151,7 @@ class BookingConsultationModel {
       weightKg: weightKg,
       heightCm: heightCm,
       complaint: map['complaint'] as String?,
+      sessionId: map['sessionId'] as String?,
       createdAt: createdAt,
     );
   }
@@ -148,7 +160,10 @@ class BookingConsultationModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'doctor': doctor.toMap(),
+      'doctor': {
+        'id': doctor.id,
+        ...doctor.toMap(),
+      },
       'child': child.toMap(),
       'childName': child.name,
       'doctorName': doctor.name,
@@ -161,17 +176,36 @@ class BookingConsultationModel {
       'weightKg': weightKg,
       'heightCm': heightCm,
       'complaint': complaint,
+      'sessionId': sessionId,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
+  /// Cek apakah waktu saat ini masih sebelum jadwal mulai konsultasi
+  bool get isBeforeStart => DateTime.now().isBefore(scheduledStartDateTime);
+
+  /// Cek apakah waktu saat ini berada dalam rentang jadwal konsultasi (mulai sampai selesai)
+  bool get isInTimeWindow {
+    final now = DateTime.now();
+    return (now.isAfter(scheduledStartDateTime) || now.isAtSameMomentAs(scheduledStartDateTime)) &&
+        now.isBefore(scheduledEndDateTime);
+  }
+
+  /// Cek apakah waktu jadwal konsultasi sudah berakhir (waktu booking habis)
+  bool get isExpired {
+    return DateTime.now().isAfter(scheduledEndDateTime) || status.toLowerCase() == 'selesai';
+  }
+
+  /// Cek apakah formulir konsultasi untuk booking ini sudah pernah diisi
+  bool get hasFilledForm {
+    return (complaint != null && complaint!.trim().isNotEmpty) ||
+        (sessionId != null && sessionId!.isNotEmpty) ||
+        status.toLowerCase() == 'sedang berlangsung';
+  }
+
   /// Format tanggal standar Indonesia: "Senin, 13 Okt 2026"
   /// Cek apakah waktu saat ini sudah memasuki atau melewati jadwal konsultasi
-  bool get isTimeReady {
-    final now = DateTime.now();
-    final threshold = scheduledStartDateTime.subtract(const Duration(minutes: 10));
-    return now.isAfter(threshold);
-  }
+  bool get isTimeReady => isInTimeWindow;
 
   /// Format tanggal standar Indonesia: "Senin, 12 Oktober 2026"
   String get formattedDate {
@@ -223,6 +257,7 @@ class BookingConsultationModel {
     double? weightKg,
     double? heightCm,
     String? complaint,
+    String? sessionId,
     DateTime? createdAt,
   }) {
     String resolvedStatus = status ?? this.status;
@@ -259,6 +294,7 @@ class BookingConsultationModel {
       weightKg: weightKg ?? this.weightKg,
       heightCm: heightCm ?? this.heightCm,
       complaint: complaint ?? this.complaint,
+      sessionId: sessionId ?? this.sessionId,
       createdAt: createdAt ?? this.createdAt,
     );
   }

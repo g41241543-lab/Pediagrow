@@ -168,4 +168,28 @@ class ChatMessageService {
         .snapshots()
         .map((snap) => snap.docs.length);
   }
+
+  // ─── CACHE PESAN LOKAL (PERSISTEN SAAT BACK, HAPUS SAAT AKHIRI SESI) ──────
+
+  final Map<String, List<Map<String, dynamic>>> _sessionMessagesCache = {};
+
+  /// Mengambil riwayat pesan lokal untuk sesi tertentu jika ada
+  List<Map<String, dynamic>>? getCachedMessages(String sessionId) {
+    if (_sessionMessagesCache.containsKey(sessionId)) {
+      return List<Map<String, dynamic>>.from(_sessionMessagesCache[sessionId]!);
+    }
+    return null;
+  }
+
+  /// Menyimpan pesan sesi lokal agar tidak hilang saat pengguna menekan tombol back
+  void saveCachedMessages(
+      String sessionId, List<Map<String, dynamic>> messages) {
+    _sessionMessagesCache[sessionId] =
+        List<Map<String, dynamic>>.from(messages);
+  }
+
+  /// Menghapus pesan sesi ketika pengguna memilih mengakhiri percakapan
+  void clearCachedMessages(String sessionId) {
+    _sessionMessagesCache.remove(sessionId);
+  }
 }

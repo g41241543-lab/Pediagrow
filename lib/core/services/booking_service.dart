@@ -152,6 +152,21 @@ class BookingService {
     }
   }
 
+  /// Mengubah status booking (misalnya 'Dibatalkan').
+  void updateBookingStatus(String bookingId, String newStatus) {
+    final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
+    final idx = list.indexWhere((b) => b.id == bookingId);
+    if (idx == -1) return;
+
+    final updated = list[idx].copyWith(status: newStatus);
+    list[idx] = updated;
+    bookingsNotifier.value = list;
+
+    if (activeBookingNotifier.value?.id == bookingId) {
+      activeBookingNotifier.value = updated;
+    }
+  }
+
   /// Format URL Google Calendar (Render Template Action)
   /// Menyertakan nama dokter, nama anak, waktu janji temu, dan pengingat
   String generateGoogleCalendarUrl({
@@ -176,7 +191,8 @@ class BookingService {
 
     final datesParam = '${formatUtc(startUtc)}/${formatUtc(endUtc)}';
     final title = 'Konsultasi Dokter: ${doctor.name} - PediaGrow';
-    final details = 'Jadwal konsultasi kesehatan anak: ${child.name} '
+    final details =
+        'Jadwal konsultasi kesehatan anak: ${child.name} '
         'bersama ${doctor.name} (${doctor.specialization}) '
         'melalui sesi chat aplikasi PediaGrow.';
     const location = 'Aplikasi PediaGrow (Online Chat)';
