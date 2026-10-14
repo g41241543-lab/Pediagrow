@@ -26,7 +26,9 @@ import 'widgets/riwayat_header.dart';
 /// - Konten scrollable (ListView / SingleChildScrollView) bebas RenderFlex overflow.
 /// - Scaffold.bottomNavigationBar permanen dengan menu "Riwayat Konsultasi" aktif (Index 2).
 class DaftarRiwayatPage extends StatefulWidget {
-  const DaftarRiwayatPage({super.key});
+  final List<RiwayatKonsultasiModel>? initialRiwayatList;
+
+  const DaftarRiwayatPage({super.key, this.initialRiwayatList});
 
   @override
   State<DaftarRiwayatPage> createState() => _DaftarRiwayatPageState();
@@ -43,16 +45,23 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   @override
   void initState() {
     super.initState();
-    _init();
-    ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
-    ChildService().childrenNotifier.addListener(_onChildrenChanged);
+    if (widget.initialRiwayatList != null) {
+      _riwayatList = widget.initialRiwayatList!;
+      _isLoading = false;
+    } else {
+      _init();
+      ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
+      ChildService().childrenNotifier.addListener(_onChildrenChanged);
+    }
   }
 
   @override
   void dispose() {
-    ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
-    ChildService().childrenNotifier.removeListener(_onChildrenChanged);
-    _resumeSub?.cancel();
+    if (widget.initialRiwayatList == null) {
+      ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
+      ChildService().childrenNotifier.removeListener(_onChildrenChanged);
+      _resumeSub?.cancel();
+    }
     super.dispose();
   }
 
@@ -81,6 +90,33 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     _resumeSub?.cancel();
 
     if (child == null) {
+      final userId = UserService().currentUser.id;
+      if (userId.isNotEmpty) {
+        setState(() => _isLoading = true);
+        _resumeSub = ResumeMedisService()
+            .streamResumeMedis(
+              child: const ChildModel(id: '', name: '', gender: '', birthDate: null),
+              userId: userId,
+            )
+            .listen(
+          (resumes) {
+            if (!mounted) return;
+            setState(() {
+              _riwayatList = resumes.map(_toRiwayat).toList();
+              _isLoading = false;
+              _errorMessage = null;
+            });
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() {
+              _isLoading = false;
+              _errorMessage = 'Gagal memuat data. Silakan coba lagi.';
+            });
+          },
+        );
+        return;
+      }
       setState(() {
         _riwayatList = [];
         _isLoading = false;
@@ -227,7 +263,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       );
     }
 
-    if (_activeChild == null) {
+    if (widget.initialRiwayatList == null && _activeChild == null) {
       return _buildNoChildView();
     }
 

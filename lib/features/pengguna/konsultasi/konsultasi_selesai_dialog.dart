@@ -128,7 +128,7 @@ class KonsultasiSelesaiDialog extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context); // Tutup dialog
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const DaftarRiwayatPage(),

@@ -3,6 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/booking_service.dart';
+import '../../../core/services/konsultasi_service.dart';
+import '../../../models/booking_consultation_model.dart';
+import '../../../models/konsultasi_session_model.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
@@ -15,7 +19,7 @@ const Color _colorTextBlack = Color(0xFF1E293B);
 const Color _colorLabelGrey = Color(0xFF64748B);
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
-/// Model ringan untuk menampilkan data konsultasi di halaman superadmin.
+/// Model data konsultasi untuk PMIK Superadmin.
 class _KonsultasiItem {
   final String id;
   final String childName;
@@ -26,6 +30,11 @@ class _KonsultasiItem {
   final String status; // 'berlangsung' | 'jadwal'
   final String? scheduledDate;
   final String? scheduledTime;
+  final String? sessionId;
+  final String? parentName;
+  final String? complaint;
+  final double? weightKg;
+  final double? heightCm;
 
   const _KonsultasiItem({
     required this.id,
@@ -37,6 +46,11 @@ class _KonsultasiItem {
     required this.status,
     this.scheduledDate,
     this.scheduledTime,
+    this.sessionId,
+    this.parentName,
+    this.complaint,
+    this.weightKg,
+    this.heightCm,
   });
 }
 
@@ -217,8 +231,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, animation, __, child) {
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -325,34 +339,202 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  // ─── BUILD ────────────────────────────────────────────────────────────────
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(),
+  void _showJadwalDetailModal(_KonsultasiItem item) {
+    final isFemale = item.childGender == 'Perempuan';
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildBerlangsungTab(),
-                  _buildJadwalKonsultasiTab(),
-                ],
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                _buildChildAvatar(
+                  photoUrl: item.childPhotoUrl,
+                  isFemale: isFemale,
+                  size: 46,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.childName,
+                        style: GoogleFonts.lato(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: _colorTextBlack,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${item.childGender} • ${item.childAge}',
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          color: _colorLabelGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildStatusBadge(
+                  'Terjadwal',
+                  _colorPrimaryBlue,
+                  const Color(0xFFEBF5FF),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.medical_services_rounded,
+                  size: 16,
+                  color: _colorPrimaryBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  item.doctorName,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: _colorTextBlack,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: _colorPrimaryBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${item.scheduledDate ?? '-'} • ${item.scheduledTime ?? '-'}',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    color: _colorLabelGrey,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFFEFF6FF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  'Tutup',
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _colorPrimaryBlue,
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  // ─── BUILD ────────────────────────────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<KonsultasiSessionModel>>(
+      stream: KonsultasiService.instance.streamSemuaSesiAktif(),
+      builder: (context, sessionSnap) {
+        final activeSessions = sessionSnap.data ?? [];
+        // PMIK Superadmin menampilkan SEMUA sesi aktif tanpa filter per dokter:
+        final firestoreBerlangsung = activeSessions
+            .map((s) => _KonsultasiItem(
+                  id: s.childId.isNotEmpty ? s.childId : s.id,
+                  childName: s.childName,
+                  childAge: s.childAge ?? '0 tahun',
+                  childGender: s.childGender ?? 'Laki-laki',
+                  childPhotoUrl: s.childPhotoUrl,
+                  doctorName: s.doctorName,
+                  status: 'berlangsung',
+                  sessionId: s.id,
+                  parentName: s.parentName,
+                  complaint: s.keluhanAwal,
+                  weightKg: s.weightKg,
+                  heightCm: s.heightCm,
+                ))
+            .toList();
+
+        return ValueListenableBuilder<List<BookingConsultationModel>>(
+          valueListenable: BookingService().bookingsNotifier,
+          builder: (context, userBookings, _) {
+            // PMIK Superadmin menampilkan seluruh data konsultasi (tanpa filter per dokter):
+            final allBerlangsung = [
+              ...firestoreBerlangsung,
+              ..._mockBerlangsung,
+            ];
+
+            final int berlangsungCount = allBerlangsung.length;
+            final int jadwalCount = _mockJadwal.length + userBookings.length;
+
+            return Scaffold(
+              backgroundColor: Colors.white,
+              appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(56.0),
+                child: _buildHeader(),
+              ),
+              body: SafeArea(
+                top: false,
+                bottom: false,
+                child: Column(
+                  children: [
+                    _buildTabBar(berlangsungCount, jadwalCount),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildBerlangsungTab(allBerlangsung),
+                          _buildJadwalKonsultasiTab(userBookings, _mockJadwal),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              bottomNavigationBar: _buildBottomNavigationBar(),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -386,7 +568,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── TAB BAR ──────────────────────────────────────────────────────────────
-  Widget _buildTabBar() {
+  Widget _buildTabBar(int berlangsungCount, int jadwalCount) {
     return Container(
       color: Colors.white,
       child: TabBar(
@@ -413,7 +595,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 const Text('Sedang Berlangsung'),
                 const SizedBox(width: 6),
-                _buildTabBadge(_mockBerlangsung.length, isFirstTab: true),
+                _buildTabBadge(berlangsungCount, isFirstTab: true),
               ],
             ),
           ),
@@ -424,7 +606,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 const Text('Jadwal Konsultasi'),
                 const SizedBox(width: 6),
-                _buildTabBadge(_mockJadwal.length, isFirstTab: false),
+                _buildTabBadge(jadwalCount, isFirstTab: false),
               ],
             ),
           ),
@@ -460,7 +642,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── TAB 1: SEDANG BERLANGSUNG ────────────────────────────────────────────
-  Widget _buildBerlangsungTab() {
+  Widget _buildBerlangsungTab(List<_KonsultasiItem> items) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -476,7 +658,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                     child: _buildActiveSessionBanner(),
                   ),
                   const SizedBox(height: 12),
-                  ..._mockBerlangsung.map(
+                  ...items.map(
                     (item) => Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -502,10 +684,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -515,7 +697,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -542,7 +724,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -559,18 +741,37 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     return Container(
       decoration: BoxDecoration(
         color: _colorCardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      child: Column(
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
+          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+          onTap: _showLockedChatSheet,
+          child: Column(
+            children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
@@ -663,7 +864,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: _colorPrimaryBlue.withOpacity(0.25),
+                          color: _colorPrimaryBlue.withValues(alpha: 0.25),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -684,11 +885,16 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   // ─── TAB 2: JADWAL KONSULTASI ──────────────────────────────────────────────
-  Widget _buildJadwalKonsultasiTab() {
+  Widget _buildJadwalKonsultasiTab(
+    List<BookingConsultationModel> userBookings,
+    List<_KonsultasiItem> mockItems,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -704,7 +910,16 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                     child: _buildScheduleBanner(),
                   ),
                   const SizedBox(height: 12),
-                  ..._mockJadwal.map(
+                  ...userBookings.map(
+                    (booking) => Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      child: _buildUserBookingCard(booking),
+                    ),
+                  ),
+                  ...mockItems.map(
                     (item) => Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -725,15 +940,324 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
+  void _showBookingDetailModal(BookingConsultationModel booking) {
+    final isFemale = booking.child.gender.toLowerCase().contains('perempuan');
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                _buildChildAvatar(
+                  photoUrl: booking.child.photoUrl,
+                  isFemale: isFemale,
+                  size: 46,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        booking.child.name,
+                        style: GoogleFonts.lato(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: _colorTextBlack,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${booking.child.gender} • ${booking.child.ageDescription}',
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          color: _colorLabelGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildStatusBadge(
+                  booking.status,
+                  _colorPrimaryBlue,
+                  const Color(0xFFEBF5FF),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.medical_services_rounded,
+                  size: 16,
+                  color: _colorPrimaryBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  booking.doctor.name,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: _colorTextBlack,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: _colorPrimaryBlue,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${booking.formattedDate} • ${booking.scheduledTimeSlot}',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    color: _colorLabelGrey,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFFEFF6FF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  'Tutup',
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _colorPrimaryBlue,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserBookingCard(BookingConsultationModel booking) {
+    final isFemale = booking.child.gender.toLowerCase().contains('perempuan');
+    return Container(
+      decoration: BoxDecoration(
+        color: _colorCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
+          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+          onTap: () => _showBookingDetailModal(booking),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildChildAvatar(
+                      photoUrl: booking.child.photoUrl,
+                      isFemale: isFemale,
+                      size: 44,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  booking.child.name,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: _colorTextBlack,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _buildStatusBadge(
+                                booking.status,
+                                _colorPrimaryBlue,
+                                const Color(0xFFEBF5FF),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              Icon(
+                                isFemale ? Icons.female : Icons.male,
+                                size: 14,
+                                color: isFemale
+                                    ? const Color(0xFFEC4899)
+                                    : const Color(0xFF3B82F6),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${booking.child.gender} • ${booking.child.ageDescription}',
+                                style: GoogleFonts.lato(
+                                  fontSize: 12.5,
+                                  color: _colorLabelGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F7FF),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _colorPrimaryBlue.withValues(alpha: 0.18),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 14,
+                        color: _colorPrimaryBlue,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          booking.formattedDate,
+                          style: GoogleFonts.lato(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: _colorPrimaryBlue,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 14,
+                        color: _colorPrimaryBlue,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        booking.scheduledTimeSlot,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: _colorPrimaryBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.medical_services_rounded,
+                      size: 14,
+                      color: _colorLabelGrey,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        booking.doctor.name,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          color: _colorLabelGrey,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildScheduleBanner() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: const Color(0xFFEBF5FF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -743,7 +1267,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -770,7 +1294,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -787,18 +1311,37 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     return Container(
       decoration: BoxDecoration(
         color: _colorCardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      child: Column(
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
+          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+          onTap: () => _showJadwalDetailModal(item),
+          child: Column(
+            children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
@@ -872,7 +1415,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   color: const Color(0xFFF0F7FF),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _colorPrimaryBlue.withOpacity(0.18),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.18),
                     width: 1,
                   ),
                 ),
@@ -939,8 +1482,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   // ─── STATUS BADGE ─────────────────────────────────────────────────────────
   Widget _buildStatusBadge(String label, Color textColor, Color bgColor) {
@@ -988,7 +1533,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           color: bgColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1013,7 +1558,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -1187,7 +1732,7 @@ class _BabyFacePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withOpacity(0.4)
+      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final cx = w * 0.5;

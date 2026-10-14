@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/core/services/doctor_service.dart';
-import 'package:pediagrow/features/pmik_superadmin/profil/hakses/daftar_dokter_akses_page.dart';
-import 'package:pediagrow/features/pmik_superadmin/profil/hakses/edit_dokter_akses_page.dart';
-import 'package:pediagrow/features/pmik_superadmin/profil/hakses/hapus_dokter_akses_page.dart';
-import 'package:pediagrow/features/pmik_superadmin/profil/hakses/tambah_dokter_akses_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/daftar_dokter_akses_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/edit_dokter_akses_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/hapus_dokter_akses_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/tambah_dokter_akses_page.dart';
 import 'package:pediagrow/models/doctor_model.dart';
 import 'package:pediagrow/models/doctor_permissions.dart';
 

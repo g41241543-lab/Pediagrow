@@ -10,6 +10,7 @@ import '../../../../models/child_model.dart';
 import '../../../../models/user_model.dart';
 import '../../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
 import 'detail_anak_page.dart';
+import '../../../../shared/widgets/child_avatar.dart';
 
 // =============================================================================
 // HELPER: Hitung umur anak secara akurat berdasarkan tanggal lahir
@@ -520,32 +521,26 @@ class _SheetContent extends StatelessWidget {
   }
 
   Widget _buildAvatar(ChildModel child, bool isBoy) {
-    final bgColor =
-        isBoy ? const Color(0xFFDBEAFE) : const Color(0xFFFCE7F3);
-    final iconColor =
-        isBoy ? const Color(0xFF2563EB) : const Color(0xFFDB2777);
     final hasPhoto =
         child.photoUrl != null && child.photoUrl!.trim().isNotEmpty;
 
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.22),
-          width: 1.5,
+    if (hasPhoto) {
+      return Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: isBoy ? const Color(0xFFEBF5FF) : const Color(0xFFFFEEF0),
+          shape: BoxShape.circle,
         ),
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: hasPhoto
-          ? _buildAvatarImage(
-              child.photoUrl!,
-              Icon(Icons.face_rounded, size: 26, color: iconColor),
-            )
-          : Icon(Icons.face_rounded, size: 26, color: iconColor),
-    );
+        clipBehavior: Clip.hardEdge,
+        child: _buildAvatarImage(
+          child.photoUrl!,
+          ChildAvatar(gender: child.gender, size: 48),
+        ),
+      );
+    }
+
+    return ChildAvatar(gender: child.gender, size: 48);
   }
 
   Widget _buildAvatarImage(String imagePath, Widget fallback) {

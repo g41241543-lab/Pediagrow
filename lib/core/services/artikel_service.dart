@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/artikel_model.dart';
+import '../../models/staff_account_model.dart';
+import 'staff_auth_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Artikel Kesehatan di Cloud Firestore
@@ -28,8 +30,13 @@ class ArtikelService {
 
   static const String _collectionName = 'artikel_kesehatan';
 
-  CollectionReference<Map<String, dynamic>> get _col =>
-      FirebaseFirestore.instance.collection(_collectionName);
+  CollectionReference<Map<String, dynamic>>? get _col {
+    try {
+      return FirebaseFirestore.instance.collection(_collectionName);
+    } catch (_) {
+      return null;
+    }
+  }
 
   final ValueNotifier<List<ArtikelModel>> _articlesNotifier =
       ValueNotifier<List<ArtikelModel>>([]);
@@ -40,6 +47,11 @@ class ArtikelService {
   /// Daftar artikel saat ini di memori (unmodifiable).
   List<ArtikelModel> get currentArticles =>
       List<ArtikelModel>.unmodifiable(_articlesNotifier.value);
+
+  /// Testing helper untuk menyetel data artikel tanpa Firebase
+  void setArticlesForTesting(List<ArtikelModel> articles) {
+    _articlesNotifier.value = List.of(articles);
+  }
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
   Completer<void>? _ready;
@@ -57,33 +69,50 @@ class ArtikelService {
     _ready = completer;
 
     () async {
-      await _seedIfEmpty();
-
-      _subscription = _col.snapshots().listen(
-        (snap) {
-          // Dokumen yang timestamp-nya belum terisi dianggap paling baru.
-          final now = DateTime.now();
-          final docs = snap.docs.toList()
-            ..sort((a, b) {
-              final ta =
-                  (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
-              final tb =
-                  (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
-              return ta.compareTo(tb);
-            });
-          _articlesNotifier.value =
-              docs.map(ArtikelModel.fromFirestore).toList();
+      try {
+        final col = _col;
+        if (col == null) {
+          if (_articlesNotifier.value.isEmpty) {
+            _articlesNotifier.value = List.of(ArtikelModel.seedArticles);
+          }
           if (!completer.isCompleted) completer.complete();
-        },
-        onError: (Object e) {
-          debugPrint('Listener artikel_kesehatan error: $e');
-          if (!completer.isCompleted) completer.completeError(e);
-          // Reset supaya pemanggilan berikutnya mencoba ulang.
-          _subscription?.cancel();
-          _subscription = null;
-          _ready = null;
-        },
-      );
+          return;
+        }
+
+        await _seedIfEmpty();
+
+        _subscription = col.snapshots().listen(
+          (snap) {
+            // Dokumen yang timestamp-nya belum terisi dianggap paling baru.
+            final now = DateTime.now();
+            final docs = snap.docs.toList()
+              ..sort((a, b) {
+                final ta =
+                    (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+                final tb =
+                    (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+                return ta.compareTo(tb);
+              });
+            _articlesNotifier.value =
+                docs.map(ArtikelModel.fromFirestore).toList();
+            if (!completer.isCompleted) completer.complete();
+          },
+          onError: (Object e) {
+            debugPrint('Listener artikel_kesehatan error: $e');
+            if (!completer.isCompleted) completer.completeError(e);
+            // Reset supaya pemanggilan berikutnya mencoba ulang.
+            _subscription?.cancel();
+            _subscription = null;
+            _ready = null;
+          },
+        );
+      } catch (e) {
+        debugPrint('Init artikel_kesehatan error: $e');
+        if (_articlesNotifier.value.isEmpty) {
+          _articlesNotifier.value = List.of(ArtikelModel.seedArticles);
+        }
+        if (!completer.isCompleted) completer.complete();
+      }
     }();
 
     return completer.future;
@@ -94,7 +123,9 @@ class ArtikelService {
   /// dijalankan dua perangkat bersamaan (tidak menghasilkan duplikat).
   Future<void> _seedIfEmpty() async {
     try {
-      final check = await _col.limit(1).get();
+      final col = _col;
+      if (col == null) return;
+      final check = await col.limit(1).get();
       if (check.docs.isNotEmpty) return;
 
       final batch = FirebaseFirestore.instance.batch();
@@ -107,12 +138,14 @@ class ArtikelService {
   }
 
   void _addSeedToBatch(WriteBatch batch) {
+    final col = _col;
+    if (col == null) return;
     // createdAt dibuat berurutan agar urutan artikel 1..3 tetap terjaga.
     final base = DateTime(2026, 8, 26);
     var i = 0;
     for (final artikel in ArtikelModel.seedArticles) {
       final stamp = Timestamp.fromDate(base.add(Duration(minutes: i++)));
-      batch.set(_col.doc(artikel.id), {
+      batch.set(col.doc(artikel.id), {
         ...artikel.toFirestore(),
         'createdAt': stamp,
         'updatedAt': stamp,
@@ -135,7 +168,14 @@ class ArtikelService {
 
   /// Mengambil satu artikel berdasarkan ID dokumen.
   Future<ArtikelModel?> getArticleById(String id) async {
-    final doc = await _col.doc(id).get();
+    final col = _col;
+    if (col == null) {
+      return _articlesNotifier.value.cast<ArtikelModel?>().firstWhere(
+            (art) => art?.id == id,
+            orElse: () => null,
+          );
+    }
+    final doc = await col.doc(id).get();
     return doc.exists ? ArtikelModel.fromFirestore(doc) : null;
   }
 
@@ -148,12 +188,27 @@ class ArtikelService {
         .toList();
   }
 
+  CollectionReference<Map<String, dynamic>> get _colNonNull {
+    final col = _col;
+    if (col == null) throw StateError('Firebase Firestore tidak tersedia.');
+    return col;
+  }
+
   // ---------------------------------------------------------------------------
   // MANAJEMEN DATA OLEH PMIK (ADMIN & SUPERADMIN)
   // ---------------------------------------------------------------------------
 
+  void _checkWritePermission() {
+    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+      throw StateError(
+        '403 Forbidden: Role Dokter hanya memiliki hak akses baca (read-only) untuk Artikel Kesehatan',
+      );
+    }
+  }
+
   /// Tambah artikel baru. Mengembalikan ID dokumen.
   Future<String> tambahArtikel(ArtikelModel artikel) async {
+    _checkWritePermission();
     final Map<String, dynamic> data = {
       ...artikel.toFirestore(),
       'createdAt': FieldValue.serverTimestamp(),
@@ -162,10 +217,10 @@ class ArtikelService {
 
     String docId;
     if (artikel.id != null && artikel.id!.isNotEmpty) {
-      await _col.doc(artikel.id).set(data);
+      await _colNonNull.doc(artikel.id).set(data);
       docId = artikel.id!;
     } else {
-      final ref = await _col.add(data);
+      final ref = await _colNonNull.add(data);
       docId = ref.id;
     }
     await SuperadminNotificationService().notifyArtikelTambah(artikel.judul);
@@ -175,9 +230,10 @@ class ArtikelService {
   /// Perbarui artikel yang ada. Mengembalikan 1 jika berhasil,
   /// 0 jika artikel tidak punya ID.
   Future<int> updateArtikel(ArtikelModel artikel) async {
+    _checkWritePermission();
     final id = artikel.id;
     if (id == null || id.isEmpty) return 0;
-    await _col.doc(id).update({
+    await _colNonNull.doc(id).update({
       ...artikel.toFirestore(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -187,7 +243,8 @@ class ArtikelService {
 
   /// Hapus artikel. Mengembalikan 1 jika berhasil.
   Future<int> hapusArtikel(String id, {String judul = 'Artikel'}) async {
-    await _col.doc(id).delete();
+    _checkWritePermission();
+    await _colNonNull.doc(id).delete();
     await SuperadminNotificationService().notifyArtikelHapus(judul);
     return 1;
   }
@@ -195,7 +252,8 @@ class ArtikelService {
   /// Kosongkan seluruh artikel (untuk menguji tampilan kosong).
   /// Hati-hati: ini menghapus data di Firestore untuk semua pengguna.
   Future<void> clearAllArticles() async {
-    final existing = await _col.get();
+    _checkWritePermission();
+    final existing = await _colNonNull.get();
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in existing.docs) {
       batch.delete(doc.reference);
@@ -205,7 +263,8 @@ class ArtikelService {
 
   /// Hapus semua artikel lalu isi ulang dengan 3 artikel default.
   Future<void> resetToDefault() async {
-    final existing = await _col.get();
+    _checkWritePermission();
+    final existing = await _colNonNull.get();
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in existing.docs) {
       batch.delete(doc.reference);

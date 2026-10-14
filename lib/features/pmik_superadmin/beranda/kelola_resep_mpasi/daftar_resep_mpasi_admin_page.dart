@@ -14,24 +14,16 @@ import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../beranda_superadmin_page.dart';
+import '../../../../core/services/staff_auth_service.dart';
+import '../../../../models/staff_account_model.dart';
 import 'edit_resep_mpasi_page.dart';
 import 'tambah_resep_mpasi_page.dart';
 
-/// Halaman "Daftar Resep MPASI" untuk Superadmin / PMIK.
-///
-/// Fitur:
-/// 1. Header dengan tombol kembali, judul "Daftar Resep MPASI", dan tombol tambah (+)
-///    lingkaran biru yang mengarah ke [TambahResepMpasiPage].
-/// 2. Search bar "Cari Resep MPASI".
-/// 3. Filter chips kategori usia: Semua, 6-8 bulan, 9-11 bulan, 12-23 bulan, 24+ bulan.
-/// 4. Kartu resep dengan thumbnail, judul, keterangan usia, tanggal,
-///    tombol hapus (merah muda) dan tombol ubah (biru muda).
-///    Klik bagian atas kartu membuka [DetailResepPage] (sama dengan tampilan pengguna).
-/// 5. Dialog konfirmasi hapus data ("Hapus Data", tombol "Ya" dan "Tidak").
-/// 6. Bottom Navigation Bar konsisten dengan Superadmin.
-/// 7. Otomatis terhubung dengan database Cloud Firestore dan memicu notifikasi Superadmin.
+/// Halaman "Daftar Resep MPASI" untuk Superadmin / PMIK dan Dokter (read-only).
 class DaftarResepMpasiAdminPage extends StatefulWidget {
-  const DaftarResepMpasiAdminPage({super.key});
+  final bool isReadOnly;
+
+  const DaftarResepMpasiAdminPage({super.key, this.isReadOnly = false});
 
   @override
   State<DaftarResepMpasiAdminPage> createState() =>
@@ -40,6 +32,10 @@ class DaftarResepMpasiAdminPage extends StatefulWidget {
 
 class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   final ResepMpasiService _service = ResepMpasiService();
+
+  bool get isReadOnly =>
+      widget.isReadOnly ||
+      StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -286,7 +282,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
       body: SafeArea(
         child: Column(
           children: [
@@ -331,24 +327,25 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
               ),
             ),
           ),
-          // Tombol tambah lingkaran bergaris biru (+)
-          GestureDetector(
-            onTap: _navigateToTambahResep,
-            child: Container(
-              width: 32.0,
-              height: 32.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: _colorPrimaryBlue, width: 2.0),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.add,
-                size: 20.0,
-                color: _colorPrimaryBlue,
+          if (!isReadOnly)
+            // Tombol tambah lingkaran bergaris biru (+)
+            GestureDetector(
+              onTap: _navigateToTambahResep,
+              child: Container(
+                width: 32.0,
+                height: 32.0,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _colorPrimaryBlue, width: 2.0),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.add,
+                  size: 20.0,
+                  color: _colorPrimaryBlue,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -631,44 +628,46 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                     color: const Color(0xFF94A3B8),
                   ),
                 ),
-                const Spacer(),
-                // Tombol Hapus (merah muda)
-                GestureDetector(
-                  onTap: () => _confirmDeleteResep(resep),
-                  child: Container(
-                    width: 32.0,
-                    height: 32.0,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFECEC),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: Color(0xFFEF4444),
-                      size: 18.0,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                // Tombol Edit (biru muda)
-                GestureDetector(
-                  onTap: () => _navigateToEditResep(resep),
-                  child: Container(
-                    width: 32.0,
-                    height: 32.0,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0EFFF),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.edit_outlined,
-                      color: Color(0xFF2A85FF),
-                      size: 18.0,
+                if (!isReadOnly) ...[
+                  const Spacer(),
+                  // Tombol Hapus (merah muda)
+                  GestureDetector(
+                    onTap: () => _confirmDeleteResep(resep),
+                    child: Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFECEC),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 18.0,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8.0),
+                  // Tombol Edit (biru muda)
+                  GestureDetector(
+                    onTap: () => _navigateToEditResep(resep),
+                    child: Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0EFFF),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.edit_outlined,
+                        color: Color(0xFF2A85FF),
+                        size: 18.0,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

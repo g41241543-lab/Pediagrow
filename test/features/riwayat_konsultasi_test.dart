@@ -61,7 +61,7 @@ void main() {
 
       // Verifikasi bahwa card riwayat muncul
       expect(find.byType(RiwayatConsultationCard), findsOneWidget);
-      expect(find.text('dr. Ririn Esterina, Sp.A'), findsOneWidget);
+      expect(find.text(RiwayatKonsultasiModel.sampleRiwayat1.doctorName), findsOneWidget);
       expect(find.text('Anak : Kaia Anastasya'), findsOneWidget);
       expect(
         find.text('Keluhan : BB anak naik turun dan nafsu makan berkurang'),
@@ -102,7 +102,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Detail Konsultasi'), findsOneWidget);
-      expect(find.text('dr. Ririn Esterina, Sp.A'), findsOneWidget);
+      expect(find.text(RiwayatKonsultasiModel.sampleRiwayat1.doctorName), findsOneWidget);
 
       // Cari tombol kembali dan tap
       final backButtonFinder = find.byIcon(Icons.arrow_back);
@@ -126,9 +126,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(RiwayatConsultationCard), findsNWidgets(2));
-      expect(find.text('dr. Ririn Esterina, Sp.A'), findsOneWidget);
-      expect(find.text('dr. Ahmad Nuri, Sp.A'), findsOneWidget);
+      expect(find.byType(RiwayatConsultationCard), findsNWidgets(RiwayatKonsultasiModel.mockMultiList.length));
+      expect(find.text(RiwayatKonsultasiModel.sampleRiwayat1.doctorName), findsOneWidget);
+      expect(find.text(RiwayatKonsultasiModel.sampleRiwayatDevaro.doctorName), findsOneWidget);
 
       // Pastikan tidak ada RenderFlex overflow
       expect(tester.takeException(), isNull);

@@ -99,15 +99,7 @@ class DetailResepPage extends StatefulWidget {
 
 class _DetailResepPageState extends State<DetailResepPage> {
   // Design Tokens PediaGrow — Diselaraskan 100% dengan Detail Artikel
-  static const Color colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color colorSoftBlue = Color(0xFFEBF5FF);
   static const Color colorWhite = Color(0xFFFFFFFF);
-  static const Color colorTextPrimary = Color(0xFF000000); // Hitam murni sesuai detail artikel
-  static const Color colorTextBody = Color(0xFF262626); // Warna teks isi artikel #262626
-  static const Color colorTextMuted = Color(0xFF8E8E93); // Abu-abu metadata tanggal/penulis #8E8E93
-  static const Color colorDivider = Color(0xFFF1F2F6); // Garis pemisah halus #F1F2F6
-  static const Color colorPlaceholderBg = Color(0xFFEEEEEE); // Placeholder abu-abu terang
-  static const Color colorPlaceholderIcon = Color(0xFFBDBDBD); // Icon placeholder #BDBDBD
 
   ResepMpasi? get _effectiveResep {
     if (widget.resepModel != null) {

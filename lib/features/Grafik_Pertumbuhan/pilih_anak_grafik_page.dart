@@ -4,6 +4,7 @@ import '../../core/services/child_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/child_model.dart';
 import 'pertumbuhan_grafik_page.dart';
+import '../../shared/widgets/child_avatar.dart';
 import '../../shared/widgets/pedia_banner.dart';
 
 /// Helper function global untuk menghitung umur anak secara presisi kalender
@@ -445,6 +446,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
   }
 
   Widget _buildBabyAvatar(bool isGirl, String? photoUrl) {
+<<<<<<< HEAD
     final bgColor = isGirl ? const Color(0xFFFFD8E4) : const Color(0xFFD6EEFF);
     final iconColor = isGirl ? const Color(0xFFE83D84) : const Color(0xFF2B7AE8);
 
@@ -466,6 +468,11 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
           size: 26,
         ),
       ),
+=======
+    return ChildAvatar(
+      isGirl: isGirl,
+      size: 46,
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     );
 
     if (photoUrl == null || photoUrl.isEmpty) {

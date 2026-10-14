@@ -15,6 +15,7 @@ import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'edit_dokter_akses_page.dart';
 import 'hapus_dokter_akses_page.dart';
 import 'tambah_dokter_akses_page.dart';
+import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
 
 /// Halaman Daftar Dokter untuk Superadmin PediaGrow.
 ///
@@ -97,7 +98,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       PageRouteBuilder(
         pageBuilder: (_, animation, secondaryAnimation) =>
             TambahDokterAksesPage(createdByEmail: currentEmail),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
@@ -128,7 +129,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       PageRouteBuilder(
         pageBuilder: (_, animation, secondaryAnimation) =>
             EditDokterAksesPage(doctor: doctor, staffAccount: staff),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
@@ -173,9 +174,9 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     };
 
     final route = PageRouteBuilder(
-      pageBuilder: (_, __, ___) => destination,
+      pageBuilder: (_, _, _) => destination,
       transitionDuration: const Duration(milliseconds: 220),
-      transitionsBuilder: (_, animation, __, child) {
+      transitionsBuilder: (_, animation, _, child) {
         return FadeTransition(
           opacity: animation,
           child: child,
@@ -244,7 +245,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                       ),
                       physics: const BouncingScrollPhysics(),
                       itemCount: filteredDoctors.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 14.0),
                       itemBuilder: (context, index) {
                         final doctor = filteredDoctors[index];
@@ -259,7 +260,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           ],
         ),
       ),
-      bottomNavigationBar: null,
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -287,9 +288,9 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     } else {
                       Navigator.of(context).pushReplacement(
                         PageRouteBuilder(
-                          pageBuilder: (_, __, ___) =>
+                          pageBuilder: (_, _, _) =>
                               const ProfilSuperadminPage(),
-                          transitionsBuilder: (_, a, __, c) =>
+                          transitionsBuilder: (_, a, _, c) =>
                               FadeTransition(opacity: a, child: c),
                         ),
                       );
@@ -498,8 +499,52 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
               vertical: 8.0,
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // Tombol Kelola Jadwal Praktik (Biru Medis #0284C7)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AturJadwalDokterPage(
+                          dokterId: doctor.id,
+                          doctorName: doctor.name,
+                          isSuperadmin: true,
+                        ),
+                      ),
+                    );
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    height: 36.0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F9FF),
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(color: const Color(0xFFBAE6FD)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.calendar_month_rounded,
+                          size: 16.0,
+                          color: Color(0xFF0284C7),
+                        ),
+                        const SizedBox(width: 5.0),
+                        Text(
+                          'Jadwal Praktik',
+                          style: GoogleFonts.lato(
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0284C7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Spacer(),
                 // Tombol Hapus (Merah)
                 GestureDetector(
                   onTap: () => _confirmDelete(doctor),
@@ -552,6 +597,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
 
   Widget _buildDoctorAvatar(DoctorModel doctor) {
     final avatar = doctor.avatarUrl ?? doctor.assetImagePath;
+<<<<<<< HEAD
     return StorageService.buildImageWidget(
       avatar,
       fit: BoxFit.cover,
@@ -559,6 +605,37 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       height: 58.0,
       errorWidget: _buildAvatarFallback(),
     );
+=======
+    if (avatar != null && avatar.isNotEmpty) {
+      if (File(avatar).existsSync()) {
+        return Image.file(
+          File(avatar),
+          fit: BoxFit.cover,
+          width: 58.0,
+          height: 58.0,
+        );
+      }
+      if (avatar.startsWith('http')) {
+        return Image.network(
+          avatar,
+          fit: BoxFit.cover,
+          width: 58.0,
+          height: 58.0,
+          errorBuilder: (_, _, _) => _buildAvatarFallback(),
+        );
+      }
+      if (avatar.startsWith('assets/')) {
+        return Image.asset(
+          avatar,
+          fit: BoxFit.cover,
+          width: 58.0,
+          height: 58.0,
+          errorBuilder: (_, _, _) => _buildAvatarFallback(),
+        );
+      }
+    }
+    return _buildAvatarFallback();
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
   }
 
   Widget _buildAvatarFallback() {

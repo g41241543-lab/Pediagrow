@@ -8,7 +8,7 @@ import 'booking_dokter_page.dart';
 export 'booking_dokter_page.dart';
 
 /// Halaman Menunggu Persetujuan Dokter telah digantikan oleh [BookingDokterPage]
-/// sesuai sistem booking jadwal dokter oleh pengguna.
+/// sesuai sistem booking jadwal dokter oleh pengguna (tanpa menunggu persetujuan).
 class MenungguPersetujuanPage extends StatelessWidget {
   final DoctorModel? doctor;
   final ConsultationModel? consultation;

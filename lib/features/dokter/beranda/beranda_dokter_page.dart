@@ -6,11 +6,11 @@ import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
 import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import '../../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
-import '../../pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
+import 'data_pasien/data_pasien_page.dart';
+import '../konsultasi/konsultasi_dokter_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil_dokter_page.dart';
 
@@ -140,9 +140,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                 if (name.isNotEmpty &&
                                     name.toLowerCase() != 'dokter' &&
                                     name.toLowerCase() != 'superadmin') {
-                                  final isDr = name
-                                          .toLowerCase()
-                                          .startsWith('dr.') ||
+                                  final isDr =
+                                      name.toLowerCase().startsWith('dr.') ||
                                       name.toLowerCase().startsWith('dr ');
                                   greeting =
                                       'Hai, ${isDr ? name : 'dr. $name'}';
@@ -470,10 +469,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8CF47),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFE2B025),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFE2B025), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFD97706).withValues(alpha: 0.25),
@@ -562,7 +558,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     bool isDisabled = false,
     bool applyGreyscale = false,
   }) {
-    Widget iconWidget = customIcon ??
+    Widget iconWidget =
+        customIcon ??
         (imageAsset != null
             ? Image.asset(
                 imageAsset,
@@ -584,10 +581,26 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     if (isDisabled && applyGreyscale) {
       iconWidget = ColorFiltered(
         colorFilter: const ColorFilter.matrix(<double>[
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0, 0, 0, 1, 0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ]),
         child: iconWidget,
       );
@@ -928,7 +941,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
         // Beranda aktif
         break;
       case 1:
-        _navigateTo(const KonsultasiSuperadminPage());
+        _navigateTo(const KonsultasiDokterPage());
         break;
       case 2:
         _navigateTo(const DaftarRiwayatKonsultasiAdminPage());

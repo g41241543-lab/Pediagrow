@@ -6,12 +6,17 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+<<<<<<< HEAD
 import '../../../core/services/storage_service.dart';
+=======
+import '../../../core/services/notification_service.dart';
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import 'daftar_dokter_page.dart';
 import 'pilih_anak_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 
 /// Halaman formulir booking dokter anak oleh pengguna.
 ///
@@ -155,6 +160,15 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     // Simpan ke BookingService
     BookingService().addBooking(newBooking);
 
+    // Otomatis jadwalkan notifikasi pengingat kalender
+    NotificationService().addBookingReminderNotification(
+      doctorName: _doctor.name,
+      childName: _child.name,
+      dateFormatted: newBooking.formattedDate,
+      timeSlot: _selectedTimeSlot,
+      scheduledTime: newBooking.bookingDate,
+    );
+
     // Tampilkan dialog sukses
     showDialog(
       context: context,
@@ -247,7 +261,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     final isFemale = _child.gender.toLowerCase() == 'perempuan';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: _buildHeader(),
@@ -331,13 +345,20 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _colorBorder, width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -449,13 +470,20 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _colorBorder, width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -576,7 +604,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _availableDates.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
               final date = _availableDates[i];
               final isSelected = _isSameDay(date, _selectedDate);
@@ -777,6 +805,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     required bool isFemale,
     required double size,
   }) {
+<<<<<<< HEAD
     final bgColor =
         isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
 
@@ -785,30 +814,37 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
     );
 
+=======
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
+          color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
         ),
         clipBehavior: Clip.antiAlias,
         child: StorageService.buildImageWidget(
           photoUrl,
           fit: BoxFit.cover,
+<<<<<<< HEAD
           width: size,
           height: size,
           errorWidget: fallback,
+=======
+          errorBuilder: (_, _, _) => ChildAvatar(
+            isGirl: isFemale,
+            size: size,
+          ),
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
         ),
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+    return ChildAvatar(
+      isGirl: isFemale,
+      size: size,
     );
   }
 }

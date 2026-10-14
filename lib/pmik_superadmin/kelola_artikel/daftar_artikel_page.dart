@@ -12,30 +12,15 @@ import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import '../../features/pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
 import '../../features/pmik_superadmin/profil/profil_superadmin_page.dart';
 import '../../features/pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../../../core/services/staff_auth_service.dart';
+import '../../../models/staff_account_model.dart';
 import 'form_artikel_page.dart';
 
-/// Halaman "Daftar Artikel" untuk peran PMIK Superadmin pada aplikasi PediaGrow.
-///
-/// Halaman ini terhubung langsung ke sumber data artikel yang sama dengan pengguna
-/// melalui [ArtikelService] dan [ArtikelModel].
-///
-/// Fitur utama:
-/// 1. Header berjarak 56dp dari atas layar dengan tombol back (12dp dari kiri),
-///    judul "Daftar Artikel" (12dp setelah back), dan tombol tambah lingkaran bergaris
-///    biru (16dp dari kanan).
-/// 2. Search bar real-time dengan placeholder "Cari Artikel", ikon search #7F7F7F,
-///    dan sudut rounded besar.
-/// 3. Kartu artikel responsif dengan thumbnail rounded, judul hitam bold (maks 4 baris),
-///    meta info (jam + kategori/tag artikel warna #C5C5C5), divider tipis, tanggal artikel (#C5C5C5),
-///    tombol hapus (merah muda) dan tombol edit (biru muda).
-/// 4. Dialog konfirmasi sebelum menghapus artikel.
-/// 5. Navigasi tambah artikel & edit artikel ke [FormArtikelPage].
-/// 6. Loading, empty state (teks "Belum ada artikel" & ilustrasi pohon, rumput, tenda),
-///    serta error state dengan tombol coba lagi.
-/// 7. Bottom Navigation Bar konsisten dengan dashboard beranda (bentuk, ukuran, font, ikon sama).
-/// 8. Ilustrasi kumpulan pohon dan lanskap alam di atas dashboard footer seperti di halaman artikel pengguna.
+/// Halaman "Daftar Artikel" untuk peran PMIK Superadmin dan Dokter (read-only).
 class DaftarArtikelPage extends StatefulWidget {
-  const DaftarArtikelPage({super.key});
+  final bool isReadOnly;
+
+  const DaftarArtikelPage({super.key, this.isReadOnly = false});
 
   @override
   State<DaftarArtikelPage> createState() => _DaftarArtikelPageState();
@@ -44,6 +29,10 @@ class DaftarArtikelPage extends StatefulWidget {
 class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   // Service terpusat yang sama persis dengan halaman pengguna
   final ArtikelService _artikelService = ArtikelService();
+
+  bool get isReadOnly =>
+      widget.isReadOnly ||
+      StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -146,6 +135,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     if (result == true && mounted) {
       await _loadArticles();
+      if (!mounted) return;
       PediaBanner.showSuccess(
         context,
         message: 'Berhasil Menyimpan Artikel Baru',
@@ -161,6 +151,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     if (result == true && mounted) {
       await _loadArticles();
+      if (!mounted) return;
       PediaBanner.showSuccess(context, message: 'Berhasil Menyimpan Perubahan');
     }
   }
@@ -314,14 +305,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // Bottom Navigation Bar konsisten dengan dashboard beranda (bentuk, ukuran, font, ikon)
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      // Bottom Navigation Bar hanya untuk Superadmin/PMIK
+      bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
       body: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Header (tinggi 56dp, back 12dp dari kiri, judul 12dp setelahnya, tombol plus 16dp dari kanan)
+            // 1. Header
             _buildHeader(),
 
             const SizedBox(height: 12.0),
@@ -334,7 +325,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
             const SizedBox(height: 16.0),
 
-            // 3. KONTEN UTAMA (Daftar Kartu Artikel yang dapat di-scroll dan Ilustrasi di bawah artikel)
+            // 3. KONTEN UTAMA
             Expanded(child: _buildBodyContent()),
           ],
         ),
@@ -343,9 +334,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   }
 
   /// Header di bagian atas dengan tinggi 56dp:
-  /// - Tombol back berada 12dp dari tepi kiri layar
-  /// - Judul "Daftar Artikel" berada 12dp setelah tombol back sejajar secara vertikal
-  /// - Tombol tambah berupa ikon plus di dalam lingkaran bergaris tepi biru berjarak 16dp dari kanan
   Widget _buildHeader() {
     return Container(
       height: 56.0,
@@ -389,32 +377,33 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             ),
           ),
 
-          // Tombol Tambah berupa ikon plus di dalam lingkaran dengan garis tepi biru (16dp dari kanan)
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _navigateToTambahArtikel,
-                borderRadius: BorderRadius.circular(20.0),
-                child: Container(
-                  width: 38.0,
-                  height: 38.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: _colorPrimaryBlue, width: 1.8),
-                    color: Colors.transparent,
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.add,
-                    size: 24.0,
-                    color: _colorPrimaryBlue,
+          if (!isReadOnly)
+            // Tombol Tambah berupa ikon plus di dalam lingkaran dengan garis tepi biru (16dp dari kanan)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _navigateToTambahArtikel,
+                  borderRadius: BorderRadius.circular(20.0),
+                  child: Container(
+                    width: 38.0,
+                    height: 38.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: _colorPrimaryBlue, width: 1.8),
+                      color: Colors.transparent,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.add,
+                      size: 24.0,
+                      color: _colorPrimaryBlue,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -649,66 +638,67 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                       ),
                     ),
 
-                    // Tombol Hapus & Tombol Edit seragam dan proporsional
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Tombol Hapus (background & border merah muda, ikon tempat sampah merah)
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => _confirmDeleteArtikel(artikel),
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Container(
-                              width: 34.0,
-                              height: 34.0,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFEBEE),
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: Border.all(
-                                  color: const Color(0xFFFFCDD2),
-                                  width: 1.0,
+                    if (!isReadOnly)
+                      // Tombol Hapus & Tombol Edit seragam dan proporsional
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Tombol Hapus (background & border merah muda, ikon tempat sampah merah)
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _confirmDeleteArtikel(artikel),
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Container(
+                                width: 34.0,
+                                height: 34.0,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFEBEE),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                    color: const Color(0xFFFFCDD2),
+                                    width: 1.0,
+                                  ),
                                 ),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                Icons.delete_outline_rounded,
-                                color: Color(0xFFE53935),
-                                size: 18.0,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Color(0xFFE53935),
+                                  size: 18.0,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8.0),
+                          const SizedBox(width: 8.0),
 
-                        // Tombol Edit (background & border biru muda, ikon pensil biru)
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => _navigateToEditArtikel(artikel),
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Container(
-                              width: 34.0,
-                              height: 34.0,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE3F2FD),
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: Border.all(
-                                  color: const Color(0xFFBBDEFB),
-                                  width: 1.0,
+                          // Tombol Edit (background & border biru muda, ikon pensil biru)
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _navigateToEditArtikel(artikel),
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Container(
+                                width: 34.0,
+                                height: 34.0,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE3F2FD),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                    color: const Color(0xFFBBDEFB),
+                                    width: 1.0,
+                                  ),
                                 ),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                Icons.edit_outlined,
-                                color: Color(0xFF1E88E5),
-                                size: 18.0,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.edit_outlined,
+                                  color: Color(0xFF1E88E5),
+                                  size: 18.0,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -775,6 +765,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
+<<<<<<< HEAD
         child: StorageService.buildImageWidget(
           image,
           width: width,
@@ -782,6 +773,25 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           fit: BoxFit.cover,
           errorWidget: _buildPlaceholderImage(),
         ),
+=======
+        child: image == null
+            ? _buildPlaceholderImage()
+            : (artikel.isAssetImage
+                  ? Image.asset(
+                      image,
+                      width: width,
+                      height: height,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
+                    )
+                  : Image.network(
+                      image,
+                      width: width,
+                      height: height,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
+                    )),
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
       ),
     );
   }
@@ -920,8 +930,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             } else {
               Navigator.of(context).pushAndRemoveUntil(
                 PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => const BerandaSuperadminPage(),
-                  transitionsBuilder: (_, animation, __, child) =>
+                  pageBuilder: (_, _, _) => const BerandaSuperadminPage(),
+                  transitionsBuilder: (_, animation, _, child) =>
                       FadeTransition(opacity: animation, child: child),
                   transitionDuration: const Duration(milliseconds: 200),
                 ),
@@ -932,8 +942,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           case 1:
             Navigator.of(context).push(
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const KonsultasiSuperadminPage(),
-                transitionsBuilder: (_, animation, __, child) =>
+                pageBuilder: (_, _, _) => const KonsultasiSuperadminPage(),
+                transitionsBuilder: (_, animation, _, child) =>
                     FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),
@@ -942,9 +952,9 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           case 2:
             Navigator.of(context).push(
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) =>
+                pageBuilder: (_, _, _) =>
                     const DaftarRiwayatKonsultasiAdminPage(),
-                transitionsBuilder: (_, animation, __, child) =>
+                transitionsBuilder: (_, animation, _, child) =>
                     FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),
@@ -953,8 +963,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           case 3:
             Navigator.of(context).push(
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const ProfilSuperadminPage(),
-                transitionsBuilder: (_, animation, __, child) =>
+                pageBuilder: (_, _, _) => const ProfilSuperadminPage(),
+                transitionsBuilder: (_, animation, _, child) =>
                     FadeTransition(opacity: animation, child: child),
                 transitionDuration: const Duration(milliseconds: 200),
               ),

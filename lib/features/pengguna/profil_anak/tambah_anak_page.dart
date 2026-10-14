@@ -164,8 +164,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   void _checkTinggiBadanRange() {
     final text = _tinggiBadanController.text.trim();
     if (text.isEmpty) {
-      if (_tinggiBadanWarning != null)
+      if (_tinggiBadanWarning != null) {
         setState(() => _tinggiBadanWarning = null);
+      }
       return;
     }
     final val = double.tryParse(text);

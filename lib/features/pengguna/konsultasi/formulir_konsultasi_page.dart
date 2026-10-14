@@ -3,12 +3,21 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/chat_message_service.dart';
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+<<<<<<< HEAD
 import '../../../core/services/storage_service.dart';
+=======
+import '../../../core/services/konsultasi_service.dart';
+import '../../../core/services/user_service.dart';
+import '../../../models/booking_consultation_model.dart';
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'chat_konsultasi_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman "Formulir Konsultasi" PediaGrow.
@@ -19,6 +28,7 @@ class FormulirKonsultasiPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ConsultationModel? consultation;
   final ChildModel? child;
+  final BookingConsultationModel? booking;
   final String? namaAnak;
   final String? jenisKelamin;
   final String? usiaAnak;
@@ -28,6 +38,7 @@ class FormulirKonsultasiPage extends StatefulWidget {
     this.doctor,
     this.consultation,
     this.child,
+    this.booking,
     this.namaAnak,
     this.jenisKelamin,
     this.usiaAnak,
@@ -274,7 +285,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     return isValid;
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     // Tutup keyboard
     FocusScope.of(context).unfocus();
 
@@ -316,8 +327,61 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     final effectiveDoctor =
         widget.doctor ?? widget.consultation?.doctor ?? DoctorModel.defaultDoctor;
 
-    // Navigasi ke halaman Chat Konsultasi Dokter yang sudah tersedia
-    Navigator.push(
+    final currentUser = UserService().currentUser;
+    final parentName = currentUser.name.isNotEmpty && currentUser.name != 'Tamu'
+        ? currentUser.name
+        : 'Orang Tua $_effectiveName';
+    final userId = currentUser.id.isNotEmpty
+        ? currentUser.id
+        : 'user-${DateTime.now().millisecondsSinceEpoch}';
+
+    String? sessionId;
+    try {
+      sessionId = await KonsultasiService.instance.buatSesi(
+        childId: childData.id,
+        childName: childData.name,
+        userId: userId,
+        parentName: parentName,
+        doctorId: effectiveDoctor.id.isNotEmpty
+            ? effectiveDoctor.id
+            : effectiveDoctor.name,
+        doctorName: effectiveDoctor.name,
+        keluhanAwal: complaint,
+        weightKg: weight,
+        heightCm: height,
+        childPhotoUrl: childData.photoUrl,
+        childGender: childData.gender,
+        childAge: childData.ageDescription,
+      );
+
+      // Kirim dokumen formulir keluhan awal ke pesan chat
+      await ChatMessageService.instance.kirimFormulir(
+        sessionId: sessionId,
+        senderId: userId,
+        keluhanText: complaint,
+      );
+    } catch (e) {
+      debugPrint('Gagal buat sesi di Firestore: $e');
+    }
+
+    if (!mounted) return;
+
+    // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
+    final targetBooking = widget.booking ?? BookingService().activeBookingNotifier.value;
+    if (targetBooking != null) {
+      BookingService().updateBookingForm(
+        bookingId: targetBooking.id,
+        weightKg: weight,
+        heightCm: height,
+        complaint: complaint,
+        sessionId: targetBooking.sessionId ?? sessionId,
+      );
+    }
+
+    final effectiveSessionId = targetBooking?.sessionId ?? sessionId;
+
+    // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => ChatKonsultasiPage(
@@ -327,6 +391,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           weightKg: weight,
           heightCm: height,
           complaint: complaint,
+          sessionId: effectiveSessionId,
+          userId: userId,
+          booking: targetBooking,
         ),
       ),
     );
@@ -741,30 +808,35 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         border: Border.all(color: borderColor, width: 1.8),
       ),
       clipBehavior: Clip.antiAlias,
+<<<<<<< HEAD
       child: StorageService.buildImageWidget(
         photoUrl,
         fit: BoxFit.cover,
         placeholder: _buildDefaultBabyIcon(),
         errorWidget: _buildDefaultBabyIcon(),
       ),
+=======
+      child: hasPhoto
+          ? (photoUrl.startsWith('assets/')
+              ? Image.asset(
+                  photoUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
+                )
+              : Image.file(
+                  File(photoUrl),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
+                ))
+          : _buildDefaultBabyIcon(),
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     );
   }
 
   Widget _buildDefaultBabyIcon() {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Image.asset(
-        'assets/images/default_baby_avatar.png',
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Center(
-          child: CustomPaint(
-            size: const Size(34, 34),
-            painter: _CuteBabyFacePainter(
-              isGirl: _effectiveGender.toLowerCase().contains('perempuan'),
-            ),
-          ),
-        ),
-      ),
+    return ChildAvatar(
+      gender: _effectiveGender,
+      size: 44,
     );
   }
 
@@ -1416,8 +1488,8 @@ class _CuteBabyFacePainter extends CustomPainter {
 
     final blushPaint = Paint()
       ..color = isGirl
-          ? const Color(0xFFFB7185).withOpacity(0.5)
-          : const Color(0xFF60A5FA).withOpacity(0.4)
+          ? const Color(0xFFFB7185).withValues(alpha: 0.5)
+          : const Color(0xFF60A5FA).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final fillEyePaint = Paint()

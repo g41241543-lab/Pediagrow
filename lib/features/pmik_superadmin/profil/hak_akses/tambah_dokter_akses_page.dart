@@ -981,9 +981,9 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                           ),
                           Switch(
                             value: isChecked,
-                            activeColor: const Color(0xFF3985E7),
+                            activeThumbColor: const Color(0xFF3985E7),
                             activeTrackColor:
-                                const Color(0xFF3985E7).withOpacity(0.5),
+                                const Color(0xFF3985E7).withValues(alpha: 0.5),
                             inactiveThumbColor: const Color(0xFFFFFFFF),
                             inactiveTrackColor: const Color(0xFF94A3B8),
                             onChanged: (val) {
@@ -1016,32 +1016,27 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
 
 /// Garis putus-putus horizontal sesuai desain
 class _DottedLine extends StatelessWidget {
-  final Color color;
-  final double height;
-  final double dotWidth;
-  final double spaceWidth;
+  const _DottedLine();
 
-  const _DottedLine({
-    this.color = const Color(0xFFCBD5E1),
-    this.height = 1.0,
-    this.dotWidth = 3.0,
-    this.spaceWidth = 3.0,
-  });
+  static const Color _color = Color(0xFFCBD5E1);
+  static const double _height = 1.0;
+  static const double _dotWidth = 3.0;
+  static const double _spaceWidth = 3.0;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final boxWidth = constraints.constrainWidth();
-        final count = (boxWidth / (dotWidth + spaceWidth)).floor();
+        final count = (boxWidth / (_dotWidth + _spaceWidth)).floor();
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(count > 0 ? count : 1, (_) {
-            return SizedBox(
-              width: dotWidth,
-              height: height,
+            return const SizedBox(
+              width: _dotWidth,
+              height: _height,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: color),
+                decoration: BoxDecoration(color: _color),
               ),
             );
           }),

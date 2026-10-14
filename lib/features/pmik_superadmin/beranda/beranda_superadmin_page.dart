@@ -13,12 +13,13 @@ import 'notifikasi_superadmin_page.dart';
 import 'data_anak/data_pasien_page.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
-import 'grafik_pengguna/grafik_pengguna_page.dart';
 import 'permainan/permainan_admin_page.dart';
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
+import '../profil/hak_akses/hak_akses_page.dart';
+import '../../../widgets/hak_akses_logo.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/staff_account_model.dart';
@@ -516,7 +517,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         final canPasien = _canAccessFeature('data_pasien');
         final canResep = _canAccessFeature('daftar_resep_mpasi');
         final canArtikel = _canAccessFeature('daftar_artikel_kesehatan');
-        final canGrafik = _canAccessFeature('grafik_pengguna');
+        final canHakAkses = _canAccessFeature('hak_akses');
         final canPermainan = _canAccessFeature('permainan');
 
         return Column(
@@ -594,14 +595,14 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildMenuItem(
-                    title: 'Grafik\nPengguna',
-                    imageAsset: 'assets/images/grafik_pengguna_logo.png',
-                    blobColor: const Color(0xFF2563EB),
-                    isLocked: !canGrafik,
+                    title: 'Kelola\nHak Akses',
+                    customIcon: HakAksesLogo(isDisabled: !canHakAkses),
+                    blobColor: const Color(0xFF0284C7),
+                    isLocked: !canHakAkses,
                     onTap: () => _handleMenuTap(
-                      permissionKey: 'grafik_pengguna',
-                      featureName: 'Grafik Pengguna',
-                      onAllowed: () => _navigateTo(const GrafikPenggunaPage()),
+                      permissionKey: 'hak_akses',
+                      featureName: 'Kelola Hak Akses',
+                      onAllowed: () => _navigateTo(const HakAksesPage()),
                     ),
                   ),
                 ),
@@ -773,7 +774,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                         imageAsset,
                                         height: imageSize,
                                         fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) => Icon(
+                                        errorBuilder: (_, _, _) => Icon(
                                           icon ?? Icons.widgets_rounded,
                                           size: imageSize,
                                           color:

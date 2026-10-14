@@ -4,7 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/resep_mpasi_model.dart';
+<<<<<<< HEAD
 import 'storage_service.dart';
+=======
+import '../../models/staff_account_model.dart';
+import 'staff_auth_service.dart';
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Resep MPASI di Cloud Firestore
@@ -152,13 +157,25 @@ class ResepMpasiService {
     return doc.exists ? ResepMpasiModel.fromFirestore(doc) : null;
   }
 
+  void _checkWritePermission() {
+    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+      throw StateError(
+        '403 Forbidden: Role Dokter hanya memiliki hak akses baca (read-only) untuk Resep MPASI',
+      );
+    }
+  }
+
   /// Tambah resep baru (PMIK/Superadmin). Mengembalikan ID dokumen.
   Future<String> insertResep(ResepMpasiModel resep) async {
+<<<<<<< HEAD
     final persistableImageUrl = resep.imageUrl != null && resep.imageUrl!.isNotEmpty
         ? await StorageService.toPersistableString(resep.imageUrl)
         : null;
     final toSave = resep.copyWith(imageUrl: persistableImageUrl);
 
+=======
+    _checkWritePermission();
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     final Map<String, dynamic> data = {
       ...toSave.toFirestore(),
       'createdAt': FieldValue.serverTimestamp(),
@@ -180,6 +197,7 @@ class ResepMpasiService {
   /// Ubah resep yang sudah ada (PMIK/Superadmin). Mengembalikan 1 jika berhasil,
   /// 0 jika resep tidak punya ID.
   Future<int> updateResep(ResepMpasiModel resep) async {
+    _checkWritePermission();
     final id = resep.id;
     if (id == null || id.isEmpty) return 0;
 
@@ -198,6 +216,7 @@ class ResepMpasiService {
 
   /// Hapus resep (PMIK/Superadmin). Mengembalikan 1 jika berhasil.
   Future<int> deleteResep(String id, {String judul = 'Resep MPASI'}) async {
+    _checkWritePermission();
     await _col.doc(id).delete();
     await SuperadminNotificationService().notifyResepHapus(judul);
     return 1;
@@ -205,6 +224,7 @@ class ResepMpasiService {
 
   /// Hapus semua resep lalu isi ulang dengan 7 resep default Kemenkes.
   Future<void> resetToDefault() async {
+    _checkWritePermission();
     final existing = await _col.get();
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in existing.docs) {

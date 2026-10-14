@@ -11,7 +11,7 @@ import '../../core/services/staff_auth_service.dart';
 import '../../core/services/session_service.dart';
 import '../pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import '../dokter/beranda/beranda_dokter_page.dart';
-import '../pmik_admin/beranda_pmik_page.dart';
+import '../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../models/staff_account_model.dart';
 import 'auth_choice_page.dart';
 import 'register_page.dart';
@@ -142,7 +142,6 @@ class _LoginPageState extends State<LoginPage> {
           destination = const BerandaPmikPage();
           break;
         case StaffRole.superadmin:
-        default:
           destination = const BerandaSuperadminPage();
           break;
       }
@@ -165,6 +164,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!result.isSuccess) {
       await ChildService().loadChildrenForCurrentUser();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.errorMessage ?? 'Gagal masuk.'),
@@ -257,6 +257,7 @@ class _LoginPageState extends State<LoginPage> {
       await ChildService().loadChildrenForCurrentUser();
 
       // Berhasil — tampilkan pesan sambutan lalu navigasi
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

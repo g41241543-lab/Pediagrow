@@ -5,8 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/artikel_service.dart';
+<<<<<<< HEAD
 import '../../../core/services/storage_service.dart';
+=======
+import '../../../core/services/staff_auth_service.dart';
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
 import '../../../models/artikel_model.dart';
+import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/article_rich_text_editor.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
@@ -58,6 +63,16 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+        PediaBanner.showError(
+          context,
+          message:
+              'Akses Ditolak: Dokter hanya memiliki hak akses baca (read-only)',
+        );
+        Navigator.of(context).maybePop();
+      }
+    });
     final item = widget.artikel;
 
     // Inisialisasi controller berdasarkan mode
@@ -748,6 +763,7 @@ Referensi: Kemenkes RI, 2022''';
 
   /// Menampilkan gambar baik dari aset, file disk lokal, Base64, maupun URL remote
   Widget _buildImageWidget(String path) {
+<<<<<<< HEAD
     return StorageService.buildImageWidget(
       path,
       width: double.infinity,
@@ -756,6 +772,39 @@ Referensi: Kemenkes RI, 2022''';
       placeholder: _buildFallbackPhotoIcon(),
       errorWidget: _buildFallbackPhotoIcon(),
     );
+=======
+    if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
+      );
+    }
+
+    if (!kIsWeb && File(path).existsSync()) {
+      return Image.file(
+        File(path),
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
+      );
+    }
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(
+        path,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
+      );
+    }
+
+    return _buildFallbackPhotoIcon();
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
   }
 
   Widget _buildFallbackPhotoIcon() {
@@ -803,6 +852,7 @@ Referensi: Kemenkes RI, 2022''';
   }
 
   /// Area input multi-line berukuran besar untuk isi artikel (scrollable, tanpa overflow)
+  // ignore: unused_element
   Widget _buildDashedTextArea({
     required TextEditingController controller,
     required FocusNode focusNode,

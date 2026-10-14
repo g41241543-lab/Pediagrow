@@ -5,50 +5,44 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
-import 'menunggu_persetujuan_page.dart';
-import 'pilih_anak_page.dart';
+import '../../../core/services/child_service.dart';
+import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
 ///
-/// Alur navigasi: Profil Dokter → [PilihAnakPage] → [MenungguPersetujuanPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
-///
-/// Disesuaikan persis dengan acuan desain:
-/// 1. Header: Tombol kembali + judul "Profil Dokter Anak"
-/// 2. Kartu Utama Profil Dokter:
-///    - Foto avatar sirkular yang overlapping di bagian atas kartu
-///    - Indikator badge hijau di sudut avatar
-///    - Nama dokter (center, bold)
-///    - Spesialisasi "Spesialis Anak" (center)
-///    - Bagian statistik: Pengalaman (tahun) di sisi kiri, garis pemisah vertikal,
-///      dan Nomor STR di sisi kanan
-/// 3. Bagian "Tempat Praktik":
-///    - Judul section "Tempat Praktik"
-///    - Kartu berisikan daftar rumah sakit/klinik praktik dokter dengan ikon fasyankes
-///      dan garis divider horizontal
-/// 4. Bottom Action Bar:
-///    - Tombol oranye "Konsultasi Sekarang" → navigasi ke [PilihAnakPage]
+/// Alur booking: Profil Dokter → [BookingKonsultasiPage] → [StatusBookingPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
   final ChildModel? child;
 
   const ProfilDokterPage({super.key, required this.doctor, this.child});
 
-  void _onChatDokterPressed(BuildContext context) {
-    if (!doctor.isOnline) return;
-
-    // Alur: Profil Dokter → Pilih Anak (bottom sheet) → Booking Dokter
-    PilihAnakPage.show(
-      context,
-      onChildSelected: (selectedChild) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MenungguPersetujuanPage(
+  void _onBookingDokterPressed(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            BookingKonsultasiPage(
               doctor: doctor,
-              child: selectedChild,
+              initialChild: child ?? ChildService().activeChild,
             ),
-          ),
-        );
-      },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          );
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.15, 0.0),
+              end: Offset.zero,
+            ).animate(curved),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
     );
   }
 
@@ -301,44 +295,25 @@ class ProfilDokterPage extends StatelessWidget {
           ),
         ),
 
-        // Avatar Bulat Overlapping di bagian atas kartu dengan Badge Hijau
+        // Avatar Bulat Overlapping di bagian atas kartu
         Positioned(
           top: 0,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 84,
-                height: 84,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF3985E7).withValues(alpha: 0.12),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+          child: Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3985E7).withValues(alpha: 0.12),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
-                child: ClipOval(child: _buildAvatarImage()),
-              ),
-              // Indikator Titik Hijau di sudut atas kanan avatar
-              Positioned(
-                top: 3,
-                right: 3,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.2),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
+            child: ClipOval(child: _buildAvatarImage()),
           ),
         ),
       ],
@@ -493,37 +468,37 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: doctor.isOnline
-                  ? () => _onChatDokterPressed(context)
-                  : null,
+              onPressed: () => _onBookingDokterPressed(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: doctor.isOnline
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFFCBD5E1),
-                disabledBackgroundColor: const Color(0xFFE2E8F0),
+                backgroundColor: const Color(0xFF3985E7),
                 elevation: 0,
-                shadowColor: doctor.isOnline
-                    ? const Color(0xFF3985E7).withValues(alpha: 0.3)
-                    : Colors.transparent,
+                shadowColor: const Color(0xFF3985E7).withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
+                  horizontal: 28,
                   vertical: 12,
                 ),
               ),
-              child: Text(
-                doctor.isOnline
-                    ? 'Booking Sekarang'
-                    : 'Dokter Sedang Offline',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: doctor.isOnline
-                      ? Colors.white
-                      : const Color(0xFF94A3B8),
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.calendar_month_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Booking Konsultasi',
+                    style: GoogleFonts.lato(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -266,7 +266,7 @@ class _BerandaPageState extends State<BerandaPage> {
             borderRadius: BorderRadius.circular(17),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3985E7).withOpacity(0.35),
+                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -626,7 +626,7 @@ class _BerandaPageState extends State<BerandaPage> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         itemCount: children.length + 1, // semua anak + 1 card tambah anak
-        separatorBuilder: (_, __) => const SizedBox(width: 14.0),
+        separatorBuilder: (_, _) => const SizedBox(width: 14.0),
         itemBuilder: (context, index) {
           if (index < children.length) {
             final child = children[index];
@@ -743,6 +743,7 @@ class _BerandaPageState extends State<BerandaPage> {
                           ],
                         ),
                         child: ClipOval(
+<<<<<<< HEAD
                           child: StorageService.buildImageWidget(
                             child.photoUrl,
                             fit: BoxFit.cover,
@@ -767,6 +768,19 @@ class _BerandaPageState extends State<BerandaPage> {
                                   ),
                             ),
                           ),
+=======
+                          child: hasPhoto
+                              ? Image.file(
+                                  File(child.photoUrl!),
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.asset(
+                                  isMale
+                                      ? 'assets/images/baby_avatar_boy.png'
+                                      : 'assets/images/baby_avatar_girl.png',
+                                  fit: BoxFit.cover,
+                                ),
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                         ),
                       ),
                     ),
@@ -874,6 +888,7 @@ class _BerandaPageState extends State<BerandaPage> {
                             child: Hero(
                               tag: heroTag,
                               child: ClipOval(
+<<<<<<< HEAD
                                 child: StorageService.buildImageWidget(
                                   child.photoUrl,
                                   width: 260,
@@ -904,6 +919,17 @@ class _BerandaPageState extends State<BerandaPage> {
                                         ),
                                   ),
                                 ),
+=======
+                                child: hasPhoto
+                                    ? Image.file(
+                                        File(child.photoUrl!),
+                                        width: 260,
+                                        height: 260,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        '(isMale ? 'assets/images/baby_avatar_boy.png' : 'assets/images/baby_avatar_girl.png'), width: 260, height: 260, fit: BoxFit.cover,
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                               ),
                             ),
                           ),
@@ -1397,7 +1423,7 @@ class _BerandaPageState extends State<BerandaPage> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _latestArticles.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final artikel = _latestArticles[index];
                     return _buildArticleCard(context, artikel);
@@ -1573,8 +1599,8 @@ class _BerandaPageState extends State<BerandaPage> {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(width: 14),
-      itemBuilder: (_, __) => Container(
+      separatorBuilder: (_, _) => const SizedBox(width: 14),
+      itemBuilder: (_, _) => Container(
         width: 220,
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
@@ -1741,7 +1767,7 @@ class _BerandaPageState extends State<BerandaPage> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _educationalVideos.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final video = _educationalVideos[index];
                     return _buildVideoCard(context, video);
@@ -1790,7 +1816,7 @@ class _BerandaPageState extends State<BerandaPage> {
                       Image.network(
                         video.thumbnailUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           color: const Color(0xFFE2E8F0),
                           child: const Center(
                             child: Icon(
@@ -1903,8 +1929,8 @@ class _BerandaPageState extends State<BerandaPage> {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(width: 14),
-      itemBuilder: (_, __) => Container(
+      separatorBuilder: (_, _) => const SizedBox(width: 14),
+      itemBuilder: (_, _) => Container(
         width: 220,
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
@@ -2292,3 +2318,4 @@ class _BabyFacePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

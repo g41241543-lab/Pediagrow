@@ -7,8 +7,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/resep_mpasi_service.dart';
+<<<<<<< HEAD
 import '../../../../core/services/storage_service.dart';
+=======
+import '../../../../core/services/staff_auth_service.dart';
+>>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
 import '../../../../models/resep_mpasi_model.dart';
+import '../../../../models/staff_account_model.dart';
 import '../../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman "Tambah Resep" MPASI untuk Superadmin / PMIK.
@@ -75,6 +80,16 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+        PediaBanner.showError(
+          context,
+          message:
+              'Akses Ditolak: Dokter hanya memiliki hak akses baca (read-only)',
+        );
+        Navigator.of(context).maybePop();
+      }
+    });
     final now = DateTime.now();
     _tanggal = '${now.day} ${_getNamaBulan(now.month)} ${now.year}';
     _judulController = TextEditingController();
