@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/doctor_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/staff_account_model.dart';
 import '../profil_superadmin_page.dart';
@@ -551,35 +552,13 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
 
   Widget _buildDoctorAvatar(DoctorModel doctor) {
     final avatar = doctor.avatarUrl ?? doctor.assetImagePath;
-    if (avatar != null && avatar.isNotEmpty) {
-      if (File(avatar).existsSync()) {
-        return Image.file(
-          File(avatar),
-          fit: BoxFit.cover,
-          width: 58.0,
-          height: 58.0,
-        );
-      }
-      if (avatar.startsWith('http')) {
-        return Image.network(
-          avatar,
-          fit: BoxFit.cover,
-          width: 58.0,
-          height: 58.0,
-          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
-        );
-      }
-      if (avatar.startsWith('assets/')) {
-        return Image.asset(
-          avatar,
-          fit: BoxFit.cover,
-          width: 58.0,
-          height: 58.0,
-          errorBuilder: (_, __, ___) => _buildAvatarFallback(),
-        );
-      }
-    }
-    return _buildAvatarFallback();
+    return StorageService.buildImageWidget(
+      avatar,
+      fit: BoxFit.cover,
+      width: 58.0,
+      height: 58.0,
+      errorWidget: _buildAvatarFallback(),
+    );
   }
 
   Widget _buildAvatarFallback() {

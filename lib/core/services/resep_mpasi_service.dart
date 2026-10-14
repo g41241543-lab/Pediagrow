@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/resep_mpasi_model.dart';
+import 'storage_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Resep MPASI di Cloud Firestore
@@ -153,21 +154,26 @@ class ResepMpasiService {
 
   /// Tambah resep baru (PMIK/Superadmin). Mengembalikan ID dokumen.
   Future<String> insertResep(ResepMpasiModel resep) async {
+    final persistableImageUrl = resep.imageUrl != null && resep.imageUrl!.isNotEmpty
+        ? await StorageService.toPersistableString(resep.imageUrl)
+        : null;
+    final toSave = resep.copyWith(imageUrl: persistableImageUrl);
+
     final Map<String, dynamic> data = {
-      ...resep.toFirestore(),
+      ...toSave.toFirestore(),
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
     String docId;
-    if (resep.id != null && resep.id!.isNotEmpty) {
-      await _col.doc(resep.id).set(data);
-      docId = resep.id!;
+    if (toSave.id != null && toSave.id!.isNotEmpty) {
+      await _col.doc(toSave.id).set(data);
+      docId = toSave.id!;
     } else {
       final ref = await _col.add(data);
       docId = ref.id;
     }
-    await SuperadminNotificationService().notifyResepTambah(resep.judul);
+    await SuperadminNotificationService().notifyResepTambah(toSave.judul);
     return docId;
   }
 
@@ -176,11 +182,17 @@ class ResepMpasiService {
   Future<int> updateResep(ResepMpasiModel resep) async {
     final id = resep.id;
     if (id == null || id.isEmpty) return 0;
+
+    final persistableImageUrl = resep.imageUrl != null && resep.imageUrl!.isNotEmpty
+        ? await StorageService.toPersistableString(resep.imageUrl)
+        : null;
+    final toSave = resep.copyWith(imageUrl: persistableImageUrl);
+
     await _col.doc(id).update({
-      ...resep.toFirestore(),
+      ...toSave.toFirestore(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-    await SuperadminNotificationService().notifyResepUbah(resep.judul);
+    await SuperadminNotificationService().notifyResepUbah(toSave.judul);
     return 1;
   }
 

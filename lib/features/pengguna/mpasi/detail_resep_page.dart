@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/storage_service.dart';
 import '../../../models/resep_mpasi_model.dart';
 
 
@@ -374,31 +375,12 @@ class _DetailResepPageState extends State<DetailResepPage> {
           borderRadius: BorderRadius.circular(18),
           child: AspectRatio(
             aspectRatio: 16 / 9,
-            child: imagePath.isEmpty
-                ? _buildImagePlaceholder()
-                : isNetwork
-                    ? Image.network(
-                        imagePath,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildImagePlaceholder(),
-                      )
-                    : isLocalFile
-                        ? Image.file(
-                            File(imagePath.replaceFirst('file://', '')),
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                _buildImagePlaceholder(),
-                          )
-                        : Image.asset(
-                            imagePath,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                _buildImagePlaceholder(),
-                          ),
+            child: StorageService.buildImageWidget(
+              imagePath,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorWidget: _buildImagePlaceholder(),
+            ),
           ),
         ),
       ),

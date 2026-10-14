@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
+import '../../../core/services/storage_service.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
@@ -971,6 +972,13 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     final bgColor =
         isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
 
+    final fallback = Container(
+      color: bgColor,
+      child: CustomPaint(
+        painter: _BabyFacePainter(isGirl: isFemale),
+      ),
+    );
+
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
         width: size,
@@ -987,35 +995,12 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Image.network(
+        child: StorageService.buildImageWidget(
           photoUrl,
           fit: BoxFit.cover,
           width: size,
           height: size,
-          loadingBuilder: (ctx, child, progress) {
-            if (progress == null) return child;
-            return Container(
-              color: bgColor,
-              child: Center(
-                child: SizedBox(
-                  width: size * 0.4,
-                  height: size * 0.4,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: isFemale
-                        ? const Color(0xFFEC4899)
-                        : _colorPrimaryBlue,
-                  ),
-                ),
-              ),
-            );
-          },
-          errorBuilder: (ctx, error, stack) => Container(
-            color: bgColor,
-            child: CustomPaint(
-              painter: _BabyFacePainter(isGirl: isFemale),
-            ),
-          ),
+          errorWidget: fallback,
         ),
       );
     }

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -1321,23 +1322,12 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         errorBuilder: (_, __, ___) => _fallbackAvatar(),
       );
     }
-    final url = doctor.avatarUrl;
-    if (url != null && url.isNotEmpty) {
-      if (url.startsWith('/') || url.startsWith('file://')) {
-        final file = File(url.replaceFirst('file://', ''));
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _fallbackAvatar(),
-        );
-      }
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _fallbackAvatar(),
-      );
-    }
-    return _fallbackAvatar();
+    return StorageService.buildImageWidget(
+      doctor.avatarUrl,
+      fit: BoxFit.cover,
+      placeholder: _fallbackAvatar(),
+      errorWidget: _fallbackAvatar(),
+    );
   }
 
   Widget _fallbackAvatar() {
@@ -1360,28 +1350,23 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     final bgColor =
         isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
 
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: bgColor),
-        clipBehavior: Clip.antiAlias,
-        child: Image.network(
-          photoUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            color: bgColor,
-            child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-          ),
-        ),
-      );
-    }
-
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: bgColor),
+      clipBehavior: Clip.antiAlias,
+      child: StorageService.buildImageWidget(
+        photoUrl,
+        fit: BoxFit.cover,
+        placeholder: Container(
+          color: bgColor,
+          child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+        ),
+        errorWidget: Container(
+          color: bgColor,
+          child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+        ),
+      ),
     );
   }
 

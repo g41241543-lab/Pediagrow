@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/staff_auth_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
 
@@ -851,30 +852,16 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   }
 
   Widget _buildAvatarImage() {
-    final path = _selectedImagePath;
-    if (path != null && path.isNotEmpty) {
-      if (File(path).existsSync()) {
-        return Image.file(File(path), fit: BoxFit.cover);
-      }
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        return Image.network(
-          path,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => const Icon(
-            Icons.person,
-            size: 54.0,
-            color: Color(0xFF94A3B8),
-          ),
-        );
-      }
-      if (path.startsWith('assets/')) {
-        return Image.asset(path, fit: BoxFit.cover);
-      }
-    }
-    return const Icon(
-      Icons.person,
-      size: 54.0,
-      color: Color(0xFF94A3B8),
+    return StorageService.buildImageWidget(
+      _selectedImagePath,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      errorWidget: const Icon(
+        Icons.person,
+        size: 54.0,
+        color: Color(0xFF94A3B8),
+      ),
     );
   }
 

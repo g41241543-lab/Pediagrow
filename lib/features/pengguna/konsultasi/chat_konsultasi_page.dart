@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -884,36 +885,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   /// - Asset bawaan aplikasi → Image.asset
   /// - Tidak ada foto → ikon person default
   Widget _buildDoctorPhotoWidget(String? photoPath, double size) {
-    if (photoPath == null || photoPath.isEmpty) {
-      return _buildDefaultDoctorIcon();
-    }
-    // URL jaringan (Firebase Storage / http)
-    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
-      return Image.network(
-        photoPath,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildDefaultDoctorIcon(),
-      );
-    }
-    // File lokal dari image_picker (path absolut seperti /data/user/...)
-    if (photoPath.startsWith('/') || photoPath.startsWith('file://')) {
-      return Image.file(
-        File(photoPath.replaceFirst('file://', '')),
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildDefaultDoctorIcon(),
-      );
-    }
-    // Asset bawaan aplikasi
-    return Image.asset(
+    return StorageService.buildImageWidget(
       photoPath,
       width: size,
       height: size,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => _buildDefaultDoctorIcon(),
+      errorWidget: _buildDefaultDoctorIcon(),
     );
   }
 
@@ -1097,9 +1074,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         (filePath.toLowerCase().endsWith('.jpg') ||
             filePath.toLowerCase().endsWith('.jpeg') ||
             filePath.toLowerCase().endsWith('.png') ||
-            filePath.toLowerCase().endsWith('.webp'));
-
-    final fileExists = filePath != null && File(filePath).existsSync();
+            filePath.toLowerCase().endsWith('.webp') ||
+            StorageService.isBase64(filePath));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1124,14 +1100,20 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isImage && fileExists) ...[
+                if (isImage) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(filePath),
+                    child: StorageService.buildImageWidget(
+                      filePath,
                       width: double.infinity,
                       height: 180,
                       fit: BoxFit.cover,
+                      errorWidget: Container(
+                        height: 120,
+                        color: Colors.black12,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1559,13 +1541,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         final now = DateTime.now();
         final timeStr =
             '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
+        final persistable =
+            await StorageService.uploadIfLocal(file.path) ?? file.path;
 
         setState(() {
           _messages.add({
             'sender': 'user',
             'type': 'user_attachment',
             'fileName': file.name,
-            'filePath': file.path,
+            'filePath': persistable,
             'timestamp': timeStr,
             'isRead': true,
           });

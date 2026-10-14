@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/resep_mpasi_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/resep_mpasi_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_banner.dart';
@@ -689,41 +690,13 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       );
     }
 
-    if (kIsWeb || img.startsWith('http://') || img.startsWith('https://')) {
-      return Image.network(
-        img,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: const Color(0xFFF1F5F9),
-          child: const Icon(
-            Icons.broken_image_outlined,
-            color: Color(0xFFCBD5E1),
-          ),
-        ),
-      );
-    }
-
-    if (img.startsWith('assets/')) {
-      return Image.asset(
-        img,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: const Color(0xFFF1F5F9),
-          child: const Icon(
-            Icons.restaurant_menu_rounded,
-            color: Color(0xFFCBD5E1),
-          ),
-        ),
-      );
-    }
-
-    return Image.file(
-      File(img),
+    return StorageService.buildImageWidget(
+      img,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => Container(
+      errorWidget: Container(
         color: const Color(0xFFF1F5F9),
         child: const Icon(
-          Icons.broken_image_outlined,
+          Icons.restaurant_menu_rounded,
           color: Color(0xFFCBD5E1),
         ),
       ),

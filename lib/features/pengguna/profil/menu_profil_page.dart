@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/storage_service.dart';
+
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
@@ -55,6 +57,7 @@ class MenuProfilPage extends StatefulWidget {
 
 class _MenuProfilPageState extends State<MenuProfilPage> {
   final ImagePicker _picker = ImagePicker();
+  bool _isUploadingAvatar = false;
 
   String _successBannerMessage = 'Berhasil Memperbarui Profil';
   bool _isSuccessBannerVisible = false;
@@ -223,14 +226,19 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
       );
 
       if (pickedFile != null) {
-        UserService().updateAvatar(pickedFile.path);
-
-        if (mounted) {
-          _triggerSuccessBanner(message: 'Berhasil Memperbarui Foto Profil.');
+        if (mounted) setState(() => _isUploadingAvatar = true);
+        try {
+          await UserService().updateAvatar(pickedFile.path);
+          if (mounted) {
+            _triggerSuccessBanner(message: 'Berhasil Memperbarui Foto Profil.');
+          }
+        } finally {
+          if (mounted) setState(() => _isUploadingAvatar = false);
         }
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isUploadingAvatar = false);
         PediaBanner.showError(
           context,
           message: 'Gagal memilih gambar: $e',
@@ -483,18 +491,15 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
     return ValueListenableBuilder<UserModel>(
       valueListenable: UserService().currentUserNotifier,
       builder: (context, user, _) {
-        final avatarPath = user.avatarPath;
-        final hasCustomAvatar =
-            avatarPath != null &&
-            avatarPath.isNotEmpty &&
-            File(avatarPath).existsSync();
+        final imageProvider = StorageService.buildImageProvider(user.avatarPath);
+        final hasPhoto = imageProvider != null;
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar bulat (placeholder icon user / foto lokal)
+            // Avatar bulat (placeholder icon user / foto URL/lokal)
             GestureDetector(
-              onTap: _showImagePickerOptions,
+              onTap: _isUploadingAvatar ? null : _showImagePickerOptions,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -504,20 +509,31 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: const Color(0xFFE2E8F0),
-                      image: hasCustomAvatar
+                      image: hasPhoto
                           ? DecorationImage(
-                              image: FileImage(File(avatarPath)),
+                              image: imageProvider,
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: hasCustomAvatar
-                        ? null
-                        : const Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Color(0xFF64748B),
-                          ),
+                    child: _isUploadingAvatar
+                        ? const Center(
+                            child: SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Color(0xFF3985E7),
+                              ),
+                            ),
+                          )
+                        : hasPhoto
+                            ? null
+                            : const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Color(0xFF64748B),
+                              ),
                   ),
 
                   // Badge kecil kamera di pojok kanan bawah avatar

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -779,6 +780,11 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     final bgColor =
         isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
 
+    final fallback = Container(
+      color: bgColor,
+      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+    );
+
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
         width: size,
@@ -788,13 +794,12 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
           color: bgColor,
         ),
         clipBehavior: Clip.antiAlias,
-        child: Image.network(
+        child: StorageService.buildImageWidget(
           photoUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            color: bgColor,
-            child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-          ),
+          width: size,
+          height: size,
+          errorWidget: fallback,
         ),
       );
     }

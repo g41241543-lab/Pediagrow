@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/superadmin_notification_model.dart';
+import 'local_push_service.dart';
 
 /// Service singleton untuk mengelola sistem notifikasi Superadmin PediaGrow.
 ///
@@ -113,6 +114,7 @@ class SuperadminNotificationService {
   }
 
   /// Menambahkan notifikasi baru ke daftar (di posisi paling atas).
+  /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
   Future<void> addNotification(SuperadminNotificationItem item) async {
     final currentList =
         List<SuperadminNotificationItem>.from(notificationsNotifier.value);
@@ -125,6 +127,13 @@ class SuperadminNotificationService {
       unreadCountNotifier.value = unreadCountNotifier.value + 1;
     }
     await _saveToPrefs();
+
+    // Tampilkan notifikasi sistem (push lokal) — hanya untuk role superadmin
+    LocalPushService().show(
+      title: item.title,
+      body: item.message,
+      targetRole: PushRole.superadmin,
+    );
   }
 
   /// Hapus seluruh notifikasi (untuk testing / reset)

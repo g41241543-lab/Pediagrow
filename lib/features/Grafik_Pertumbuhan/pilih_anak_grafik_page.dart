@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/child_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/child_model.dart';
 import 'pertumbuhan_grafik_page.dart';
 import '../../shared/widgets/pedia_banner.dart';
@@ -447,7 +448,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
     final bgColor = isGirl ? const Color(0xFFFFD8E4) : const Color(0xFFD6EEFF);
     final iconColor = isGirl ? const Color(0xFFE83D84) : const Color(0xFF2B7AE8);
 
-    return Container(
+    final fallback = Container(
       width: 46,
       height: 46,
       decoration: BoxDecoration(
@@ -463,6 +464,31 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
           Icons.child_care_rounded,
           color: iconColor,
           size: 26,
+        ),
+      ),
+    );
+
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return fallback;
+    }
+
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: iconColor.withValues(alpha: 0.25),
+          width: 1.5,
+        ),
+      ),
+      child: ClipOval(
+        child: StorageService.buildImageWidget(
+          photoUrl,
+          fit: BoxFit.cover,
+          width: 46,
+          height: 46,
+          errorWidget: fallback,
         ),
       ),
     );

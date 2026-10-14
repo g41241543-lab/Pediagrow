@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
@@ -730,9 +731,6 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         isGirl ? const Color(0xFFF687B3) : const Color(0xFF63B3ED);
 
     final photoUrl = _activeChild?.photoUrl ?? widget.child?.photoUrl;
-    final hasPhoto = photoUrl != null &&
-        photoUrl.isNotEmpty &&
-        (photoUrl.startsWith('assets/') || File(photoUrl).existsSync());
 
     return Container(
       width: size,
@@ -743,19 +741,12 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         border: Border.all(color: borderColor, width: 1.8),
       ),
       clipBehavior: Clip.antiAlias,
-      child: hasPhoto
-          ? (photoUrl.startsWith('assets/')
-              ? Image.asset(
-                  photoUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
-                )
-              : Image.file(
-                  File(photoUrl),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildDefaultBabyIcon(),
-                ))
-          : _buildDefaultBabyIcon(),
+      child: StorageService.buildImageWidget(
+        photoUrl,
+        fit: BoxFit.cover,
+        placeholder: _buildDefaultBabyIcon(),
+        errorWidget: _buildDefaultBabyIcon(),
+      ),
     );
   }
 

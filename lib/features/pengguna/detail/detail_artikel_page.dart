@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/storage_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../../shared/widgets/article_rich_text_editor.dart';
 
@@ -250,38 +251,14 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: displayImage == null
-            ? _buildPlaceholderImage()
-            : artikel.isAssetImage
-                ? Image.asset(
-                    displayImage,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: 230,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildPlaceholderImage(),
-                  )
-                : artikel.isLocalFile
-                    ? Image.file(
-                        File(displayImage.replaceFirst('file://', '')),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 230,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildPlaceholderImage(),
-                      )
-                    : Image.network(
-                        displayImage,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 230,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-                          return _buildLoadingPlaceholder();
-                        },
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildPlaceholderImage(),
-                      ),
+        child: StorageService.buildImageWidget(
+          displayImage,
+          width: double.infinity,
+          height: 230,
+          fit: BoxFit.cover,
+          placeholder: _buildPlaceholderImage(),
+          errorWidget: _buildPlaceholderImage(),
+        ),
       ),
     );
   }

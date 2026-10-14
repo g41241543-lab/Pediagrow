@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/user_model.dart';
@@ -645,10 +646,8 @@ class _BerandaPageState extends State<BerandaPage> {
     ChildModel child,
     bool isActive,
   ) {
-    final hasPhoto =
-        child.photoUrl != null &&
-        child.photoUrl!.isNotEmpty &&
-        File(child.photoUrl!).existsSync();
+    final imageProvider = StorageService.buildImageProvider(child.photoUrl);
+    final hasPhoto = imageProvider != null;
     final isMale = child.gender.toLowerCase().contains('laki');
 
     // Warna Banner & Avatar berdasarkan Jenis Kelamin
@@ -744,21 +743,30 @@ class _BerandaPageState extends State<BerandaPage> {
                           ],
                         ),
                         child: ClipOval(
-                          child: hasPhoto
-                              ? Image.file(
-                                  File(child.photoUrl!),
-                                  fit: BoxFit.cover,
-                                )
-                              : Image.asset(
-                                  'assets/images/default_baby_avatar.png',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      const CustomPaint(
-                                        painter: _BabyFacePainter(
-                                          outlineColor: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                ),
+                          child: StorageService.buildImageWidget(
+                            child.photoUrl,
+                            fit: BoxFit.cover,
+                            placeholder: Image.asset(
+                              'assets/images/default_baby_avatar.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                            ),
+                            errorWidget: Image.asset(
+                              'assets/images/default_baby_avatar.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -866,25 +874,36 @@ class _BerandaPageState extends State<BerandaPage> {
                             child: Hero(
                               tag: heroTag,
                               child: ClipOval(
-                                child: hasPhoto
-                                    ? Image.file(
-                                        File(child.photoUrl!),
-                                        width: 260,
-                                        height: 260,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.asset(
-                                        'assets/images/default_baby_avatar.png',
-                                        width: 260,
-                                        height: 260,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            const Icon(
-                                              Icons.child_care,
-                                              size: 120,
-                                              color: Colors.white,
-                                            ),
-                                      ),
+                                child: StorageService.buildImageWidget(
+                                  child.photoUrl,
+                                  width: 260,
+                                  height: 260,
+                                  fit: BoxFit.cover,
+                                  placeholder: Image.asset(
+                                    'assets/images/default_baby_avatar.png',
+                                    width: 260,
+                                    height: 260,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Icon(
+                                          Icons.child_care,
+                                          size: 120,
+                                          color: Colors.white,
+                                        ),
+                                  ),
+                                  errorWidget: Image.asset(
+                                    'assets/images/default_baby_avatar.png',
+                                    width: 260,
+                                    height: 260,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Icon(
+                                          Icons.child_care,
+                                          size: 120,
+                                          color: Colors.white,
+                                        ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),

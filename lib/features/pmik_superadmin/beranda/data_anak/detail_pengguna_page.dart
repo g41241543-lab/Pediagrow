@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/child_model.dart';
 import '../../../../models/user_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
@@ -607,54 +608,13 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         child: Icon(Icons.face_rounded, size: 20, color: _colorPrimaryBlue),
       ),
     );
-    if (imagePath == null || imagePath.trim().isEmpty) return fallback;
-    final trimmed = imagePath.trim();
 
-    if (trimmed.startsWith('data:image')) {
-      try {
-        final commaIdx = trimmed.indexOf(',');
-        final b64 = commaIdx != -1 ? trimmed.substring(commaIdx + 1) : trimmed;
-        return Image.memory(
-          base64Decode(b64.trim()),
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-    if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0KGgo')) {
-      try {
-        return Image.memory(
-          base64Decode(trimmed),
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return Image.network(
-        trimmed,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-    if (trimmed.startsWith('assets/')) {
-      return Image.asset(
-        trimmed,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-    try {
-      final file = File(trimmed);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      }
-    } catch (_) {}
-    return fallback;
+    return StorageService.buildImageWidget(
+      imagePath,
+      fit: BoxFit.cover,
+      placeholder: fallback,
+      errorWidget: fallback,
+    );
   }
 
   // ──────────────────────────────────────────────────────────────
