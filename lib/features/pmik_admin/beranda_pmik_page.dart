@@ -11,22 +11,13 @@ import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
 import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
-<<<<<<< HEAD
 import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
 import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
-=======
-import '../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
-import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
-import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
->>>>>>> 077e18d1a33a5dc339e4b61775bdd474e4ad40ec
 import '../pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
 import '../pmik_superadmin/profil/hak_akses/hak_akses_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../widgets/hak_akses_logo.dart';
-<<<<<<< HEAD
 import 'beranda/data_anak/data_pasien_page.dart';
-=======
->>>>>>> 077e18d1a33a5dc339e4b61775bdd474e4ad40ec
 import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import 'profil_pmik_page.dart';
 
@@ -850,7 +841,6 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-<<<<<<< HEAD
               child: StorageService.buildImageWidget(
                 artikel.imageUrl,
                 width: 60,
@@ -858,18 +848,6 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                 fit: BoxFit.cover,
                 errorWidget: _buildArticleImagePlaceholder(),
               ),
-=======
-              child: artikel.imageUrl != null && artikel.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      artikel.imageUrl!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          _buildArticleImagePlaceholder(),
-                    )
-                  : _buildArticleImagePlaceholder(),
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
             ),
             const SizedBox(width: 12),
             Expanded(

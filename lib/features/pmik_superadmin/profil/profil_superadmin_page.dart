@@ -805,28 +805,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   Widget _buildSuperadminAvatarImage() {
-<<<<<<< HEAD
     return StorageService.buildImageWidget(
       _superadminAvatarPath,
-=======
-    if (_superadminAvatarPath != null && _superadminAvatarPath!.isNotEmpty) {
-      if (File(_superadminAvatarPath!).existsSync()) {
-        return Image.file(
-          File(_superadminAvatarPath!),
-          fit: BoxFit.cover,
-        );
-      }
-      if (_superadminAvatarPath!.startsWith('http')) {
-        return Image.network(
-          _superadminAvatarPath!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _buildFallbackAvatar(),
-        );
-      }
-    }
-    return Image.asset(
-      'assets/images/anita_superadmin.jpg',
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,

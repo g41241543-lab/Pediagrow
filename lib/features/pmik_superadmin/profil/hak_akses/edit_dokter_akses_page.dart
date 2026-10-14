@@ -776,7 +776,6 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   }
 
   Widget _buildAvatarImage() {
-<<<<<<< HEAD
     return StorageService.buildImageWidget(
       _avatarPath,
       fit: BoxFit.cover,
@@ -784,37 +783,6 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
       height: 82.0,
       errorWidget: _buildAvatarFallback(),
     );
-=======
-    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-      if (File(_avatarPath!).existsSync()) {
-        return Image.file(
-          File(_avatarPath!),
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-        );
-      }
-      if (_avatarPath!.startsWith('http')) {
-        return Image.network(
-          _avatarPath!,
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-          errorBuilder: (_, _, _) => _buildAvatarFallback(),
-        );
-      }
-      if (_avatarPath!.startsWith('assets/')) {
-        return Image.asset(
-          _avatarPath!,
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-          errorBuilder: (_, _, _) => _buildAvatarFallback(),
-        );
-      }
-    }
-    return _buildAvatarFallback();
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
   }
 
   Widget _buildAvatarFallback() {

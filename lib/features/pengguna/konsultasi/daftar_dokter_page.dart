@@ -7,11 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
-<<<<<<< HEAD
 import '../../../core/services/storage_service.dart';
-=======
 import '../../../core/services/jadwal_dokter_service.dart';
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
@@ -1338,8 +1335,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                           color: booking.isInTimeWindow
                               ? const Color(0xFF16A34A)
                               : (booking.isExpired
-                                  ? const Color(0xFF64748B)
-                                  : _colorPrimaryBlue),
+                                    ? const Color(0xFF64748B)
+                                    : _colorPrimaryBlue),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -1349,8 +1346,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               booking.isInTimeWindow
                                   ? Icons.play_circle_outline_rounded
                                   : (booking.isExpired
-                                      ? Icons.timer_off_outlined
-                                      : Icons.info_outline_rounded),
+                                        ? Icons.timer_off_outlined
+                                        : Icons.info_outline_rounded),
                               size: 13,
                               color: Colors.white,
                             ),
@@ -1359,8 +1356,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               booking.isInTimeWindow
                                   ? 'Mulai Konsultasi'
                                   : (booking.isExpired
-                                      ? 'Selesai'
-                                      : 'Lihat Status'),
+                                        ? 'Selesai'
+                                        : 'Lihat Status'),
                               style: GoogleFonts.lato(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -1434,32 +1431,12 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         errorBuilder: (_, _, _) => _fallbackAvatar(),
       );
     }
-<<<<<<< HEAD
     return StorageService.buildImageWidget(
       doctor.avatarUrl,
       fit: BoxFit.cover,
       placeholder: _fallbackAvatar(),
       errorWidget: _fallbackAvatar(),
     );
-=======
-    final url = doctor.avatarUrl;
-    if (url != null && url.isNotEmpty) {
-      if (url.startsWith('/') || url.startsWith('file://')) {
-        final file = File(url.replaceFirst('file://', ''));
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _fallbackAvatar(),
-        );
-      }
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _fallbackAvatar(),
-      );
-    }
-    return _fallbackAvatar();
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
   }
 
   Widget _fallbackAvatar() {
@@ -1479,9 +1456,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     required bool isFemale,
     required double size,
   }) {
-<<<<<<< HEAD
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
+    final bgColor = isFemale
+        ? const Color(0xFFFFE4E6)
+        : const Color(0xFFDBEAFE);
 
     return Container(
       width: size,
@@ -1500,31 +1477,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
           child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
         ),
       ),
-=======
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Image.network(
-          photoUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => ChildAvatar(
-            isGirl: isFemale,
-            size: size,
-          ),
-        ),
-      );
-    }
-
-    return ChildAvatar(
-      isGirl: isFemale,
-      size: size,
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     );
   }
 

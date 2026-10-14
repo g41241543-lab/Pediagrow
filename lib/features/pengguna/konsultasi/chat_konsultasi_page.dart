@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -137,7 +138,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     } else {
       // Timer cek realtime apakah waktu konsultasi telah habis
       _sessionExpiryTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted && _effectiveBooking != null && _effectiveBooking!.isExpired) {
+        if (mounted &&
+            _effectiveBooking != null &&
+            _effectiveBooking!.isExpired) {
           _handleTimeExpired();
         }
       });
@@ -145,12 +148,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
     // Jika sessionId ada, gunakan stream Firestore (real-time)
     if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
-      _messageStream =
-          ChatMessageService.instance.streamPesan(widget.sessionId!);
+      _messageStream = ChatMessageService.instance.streamPesan(
+        widget.sessionId!,
+      );
     } else {
       // Mode offline: simulasi dokter menyapa jika belum ada sapaan
-      final hasDoctorGreeting =
-          _messages.any((m) => m['sender'] == 'doctor');
+      final hasDoctorGreeting = _messages.any((m) => m['sender'] == 'doctor');
       if (!hasDoctorGreeting) {
         _scheduleInitialDoctorGreeting();
       }
@@ -203,8 +206,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _initMessages() {
-    final cached =
-        ChatMessageService.instance.getCachedMessages(_effectiveSessionId);
+    final cached = ChatMessageService.instance.getCachedMessages(
+      _effectiveSessionId,
+    );
     if (cached != null && cached.isNotEmpty) {
       _messages = List<Map<String, dynamic>>.from(cached);
       return;
@@ -224,8 +228,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'isRead': true,
       },
     ];
-    ChatMessageService.instance
-        .saveCachedMessages(_effectiveSessionId, _messages);
+    ChatMessageService.instance.saveCachedMessages(
+      _effectiveSessionId,
+      _messages,
+    );
   }
 
   /// Dokter membaca formulir dan menyapa pasien secara formal & personal
@@ -254,8 +260,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'isRead': true,
           });
         });
-        ChatMessageService.instance
-            .saveCachedMessages(_effectiveSessionId, _messages);
+        ChatMessageService.instance.saveCachedMessages(
+          _effectiveSessionId,
+          _messages,
+        );
         _scrollToBottom();
       });
     });
@@ -264,8 +272,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   String _generateOpeningGreeting() {
     final hasComplaint =
         widget.complaint != null && widget.complaint!.trim().isNotEmpty;
-    final childName =
-        _effectiveChildName != 'Ananda' ? _effectiveChildName : 'si kecil';
+    final childName = _effectiveChildName != 'Ananda'
+        ? _effectiveChildName
+        : 'si kecil';
 
     if (hasComplaint) {
       return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Pasien untuk $childName sudah saya terima dan cermati dengan baik.\n\nTerkait keluhan: "${widget.complaint!.trim()}", boleh diceritakan sudah berapa hari keluhan ini berlangsung dan bagaimana kondisi keaktifan si kecil saat ini?';
@@ -315,8 +324,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       });
     });
 
-    ChatMessageService.instance
-        .saveCachedMessages(_effectiveSessionId, _messages);
+    ChatMessageService.instance.saveCachedMessages(
+      _effectiveSessionId,
+      _messages,
+    );
 
     _scrollToBottom();
 
@@ -346,8 +357,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'isRead': true,
           });
         });
-        ChatMessageService.instance
-            .saveCachedMessages(_effectiveSessionId, _messages);
+        ChatMessageService.instance.saveCachedMessages(
+          _effectiveSessionId,
+          _messages,
+        );
         _scrollToBottom();
       });
     });
@@ -360,7 +373,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     final msg = raw.toLowerCase();
 
     // 1. UCAPAN TERIMA KASIH & CLOSING (Menangani typos & singkatan: makasih, mksih, mksh, makasii, dll.)
-    final isThanks = msg.contains('makasih') ||
+    final isThanks =
+        msg.contains('makasih') ||
         msg.contains('makasi') ||
         msg.contains('mksih') ||
         msg.contains('mksh') ||
@@ -404,7 +418,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 4. DEMAM / SUHU TINGGI / PANAS (Menangani: dmm, panas, suhu, menggigil, paracetamol, dll.)
-    final isFever = msg.contains('demam') ||
+    final isFever =
+        msg.contains('demam') ||
         msg.contains('dmm') ||
         msg.contains('panas') ||
         msg.contains('suhu') ||
@@ -428,7 +443,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 5. BATUK, PILEK, FLU, SESAK, GROK-GROK (Menangani: btk, plk, ingus, meler, grok, dll.)
-    final isFlu = msg.contains('batuk') ||
+    final isFlu =
+        msg.contains('batuk') ||
         msg.contains('pilek') ||
         msg.contains('btk') ||
         msg.contains('plk') ||
@@ -451,7 +467,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 6. DIARE, MENCRET, PUP CAIR (Menangani: mencret, bab cair, pup cair, lendir, dll.)
-    final isDiarrhea = msg.contains('diare') ||
+    final isDiarrhea =
+        msg.contains('diare') ||
         msg.contains('mencret') ||
         msg.contains('bab cair') ||
         msg.contains('pup cair') ||
@@ -470,7 +487,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 7. MUNTAH, GUMOH, MUAL (Menangani: muntah, gumoh, enek, mual, dll.)
-    final isVomit = msg.contains('muntah') ||
+    final isVomit =
+        msg.contains('muntah') ||
         msg.contains('gumoh') ||
         msg.contains('mual') ||
         msg.contains('enek') ||
@@ -486,7 +504,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 8. GTM, SUSAH MAKAN, NAFSU MAKAN (Menangani: gtm, gamau makan, ga mau makan, gak mau makan, dll.)
-    final isGTM = msg.contains('gtm') ||
+    final isGTM =
+        msg.contains('gtm') ||
         msg.contains('susah makan') ||
         msg.contains('gamau') ||
         msg.contains('ga mau') ||
@@ -506,7 +525,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 9. BERAT BADAN, KURUS, STUNTING, GIZI (Menangani: bb seret, berat badan, kurus, stunting, dll.)
-    final isWeight = msg.contains('berat badan') ||
+    final isWeight =
+        msg.contains('berat badan') ||
         msg.contains('bb') ||
         msg.contains('kurus') ||
         msg.contains('stunting') ||
@@ -527,7 +547,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 10. RUAM KULIT, BINTIK MERAH, GATAL, ALERGI (Menangani: ruam, bintik, merah, gatal, alergi, popok, dll.)
-    final isSkin = msg.contains('ruam') ||
+    final isSkin =
+        msg.contains('ruam') ||
         msg.contains('bintik') ||
         msg.contains('gatal') ||
         msg.contains('alergi') ||
@@ -548,7 +569,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 11. IMUNISASI & VAKSINASI
-    final isVaccine = msg.contains('imunisasi') ||
+    final isVaccine =
+        msg.contains('imunisasi') ||
         msg.contains('vaksin') ||
         msg.contains('dpt') ||
         msg.contains('campak') ||
@@ -563,7 +585,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 12. TIDUR, REWEL, MENANGIS, KEMBUNG
-    final isSleepFuss = msg.contains('rewel') ||
+    final isSleepFuss =
+        msg.contains('rewel') ||
         msg.contains('nangis') ||
         msg.contains('menangis') ||
         msg.contains('tidur') ||
@@ -732,12 +755,27 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Waktu Konsultasi Berakhir', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        content: const Text('Waktu sesi konsultasi telah habis. Ruang chat ini ditutup secara otomatis.', style: TextStyle(fontSize: 13.5, height: 1.4)),
+        title: const Text(
+          'Waktu Konsultasi Berakhir',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Waktu sesi konsultasi telah habis. Ruang chat ini ditutup secara otomatis.',
+          style: TextStyle(fontSize: 13.5, height: 1.4),
+        ),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2B7AE8), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-            onPressed: () { Navigator.of(ctx).pop(); if (mounted) Navigator.of(context).pop(); },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2B7AE8),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              if (mounted) Navigator.of(context).pop();
+            },
             child: const Text('OK'),
           ),
         ],
@@ -753,13 +791,30 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Sesi Tidak Tersedia', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          content: const Text('Waktu sesi konsultasi ini telah berakhir. Ruang chat tidak dapat dibuka lagi.', style: TextStyle(fontSize: 13.5, height: 1.4)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Sesi Tidak Tersedia',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Waktu sesi konsultasi ini telah berakhir. Ruang chat tidak dapat dibuka lagi.',
+            style: TextStyle(fontSize: 13.5, height: 1.4),
+          ),
           actions: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF64748B), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-              onPressed: () { Navigator.of(ctx).pop(); if (mounted) Navigator.of(context).pop(); },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF64748B),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                if (mounted) Navigator.of(context).pop();
+              },
               child: const Text('Kembali'),
             ),
           ],
@@ -773,8 +828,19 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     try {
       final now = DateTime.now();
       const monthNames = [
-        '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        '',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
       ];
       final formattedDate = '${now.day} ${monthNames[now.month]} ${now.year}';
       final hourStr = now.hour.toString().padLeft(2, '0');
@@ -782,8 +848,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       final formattedTime = '$hourStr.$minStr WIB';
 
       final effectiveChild = widget.child ?? ChildService().activeChild;
-      final effectiveUserId = widget.userId ??
-          effectiveChild?.userId ??
+      final effectiveUserId =
+          widget.userId ??
+          effectiveChild?.ownerId ??
           UserService().currentUser.id;
 
       final complaintText = (widget.complaint?.trim().isNotEmpty == true)
@@ -806,20 +873,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         consultationDate: formattedDate,
         consultationTime: formattedTime,
         bbLahir: effectiveChild?.birthWeightKg ?? 2.4,
-        bbSaatIni: widget.weightKg ?? effectiveChild?.currentWeightKg ?? 3.4,
+        bbSaatIni: widget.weightKg ?? effectiveChild?.weightKg ?? 3.4,
         tbLahir: effectiveChild?.birthHeightCm ?? 44.0,
-        tbSaatIni: widget.heightCm ?? effectiveChild?.currentHeightCm ?? 51.0,
+        tbSaatIni: widget.heightCm ?? effectiveChild?.heightCm ?? 51.0,
         complaint: complaintText,
         complaintShort: shortComplaint,
-        doctorAssessment:
-            'Pemeriksaan klinis dan konsultasi telah dilaksanakan. Kondisi umum anak baik dan stabil. Keluhan yang dialami dalam observasi penanganan harian orang tua.',
-        summary:
-            'Konsultasi telah selesai. Edukasi nutrisi seimbang, hidrasi, dan pemantauan berkala telah diberikan.',
+        doctorAssessment: 'Pemeriksaan klinis dan konsultasi telah dilaksanakan. Kondisi umum anak baik dan stabil. Keluhan yang dialami dalam observasi penanganan harian orang tua.',
+        summary: 'Konsultasi telah selesai. Edukasi nutrisi seimbang, hidrasi, dan pemantauan berkala telah diberikan.',
         recommendations: const [
           'Berikan asupan gizi seimbang dan cairan yang cukup sesuai usia anak.',
           'Pantau suhu tubuh dan perkembangan keluhan anak secara berkala.',
           'Jaga higienitas makanan dan lingkungan di sekitar anak.',
-          'Segera hubungi faskes atau dokter spesialis anak bila keluhan berlanjut.'
+          'Segera hubungi faskes atau dokter spesialis anak bila keluhan berlanjut.',
         ],
         prescription: 'Sesuai arahan klinis dokter anak',
         status: 'Selesai',
@@ -836,15 +901,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               .collection('consultations')
               .doc(widget.sessionId)
               .update({
-            'status': 'Selesai',
-            'ended_at': FieldValue.serverTimestamp(),
-          });
+                'status': 'Selesai',
+                'ended_at': FieldValue.serverTimestamp(),
+              });
         } catch (e) {
           debugPrint('[ChatKonsultasi] Error updating consultation status: $e');
         }
       }
     } catch (e) {
-      debugPrint('[ChatKonsultasi] Error selesaikanKonsultasiDanBuatRiwayat: $e');
+      debugPrint(
+        '[ChatKonsultasi] Error selesaikanKonsultasiDanBuatRiwayat: $e',
+      );
     }
   }
 
@@ -991,7 +1058,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   border: Border.all(color: colorBorder),
                 ),
                 child: Text(
-                  widget.complaint != null && widget.complaint!.trim().isNotEmpty
+                  widget.complaint != null &&
+                          widget.complaint!.trim().isNotEmpty
                       ? widget.complaint!.trim()
                       : 'Tidak ada keluhan spesifik yang dicatat.',
                   style: GoogleFonts.lato(
@@ -1270,11 +1338,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.info_outline,
-            size: 20,
-            color: Color(0xFF4A5568),
-          ),
+          const Icon(Icons.info_outline, size: 20, color: Color(0xFF4A5568)),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -1305,8 +1369,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       'type': msg.type == MessageType.formulir
           ? 'attachment'
           : msg.type == MessageType.image
-              ? 'user_attachment'
-              : 'text',
+          ? 'user_attachment'
+          : 'text',
       'message': msg.text ?? '',
       'imageUrl': msg.imageUrl,
       'title': 'Formulir Keluhan Pasien',
@@ -1326,8 +1390,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           if (firestoreMsgs.isNotEmpty) {
             _scrollToBottom();
           }
-          final items =
-              firestoreMsgs.map(_firestoreToLocal).toList();
+          final items = firestoreMsgs.map(_firestoreToLocal).toList();
           return _buildMessageListView(items);
         },
       );
@@ -1473,7 +1536,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     final screenWidth = MediaQuery.of(context).size.width;
     final filePath = item['filePath'] as String?;
     final fileName = item['fileName'] as String? ?? 'Lampiran Dokumen';
-    final isImage = filePath != null &&
+    final isImage =
+        filePath != null &&
         (filePath.toLowerCase().endsWith('.jpg') ||
             filePath.toLowerCase().endsWith('.jpeg') ||
             filePath.toLowerCase().endsWith('.png') ||
@@ -1737,7 +1801,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     final progress =
                         (_typingAnimController.value + (dotIndex * 0.28)) % 1.0;
                     // Bouncing wave offset up and down
-                    final bounceOffset = -3.5 * (1.0 - (progress - 0.5).abs() * 2);
+                    final bounceOffset =
+                        -3.5 * (1.0 - (progress - 0.5).abs() * 2);
                     final scale =
                         0.75 + (0.35 * (1.0 - (progress - 0.5).abs() * 2));
 
@@ -1982,10 +2047,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       }
     } catch (e) {
       if (mounted) {
-        PediaBanner.showError(
-          context,
-          message: 'Gagal memilih file: $e',
-        );
+        PediaBanner.showError(context, message: 'Gagal memilih file: $e');
       }
     }
   }

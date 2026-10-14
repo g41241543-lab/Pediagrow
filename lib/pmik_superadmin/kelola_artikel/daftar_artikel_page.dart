@@ -765,7 +765,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
-<<<<<<< HEAD
         child: StorageService.buildImageWidget(
           image,
           width: width,
@@ -773,25 +772,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           fit: BoxFit.cover,
           errorWidget: _buildPlaceholderImage(),
         ),
-=======
-        child: image == null
-            ? _buildPlaceholderImage()
-            : (artikel.isAssetImage
-                  ? Image.asset(
-                      image,
-                      width: width,
-                      height: height,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
-                    )
-                  : Image.network(
-                      image,
-                      width: width,
-                      height: height,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
-                    )),
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
       ),
     );
   }

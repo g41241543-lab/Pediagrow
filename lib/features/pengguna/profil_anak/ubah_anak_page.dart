@@ -505,7 +505,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                       maxScale: 3.5,
                       child: Hero(
                         tag: 'foto_profil_preview',
-<<<<<<< HEAD
                         child: StorageService.buildImageWidget(
                           path,
                           fit: BoxFit.contain,
@@ -514,14 +513,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             fit: BoxFit.contain,
                           ),
                         ),
-=======
-                        child: isLocalFile
-                            ? Image.file(File(path), fit: BoxFit.contain)
-                            : Image.asset(
-                                ChildAvatar.assetPathFor(gender: _selectedGender),
-                                fit: BoxFit.contain,
-                              ),
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                       ),
                     ),
                   ),
@@ -857,17 +848,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                           width: 2.0,
                         ),
                         image: DecorationImage(
-<<<<<<< HEAD
                           image: imageProvider,
-=======
-                          image: isLocal
-                              ? FileImage(File(_fotoProfilPath!))
-                              : AssetImage(
-                                  ChildAvatar.assetPathFor(
-                                    gender: _selectedGender,
-                                  ),
-                                ) as ImageProvider,
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                           fit: BoxFit.cover,
                         ),
                       ),

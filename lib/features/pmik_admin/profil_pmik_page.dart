@@ -585,18 +585,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 CircleAvatar(
                   radius: avatarRadius,
                   backgroundColor: const Color(0xFFE0F2FE),
-<<<<<<< HEAD
                   backgroundImage: StorageService.buildImageProvider(_avatarPath),
                   child: StorageService.buildImageProvider(_avatarPath) == null
-                      ? Icon(Icons.person_rounded,
-=======
-                  backgroundImage: _avatarPath != null
-                      ? FileImage(File(_avatarPath!)) as ImageProvider
-                      : null,
-                  child: _avatarPath == null
                       ? Icon(
                           Icons.person_rounded,
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                           size: avatarRadius * 1.1,
                           color: const Color(0xFF0891B2),
                         )

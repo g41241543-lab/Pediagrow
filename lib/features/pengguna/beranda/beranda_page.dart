@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -658,6 +657,11 @@ class _BerandaPageState extends State<BerandaPage> {
         ? const Color(0xFFCFE8FF)
         : const Color(0xFFFFDFD9);
 
+    // Gambar avatar bawaan sesuai jenis kelamin
+    final defaultAvatarAsset = isMale
+        ? 'assets/images/baby_avatar_boy.png'
+        : 'assets/images/baby_avatar_girl.png';
+
     return Container(
       width: 200,
       height: 128,
@@ -743,44 +747,28 @@ class _BerandaPageState extends State<BerandaPage> {
                           ],
                         ),
                         child: ClipOval(
-<<<<<<< HEAD
                           child: StorageService.buildImageWidget(
                             child.photoUrl,
                             fit: BoxFit.cover,
                             placeholder: Image.asset(
-                              'assets/images/default_baby_avatar.png',
+                              defaultAvatarAsset,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const CustomPaint(
-                                    painter: _BabyFacePainter(
-                                      outlineColor: Color(0xFF1E293B),
-                                    ),
-                                  ),
+                              errorBuilder: (_, _, _) => const CustomPaint(
+                                painter: _BabyFacePainter(
+                                  outlineColor: Color(0xFF1E293B),
+                                ),
+                              ),
                             ),
                             errorWidget: Image.asset(
-                              'assets/images/default_baby_avatar.png',
+                              defaultAvatarAsset,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const CustomPaint(
-                                    painter: _BabyFacePainter(
-                                      outlineColor: Color(0xFF1E293B),
-                                    ),
-                                  ),
+                              errorBuilder: (_, _, _) => const CustomPaint(
+                                painter: _BabyFacePainter(
+                                  outlineColor: Color(0xFF1E293B),
+                                ),
+                              ),
                             ),
                           ),
-=======
-                          child: hasPhoto
-                              ? Image.file(
-                                  File(child.photoUrl!),
-                                  fit: BoxFit.cover,
-                                )
-                              : Image.asset(
-                                  isMale
-                                      ? 'assets/images/baby_avatar_boy.png'
-                                      : 'assets/images/baby_avatar_girl.png',
-                                  fit: BoxFit.cover,
-                                ),
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                         ),
                       ),
                     ),
@@ -863,6 +851,12 @@ class _BerandaPageState extends State<BerandaPage> {
     required bool hasPhoto,
     required String heroTag,
   }) {
+    // Gambar avatar bawaan sesuai jenis kelamin
+    final isMale = child.gender.toLowerCase().contains('laki');
+    final defaultAvatarAsset = isMale
+        ? 'assets/images/baby_avatar_boy.png'
+        : 'assets/images/baby_avatar_girl.png';
+
     // Capture navigator before async gap to avoid use_build_context_synchronously
     final navigator = Navigator.of(context);
     navigator
@@ -888,48 +882,34 @@ class _BerandaPageState extends State<BerandaPage> {
                             child: Hero(
                               tag: heroTag,
                               child: ClipOval(
-<<<<<<< HEAD
                                 child: StorageService.buildImageWidget(
                                   child.photoUrl,
                                   width: 260,
                                   height: 260,
                                   fit: BoxFit.cover,
                                   placeholder: Image.asset(
-                                    'assets/images/default_baby_avatar.png',
+                                    defaultAvatarAsset,
                                     width: 260,
                                     height: 260,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Icon(
-                                          Icons.child_care,
-                                          size: 120,
-                                          color: Colors.white,
-                                        ),
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.child_care,
+                                      size: 120,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                   errorWidget: Image.asset(
-                                    'assets/images/default_baby_avatar.png',
+                                    defaultAvatarAsset,
                                     width: 260,
                                     height: 260,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        const Icon(
-                                          Icons.child_care,
-                                          size: 120,
-                                          color: Colors.white,
-                                        ),
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.child_care,
+                                      size: 120,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-=======
-                                child: hasPhoto
-                                    ? Image.file(
-                                        File(child.photoUrl!),
-                                        width: 260,
-                                        height: 260,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.asset(
-                                        '(isMale ? 'assets/images/baby_avatar_boy.png' : 'assets/images/baby_avatar_girl.png'), width: 260, height: 260, fit: BoxFit.cover,
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
                               ),
                             ),
                           ),
@@ -2318,4 +2298,3 @@ class _BabyFacePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

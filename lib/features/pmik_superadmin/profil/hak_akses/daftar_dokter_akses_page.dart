@@ -597,7 +597,6 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
 
   Widget _buildDoctorAvatar(DoctorModel doctor) {
     final avatar = doctor.avatarUrl ?? doctor.assetImagePath;
-<<<<<<< HEAD
     return StorageService.buildImageWidget(
       avatar,
       fit: BoxFit.cover,
@@ -605,37 +604,6 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       height: 58.0,
       errorWidget: _buildAvatarFallback(),
     );
-=======
-    if (avatar != null && avatar.isNotEmpty) {
-      if (File(avatar).existsSync()) {
-        return Image.file(
-          File(avatar),
-          fit: BoxFit.cover,
-          width: 58.0,
-          height: 58.0,
-        );
-      }
-      if (avatar.startsWith('http')) {
-        return Image.network(
-          avatar,
-          fit: BoxFit.cover,
-          width: 58.0,
-          height: 58.0,
-          errorBuilder: (_, _, _) => _buildAvatarFallback(),
-        );
-      }
-      if (avatar.startsWith('assets/')) {
-        return Image.asset(
-          avatar,
-          fit: BoxFit.cover,
-          width: 58.0,
-          height: 58.0,
-          errorBuilder: (_, _, _) => _buildAvatarFallback(),
-        );
-      }
-    }
-    return _buildAvatarFallback();
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
   }
 
   Widget _buildAvatarFallback() {

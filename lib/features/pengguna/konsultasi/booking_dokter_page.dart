@@ -1,16 +1,11 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
-<<<<<<< HEAD
-import '../../../core/services/storage_service.dart';
-=======
 import '../../../core/services/notification_service.dart';
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
+import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -26,11 +21,7 @@ class BookingDokterPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ChildModel? child;
 
-  const BookingDokterPage({
-    super.key,
-    this.doctor,
-    this.child,
-  });
+  const BookingDokterPage({super.key, this.doctor, this.child});
 
   @override
   State<BookingDokterPage> createState() => _BookingDokterPageState();
@@ -66,7 +57,8 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
 
     final availableDoctors = DoctorService().doctorsNotifier.value;
     // Resolusi dokter (fallback ke dokter pertama dari DoctorService jika null)
-    _doctor = widget.doctor ??
+    _doctor =
+        widget.doctor ??
         (availableDoctors.isNotEmpty
             ? availableDoctors.first
             : const DoctorModel(
@@ -79,7 +71,8 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               ));
 
     // Resolusi anak (fallback ke active child atau anak pertama dari ChildService)
-    _child = widget.child ??
+    _child =
+        widget.child ??
         (ChildService().activeChild ??
             ChildModel(
               id: 'child_default',
@@ -97,8 +90,6 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     _selectedDate = _availableDates.first;
     _selectedTimeSlot = _timeSlots[1]; // default jam 09:30
   }
-
-
 
   void _changeChild() {
     PilihAnakPage.show(
@@ -177,7 +168,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildSuccessDialog(BuildContext ctx, BookingConsultationModel booking) {
+  Widget _buildSuccessDialog(
+    BuildContext ctx,
+    BookingConsultationModel booking,
+  ) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
@@ -227,7 +221,8 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   // Arahkan ke DaftarDokterPage dengan Tab Jadwal Konsultasi (index 1)
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (_) => const DaftarDokterPage(initialTabIndex: 1),
+                      builder: (_) =>
+                          const DaftarDokterPage(initialTabIndex: 1),
                     ),
                     (route) => false,
                   );
@@ -288,8 +283,6 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               // Bagian Pilihan Jam
               _buildTimeSlotSection(),
               const SizedBox(height: 18),
-
-
 
               // Info Banner Form Keluhan
               _buildInfoBanner(),
@@ -390,8 +383,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 onTap: _changeChild,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   child: Row(
                     children: [
                       Text(
@@ -699,8 +694,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 });
               },
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -722,8 +719,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                       slot,
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
                         color: isSelected ? _colorPrimaryBlue : _colorTextBlack,
                       ),
                     ),
@@ -736,8 +734,6 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       ],
     );
   }
-
-
 
   Widget _buildInfoBanner() {
     return Container(
@@ -805,17 +801,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     required bool isFemale,
     required double size,
   }) {
-<<<<<<< HEAD
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
+    // Avatar bawaan memakai widget bersama ChildAvatar.
+    final fallback = ChildAvatar(isGirl: isFemale, size: size);
 
-    final fallback = Container(
-      color: bgColor,
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-    );
-
-=======
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
         width: size,
@@ -828,117 +816,13 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         child: StorageService.buildImageWidget(
           photoUrl,
           fit: BoxFit.cover,
-<<<<<<< HEAD
           width: size,
           height: size,
           errorWidget: fallback,
-=======
-          errorBuilder: (_, _, _) => ChildAvatar(
-            isGirl: isFemale,
-            size: size,
-          ),
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
         ),
       );
     }
 
-    return ChildAvatar(
-      isGirl: isFemale,
-      size: size,
-    );
+    return fallback;
   }
-}
-
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
-
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(
-      cx,
-      cy + r * 0.62,
-      cx + r * 0.35,
-      cy + r * 0.18,
-    );
-    canvas.drawPath(smilePath, strokePaint);
-
-    if (isGirl) {
-      final bowPaint = Paint()
-        ..color = const Color(0xFFFF6B9D)
-        ..style = PaintingStyle.fill;
-      final bowPath = Path();
-      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.4, cy - r * 1.15, cx - r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.1, cy - r * 1.05, cx + r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.4, cy - r * 1.15, cx + r * 0.1, cy - r * 0.85);
-      canvas.drawPath(bowPath, bowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

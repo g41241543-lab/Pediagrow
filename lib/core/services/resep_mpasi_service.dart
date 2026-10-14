@@ -4,12 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/resep_mpasi_model.dart';
-<<<<<<< HEAD
-import 'storage_service.dart';
-=======
 import '../../models/staff_account_model.dart';
 import 'staff_auth_service.dart';
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
+import 'storage_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data Resep MPASI di Cloud Firestore
@@ -71,14 +68,13 @@ class ResepMpasiService {
           final now = DateTime.now();
           final docs = snap.docs.toList()
             ..sort((a, b) {
-              final ta =
-                  (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
-              final tb =
-                  (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+              final ta = (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+              final tb = (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
               return ta.compareTo(tb);
             });
-          _recipesNotifier.value =
-              docs.map(ResepMpasiModel.fromFirestore).toList();
+          _recipesNotifier.value = docs
+              .map(ResepMpasiModel.fromFirestore)
+              .toList();
           if (!completer.isCompleted) completer.complete();
         },
         onError: (Object e) {
@@ -167,15 +163,14 @@ class ResepMpasiService {
 
   /// Tambah resep baru (PMIK/Superadmin). Mengembalikan ID dokumen.
   Future<String> insertResep(ResepMpasiModel resep) async {
-<<<<<<< HEAD
-    final persistableImageUrl = resep.imageUrl != null && resep.imageUrl!.isNotEmpty
+    _checkWritePermission();
+
+    final persistableImageUrl =
+        resep.imageUrl != null && resep.imageUrl!.isNotEmpty
         ? await StorageService.toPersistableString(resep.imageUrl)
         : null;
     final toSave = resep.copyWith(imageUrl: persistableImageUrl);
 
-=======
-    _checkWritePermission();
->>>>>>> a5b5bd355e53f128f41da8a699d0c10adb3bdd0a
     final Map<String, dynamic> data = {
       ...toSave.toFirestore(),
       'createdAt': FieldValue.serverTimestamp(),
@@ -201,7 +196,8 @@ class ResepMpasiService {
     final id = resep.id;
     if (id == null || id.isEmpty) return 0;
 
-    final persistableImageUrl = resep.imageUrl != null && resep.imageUrl!.isNotEmpty
+    final persistableImageUrl =
+        resep.imageUrl != null && resep.imageUrl!.isNotEmpty
         ? await StorageService.toPersistableString(resep.imageUrl)
         : null;
     final toSave = resep.copyWith(imageUrl: persistableImageUrl);
