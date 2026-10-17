@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/resume_medis_service.dart';
 import '../../../models/doctor_model.dart';
-import '../../../models/riwayat_konsultasi_model.dart';
+import '../../../models/resume_medis_model.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../profil/profil_superadmin_page.dart';
@@ -11,15 +12,8 @@ import 'detail_riwayat_konsultasi_admin_page.dart';
 
 /// Halaman Daftar Riwayat Konsultasi untuk PMIK Superadmin.
 ///
-/// Dibuat semirip mungkin dengan desain referensi resmi PediaGrow:
-/// - Header 56dp dengan tombol kembali 12dp dari kiri dan judul 12dp dari tombol.
-/// - Filter dropdown (Semua Dokter & Semua Status) di atas search bar.
-/// - Search bar rounded "Cari nama pasien atau dokter....".
-/// - Kartu riwayat konsultasi dengan avatar bayi berwarna (pink/biru) sesuai gender,
-///   nama anak, status badge (Selesai/Dijadwalkan), nama dokter, tanggal, dan chevron.
-/// - Banner informasi biru di bagian bawah list.
-/// - Ilustrasi hutan di bagian paling bawah konten yang dapat di-scroll.
-/// - Superadmin Bottom Navigation Bar dengan tab Riwayat Konsultasi (Index 2) aktif.
+/// Data diambil dari Firestore collection 'resume_medis' yang berisi
+/// rekap konsultasi anak. Menampilkan: data anak, keluhan, dan ringkasan.
 class DaftarRiwayatKonsultasiAdminPage extends StatefulWidget {
   const DaftarRiwayatKonsultasiAdminPage({super.key});
 
@@ -39,9 +33,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
   String _filterDoctor = 'Semua Dokter';
   String _filterStatus = 'Semua Status';
   List<DoctorModel> _doctorList = [];
-
-  final List<RiwayatKonsultasiModel> _allRiwayat =
-      RiwayatKonsultasiModel.mockMultiList;
 
   static const List<String> _statusOptions = [
     'Semua Status',
@@ -74,8 +65,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
     setState(() => _doctorList = List.from(DoctorService().currentDoctors));
   }
 
-  List<RiwayatKonsultasiModel> get _filteredRiwayat {
-    return _allRiwayat.where((r) {
+  List<ResumeMedisModel> _applyFilters(List<ResumeMedisModel> all) {
+    return all.where((r) {
       if (_filterDoctor != 'Semua Dokter' && r.doctorName != _filterDoctor) {
         return false;
       }
@@ -85,7 +76,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         if (!r.childName.toLowerCase().contains(q) &&
-            !r.doctorName.toLowerCase().contains(q)) {
+            !r.doctorName.toLowerCase().contains(q) &&
+            !r.complaint.toLowerCase().contains(q) &&
+            !r.complaintShort.toLowerCase().contains(q) &&
+            !r.summary.toLowerCase().contains(q)) {
           return false;
         }
       }
@@ -93,11 +87,11 @@ class _DaftarRiwayatKonsultasiAdminPageState
     }).toList();
   }
 
-  void _navigateToDetail(RiwayatKonsultasiModel riwayat) {
+  void _navigateToDetail(ResumeMedisModel resume) {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            DetailRiwayatKonsultasiAdminPage(riwayat: riwayat),
+            DetailRiwayatKonsultasiAdminPage(resume: resume),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,
@@ -163,7 +157,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredRiwayat;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
@@ -173,48 +166,71 @@ class _DaftarRiwayatKonsultasiAdminPageState
       body: SafeArea(
         top: false,
         bottom: false,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 12.0),
-                      // 1. Filter Dropdown Row (Semua Dokter & Semua Status)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildFilterRow(),
+        child: StreamBuilder<List<ResumeMedisModel>>(
+          stream: ResumeMedisService().streamAllResumeMedis(),
+          builder: (context, snapshot) {
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
+            final allData = snapshot.data ?? [];
+            final filtered = _applyFilters(allData);
+
+            // Kumpulkan daftar dokter untuk filter dropdown
+            final Set<String> doctorNames = {'Semua Dokter'};
+            for (final d in _doctorList) {
+              doctorNames.add(d.name);
+            }
+            for (final r in allData) {
+              if (r.doctorName.isNotEmpty) doctorNames.add(r.doctorName);
+            }
+            if (!doctorNames.contains(_filterDoctor)) {
+              _filterDoctor = 'Semua Dokter';
+            }
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12.0),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: _buildFilterRow(doctorNames.toList()),
+                          ),
+                          const SizedBox(height: 12.0),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: _buildSearchBar(),
+                          ),
+                          const SizedBox(height: 16.0),
+                          if (isLoading)
+                            _buildLoadingState()
+                          else if (filtered.isEmpty)
+                            _buildEmptyState()
+                          else
+                            _buildRiwayatList(filtered),
+                          const SizedBox(height: 14.0),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: _buildInfoBanner(),
+                          ),
+                          const SizedBox(height: 24.0),
+                          const Spacer(),
+                          _buildFooterIllustration(),
+                        ],
                       ),
-                      const SizedBox(height: 12.0),
-                      // 2. Search Bar Real-Time
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildSearchBar(),
-                      ),
-                      const SizedBox(height: 16.0),
-                      // 3. Daftar Kartu Riwayat Konsultasi
-                      if (filtered.isEmpty)
-                        _buildEmptyState()
-                      else
-                        _buildRiwayatList(filtered),
-                      const SizedBox(height: 14.0),
-                      // 4. Banner Info
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildInfoBanner(),
-                      ),
-                      const SizedBox(height: 24.0),
-                      const Spacer(),
-                      // 5. Ilustrasi Lanskap Hutan di Bawah Konten Scroll
-                      _buildFooterIllustration(),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         ),
@@ -300,7 +316,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           color: const Color(0xFF1E293B),
         ),
         decoration: InputDecoration(
-          hintText: 'Cari nama pasien atau dokter....',
+          hintText: 'Cari nama pasien, dokter, atau keluhan....',
           hintStyle: GoogleFonts.lato(
             fontSize: 13.5,
             color: const Color(0xFF94A3B8),
@@ -331,21 +347,14 @@ class _DaftarRiwayatKonsultasiAdminPageState
   }
 
   // ─── FILTER ROW ───────────────────────────────────────────────────────────
-  Widget _buildFilterRow() {
-    final doctorOptions = <String>['Semua Dokter'];
-    for (final doc in _doctorList) {
-      if (!doctorOptions.contains(doc.name)) doctorOptions.add(doc.name);
-    }
-    for (final r in _allRiwayat) {
-      if (!doctorOptions.contains(r.doctorName)) doctorOptions.add(r.doctorName);
-    }
-    if (!doctorOptions.contains(_filterDoctor)) _filterDoctor = 'Semua Dokter';
-
+  Widget _buildFilterRow(List<String> doctorOptions) {
     return Row(
       children: [
         Expanded(
           child: _buildDropdownPill(
-            value: _filterDoctor,
+            value: doctorOptions.contains(_filterDoctor)
+                ? _filterDoctor
+                : 'Semua Dokter',
             items: doctorOptions,
             onChanged: (val) {
               if (val != null) setState(() => _filterDoctor = val);
@@ -381,7 +390,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: value,
+          value: items.contains(value) ? value : items.first,
           isExpanded: true,
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
@@ -417,8 +426,18 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
+  // ─── LOADING STATE ─────────────────────────────────────────────────────────
+  Widget _buildLoadingState() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 48.0),
+      child: Center(
+        child: CircularProgressIndicator(color: Color(0xFF3985E7)),
+      ),
+    );
+  }
+
   // ─── RIWAYAT LIST ─────────────────────────────────────────────────────────
-  Widget _buildRiwayatList(List<RiwayatKonsultasiModel> items) {
+  Widget _buildRiwayatList(List<ResumeMedisModel> items) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -429,9 +448,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  Widget _buildConsultationCard(RiwayatKonsultasiModel r) {
+  Widget _buildConsultationCard(ResumeMedisModel r) {
     final isSelesai = r.status.toLowerCase().contains('selesai');
-    final isGirl = r.childGender == 'female';
 
     return GestureDetector(
       onTap: () => _navigateToDetail(r),
@@ -451,27 +469,31 @@ class _DaftarRiwayatKonsultasiAdminPageState
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar Bayi Cantik & Skalabel
+            // Avatar dengan inisial nama
             Container(
               width: 50.0,
               height: 50.0,
               decoration: BoxDecoration(
-                color: isGirl
-                    ? const Color(0xFFFFD6D9)
-                    : const Color(0xFFD0E8FD),
+                color: _avatarColor(r.childName),
                 shape: BoxShape.circle,
               ),
-              child: CustomPaint(
-                painter: _BabyFacePainter(isGirl: isGirl),
+              alignment: Alignment.center,
+              child: Text(
+                _initials(r.childName),
+                style: GoogleFonts.lato(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(width: 14.0),
-            // Kolom Informasi Pasien, Status, Dokter, & Jadwal
+            // Kolom Informasi
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Baris 1: Nama Anak & Status Badge
+                  // Nama & Status badge
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -490,8 +512,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       const SizedBox(width: 8.0),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 4.0,
+                          horizontal: 10.0,
+                          vertical: 3.0,
                         ),
                         decoration: BoxDecoration(
                           color: isSelesai
@@ -502,7 +524,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                         child: Text(
                           r.status,
                           style: GoogleFonts.lato(
-                            fontSize: 11.5,
+                            fontSize: 11.0,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
@@ -510,42 +532,87 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4.0),
-                  // Baris 2: Nama Dokter
-                  Text(
-                    r.doctorName,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.0,
-                      color: const Color(0xFF64748B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8.0),
-                  // Baris 3: Ikon Kalender & Tanggal
+                  const SizedBox(height: 3.0),
+                  // Nama Dokter & Tanggal Konsultasi
                   Row(
                     children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 14.0,
-                        color: Color(0xFF1E293B),
+                      Expanded(
+                        child: Text(
+                          r.doctorName,
+                          style: GoogleFonts.lato(
+                            fontSize: 12.5,
+                            color: const Color(0xFF64748B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const SizedBox(width: 8.0),
+                      const SizedBox(width: 6.0),
                       Text(
-                        r.formattedDate,
+                        r.consultationDate,
                         style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF1E293B),
+                          fontSize: 11.5,
+                          color: const Color(0xFF94A3B8),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 5.0),
+                  // Keluhan
+                  RichText(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: const Color(0xFF475569),
+                        height: 1.3,
+                      ),
+                      children: [
+                        const TextSpan(
+                          text: 'Keluhan: ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
+                        ),
+                        TextSpan(
+                          text: r.complaintShort.isNotEmpty
+                              ? r.complaintShort
+                              : (r.complaint.isNotEmpty ? r.complaint : '-'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (r.summary.isNotEmpty) ...[
+                    const SizedBox(height: 3.0),
+                    // Ringkasan Konsultasi
+                    RichText(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        style: GoogleFonts.lato(
+                          fontSize: 12.0,
+                          color: const Color(0xFF64748B),
+                          height: 1.3,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text: 'Ringkasan: ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                          TextSpan(text: r.summary),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(width: 8.0),
-            // Ikon Chevron kanan
+            const SizedBox(width: 6.0),
             const Icon(
               Icons.chevron_right_rounded,
               size: 24.0,
@@ -555,6 +622,30 @@ class _DaftarRiwayatKonsultasiAdminPageState
         ),
       ),
     );
+  }
+
+  /// Warna avatar berdasarkan huruf pertama nama
+  Color _avatarColor(String name) {
+    const colors = [
+      Color(0xFF72A9F4),
+      Color(0xFFFF8FA3),
+      Color(0xFF34D399),
+      Color(0xFFFBBF24),
+      Color(0xFFA78BFA),
+      Color(0xFFF87171),
+      Color(0xFF60A5FA),
+      Color(0xFF4ADE80),
+    ];
+    final idx = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
+    return colors[idx];
+  }
+
+  /// Inisial 2 huruf dari nama
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }
 
   // ─── EMPTY STATE ──────────────────────────────────────────────────────────
@@ -623,7 +714,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           const SizedBox(width: 10.0),
           Expanded(
             child: Text(
-              'Data menampilkan seluruh konsultasi dari seluruh dokter dan pasien.',
+              'Data menampilkan seluruh riwayat konsultasi dari resume medis seluruh pasien.',
               style: GoogleFonts.lato(
                 fontSize: 13.0,
                 color: _colorPrimaryBlue,
@@ -776,82 +867,4 @@ class _NavItem {
   final IconData icon;
   final String label;
   const _NavItem({required this.icon, required this.label});
-}
-
-/// Custom painter untuk menggambar kartun wajah bayi lucu dan presisi
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    // Lingkaran kepala
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, 3.14159 * 2, false, strokePaint);
-
-    // Poni rambut
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    // Mata
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    // Pipi kemerahan
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    // Senyuman
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(cx, cy + r * 0.62, cx + r * 0.35, cy + r * 0.18);
-    canvas.drawPath(smilePath, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

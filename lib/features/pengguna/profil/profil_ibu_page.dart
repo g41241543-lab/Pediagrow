@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
 import 'menu_profil_page.dart';
@@ -219,7 +220,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       );
 
       if (pickedFile != null) {
-        UserService().updateAvatar(pickedFile.path);
+        await UserService().updateAvatar(pickedFile.path);
 
         if (mounted) {
           _triggerSuccessBanner('Berhasil Memperbarui Foto Profil');
@@ -596,11 +597,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
           ValueListenableBuilder<UserModel>(
             valueListenable: UserService().currentUserNotifier,
             builder: (context, user, _) {
-              final avatarPath = user.avatarPath;
-              final hasCustom =
-                  avatarPath != null &&
-                  avatarPath.isNotEmpty &&
-                  File(avatarPath).existsSync();
+              final imageProvider = StorageService.buildImageProvider(user.avatarPath);
+              final hasCustom = imageProvider != null;
 
               return GestureDetector(
                 onTap: _showImagePickerOptions,
@@ -614,12 +612,12 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                         shape: BoxShape.circle,
                         color: const Color(0xFFF1F5F9),
                         border: Border.all(
-                          color: const Color(0xFFE2E8F0),
-                          width: 2,
+                           color: const Color(0xFFE2E8F0),
+                           width: 2,
                         ),
                         image: hasCustom
                             ? DecorationImage(
-                                image: FileImage(File(avatarPath)),
+                                image: imageProvider,
                                 fit: BoxFit.cover,
                               )
                             : null,

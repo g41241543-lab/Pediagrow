@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/staff_auth_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
 
@@ -542,17 +541,17 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       color: const Color(0xFFF1F5F9),
                     ),
                     child: ClipOval(
-                      child: _selectedImagePath != null &&
-                              File(_selectedImagePath!).existsSync()
-                          ? Image.file(
-                              File(_selectedImagePath!),
-                              fit: BoxFit.cover,
-                            )
-                          : const Icon(
-                              Icons.person,
-                              size: 54.0,
-                              color: Color(0xFF94A3B8),
-                            ),
+                      child: StorageService.buildImageWidget(
+                        _selectedImagePath,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorWidget: const Icon(
+                          Icons.person,
+                          size: 54.0,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
                     ),
                   ),
                 ],

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
@@ -18,8 +19,7 @@ import 'status_booking_page.dart';
 /// 2. Pilih Anak (dari ChildService / Tambah Anak baru)
 /// 3. Pilih Tanggal (Date picker horizontal 14 hari)
 /// 4. Pilih Jam (Slot waktu praktik pagi, siang, sore/malam realtime)
-/// 5. Opsi Tambahkan ke Google Kalender
-/// 6. Konfirmasi Booking -> [StatusBookingPage]
+/// 5. Konfirmasi Booking -> [StatusBookingPage] (otomatis tersambung ke Google Kalender)
 class BookingKonsultasiPage extends StatefulWidget {
   final DoctorModel doctor;
   final ChildModel? initialChild;
@@ -44,7 +44,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   late ChildModel? _selectedChild;
   late DateTime _selectedDate;
   DoctorTimeSlot? _selectedSlot;
-  bool _syncGoogleCalendar = true;
 
   late List<DateTime> _upcomingDates;
   late List<DoctorTimeSlot> _availableSlots;
@@ -72,17 +71,27 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     _refreshSlots();
 
     ChildService().childrenNotifier.addListener(_onChildrenUpdated);
-    JadwalDokterService().jadwalListNotifier.addListener(_onScheduleOrBookingChanged);
-    JadwalDokterService().cutiListNotifier.addListener(_onScheduleOrBookingChanged);
+    JadwalDokterService().jadwalListNotifier.addListener(
+      _onScheduleOrBookingChanged,
+    );
+    JadwalDokterService().cutiListNotifier.addListener(
+      _onScheduleOrBookingChanged,
+    );
     BookingService().bookingsNotifier.addListener(_onScheduleOrBookingChanged);
   }
 
   @override
   void dispose() {
     ChildService().childrenNotifier.removeListener(_onChildrenUpdated);
-    JadwalDokterService().jadwalListNotifier.removeListener(_onScheduleOrBookingChanged);
-    JadwalDokterService().cutiListNotifier.removeListener(_onScheduleOrBookingChanged);
-    BookingService().bookingsNotifier.removeListener(_onScheduleOrBookingChanged);
+    JadwalDokterService().jadwalListNotifier.removeListener(
+      _onScheduleOrBookingChanged,
+    );
+    JadwalDokterService().cutiListNotifier.removeListener(
+      _onScheduleOrBookingChanged,
+    );
+    BookingService().bookingsNotifier.removeListener(
+      _onScheduleOrBookingChanged,
+    );
     super.dispose();
   }
 
@@ -146,7 +155,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       return;
     }
 
-    // 1. Simpan booking ke BookingService
+    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
     final booking = BookingService().createBooking(
       doctor: widget.doctor,
       child: _selectedChild!,
@@ -154,19 +163,23 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       slot: _selectedSlot!,
     );
 
-    // 2. Hubungkan ke Google Kalender jika dicentang
-    if (_syncGoogleCalendar && booking.googleCalendarUrl != null) {
-      await BookingService().launchGoogleCalendar(booking.googleCalendarUrl!);
-    }
+    // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
+    NotificationService().addBookingReminderNotification(
+      doctorName: widget.doctor.name,
+      childName: _selectedChild!.name,
+      dateFormatted:
+          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+      timeSlot: _selectedSlot!.time,
+      scheduledTime: booking.scheduledStartDateTime,
+    );
 
     if (!mounted) return;
 
-    // 3. Navigasi ke Halaman Status / Tiket Booking
+    // 3. Langsung menuju halaman Status Booking tanpa beralih membuka Google Kalender
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, anim, secAnim) => StatusBookingPage(
-          booking: booking,
-        ),
+        pageBuilder: (context, anim, secAnim) =>
+            StatusBookingPage(booking: booking),
         transitionsBuilder: (context, anim, secAnim, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 300),
@@ -220,11 +233,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                     // Step 3: Pilih Jam / Slot Waktu Praktik
                     _buildTimeSlotSection(),
-                    const SizedBox(height: 24),
-
-                    // Step 4: Sambungkan Google Kalender
-                    _buildGoogleCalendarCard(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
                   ],
                 ),
               ),
@@ -249,11 +258,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: _kTextDark,
-                size: 24.0,
-              ),
+              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
             ),
           ),
           const SizedBox(width: 12.0),
@@ -292,27 +297,28 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               width: 54.0,
               height: 54.0,
               color: const Color(0xFFE2E8F0),
-              child: widget.doctor.avatarUrl != null &&
+              child:
+                  widget.doctor.avatarUrl != null &&
                       widget.doctor.avatarUrl!.isNotEmpty
                   ? (widget.doctor.avatarUrl!.startsWith('http')
-                      ? Image.network(
-                          widget.doctor.avatarUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const Icon(Icons.person, color: _kTextMuted),
-                        )
-                      : Image.file(
-                          File(widget.doctor.avatarUrl!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const Icon(Icons.person, color: _kTextMuted),
-                        ))
+                        ? Image.network(
+                            widget.doctor.avatarUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const Icon(Icons.person, color: _kTextMuted),
+                          )
+                        : Image.file(
+                            File(widget.doctor.avatarUrl!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const Icon(Icons.person, color: _kTextMuted),
+                          ))
                   : (widget.doctor.assetImagePath != null
-                      ? Image.asset(
-                          widget.doctor.assetImagePath!,
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(Icons.person, color: _kTextMuted)),
+                        ? Image.asset(
+                            widget.doctor.assetImagePath!,
+                            fit: BoxFit.cover,
+                          )
+                        : const Icon(Icons.person, color: _kTextMuted)),
             ),
           ),
           const SizedBox(width: 12.0),
@@ -348,10 +354,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       : 'Praktik Konsultasi Online',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    color: _kTextMuted,
-                  ),
+                  style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
                 ),
               ],
             ),
@@ -387,8 +390,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               },
               child: Row(
                 children: [
-                  const Icon(Icons.add_circle_outline,
-                      size: 16.0, color: _kPrimaryBlue),
+                  const Icon(
+                    Icons.add_circle_outline,
+                    size: 16.0,
+                    color: _kPrimaryBlue,
+                  ),
                   const SizedBox(width: 4.0),
                   Text(
                     'Tambah Anak',
@@ -520,8 +526,18 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   Widget _buildDateSelectionSection() {
     const daysAbbr = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
     const monthsAbbr = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
 
     return Column(
@@ -542,22 +558,34 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           physics: const BouncingScrollPhysics(),
           child: Row(
             children: _upcomingDates.map((d) {
-              final isSelected = _selectedDate.year == d.year &&
+              final isSelected =
+                  _selectedDate.year == d.year &&
                   _selectedDate.month == d.month &&
                   _selectedDate.day == d.day;
               final dayName = daysAbbr[d.weekday - 1];
               final monthName = monthsAbbr[d.month - 1];
 
-              final cuti = JadwalDokterService().getCutiPadaTanggal(widget.doctor.id, d);
-              final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(widget.doctor.id, d.weekday);
+              final cuti = JadwalDokterService().getCutiPadaTanggal(
+                widget.doctor.id,
+                d,
+              );
+              final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(
+                widget.doctor.id,
+                d.weekday,
+              );
 
               Widget statusBadge;
               if (cuti != null) {
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 4.0),
-                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.0,
+                    vertical: 1.5,
+                  ),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withValues(alpha: 0.22) : const Color(0xFFFEF3C7),
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -565,16 +593,23 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 9.0,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : const Color(0xFFD97706),
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFFD97706),
                     ),
                   ),
                 );
               } else if (!isPraktik) {
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 4.0),
-                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.0,
+                    vertical: 1.5,
+                  ),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withValues(alpha: 0.22) : const Color(0xFFE2E8F0),
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -589,9 +624,14 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               } else {
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 4.0),
-                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.0,
+                    vertical: 1.5,
+                  ),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withValues(alpha: 0.22) : const Color(0xFFD1FAE5),
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : const Color(0xFFD1FAE5),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -599,7 +639,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 9.0,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : const Color(0xFF059669),
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF059669),
                     ),
                   ),
                 );
@@ -667,8 +709,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     final filteredSlots = _selectedPeriodFilter == 'Semua'
         ? _availableSlots
         : _availableSlots
-            .where((s) => s.period == _selectedPeriodFilter)
-            .toList();
+              .where((s) => s.period == _selectedPeriodFilter)
+              .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,8 +776,14 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
         // Grid Slot Waktu
         if (filteredSlots.isEmpty) ...[
           () {
-            final cuti = JadwalDokterService().getCutiPadaTanggal(widget.doctor.id, _selectedDate);
-            final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(widget.doctor.id, _selectedDate.weekday);
+            final cuti = JadwalDokterService().getCutiPadaTanggal(
+              widget.doctor.id,
+              _selectedDate,
+            );
+            final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(
+              widget.doctor.id,
+              _selectedDate.weekday,
+            );
 
             if (cuti != null) {
               return Container(
@@ -748,7 +796,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.event_busy_rounded, color: Color(0xFFD97706), size: 26),
+                    const Icon(
+                      Icons.event_busy_rounded,
+                      color: Color(0xFFD97706),
+                      size: 26,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -779,7 +831,15 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             }
 
             if (!isPraktik) {
-              const dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+              const dayNames = [
+                'Senin',
+                'Selasa',
+                'Rabu',
+                'Kamis',
+                'Jumat',
+                'Sabtu',
+                'Minggu',
+              ];
               final dayName = dayNames[_selectedDate.weekday - 1];
               return Container(
                 width: double.infinity,
@@ -791,7 +851,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.hotel_rounded, color: _kTextMuted, size: 24),
+                    const Icon(
+                      Icons.hotel_rounded,
+                      color: _kTextMuted,
+                      size: 24,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -821,7 +885,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               );
             }
 
-            if (_availableSlots.isNotEmpty && _selectedPeriodFilter != 'Semua') {
+            if (_availableSlots.isNotEmpty &&
+                _selectedPeriodFilter != 'Semua') {
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 20.0),
                 alignment: Alignment.center,
@@ -842,7 +907,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.schedule_rounded, color: _kTextMuted, size: 24),
+                  const Icon(
+                    Icons.schedule_rounded,
+                    color: _kTextMuted,
+                    size: 24,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -871,8 +940,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               ),
             );
           }(),
-        ]
-        else
+        ] else
           Wrap(
             spacing: 10.0,
             runSpacing: 10.0,
@@ -896,8 +964,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       color: isSelected
                           ? _kPrimaryBlue
                           : (isAvail
-                              ? const Color(0xFFCBD5E1)
-                              : const Color(0xFFE2E8F0)),
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFFE2E8F0)),
                       width: 1.0,
                     ),
                   ),
@@ -909,7 +977,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         size: 15.0,
                         color: isSelected
                             ? Colors.white
-                            : (isAvail ? _kPrimaryBlue : const Color(0xFF94A3B8)),
+                            : (isAvail
+                                  ? _kPrimaryBlue
+                                  : const Color(0xFF94A3B8)),
                       ),
                       const SizedBox(width: 6.0),
                       Text(
@@ -920,8 +990,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           color: isSelected
                               ? Colors.white
                               : (isAvail
-                                  ? _kTextDark
-                                  : const Color(0xFF94A3B8)),
+                                    ? _kTextDark
+                                    : const Color(0xFF94A3B8)),
                         ),
                       ),
                       if (!isAvail) ...[
@@ -941,69 +1011,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             }).toList(),
           ),
       ],
-    );
-  }
-
-  // ── Step 4: Sambungkan Google Kalender ────────────────────────────────────
-  Widget _buildGoogleCalendarCard() {
-    return Container(
-      padding: const EdgeInsets.all(14.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: const Color(0xFF86EFAC)),
-            ),
-            child: const Icon(
-              Icons.calendar_today_rounded,
-              color: Color(0xFF16A34A),
-              size: 22.0,
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sambungkan ke Google Kalender',
-                  style: GoogleFonts.lato(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF166534),
-                  ),
-                ),
-                const SizedBox(height: 3.0),
-                Text(
-                  'Otomatis menambahkan jadwal dan alarm pengingat konsultasi ke Google Calendar Anda.',
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    height: 1.35,
-                    color: const Color(0xFF15803D),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: _syncGoogleCalendar,
-            onChanged: (val) {
-              setState(() => _syncGoogleCalendar = val);
-            },
-            activeThumbColor: const Color(0xFF16A34A),
-            activeTrackColor: const Color(0xFF86EFAC),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1032,10 +1039,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 children: [
                   Text(
                     'Jadwal Terpilih',
-                    style: GoogleFonts.lato(
-                      fontSize: 11.0,
-                      color: _kTextMuted,
-                    ),
+                    style: GoogleFonts.lato(fontSize: 11.0, color: _kTextMuted),
                   ),
                   Text(
                     _selectedSlot != null

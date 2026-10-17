@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/resep_mpasi_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/resep_mpasi_model.dart';
 import '../../../../models/staff_account_model.dart';
@@ -592,27 +593,18 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
   }
 
   Widget _buildImageWidget(String path) {
-    if (path.startsWith('assets/')) {
-      return Image.asset(
-        path,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-      );
-    }
-    if (kIsWeb || path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(
-        path,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-      );
-    }
-    return Image.file(
-      File(path),
+    return StorageService.buildImageWidget(
+      path,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
+      errorWidget: const Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 64.0,
+          color: _colorGray,
+        ),
+      ),
     );
   }
 

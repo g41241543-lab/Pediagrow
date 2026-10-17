@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../auth/auth_choice_page.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
@@ -220,13 +219,15 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         setState(() {
           _superadminAvatarPath = picked.path;
         });
+        final persistable =
+            await StorageService.uploadIfLocal(picked.path);
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('superadmin_avatar_path', picked.path);
+        await prefs.setString('superadmin_avatar_path', persistable);
 
         if (_superadmin?.id != null && _superadmin!.id.isNotEmpty) {
           await StaffAuthService().updateStaffAccount(
             _superadmin!.id,
-            avatarPath: picked.path,
+            avatarPath: persistable,
           );
         }
 
@@ -804,25 +805,16 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   Widget _buildSuperadminAvatarImage() {
-    if (_superadminAvatarPath != null && _superadminAvatarPath!.isNotEmpty) {
-      if (File(_superadminAvatarPath!).existsSync()) {
-        return Image.file(
-          File(_superadminAvatarPath!),
-          fit: BoxFit.cover,
-        );
-      }
-      if (_superadminAvatarPath!.startsWith('http')) {
-        return Image.network(
-          _superadminAvatarPath!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _buildFallbackAvatar(),
-        );
-      }
-    }
-    return Image.asset(
-      'assets/images/anita_superadmin.jpg',
+    return StorageService.buildImageWidget(
+      _superadminAvatarPath,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+      width: double.infinity,
+      height: double.infinity,
+      errorWidget: Image.asset(
+        'assets/images/anita_superadmin.jpg',
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+      ),
     );
   }
 

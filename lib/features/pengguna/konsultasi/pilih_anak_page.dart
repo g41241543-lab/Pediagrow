@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/child_service.dart';
 import '../../../models/child_model.dart';
 import 'menunggu_persetujuan_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Helper function global untuk menghitung umur anak secara presisi kalender
@@ -502,25 +503,9 @@ class _PilihAnakPageState extends State<PilihAnakPage>
 
   /// Avatar lingkaran bergambar wajah ceria anak
   Widget _buildBabyAvatar(bool isGirl) {
-    final bgColor = isGirl ? const Color(0xFFFFE2E2) : const Color(0xFFDCEEFE);
-    final borderColor = isGirl
-        ? const Color(0xFFFCA5A5)
-        : const Color(0xFF93C5FD);
-
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      child: Center(
-        child: CustomPaint(
-          size: const Size(36, 36),
-          painter: CuteBabyFacePainter(isGirl: isGirl),
-        ),
-      ),
+    return ChildAvatar(
+      isGirl: isGirl,
+      size: 52,
     );
   }
 }

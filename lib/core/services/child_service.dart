@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../models/child_model.dart';
+import 'storage_service.dart';
 import 'user_service.dart';
 
 /// Service singleton untuk mengelola data profil anak-anak pada aplikasi PediaGrow.
@@ -95,7 +96,18 @@ class ChildService {
   /// pengguna yang sedang login, dan menyimpannya ke Firestore.
   Future<void> addChild(ChildModel child) async {
     final ownerId = UserService().currentUser.id;
-    final childWithOwner = child.copyWith(ownerId: ownerId);
+    final String? photoUrl = child.photoUrl != null && child.photoUrl!.isNotEmpty
+        ? await StorageService.toPersistableString(child.photoUrl)
+        : null;
+    final String? birthPhotoUrl = child.birthPhotoUrl != null && child.birthPhotoUrl!.isNotEmpty
+        ? await StorageService.toPersistableString(child.birthPhotoUrl)
+        : null;
+
+    final childWithOwner = child.copyWith(
+      ownerId: ownerId,
+      photoUrl: photoUrl,
+      birthPhotoUrl: birthPhotoUrl,
+    );
 
     final db = _db;
     if (db == null) return;
@@ -122,15 +134,27 @@ class ChildService {
 
   /// Memperbarui data profil anak yang sudah ada (lokal + Firestore).
   Future<void> updateChild(ChildModel updatedChild) async {
+    final String? photoUrl = updatedChild.photoUrl != null && updatedChild.photoUrl!.isNotEmpty
+        ? await StorageService.toPersistableString(updatedChild.photoUrl)
+        : null;
+    final String? birthPhotoUrl = updatedChild.birthPhotoUrl != null && updatedChild.birthPhotoUrl!.isNotEmpty
+        ? await StorageService.toPersistableString(updatedChild.birthPhotoUrl)
+        : null;
+
+    final childToSave = updatedChild.copyWith(
+      photoUrl: photoUrl,
+      birthPhotoUrl: birthPhotoUrl,
+    );
+
     final current = childrenNotifier.value;
-    final index = current.indexWhere((c) => c.id == updatedChild.id);
+    final index = current.indexWhere((c) => c.id == childToSave.id);
     if (index != -1) {
       final updatedList = List<ChildModel>.from(current);
-      updatedList[index] = updatedChild;
+      updatedList[index] = childToSave;
       childrenNotifier.value = updatedList;
 
-      if (activeChildNotifier.value?.id == updatedChild.id) {
-        activeChildNotifier.value = updatedChild;
+      if (activeChildNotifier.value?.id == childToSave.id) {
+        activeChildNotifier.value = childToSave;
       }
     }
 
@@ -140,8 +164,8 @@ class ChildService {
     try {
       await db
           .collection(_collection)
-          .doc(updatedChild.id)
-          .update(updatedChild.toMap());
+          .doc(childToSave.id)
+          .update(childToSave.toMap());
     } catch (e) {
       debugPrint('[ChildService] updateChild error: $e');
     }

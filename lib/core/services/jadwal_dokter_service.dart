@@ -351,15 +351,8 @@ class JadwalDokterService {
     );
 
     for (final b in affectedBookings) {
-      final updatedBooking = b.copyWith(status: 'Dibatalkan');
-      // Perbarui status di BookingService
-      final currentList =
-          List<BookingConsultationModel>.from(BookingService().bookings);
-      final idx = currentList.indexWhere((item) => item.id == b.id);
-      if (idx != -1) {
-        currentList[idx] = updatedBooking;
-        BookingService().bookingsNotifier.value = currentList;
-      }
+      // Perbarui status di BookingService dan Firestore
+      BookingService().updateBookingStatus(b.id, 'Dibatalkan');
 
       // Kirim notifikasi ke pasien agar menjadwalkan ulang
       NotificationService().addNotification(

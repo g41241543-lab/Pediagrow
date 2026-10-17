@@ -24,6 +24,7 @@ class ResumeMedisModel {
   final List<String> recommendations;
   final String prescription;
   final String status;
+  final String? sessionId;
   final DateTime? createdAt;
 
   const ResumeMedisModel({
@@ -48,6 +49,7 @@ class ResumeMedisModel {
     this.recommendations = const [],
     this.prescription = '-',
     this.status = 'Selesai',
+    this.sessionId,
     this.createdAt,
   });
 
@@ -112,6 +114,7 @@ class ResumeMedisModel {
       recommendations: parseRecommendations(map['recommendations']),
       prescription: map['prescription'] ?? '-',
       status: map['status'] ?? 'Selesai',
+      sessionId: map['session_id']?.toString() ?? map['sessionId']?.toString(),
       createdAt: parseDate(map['created_at'] ?? map['createdAt']),
     );
   }
@@ -147,6 +150,7 @@ class ResumeMedisModel {
       'recommendations': recommendations,
       'prescription': prescription,
       'status': status,
+      'session_id': sessionId,
       'created_at': createdAt != null
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),

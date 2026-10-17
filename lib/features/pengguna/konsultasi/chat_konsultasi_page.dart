@@ -1,15 +1,24 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/booking_service.dart';
+import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/resume_medis_service.dart';
+import '../../../core/services/user_service.dart';
+import '../../../models/booking_consultation_model.dart';
+import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../models/resume_medis_model.dart';
 import 'konfirmasi_selesai_dialog.dart';
+import 'konsultasi_selesai_dialog.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Chat Konsultasi Dokter PediaGrow.
@@ -35,6 +44,12 @@ class ChatKonsultasiPage extends StatefulWidget {
   final double? weightKg;
   final double? heightCm;
   final String? complaint;
+  final BookingConsultationModel? booking;
+
+  // ID sesi konsultasi aktif di Firestore (opsional; jika null pakai mode offline)
+  final String? sessionId;
+  // ID pengguna yang login (Firebase Auth UID)
+  final String? userId;
 
   const ChatKonsultasiPage({
     super.key,
@@ -47,6 +62,9 @@ class ChatKonsultasiPage extends StatefulWidget {
     this.weightKg,
     this.heightCm,
     this.complaint,
+    this.booking,
+    this.sessionId,
+    this.userId,
   });
 
   @override
@@ -88,8 +106,21 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   late String _effectiveChildAge;
   late String _effectiveChildGender;
 
-  // List pesan percakapan dinamis
+  // List pesan lokal (fallback offline)
   late List<Map<String, dynamic>> _messages;
+
+  // Stream Firestore – aktif jika sessionId tersedia
+  Stream<List<ChatMessageModel>>? _messageStream;
+
+  Timer? _sessionExpiryTimer;
+
+  BookingConsultationModel? get _effectiveBooking =>
+      widget.booking ?? BookingService().activeBookingNotifier.value;
+
+  String get _effectiveSessionId =>
+      widget.sessionId ??
+      _effectiveBooking?.sessionId ??
+      'session_${_effectiveBooking?.id ?? 'default'}';
 
   @override
   void initState() {
@@ -99,14 +130,49 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _resolveChildData();
     _initMessages();
 
+    // Jika waktu booking konsultasi sudah habis saat masuk, tutup ruangan
+    if (_effectiveBooking != null && _effectiveBooking!.isExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _handleAlreadyExpired();
+      });
+    } else {
+      // Timer cek realtime apakah waktu konsultasi telah habis
+      _sessionExpiryTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted &&
+            _effectiveBooking != null &&
+            _effectiveBooking!.isExpired) {
+          _handleTimeExpired();
+        }
+      });
+    }
+
+    // Jika sessionId ada, gunakan stream Firestore (real-time)
+    if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+      _messageStream = ChatMessageService.instance.streamPesan(
+        widget.sessionId!,
+      );
+    } else {
+      // Mode offline: simulasi dokter menyapa jika belum ada sapaan
+      final hasDoctorGreeting = _messages.any((m) => m['sender'] == 'doctor');
+      if (!hasDoctorGreeting) {
+        _scheduleInitialDoctorGreeting();
+      }
+    }
+
     // Animasi gelombang tiga titik (...) bergerak
     _typingAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat();
+  }
 
-    // Simulasi respons sambutan awal dokter setelah halaman terbuka
-    _scheduleInitialDoctorGreeting();
+  @override
+  void dispose() {
+    _sessionExpiryTimer?.cancel();
+    _textController.dispose();
+    _scrollController.dispose();
+    _typingAnimController.dispose();
+    super.dispose();
   }
 
   void _resolveDoctorData() {
@@ -140,6 +206,14 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _initMessages() {
+    final cached = ChatMessageService.instance.getCachedMessages(
+      _effectiveSessionId,
+    );
+    if (cached != null && cached.isNotEmpty) {
+      _messages = List<Map<String, dynamic>>.from(cached);
+      return;
+    }
+
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -154,6 +228,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'isRead': true,
       },
     ];
+    ChatMessageService.instance.saveCachedMessages(
+      _effectiveSessionId,
+      _messages,
+    );
   }
 
   /// Dokter membaca formulir dan menyapa pasien secara formal & personal
@@ -182,6 +260,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'isRead': true,
           });
         });
+        ChatMessageService.instance.saveCachedMessages(
+          _effectiveSessionId,
+          _messages,
+        );
         _scrollToBottom();
       });
     });
@@ -190,22 +272,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   String _generateOpeningGreeting() {
     final hasComplaint =
         widget.complaint != null && widget.complaint!.trim().isNotEmpty;
-    final childName =
-        _effectiveChildName != 'Ananda' ? _effectiveChildName : 'si kecil';
+    final childName = _effectiveChildName != 'Ananda'
+        ? _effectiveChildName
+        : 'si kecil';
 
     if (hasComplaint) {
       return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Pasien untuk $childName sudah saya terima dan cermati dengan baik.\n\nTerkait keluhan: "${widget.complaint!.trim()}", boleh diceritakan sudah berapa hari keluhan ini berlangsung dan bagaimana kondisi keaktifan si kecil saat ini?';
     } else {
       return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Pasien untuk $childName sudah saya terima.\n\nBagaimana kondisi $childName hari ini? Silakan ceritakan keluhan atau gejala yang sedang dirasakan si kecil ya Mom’s.';
     }
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    _scrollController.dispose();
-    _typingAnimController.dispose();
-    super.dispose();
   }
 
   // ===========================================================================
@@ -215,7 +290,26 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   void _sendMessage() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
+    _textController.clear();
 
+    // Jika ada sessionId → kirim ke Firestore (real-time, dokter menerima)
+    if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+      final uid = widget.userId ?? '';
+      ChatMessageService.instance.kirimTeks(
+        sessionId: widget.sessionId!,
+        senderId: uid,
+        senderRole: MessageSender.user,
+        text: text,
+      );
+      // Tandai pesan dokter sebagai sudah dibaca
+      ChatMessageService.instance.tandaiSudahDibaca(
+        sessionId: widget.sessionId!,
+        readerRole: MessageSender.user,
+      );
+      return;
+    }
+
+    // Fallback offline (tanpa sessionId) — seperti semula
     final now = DateTime.now();
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -228,8 +322,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'timestamp': timeStr,
         'isRead': true,
       });
-      _textController.clear();
     });
+
+    ChatMessageService.instance.saveCachedMessages(
+      _effectiveSessionId,
+      _messages,
+    );
 
     _scrollToBottom();
 
@@ -259,6 +357,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'isRead': true,
           });
         });
+        ChatMessageService.instance.saveCachedMessages(
+          _effectiveSessionId,
+          _messages,
+        );
         _scrollToBottom();
       });
     });
@@ -271,7 +373,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     final msg = raw.toLowerCase();
 
     // 1. UCAPAN TERIMA KASIH & CLOSING (Menangani typos & singkatan: makasih, mksih, mksh, makasii, dll.)
-    final isThanks = msg.contains('makasih') ||
+    final isThanks =
+        msg.contains('makasih') ||
         msg.contains('makasi') ||
         msg.contains('mksih') ||
         msg.contains('mksh') ||
@@ -315,7 +418,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 4. DEMAM / SUHU TINGGI / PANAS (Menangani: dmm, panas, suhu, menggigil, paracetamol, dll.)
-    final isFever = msg.contains('demam') ||
+    final isFever =
+        msg.contains('demam') ||
         msg.contains('dmm') ||
         msg.contains('panas') ||
         msg.contains('suhu') ||
@@ -339,7 +443,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 5. BATUK, PILEK, FLU, SESAK, GROK-GROK (Menangani: btk, plk, ingus, meler, grok, dll.)
-    final isFlu = msg.contains('batuk') ||
+    final isFlu =
+        msg.contains('batuk') ||
         msg.contains('pilek') ||
         msg.contains('btk') ||
         msg.contains('plk') ||
@@ -362,7 +467,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 6. DIARE, MENCRET, PUP CAIR (Menangani: mencret, bab cair, pup cair, lendir, dll.)
-    final isDiarrhea = msg.contains('diare') ||
+    final isDiarrhea =
+        msg.contains('diare') ||
         msg.contains('mencret') ||
         msg.contains('bab cair') ||
         msg.contains('pup cair') ||
@@ -381,7 +487,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 7. MUNTAH, GUMOH, MUAL (Menangani: muntah, gumoh, enek, mual, dll.)
-    final isVomit = msg.contains('muntah') ||
+    final isVomit =
+        msg.contains('muntah') ||
         msg.contains('gumoh') ||
         msg.contains('mual') ||
         msg.contains('enek') ||
@@ -397,7 +504,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 8. GTM, SUSAH MAKAN, NAFSU MAKAN (Menangani: gtm, gamau makan, ga mau makan, gak mau makan, dll.)
-    final isGTM = msg.contains('gtm') ||
+    final isGTM =
+        msg.contains('gtm') ||
         msg.contains('susah makan') ||
         msg.contains('gamau') ||
         msg.contains('ga mau') ||
@@ -417,7 +525,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 9. BERAT BADAN, KURUS, STUNTING, GIZI (Menangani: bb seret, berat badan, kurus, stunting, dll.)
-    final isWeight = msg.contains('berat badan') ||
+    final isWeight =
+        msg.contains('berat badan') ||
         msg.contains('bb') ||
         msg.contains('kurus') ||
         msg.contains('stunting') ||
@@ -438,7 +547,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 10. RUAM KULIT, BINTIK MERAH, GATAL, ALERGI (Menangani: ruam, bintik, merah, gatal, alergi, popok, dll.)
-    final isSkin = msg.contains('ruam') ||
+    final isSkin =
+        msg.contains('ruam') ||
         msg.contains('bintik') ||
         msg.contains('gatal') ||
         msg.contains('alergi') ||
@@ -459,7 +569,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 11. IMUNISASI & VAKSINASI
-    final isVaccine = msg.contains('imunisasi') ||
+    final isVaccine =
+        msg.contains('imunisasi') ||
         msg.contains('vaksin') ||
         msg.contains('dpt') ||
         msg.contains('campak') ||
@@ -474,7 +585,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     // 12. TIDUR, REWEL, MENANGIS, KEMBUNG
-    final isSleepFuss = msg.contains('rewel') ||
+    final isSleepFuss =
+        msg.contains('rewel') ||
         msg.contains('nangis') ||
         msg.contains('menangis') ||
         msg.contains('tidur') ||
@@ -508,12 +620,299 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   void _onBackPressed() {
-    Navigator.of(context).maybePop();
+    _showStayInChatDialog();
+  }
+
+  /// Menampilkan dialog bahwa pengguna tidak dapat kembali ke halaman formulir
+  /// dan harus tetap di ruang konsultasi sampai sesi diakhiri secara resmi.
+  void _showStayInChatDialog() {
+    FocusScope.of(context).unfocus();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEBF5FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: Color(0xFF2A85FF),
+                    size: 28,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Sesi Konsultasi Berlangsung',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: colorTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Anda tidak dapat kembali ke halaman sebelumnya selama sesi konsultasi berlangsung. Harap tetap di room konsultasi sampai percakapan diakhiri.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 13.5,
+                  color: colorTextSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _onAkhiriKonsultasiPressed();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorEndRed,
+                        side: const BorderSide(color: Color(0xFFFEB2B2)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                      child: Text(
+                        'Akhiri Sesi',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorPrimaryBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                      child: Text(
+                        'Tetap di Chat',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _onAkhiriKonsultasiPressed() {
     FocusScope.of(context).unfocus();
-    showKonfirmasiSelesaiDialog(context);
+    showKonfirmasiSelesaiDialog(
+      context,
+      onConfirmed: () async {
+        await _selesaikanKonsultasiDanBuatRiwayat();
+        if (mounted) {
+          showKonsultasiSelesaiDialog(context);
+        }
+      },
+    );
+  }
+
+  /// Dipanggil saat timer mendeteksi waktu booking habis secara realtime
+  void _handleTimeExpired() {
+    _sessionExpiryTimer?.cancel();
+    if (!mounted) return;
+    final booking = _effectiveBooking;
+    if (booking != null) {
+      BookingService().updateBookingStatus(booking.id, 'Selesai');
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Waktu Konsultasi Berakhir',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Waktu sesi konsultasi telah habis. Ruang chat ini ditutup secara otomatis.',
+          style: TextStyle(fontSize: 13.5, height: 1.4),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2B7AE8),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              if (mounted) Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dipanggil segera saat masuk ke chat room namun booking sudah expired
+  void _handleAlreadyExpired() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Sesi Tidak Tersedia',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Waktu sesi konsultasi ini telah berakhir. Ruang chat tidak dapat dibuka lagi.',
+            style: TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF64748B),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                if (mounted) Navigator.of(context).pop();
+              },
+              child: const Text('Kembali'),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  /// Membuat dan menyimpan Resume Medis
+  Future<void> _selesaikanKonsultasiDanBuatRiwayat() async {
+    try {
+      final now = DateTime.now();
+      const monthNames = [
+        '',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+      ];
+      final formattedDate = '${now.day} ${monthNames[now.month]} ${now.year}';
+      final hourStr = now.hour.toString().padLeft(2, '0');
+      final minStr = now.minute.toString().padLeft(2, '0');
+      final formattedTime = '$hourStr.$minStr WIB';
+
+      final effectiveChild = widget.child ?? ChildService().activeChild;
+      final effectiveUserId =
+          widget.userId ??
+          effectiveChild?.ownerId ??
+          UserService().currentUser.id;
+
+      final complaintText = (widget.complaint?.trim().isNotEmpty == true)
+          ? widget.complaint!.trim()
+          : 'Konsultasi keluhan kesehatan dan pemantauan tumbuh kembang anak';
+
+      final shortComplaint = complaintText.length > 60
+          ? '${complaintText.substring(0, 60)}...'
+          : complaintText;
+
+      final resume = ResumeMedisModel(
+        id: '',
+        childId: effectiveChild?.id ?? '',
+        userId: effectiveUserId,
+        doctorName: _effectiveDoctorName,
+        doctorSpecialization: _effectiveDoctorSpecialist,
+        doctorPhoto: _effectiveDoctorPhoto,
+        childName: _effectiveChildName,
+        childAgeAtConsultation: _effectiveChildAge,
+        consultationDate: formattedDate,
+        consultationTime: formattedTime,
+        bbLahir: effectiveChild?.birthWeightKg ?? 2.4,
+        bbSaatIni: widget.weightKg ?? effectiveChild?.weightKg ?? 3.4,
+        tbLahir: effectiveChild?.birthHeightCm ?? 44.0,
+        tbSaatIni: widget.heightCm ?? effectiveChild?.heightCm ?? 51.0,
+        complaint: complaintText,
+        complaintShort: shortComplaint,
+        doctorAssessment: 'Pemeriksaan klinis dan konsultasi telah dilaksanakan. Kondisi umum anak baik dan stabil. Keluhan yang dialami dalam observasi penanganan harian orang tua.',
+        summary: 'Konsultasi telah selesai. Edukasi nutrisi seimbang, hidrasi, dan pemantauan berkala telah diberikan.',
+        recommendations: const [
+          'Berikan asupan gizi seimbang dan cairan yang cukup sesuai usia anak.',
+          'Pantau suhu tubuh dan perkembangan keluhan anak secara berkala.',
+          'Jaga higienitas makanan dan lingkungan di sekitar anak.',
+          'Segera hubungi faskes atau dokter spesialis anak bila keluhan berlanjut.',
+        ],
+        prescription: 'Sesuai arahan klinis dokter anak',
+        status: 'Selesai',
+        sessionId: widget.sessionId,
+        createdAt: now,
+      );
+
+      await ResumeMedisService().addResumeMedis(resume);
+
+      // Perbarui status sesi konsultasi di Firestore jika tersedia
+      if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+        try {
+          await FirebaseFirestore.instance
+              .collection('consultations')
+              .doc(widget.sessionId)
+              .update({
+                'status': 'Selesai',
+                'ended_at': FieldValue.serverTimestamp(),
+              });
+        } catch (e) {
+          debugPrint('[ChatKonsultasi] Error updating consultation status: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint(
+        '[ChatKonsultasi] Error selesaikanKonsultasiDanBuatRiwayat: $e',
+      );
+    }
   }
 
   // ===========================================================================
@@ -659,7 +1058,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   border: Border.all(color: colorBorder),
                 ),
                 child: Text(
-                  widget.complaint != null && widget.complaint!.trim().isNotEmpty
+                  widget.complaint != null &&
+                          widget.complaint!.trim().isNotEmpty
                       ? widget.complaint!.trim()
                       : 'Tidak ada keluhan spesifik yang dicatat.',
                   style: GoogleFonts.lato(
@@ -727,23 +1127,30 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: colorWhite,
-      resizeToAvoidBottomInset: true,
-      body: Column(
-        children: [
-          // 1. Header Dokter Fixed (Biru #2A85FF, meluas menutupi status bar)
-          _buildHeader(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _showStayInChatDialog();
+      },
+      child: Scaffold(
+        backgroundColor: colorWhite,
+        resizeToAvoidBottomInset: true,
+        body: Column(
+          children: [
+            // 1. Header Dokter Fixed (Biru #2A85FF, meluas menutupi status bar)
+            _buildHeader(),
 
-          // 2. Disclaimer Medis Fixed (Stay, sudut kotak tidak melengkung, tanpa tombol X)
-          _buildDisclaimer(),
+            // 2. Disclaimer Medis Fixed (Stay, sudut kotak tidak melengkung, tanpa tombol X)
+            _buildDisclaimer(),
 
-          // 3. Area Chat List (Scrollable)
-          Expanded(child: _buildChatList()),
+            // 3. Area Chat List (Scrollable)
+            Expanded(child: _buildChatList()),
 
-          // 4. Input Pesan Fixed di Bagian Bawah
-          _buildInputArea(),
-        ],
+            // 4. Input Pesan Fixed di Bagian Bawah
+            _buildInputArea(),
+          ],
+        ),
       ),
     );
   }
@@ -931,11 +1338,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.info_outline,
-            size: 20,
-            color: Color(0xFF4A5568),
-          ),
+          const Icon(Icons.info_outline, size: 20, color: Color(0xFF4A5568)),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -956,11 +1359,52 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // 3. AREA CHAT LIST (Scrollable)
   // ===========================================================================
 
+  // Helper konversi ChatMessageModel (Firestore) → Map lokal yang dipakai widget
+  Map<String, dynamic> _firestoreToLocal(ChatMessageModel msg) {
+    final t = msg.timestamp;
+    final timeStr =
+        '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';
+    return {
+      'sender': msg.senderRole == MessageSender.dokter ? 'doctor' : 'user',
+      'type': msg.type == MessageType.formulir
+          ? 'attachment'
+          : msg.type == MessageType.image
+          ? 'user_attachment'
+          : 'text',
+      'message': msg.text ?? '',
+      'imageUrl': msg.imageUrl,
+      'title': 'Formulir Keluhan Pasien',
+      'timestamp': timeStr,
+      'isRead': msg.isRead,
+    };
+  }
+
   Widget _buildChatList() {
+    // Mode real-time Firestore
+    if (_messageStream != null) {
+      return StreamBuilder<List<ChatMessageModel>>(
+        stream: _messageStream,
+        builder: (context, snap) {
+          final firestoreMsgs = snap.data ?? [];
+          // Scroll to bottom saat pesan baru datang
+          if (firestoreMsgs.isNotEmpty) {
+            _scrollToBottom();
+          }
+          final items = firestoreMsgs.map(_firestoreToLocal).toList();
+          return _buildMessageListView(items);
+        },
+      );
+    }
+
+    // Mode offline / fallback
+    return _buildMessageListView(_messages);
+  }
+
+  Widget _buildMessageListView(List<Map<String, dynamic>> items) {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      itemCount: _messages.length + (_isDoctorTyping ? 2 : 1),
+      itemCount: items.length + (_isDoctorTyping ? 2 : 1),
       itemBuilder: (context, index) {
         // Item index 0: Badge Tanggal "Hari ini"
         if (index == 0) {
@@ -980,8 +1424,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         }
 
         final messageIndex = index - 1;
-        if (messageIndex < _messages.length) {
-          final item = _messages[messageIndex];
+        if (messageIndex < items.length) {
+          final item = items[messageIndex];
           final isUser = item['sender'] == 'user';
           final type = item['type'] ?? 'text';
 
@@ -1092,7 +1536,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     final screenWidth = MediaQuery.of(context).size.width;
     final filePath = item['filePath'] as String?;
     final fileName = item['fileName'] as String? ?? 'Lampiran Dokumen';
-    final isImage = filePath != null &&
+    final isImage =
+        filePath != null &&
         (filePath.toLowerCase().endsWith('.jpg') ||
             filePath.toLowerCase().endsWith('.jpeg') ||
             filePath.toLowerCase().endsWith('.png') ||
@@ -1356,7 +1801,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     final progress =
                         (_typingAnimController.value + (dotIndex * 0.28)) % 1.0;
                     // Bouncing wave offset up and down
-                    final bounceOffset = -3.5 * (1.0 - (progress - 0.5).abs() * 2);
+                    final bounceOffset =
+                        -3.5 * (1.0 - (progress - 0.5).abs() * 2);
                     final scale =
                         0.75 + (0.35 * (1.0 - (progress - 0.5).abs() * 2));
 
@@ -1601,10 +2047,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       }
     } catch (e) {
       if (mounted) {
-        PediaBanner.showError(
-          context,
-          message: 'Gagal memilih file: $e',
-        );
+        PediaBanner.showError(context, message: 'Gagal memilih file: $e');
       }
     }
   }

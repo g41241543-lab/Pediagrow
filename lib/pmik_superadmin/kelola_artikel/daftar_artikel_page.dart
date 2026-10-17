@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_banner.dart';
@@ -764,23 +765,13 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
-        child: image == null
-            ? _buildPlaceholderImage()
-            : (artikel.isAssetImage
-                  ? Image.asset(
-                      image,
-                      width: width,
-                      height: height,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
-                    )
-                  : Image.network(
-                      image,
-                      width: width,
-                      height: height,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _buildPlaceholderImage(),
-                    )),
+        child: StorageService.buildImageWidget(
+          image,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          errorWidget: _buildPlaceholderImage(),
+        ),
       ),
     );
   }

@@ -4,18 +4,21 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/artikel_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/staff_auth_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/artikel_model.dart';
 import '../../models/staff_account_model.dart';
 import '../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../pengguna/detail/detail_artikel_page.dart';
 import '../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
-import '../pmik_superadmin/beranda/data_anak/data_pasien_page.dart';
-import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import '../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+import '../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import '../pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
 import '../pmik_superadmin/profil/hak_akses/hak_akses_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../widgets/hak_akses_logo.dart';
+import 'beranda/data_anak/data_pasien_page.dart';
+import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import 'profil_pmik_page.dart';
 
 /// Halaman Beranda PMIK Admin PediaGrow.
@@ -696,7 +699,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                           opacity: isLocked ? 0.45 : 1.0,
                           child: Transform.translate(
                             offset: Offset(logoOffsetX, 0),
-                            child: customIcon ??
+                            child:
+                                customIcon ??
                                 (imageAsset != null
                                     ? Image.asset(
                                         imageAsset,
@@ -705,14 +709,16 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                         errorBuilder: (_, _, _) => Icon(
                                           icon ?? Icons.widgets_rounded,
                                           size: imageSize,
-                                          color: iconColor ??
+                                          color:
+                                              iconColor ??
                                               const Color(0xFF3985E7),
                                         ),
                                       )
                                     : Icon(
                                         icon ?? Icons.widgets_rounded,
                                         size: imageSize,
-                                        color: iconColor ??
+                                        color:
+                                            iconColor ??
                                             const Color(0xFF3985E7),
                                       )),
                           ),
@@ -835,16 +841,13 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: artikel.imageUrl != null && artikel.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      artikel.imageUrl!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          _buildArticleImagePlaceholder(),
-                    )
-                  : _buildArticleImagePlaceholder(),
+              child: StorageService.buildImageWidget(
+                artikel.imageUrl,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                errorWidget: _buildArticleImagePlaceholder(),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -955,7 +958,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     return GestureDetector(
       onTap: () {
         if (index == _selectedIndex) return;
-        if (index == 3) {
+        if (index == 1) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const KonsultasiPmikAdminPage()),
+          );
+        } else if (index == 2) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
+            ),
+          );
+        } else if (index == 3) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
           );

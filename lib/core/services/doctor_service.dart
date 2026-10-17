@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import 'staff_auth_service.dart';
+import 'storage_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola data dokter di Firestore.
@@ -328,12 +329,20 @@ class DoctorService {
       // 1. BUAT AKUN STAFF DOKTER
       // ----------------------------------------------------------
 
+      final String? persistableAvatar = profile.avatarUrl != null &&
+              profile.avatarUrl!.isNotEmpty
+          ? await StorageService.toPersistableString(profile.avatarUrl)
+          : null;
+      final DoctorModel profileToSave =
+          profile.copyWith(avatarUrl: persistableAvatar);
+
       final String? staffId = await StaffAuthService().createStaffAccount(
-        name: profile.name,
+        name: profileToSave.name,
         email: email,
         password: password,
         role: StaffRole.dokter,
         createdByEmail: createdByEmail,
+        avatarPath: persistableAvatar,
       );
 
       // Jika akun gagal dibuat, proses dihentikan.
@@ -346,7 +355,7 @@ class DoctorService {
         // 2. SIAPKAN DATA PROFIL DOKTER
         // --------------------------------------------------------
 
-        final Map<String, dynamic> data = profile.toMap()
+        final Map<String, dynamic> data = profileToSave.toMap()
           ..remove('id')
           ..['staff_account_id'] = staffId;
 
@@ -398,10 +407,30 @@ class DoctorService {
       final db = _db;
       if (db == null) return;
 
-      final Map<String, dynamic> data = doctor.toMap()..remove('id');
+      final String? persistableAvatar = doctor.avatarUrl != null &&
+              doctor.avatarUrl!.isNotEmpty
+          ? await StorageService.toPersistableString(doctor.avatarUrl)
+          : null;
+      final DoctorModel doctorToSave =
+          doctor.copyWith(avatarUrl: persistableAvatar);
 
-      await db.collection(_collection).doc(doctor.id).update(data);
-      await SuperadminNotificationService().notifyDokterUbah(doctor.name);
+      final Map<String, dynamic> data = doctorToSave.toMap()..remove('id');
+
+      await db.collection(_collection).doc(doctorToSave.id).update(data);
+
+      // Sinkronkan juga avatar ke staff_accounts jika staffAccountId ada
+      if (doctorToSave.staffAccountId != null &&
+          doctorToSave.staffAccountId!.isNotEmpty &&
+          persistableAvatar != null) {
+        try {
+          await StaffAuthService().updateStaffAccount(
+            doctorToSave.staffAccountId!,
+            avatarPath: persistableAvatar,
+          );
+        } catch (_) {}
+      }
+
+      await SuperadminNotificationService().notifyDokterUbah(doctorToSave.name);
     } catch (e) {
       debugPrint('[DoctorService] updateDoctor error: $e');
     }

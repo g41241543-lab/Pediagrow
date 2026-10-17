@@ -8,10 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/doctor_service.dart';
 import '../../core/services/staff_auth_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_dokter_page.dart';
+import 'konsultasi/konsultasi_dokter_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
 /// Halaman Profil Dokter PediaGrow.
 ///
@@ -262,12 +265,14 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       );
       if (picked != null) {
         setState(() => _avatarPath = picked.path);
+        final persistable =
+            await StorageService.uploadIfLocal(picked.path) ?? picked.path;
         final prefs = await SharedPreferences.getInstance();
         if (_dokter?.id != null) {
-          await prefs.setString('dokter_avatar_${_dokter!.id}', picked.path);
+          await prefs.setString('dokter_avatar_${_dokter!.id}', persistable);
           await StaffAuthService().updateStaffAccount(
             _dokter!.id,
-            avatarPath: picked.path,
+            avatarPath: persistable,
           );
         }
 
@@ -282,7 +287,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             }
           }
           if (doc != null) {
-            final updated = doc.copyWith(avatarUrl: picked.path);
+            final updated = doc.copyWith(avatarUrl: persistable);
             _doctorModel = updated;
             await DoctorService().updateDoctor(updated);
           }
@@ -438,10 +443,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         );
         return;
       case 1:
-        targetPage = const _PlaceholderPage(title: 'Konsultasi');
+        targetPage = const KonsultasiDokterPage();
         break;
       case 2:
-        targetPage = const _PlaceholderPage(title: 'Riwayat Konsultasi');
+        targetPage = const DaftarRiwayatKonsultasiAdminPage();
         break;
       default:
         return;
@@ -821,20 +826,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   }
 
   ImageProvider? _resolveAvatarImage(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return NetworkImage(path);
-    }
-    if (path.startsWith('assets/')) {
-      return AssetImage(path);
-    }
-    try {
-      final file = File(path);
-      if (file.existsSync()) {
-        return FileImage(file);
-      }
-    } catch (_) {}
-    return null;
+    return StorageService.buildImageProvider(path);
   }
 
   // ─── TEMPAT PRAKTIK ───────────────────────────────────────────────────────
@@ -1056,21 +1048,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-
-// ─── PLACEHOLDER ──────────────────────────────────────────────────────────────
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
     );
   }
 }

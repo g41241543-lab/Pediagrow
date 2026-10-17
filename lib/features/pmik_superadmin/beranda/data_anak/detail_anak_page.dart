@@ -5,7 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/child_model.dart';
+import '../../../../shared/widgets/child_avatar.dart';
 import '../../../../models/user_model.dart';
 import 'pilih_anak_button_sheet.dart';
 import 'superadmin_grafik_page.dart';
@@ -147,80 +149,14 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     required double size,
     required Widget fallback,
   }) {
-    if (imagePath == null || imagePath.trim().isEmpty) {
-      return fallback;
-    }
-
-    final trimmed = imagePath.trim();
-
-    // 1. Base64
-    if (trimmed.startsWith('data:image')) {
-      try {
-        final commaIdx = trimmed.indexOf(',');
-        final base64Str = commaIdx != -1
-            ? trimmed.substring(commaIdx + 1)
-            : trimmed;
-        final bytes = base64Decode(base64Str.trim());
-        return Image.memory(
-          bytes,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-
-    if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0KGgo')) {
-      try {
-        final bytes = base64Decode(trimmed);
-        return Image.memory(
-          bytes,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-
-    // 2. URL Jaringan (Network)
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return Image.network(
-        trimmed,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-
-    // 2. Aset Lokal Flutter
-    if (trimmed.startsWith('assets/')) {
-      return Image.asset(
-        trimmed,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-
-    // 3. File Path di Perangkat
-    try {
-      final file = File(trimmed);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      }
-    } catch (_) {}
-
-    return fallback;
+    return StorageService.buildImageWidget(
+      imagePath,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      placeholder: fallback,
+      errorWidget: fallback,
+    );
   }
 
   /// Format tanggal lahir dalam bahasa Indonesia: "Selasa, 12 April 2026"
@@ -514,26 +450,17 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               Container(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFDCEEFF),
+                decoration: BoxDecoration(
+                  color: ChildAvatar.bgColorFor(gender: widget.child.gender),
                   shape: BoxShape.circle,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: _buildAvatarImage(
                   imagePath: _childPhotoUrl,
                   size: 48,
-                  fallback: Image.asset(
-                    'assets/images/default_baby_avatar.png',
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Center(
-                      child: Icon(
-                        Icons.face_rounded,
-                        size: 32,
-                        color: Color(0xFF2B7AE8),
-                      ),
-                    ),
+                  fallback: ChildAvatar(
+                    gender: widget.child.gender,
+                    size: 48,
                   ),
                 ),
               ),

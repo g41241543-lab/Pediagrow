@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/booking_consultation_model.dart';
 import '../../models/child_model.dart';
 import '../../models/doctor_model.dart';
+import 'google_calendar_service.dart';
 import 'jadwal_dokter_service.dart';
 
 /// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
@@ -30,6 +31,8 @@ class BookingService {
     if (activeBookingNotifier.value == null) {
       activeBookingNotifier.value = booking;
     }
+    // Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
+    GoogleCalendarService().syncBookingToGoogleCalendar(booking);
   }
 
   /// Menghasilkan slot waktu yang tersedia untuk dokter pada tanggal tertentu
@@ -118,6 +121,9 @@ class BookingService {
     bookingsNotifier.value = updated;
     activeBookingNotifier.value = newBooking;
 
+    // Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
+    GoogleCalendarService().syncBookingToGoogleCalendar(newBooking);
+
     return newBooking;
   }
 
@@ -146,6 +152,21 @@ class BookingService {
     }
   }
 
+  /// Mengubah status booking (misalnya 'Dibatalkan').
+  void updateBookingStatus(String bookingId, String newStatus) {
+    final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
+    final idx = list.indexWhere((b) => b.id == bookingId);
+    if (idx == -1) return;
+
+    final updated = list[idx].copyWith(status: newStatus);
+    list[idx] = updated;
+    bookingsNotifier.value = list;
+
+    if (activeBookingNotifier.value?.id == bookingId) {
+      activeBookingNotifier.value = updated;
+    }
+  }
+
   /// Format URL Google Calendar (Render Template Action)
   /// Menyertakan nama dokter, nama anak, waktu janji temu, dan pengingat
   String generateGoogleCalendarUrl({
@@ -170,7 +191,8 @@ class BookingService {
 
     final datesParam = '${formatUtc(startUtc)}/${formatUtc(endUtc)}';
     final title = 'Konsultasi Dokter: ${doctor.name} - PediaGrow';
-    final details = 'Jadwal konsultasi kesehatan anak: ${child.name} '
+    final details =
+        'Jadwal konsultasi kesehatan anak: ${child.name} '
         'bersama ${doctor.name} (${doctor.specialization}) '
         'melalui sesi chat aplikasi PediaGrow.';
     const location = 'Aplikasi PediaGrow (Online Chat)';

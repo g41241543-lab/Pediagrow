@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../beranda/beranda_page.dart';
 import '../konsultasi/daftar_dokter_page.dart';
@@ -664,7 +665,13 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                       maxScale: 3.5,
                       child: Hero(
                         tag: heroTag,
-                        child: Image.file(File(path), fit: BoxFit.contain),
+                        child: StorageService.buildImageWidget(
+                          path,
+                          fit: BoxFit.contain,
+                          errorWidget: const Center(
+                            child: Icon(Icons.broken_image, color: Colors.white, size: 48),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1160,8 +1167,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                       child: hasPhoto
                           ? Hero(
                               tag: 'avatar_foto_profil',
-                              child: Image.file(
-                                File(_fotoProfilPath!),
+                              child: StorageService.buildImageWidget(
+                                _fotoProfilPath,
                                 width: 88,
                                 height: 88,
                                 fit: BoxFit.cover,
@@ -1530,8 +1537,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                     borderRadius: BorderRadius.circular(6),
                     child: Hero(
                       tag: 'foto_si_kecil_preview',
-                      child: Image.file(
-                        File(_fotoKelahiranPath!),
+                      child: StorageService.buildImageWidget(
+                        _fotoKelahiranPath,
                         width: 44,
                         height: 44,
                         fit: BoxFit.cover,

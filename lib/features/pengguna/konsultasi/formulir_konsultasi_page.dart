@@ -3,12 +3,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/storage_service.dart';
+import '../../../core/services/konsultasi_service.dart';
+import '../../../core/services/user_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import 'chat_konsultasi_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman "Formulir Konsultasi" PediaGrow.
@@ -19,6 +25,7 @@ class FormulirKonsultasiPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ConsultationModel? consultation;
   final ChildModel? child;
+  final BookingConsultationModel? booking;
   final String? namaAnak;
   final String? jenisKelamin;
   final String? usiaAnak;
@@ -28,6 +35,7 @@ class FormulirKonsultasiPage extends StatefulWidget {
     this.doctor,
     this.consultation,
     this.child,
+    this.booking,
     this.namaAnak,
     this.jenisKelamin,
     this.usiaAnak,
@@ -83,24 +91,28 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
 
     final selectedChild = _activeChild ?? widget.child;
-    final initWeight = selectedChild?.weightKg != null && selectedChild!.weightKg! > 0
+    final initWeight =
+        selectedChild?.weightKg != null && selectedChild!.weightKg! > 0
         ? (selectedChild.weightKg! % 1 == 0
-            ? selectedChild.weightKg!.toInt().toString()
-            : selectedChild.weightKg!.toString())
-        : (selectedChild?.birthWeightKg != null && selectedChild!.birthWeightKg! > 0
-            ? (selectedChild.birthWeightKg! % 1 == 0
-                ? selectedChild.birthWeightKg!.toInt().toString()
-                : selectedChild.birthWeightKg!.toString())
-            : '');
-    final initHeight = selectedChild?.heightCm != null && selectedChild!.heightCm! > 0
+              ? selectedChild.weightKg!.toInt().toString()
+              : selectedChild.weightKg!.toString())
+        : (selectedChild?.birthWeightKg != null &&
+                  selectedChild!.birthWeightKg! > 0
+              ? (selectedChild.birthWeightKg! % 1 == 0
+                    ? selectedChild.birthWeightKg!.toInt().toString()
+                    : selectedChild.birthWeightKg!.toString())
+              : '');
+    final initHeight =
+        selectedChild?.heightCm != null && selectedChild!.heightCm! > 0
         ? (selectedChild.heightCm! % 1 == 0
-            ? selectedChild.heightCm!.toInt().toString()
-            : selectedChild.heightCm!.toString())
-        : (selectedChild?.birthHeightCm != null && selectedChild!.birthHeightCm! > 0
-            ? (selectedChild.birthHeightCm! % 1 == 0
-                ? selectedChild.birthHeightCm!.toInt().toString()
-                : selectedChild.birthHeightCm!.toString())
-            : '');
+              ? selectedChild.heightCm!.toInt().toString()
+              : selectedChild.heightCm!.toString())
+        : (selectedChild?.birthHeightCm != null &&
+                  selectedChild!.birthHeightCm! > 0
+              ? (selectedChild.birthHeightCm! % 1 == 0
+                    ? selectedChild.birthHeightCm!.toInt().toString()
+                    : selectedChild.birthHeightCm!.toString())
+              : '');
 
     _weightController = TextEditingController(text: initWeight);
     _heightController = TextEditingController(text: initHeight);
@@ -136,7 +148,8 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     } else if (args is Map<String, dynamic>) {
       setState(() {
         if (args['namaAnak'] != null) _effectiveName = args['namaAnak'];
-        if (args['jenisKelamin'] != null) _effectiveGender = args['jenisKelamin'];
+        if (args['jenisKelamin'] != null)
+          _effectiveGender = args['jenisKelamin'];
         if (args['usiaAnak'] != null) _effectiveAge = args['usiaAnak'];
       });
     }
@@ -148,12 +161,16 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       _effectiveName = model.name;
       _effectiveGender = model.gender;
       _effectiveAge = _formatChildAge(model);
-      if (model.weightKg != null && model.weightKg! > 0 && _weightController.text.isEmpty) {
+      if (model.weightKg != null &&
+          model.weightKg! > 0 &&
+          _weightController.text.isEmpty) {
         _weightController.text = model.weightKg! % 1 == 0
             ? model.weightKg!.toInt().toString()
             : model.weightKg!.toString();
       }
-      if (model.heightCm != null && model.heightCm! > 0 && _heightController.text.isEmpty) {
+      if (model.heightCm != null &&
+          model.heightCm! > 0 &&
+          _heightController.text.isEmpty) {
         _heightController.text = model.heightCm! % 1 == 0
             ? model.heightCm!.toInt().toString()
             : model.heightCm!.toString();
@@ -274,7 +291,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     return isValid;
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     // Tutup keyboard
     FocusScope.of(context).unfocus();
 
@@ -296,14 +313,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     );
     final String complaint = _complaintController.text.trim();
 
-    final childData = _activeChild?.copyWith(
-          weightKg: weight,
-          heightCm: height,
-        ) ??
-        widget.child?.copyWith(
-          weightKg: weight,
-          heightCm: height,
-        ) ??
+    final childData =
+        _activeChild?.copyWith(weightKg: weight, heightCm: height) ??
+        widget.child?.copyWith(weightKg: weight, heightCm: height) ??
         ChildModel(
           id: 'child-${DateTime.now().millisecondsSinceEpoch}',
           name: _effectiveName,
@@ -314,22 +326,66 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         );
 
     final effectiveDoctor =
-        widget.doctor ?? widget.consultation?.doctor ?? DoctorModel.defaultDoctor;
+        widget.doctor ??
+        widget.consultation?.doctor ??
+        DoctorModel.defaultDoctor;
+
+    final currentUser = UserService().currentUser;
+    final parentName = currentUser.name.isNotEmpty && currentUser.name != 'Tamu'
+        ? currentUser.name
+        : 'Orang Tua $_effectiveName';
+    final userId = currentUser.id.isNotEmpty
+        ? currentUser.id
+        : 'user-${DateTime.now().millisecondsSinceEpoch}';
+
+    String? sessionId;
+    try {
+      sessionId = await KonsultasiService.instance.buatSesi(
+        childId: childData.id,
+        childName: childData.name,
+        userId: userId,
+        parentName: parentName,
+        doctorId: effectiveDoctor.id.isNotEmpty
+            ? effectiveDoctor.id
+            : effectiveDoctor.name,
+        doctorName: effectiveDoctor.name,
+        keluhanAwal: complaint,
+        weightKg: weight,
+        heightCm: height,
+        childPhotoUrl: childData.photoUrl,
+        childGender: childData.gender,
+        childAge: childData.ageDescription,
+      );
+
+      // Kirim dokumen formulir keluhan awal ke pesan chat
+      await ChatMessageService.instance.kirimFormulir(
+        sessionId: sessionId,
+        senderId: userId,
+        keluhanText: complaint,
+      );
+    } catch (e) {
+      debugPrint('Gagal buat sesi di Firestore: $e');
+    }
+
+    if (!mounted) return;
 
     // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
-    final activeBooking = BookingService().activeBookingNotifier.value;
-    if (activeBooking != null &&
-        activeBooking.doctor.id == effectiveDoctor.id) {
+    final targetBooking =
+        widget.booking ?? BookingService().activeBookingNotifier.value;
+    if (targetBooking != null) {
       BookingService().updateBookingForm(
-        bookingId: activeBooking.id,
+        bookingId: targetBooking.id,
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
+        sessionId: targetBooking.sessionId ?? sessionId,
       );
     }
 
-    // Navigasi ke halaman Chat Konsultasi Dokter yang sudah tersedia
-    Navigator.push(
+    final effectiveSessionId = targetBooking?.sessionId ?? sessionId;
+
+    // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => ChatKonsultasiPage(
@@ -339,6 +395,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           weightKg: weight,
           heightCm: height,
           complaint: complaint,
+          sessionId: effectiveSessionId,
+          userId: userId,
+          booking: targetBooking,
         ),
       ),
     );
@@ -538,7 +597,8 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // ===========================================================================
 
   Widget _buildChildInfoSection() {
-    final hasCustomName = _activeChild != null ||
+    final hasCustomName =
+        _activeChild != null ||
         (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty);
     final allChildren = ChildService().children;
     final canSwitchChild = allChildren.length > 1;
@@ -587,7 +647,10 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
             ),
             if (canSwitchChild)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: colorSoftBlue,
                   borderRadius: BorderRadius.circular(8),
@@ -739,13 +802,11 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
     // Background: jika cewe berwarna pink, jika cowo berwarna biru
     final bgColor = isGirl ? const Color(0xFFFFD1DC) : const Color(0xFFCCE4FF);
-    final borderColor =
-        isGirl ? const Color(0xFFF687B3) : const Color(0xFF63B3ED);
+    final borderColor = isGirl
+        ? const Color(0xFFF687B3)
+        : const Color(0xFF63B3ED);
 
     final photoUrl = _activeChild?.photoUrl ?? widget.child?.photoUrl;
-    final hasPhoto = photoUrl != null &&
-        photoUrl.isNotEmpty &&
-        (photoUrl.startsWith('assets/') || File(photoUrl).existsSync());
 
     return Container(
       width: size,
@@ -756,38 +817,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         border: Border.all(color: borderColor, width: 1.8),
       ),
       clipBehavior: Clip.antiAlias,
-      child: hasPhoto
-          ? (photoUrl.startsWith('assets/')
-              ? Image.asset(
-                  photoUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
-                )
-              : Image.file(
-                  File(photoUrl),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildDefaultBabyIcon(),
-                ))
-          : _buildDefaultBabyIcon(),
+      child: StorageService.buildImageWidget(
+        photoUrl,
+        fit: BoxFit.cover,
+        placeholder: _buildDefaultBabyIcon(),
+        errorWidget: _buildDefaultBabyIcon(),
+      ),
     );
   }
 
   Widget _buildDefaultBabyIcon() {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Image.asset(
-        'assets/images/default_baby_avatar.png',
-        fit: BoxFit.contain,
-        errorBuilder: (_, _, _) => Center(
-          child: CustomPaint(
-            size: const Size(34, 34),
-            painter: _CuteBabyFacePainter(
-              isGirl: _effectiveGender.toLowerCase().contains('perempuan'),
-            ),
-          ),
-        ),
-      ),
-    );
+    return ChildAvatar(gender: _effectiveGender, size: 44);
   }
 
   // ===========================================================================
@@ -843,7 +883,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 child: TextFormField(
                   controller: _weightController,
                   focusNode: _weightFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
                     color: colorTextPrimary,
@@ -879,9 +921,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE53935),
-                      ),
+                      borderSide: const BorderSide(color: Color(0xFFE53935)),
                     ),
                   ),
                   onChanged: (val) {
@@ -923,10 +963,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           // Subtext "Contoh: 10.5"
           Text(
             'Contoh: 10.5',
-            style: GoogleFonts.lato(
-              fontSize: 12,
-              color: colorTextMuted,
-            ),
+            style: GoogleFonts.lato(fontSize: 12, color: colorTextMuted),
           ),
         ],
       ),
@@ -986,7 +1023,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 child: TextFormField(
                   controller: _heightController,
                   focusNode: _heightFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
                     color: colorTextPrimary,
@@ -1022,9 +1061,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE53935),
-                      ),
+                      borderSide: const BorderSide(color: Color(0xFFE53935)),
                     ),
                   ),
                   onChanged: (val) {
@@ -1066,10 +1103,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           // Subtext "Contoh: 85.0"
           Text(
             'Contoh: 85.0',
-            style: GoogleFonts.lato(
-              fontSize: 12,
-              color: colorTextMuted,
-            ),
+            style: GoogleFonts.lato(fontSize: 12, color: colorTextMuted),
           ),
         ],
       ),
@@ -1223,11 +1257,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Ikon Lampu Kuning / Amber
-          const Icon(
-            Icons.lightbulb_rounded,
-            color: colorAmberTip,
-            size: 24,
-          ),
+          const Icon(Icons.lightbulb_rounded, color: colorAmberTip, size: 24),
           const SizedBox(width: 12),
           // Judul Tips & Isi
           Expanded(
@@ -1369,11 +1399,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.near_me_rounded,
-                size: 20,
-                color: Colors.white,
-              ),
+              const Icon(Icons.near_me_rounded, size: 20, color: Colors.white),
               const SizedBox(width: 8),
               Text(
                 'Lanjutkan Chat Dokter',
