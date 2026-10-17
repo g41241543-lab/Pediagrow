@@ -181,7 +181,7 @@ class StaffAuthService {
         return;
       }
 
-      await db.collection(_collection).add(
+      final newStaffRef = await db.collection(_collection).add(
             StaffAccount(
               id: '',
               name: 'dr. Ahmad Nuri, Sp.A',
@@ -197,6 +197,31 @@ class StaffAuthService {
               },
             ).toMap(),
           );
+
+      // Pastikan profil dokter di collection 'doctors' juga tersedia dan terhubung
+      final docQuery = await db
+          .collection('doctors')
+          .where('email', isEqualTo: defaultDokterEmail.toLowerCase())
+          .limit(1)
+          .get();
+
+      if (docQuery.docs.isEmpty) {
+        await db.collection('doctors').add({
+          'name': 'dr. Ahmad Nuri, Sp. A',
+          'specialization': 'Spesialis Anak',
+          'email': defaultDokterEmail,
+          'experience_years': 12,
+          'str_number': 'STR-33.1.1.100.2.20.123456',
+          'places_of_practice': [
+            'Klinik Tumbuh Kembang PediaGrow',
+            'RS Hermina Pasteur',
+          ],
+          'hospital': 'Klinik Tumbuh Kembang PediaGrow',
+          'staff_account_id': newStaffRef.id,
+          'is_online': true,
+        });
+      }
+
       debugPrint(
         '[StaffAuthService] Akun dokter default dibuat: '
         '$defaultDokterEmail / $defaultDokterPassword',

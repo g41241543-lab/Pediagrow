@@ -13,7 +13,6 @@ import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
-import '../../../models/jadwal_praktik_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda/beranda_page.dart';
@@ -503,7 +502,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                 ValueListenableBuilder<List<DoctorModel>>(
                   valueListenable: DoctorService().doctorsNotifier,
                   builder: (context, doctors, _) {
-                    return _buildTabBadge(doctors.length, isFirstTab: true);
+                    final count = DoctorService().currentDoctors.length;
+                    return _buildTabBadge(count, isFirstTab: true);
                   },
                 ),
               ],
@@ -617,9 +617,15 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                     ),
                     const SizedBox(height: 10),
                     // Doctor List
-                    ValueListenableBuilder<List<DoctorModel>>(
-                      valueListenable: DoctorService().doctorsNotifier,
-                      builder: (context, allDoctors, _) {
+                    AnimatedBuilder(
+                      animation: Listenable.merge([
+                        DoctorService().doctorsNotifier,
+                        JadwalDokterService().jadwalListNotifier,
+                        JadwalDokterService().cutiListNotifier,
+                        BookingService().bookingsNotifier,
+                      ]),
+                      builder: (context, _) {
+                        final allDoctors = DoctorService().currentDoctors;
                         final filteredDoctors = _searchQuery.isEmpty
                             ? allDoctors
                             : DoctorService().filterDoctors(_searchQuery);

@@ -127,8 +127,7 @@ class BookingService {
     return newBooking;
   }
 
-  /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan)
-  /// dan ID sesi chat (jika sesi sudah dibuat di Firestore).
+  /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan, dan sessionId)
   void updateBookingForm({
     required String bookingId,
     required double weightKg,
@@ -143,7 +142,7 @@ class BookingService {
         weightKg: weightKg,
         heightCm: heightCm,
         complaint: complaint,
-        sessionId: sessionId,
+        sessionId: sessionId ?? list[idx].sessionId,
         status: 'Sedang Berlangsung',
       );
       list[idx] = updated;

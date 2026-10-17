@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/jadwal_dokter_service.dart';
 import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
@@ -123,6 +124,11 @@ class ProfilDokterPage extends StatelessWidget {
 
                     // Kartu Daftar Tempat Praktik
                     _buildPracticeLocationsCard(),
+
+                    const SizedBox(height: 28),
+
+                    // Section Jadwal Praktik Dokter Terintegrasi
+                    _buildJadwalPraktikSection(context),
 
                     const SizedBox(height: 32),
                   ],
@@ -544,6 +550,265 @@ class ProfilDokterPage extends StatelessWidget {
         Icons.person_rounded,
         size: 42,
         color: Color(0xFF3985E7),
+      ),
+    );
+  }
+
+  /// Bagian Jadwal Praktik Dokter Terintegrasi secara Real-Time dengan role dokter
+  Widget _buildJadwalPraktikSection(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        JadwalDokterService().jadwalListNotifier,
+        JadwalDokterService().cutiListNotifier,
+      ]),
+      builder: (context, _) {
+        final badge = JadwalDokterService().getDoctorBadge(doctor.id);
+        final cutis = JadwalDokterService().getCutiDokter(doctor.id);
+        final jadwalMingguan = JadwalDokterService().getJadwalDokter(doctor.id);
+
+        // Cek cuti yang sedang aktif hari ini atau akan datang
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final activeCuti = cutis.where((c) => !c.tanggalSelesai.isBefore(today)).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Jadwal Praktik Dokter',
+                    style: GoogleFonts.lato(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF000000),
+                    ),
+                  ),
+                ),
+                _buildAvailabilityBadge(badge),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Peringatan Cuti jika ada
+            if (activeCuti.isNotEmpty) ...[
+              for (final c in activeCuti) ...[
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.beach_access_rounded,
+                          color: Color(0xFFD97706),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dokter Sedang Cuti / Berhalangan',
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF92400E),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${c.formattedRentangTanggal} • ${c.alasan}',
+                              style: GoogleFonts.lato(
+                                fontSize: 12,
+                                color: const Color(0xFFB45309),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+
+            // Kartu Jadwal Mingguan
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: List.generate(7, (idx) {
+                  final day = idx + 1; // 1: Senin .. 7: Minggu
+                  final namaHari = JadwalPraktikModel.getNamaHari(day);
+                  final sessions = jadwalMingguan
+                      .where((j) => j.hari == day && j.aktif)
+                      .toList();
+                  final isLast = idx == 6;
+                  final isPraktik = sessions.isNotEmpty;
+
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isPraktik
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF94A3B8),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 65,
+                              child: Text(
+                                namaHari,
+                                style: GoogleFonts.lato(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isPraktik
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: isPraktik
+                                  ? Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      children: sessions.map((s) {
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEFF6FF),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            border: Border.all(
+                                              color: const Color(0xFFBFDBFE),
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${s.jamMulai} - ${s.jamSelesai} WIB',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: const Color(0xFF1D4ED8),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    )
+                                  : Text(
+                                      'Libur / Tidak Praktik',
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.5,
+                                        fontStyle: FontStyle.italic,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isLast)
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: Color(0xFFBFDBFE),
+                        ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAvailabilityBadge(DoctorBadgeInfo badge) {
+    Color bg;
+    Color text;
+    Color border;
+
+    switch (badge.type) {
+      case DoctorBadgeType.tersediaHariIni:
+        bg = const Color(0xFFDCFCE7);
+        text = const Color(0xFF16A34A);
+        border = const Color(0xFF86EFAC);
+        break;
+      case DoctorBadgeType.tersediaBesok:
+        bg = const Color(0xFFDBEAFE);
+        text = const Color(0xFF2563EB);
+        border = const Color(0xFF93C5FD);
+        break;
+      case DoctorBadgeType.jadwalTerdekat:
+        bg = const Color(0xFFF0FDF4);
+        text = const Color(0xFF0D9488);
+        border = const Color(0xFF99F6E4);
+        break;
+      case DoctorBadgeType.belumAdaJadwal:
+        bg = const Color(0xFFF1F5F9);
+        text = const Color(0xFF64748B);
+        border = const Color(0xFFCBD5E1);
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: border, width: 0.8),
+      ),
+      child: Text(
+        badge.label,
+        style: GoogleFonts.lato(
+          fontSize: 11.5,
+          fontWeight: FontWeight.bold,
+          color: text,
+        ),
       ),
     );
   }
