@@ -82,10 +82,11 @@ class BookingService {
           // Urutkan jadwal terbaru di paling atas
           validList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-          bookingsNotifier.value = validList;
+          final distinctList = _deduplicateBookings(validList);
+          bookingsNotifier.value = distinctList;
 
           // Perbarui activeBookingNotifier jika ada booking yang sedang aktif
-          _updateActiveBooking(validList);
+          _updateActiveBooking(distinctList);
         },
         onError: (e) {
           debugPrint('[BookingService] Firestore listener error: $e');
@@ -94,6 +95,33 @@ class BookingService {
     } catch (e) {
       debugPrint('[BookingService] Gagal memasang Firestore listener: $e');
     }
+  }
+
+  /// Menghilangkan duplikasi booking berdasarkan ID atau slot waktu yang identik
+  List<BookingConsultationModel> _deduplicateBookings(List<BookingConsultationModel> list) {
+    final seenIds = <String>{};
+    final seenSlotKeys = <String>{};
+    final result = <BookingConsultationModel>[];
+
+    for (final b in list) {
+      if (b.isExpired) continue;
+
+      // 1. Cek duplikasi ID dokumen
+      if (!seenIds.add(b.id)) continue;
+
+      // 2. Cek duplikasi slot identik (anak yang sama, dokter yang sama, tanggal dan jam yang sama)
+      final dateKey = '${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}';
+      final childKey = b.child.id.isNotEmpty ? b.child.id : b.child.name.toLowerCase().trim();
+      final doctorKey = b.doctor.id.isNotEmpty ? b.doctor.id : b.doctor.name.toLowerCase().trim();
+      final slotKey = '$childKey|$doctorKey|$dateKey|${b.scheduledTimeSlot.trim()}';
+
+      if (!seenSlotKeys.add(slotKey)) {
+        continue;
+      }
+
+      result.add(b);
+    }
+    return result;
   }
 
   /// Timer pembersihan berkala untuk menghapus jadwal yang baru saja lewat
@@ -172,21 +200,23 @@ class BookingService {
       } catch (_) {}
     }
 
-    // 1. Optimistic in-memory update
-    final currentList = List<BookingConsultationModel>.from(bookingsNotifier.value);
-    currentList.removeWhere((b) => b.id == modelToSave.id);
-    bookingsNotifier.value = [modelToSave, ...currentList];
-    if (activeBookingNotifier.value == null || activeBookingNotifier.value!.id == modelToSave.id) {
-      activeBookingNotifier.value = modelToSave;
-    }
-
-    // 2. Simpan ke Firestore koleksi consultation_booking
+    // 1. Simpan ke Firestore koleksi consultation_booking TERLEBIH DAHULU
     try {
       await _db.collection(_collectionName).doc(modelToSave.id).set(modelToSave.toMap());
       debugPrint('[BookingService] ✓ Sukses menulis booking ${modelToSave.id} ke Firestore ($_collectionName)');
     } catch (e, stack) {
       debugPrint('[BookingService] ✗ Gagal simpan booking ke Firestore ($_collectionName): $e\n$stack');
       rethrow;
+    }
+
+    // 2. Update in-memory dengan deduplikasi aman
+    final currentList = List<BookingConsultationModel>.from(bookingsNotifier.value);
+    currentList.removeWhere((b) => b.id == modelToSave.id);
+    currentList.insert(0, modelToSave);
+    final distinctList = _deduplicateBookings(currentList);
+    bookingsNotifier.value = distinctList;
+    if (activeBookingNotifier.value == null || activeBookingNotifier.value!.id == modelToSave.id) {
+      activeBookingNotifier.value = modelToSave;
     }
 
     // 3. Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
@@ -305,10 +335,12 @@ class BookingService {
       rethrow; // Lempar ulang agar UI bisa menampilkan pesan error
     }
 
-    // Simpan ke in-memory (setelah Firestore berhasil)
-    final updated = List<BookingConsultationModel>.from(bookingsNotifier.value)
-      ..insert(0, newBooking);
-    bookingsNotifier.value = updated;
+    // Simpan ke in-memory (setelah Firestore berhasil) dengan deduplikasi aman
+    final currentList = List<BookingConsultationModel>.from(bookingsNotifier.value);
+    currentList.removeWhere((b) => b.id == newBooking.id);
+    currentList.insert(0, newBooking);
+    final distinctList = _deduplicateBookings(currentList);
+    bookingsNotifier.value = distinctList;
     activeBookingNotifier.value = newBooking;
 
     // Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna

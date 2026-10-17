@@ -418,10 +418,16 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 .where(_isJadwalBelumLewat)
                 .toList();
 
-            // Filter booking dari Firebase yang sudah expired
-            final validUserBookings = userBookings
-                .where((b) => !b.isExpired)
-                .toList();
+            // Filter booking dari Firebase yang sudah expired & hilangkan duplikasi
+            final seenAdmin = <String>{};
+            final validUserBookings = <BookingConsultationModel>[];
+            for (final b in userBookings) {
+              if (b.isExpired) continue;
+              final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+              if (seenAdmin.add(b.id) && seenAdmin.add(slotKey)) {
+                validUserBookings.add(b);
+              }
+            }
 
             final int berlangsungCount = allBerlangsung.length;
             final int jadwalCount = validMockJadwal.length + validUserBookings.length;

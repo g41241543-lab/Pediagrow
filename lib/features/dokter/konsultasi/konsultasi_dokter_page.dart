@@ -593,12 +593,22 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                     ? JadwalDokterService().getDoctorIdAliases(currentStaff.id)
                     : <String>{};
 
-                final filteredUserBookings = userBookings.where((b) {
+                final rawUserBookings = userBookings.where((b) {
                   if (b.isExpired) return false;
                   return _isDoctorMatch(b.doctor.name, loggedInDoctorName) ||
                       doctorAliases.contains(b.doctor.id) ||
                       (currentStaff != null && b.doctor.id == currentStaff.id);
                 }).toList();
+
+                // Deduplikasi aman untuk dokter
+                final seenDoctorBookings = <String>{};
+                final filteredUserBookings = <BookingConsultationModel>[];
+                for (final b in rawUserBookings) {
+                  final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                  if (seenDoctorBookings.add(b.id) && seenDoctorBookings.add(slotKey)) {
+                    filteredUserBookings.add(b);
+                  }
+                }
 
                 final int berlangsungCount = filteredBerlangsung.length;
                 final int jadwalCount =

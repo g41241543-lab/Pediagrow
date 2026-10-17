@@ -146,7 +146,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     });
   }
 
+  bool _isSubmitting = false;
+
   Future<void> _onConfirmBooking() async {
+    if (_isSubmitting) return;
+
     if (_selectedChild == null) {
       _showSnackbar('Silakan pilih profil anak terlebih dahulu');
       return;
@@ -156,6 +160,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       _showSnackbar('Silakan pilih jam / slot waktu konsultasi yang tersedia');
       return;
     }
+
+    setState(() {
+      _isSubmitting = true;
+    });
 
     // Tampilkan loading indicator
     if (mounted) {
@@ -178,8 +186,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
         slot: _selectedSlot!,
       );
     } catch (e) {
-      if (mounted) Navigator.of(context, rootNavigator: true).pop(); // tutup loading
       if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        Navigator.of(context, rootNavigator: true).pop(); // tutup loading
         _showSnackbar('Gagal membuat booking: $e');
       }
       return;

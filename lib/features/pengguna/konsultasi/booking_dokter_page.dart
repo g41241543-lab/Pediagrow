@@ -166,7 +166,11 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
+  bool _isSubmitting = false;
+
   Future<void> _confirmBooking() async {
+    if (_isSubmitting) return;
+
     if (_selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -178,6 +182,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       );
       return;
     }
+
+    setState(() {
+      _isSubmitting = true;
+    });
 
     final selectedSlotObj = _availableSlots
         .where((s) => s.timeLabel == _selectedTimeSlot)
@@ -201,7 +209,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
 
     final newBooking = BookingConsultationModel(
-      id: 'book_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'booking-${DateTime.now().millisecondsSinceEpoch}',
       userId: _child.ownerId.isNotEmpty ? _child.ownerId : null,
       doctor: _doctor,
       child: _child,
@@ -218,13 +226,17 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     try {
       await BookingService().addBooking(newBooking);
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menyimpan booking: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
-      );
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan booking: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
       return;
     }
 
@@ -238,6 +250,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
 
     if (!mounted) return;
+    setState(() {
+      _isSubmitting = false;
+    });
 
     // Tampilkan dialog sukses
     showDialog(

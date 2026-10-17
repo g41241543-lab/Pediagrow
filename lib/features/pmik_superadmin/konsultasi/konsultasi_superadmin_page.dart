@@ -422,10 +422,16 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 .where(_isJadwalBelumLewat)
                 .toList();
 
-            // Filter booking dari Firebase yang sudah expired
-            final validUserBookings = userBookings
-                .where((b) => !b.isExpired)
-                .toList();
+            // Filter booking dari Firebase yang sudah expired & hilangkan duplikasi
+            final seenSuperadmin = <String>{};
+            final validUserBookings = <BookingConsultationModel>[];
+            for (final b in userBookings) {
+              if (b.isExpired) continue;
+              final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+              if (seenSuperadmin.add(b.id) && seenSuperadmin.add(slotKey)) {
+                validUserBookings.add(b);
+              }
+            }
 
             final int berlangsungCount = allBerlangsung.length;
             final int jadwalCount = validMockJadwal.length + validUserBookings.length;
