@@ -23,10 +23,10 @@ enum PushRole {
 ///
 /// ### Integrasi
 /// - [NotificationService.addNotification] → memanggil `show` dengan
-///   `targetRole: PushRole.pengguna`
+///   `targetRole: LocalPushService().activeRole` (mengikuti role login aktif:
+///   pengguna, dokter, maupun pmik).
 /// - [SuperadminNotificationService.addNotification] → memanggil `show`
 ///   dengan `targetRole: PushRole.superadmin`
-/// - (Dokter / PMIK dapat ditambahkan dengan pola yang sama)
 class LocalPushService {
   static final LocalPushService _instance = LocalPushService._internal();
   factory LocalPushService() => _instance;

@@ -99,11 +99,12 @@ class NotificationService {
       unreadCountNotifier.value = unreadCountNotifier.value + 1;
     }
 
-    // Tampilkan notifikasi sistem (push lokal) — hanya untuk role pengguna
+    // Tampilkan notifikasi sistem (push lokal) — mengikuti role aktif yang sedang login
+    // (pengguna, dokter, pmik, maupun superadmin) agar push HP selalu masuk.
     LocalPushService().show(
       title: item.title,
       body: item.message,
-      targetRole: PushRole.pengguna,
+      targetRole: LocalPushService().activeRole,
     );
   }
 
