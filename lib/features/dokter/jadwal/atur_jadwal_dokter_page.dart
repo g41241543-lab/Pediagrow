@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/staff_auth_service.dart';
-import '../../../models/jadwal_praktik_model.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Atur Jadwal Dokter:
@@ -33,6 +33,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
   final JadwalDokterService _jadwalService = JadwalDokterService();
 
   late String _targetDoctorId;
+  String? _targetDoctorName;
   List<JadwalPraktikModel> _currentJadwal = [];
   bool _isLoading = true;
 
@@ -44,9 +45,8 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _targetDoctorId = widget.dokterId ??
-        StaffAuthService().currentStaff?.id ??
-        'dokter_default';
+    _targetDoctorId = widget.dokterId ?? '';
+    _targetDoctorName = widget.doctorName;
     _loadData();
   }
 
@@ -56,11 +56,36 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     super.dispose();
   }
 
-  void _loadData() {
-    setState(() {
-      _currentJadwal = _jadwalService.getJadwalDokter(_targetDoctorId);
-      _isLoading = false;
-    });
+  Future<void> _loadData() async {
+    String resolvedId = widget.dokterId ?? '';
+    String? resolvedName = widget.doctorName;
+
+    if (resolvedId.isEmpty) {
+      final staff = StaffAuthService().currentStaff;
+      if (staff != null) {
+        resolvedName ??= staff.name;
+        final doc = DoctorService().findDoctorForStaff(staff);
+        if (doc != null) {
+          resolvedId = doc.id;
+          resolvedName = doc.name;
+        } else {
+          resolvedId = staff.id;
+        }
+      } else {
+        resolvedId = 'doc_1';
+      }
+    }
+
+    _targetDoctorId = resolvedId;
+    _targetDoctorName = resolvedName;
+    final jadwal = _jadwalService.getJadwalDokter(_targetDoctorId);
+
+    if (mounted) {
+      setState(() {
+        _currentJadwal = List.from(jadwal);
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _saveJadwal() async {
@@ -77,15 +102,16 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       setState(() => _isLoading = false);
       PediaBanner.showSuccess(
         context,
-        message: 'Jadwal praktik berhasil disimpan!',
+        message: 'Jadwal praktik berhasil disimpan dan disinkronkan ke menu konsultasi!',
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.doctorName != null
-        ? 'Jadwal Praktik - ${widget.doctorName}'
+    final docDisplayName = _targetDoctorName ?? widget.doctorName;
+    final title = docDisplayName != null
+        ? 'Jadwal Praktik - $docDisplayName'
         : 'Atur Jadwal Praktik';
 
     return Scaffold(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/doctor_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
@@ -40,6 +41,31 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
   void _navigateTo(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  }
+
+  void _openAturJadwalDokter() {
+    final staff = StaffAuthService().currentStaff;
+    String? targetDoctorId;
+    String? targetDoctorName;
+
+    if (staff != null) {
+      targetDoctorName = staff.name;
+      final doc = DoctorService().findDoctorForStaff(staff);
+      if (doc != null) {
+        targetDoctorId = doc.id;
+        targetDoctorName = doc.name;
+      } else {
+        targetDoctorId = staff.id;
+      }
+    }
+
+    _navigateTo(
+      AturJadwalDokterPage(
+        dokterId: targetDoctorId,
+        doctorName: targetDoctorName,
+        isSuperadmin: false,
+      ),
+    );
   }
 
 
@@ -410,7 +436,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 customIcon: _buildJadwalPraktikLogo(),
                 blobColor: const Color(0xFF0284C7),
                 isDisabled: false,
-                onTap: () => _navigateTo(const AturJadwalDokterPage()),
+                onTap: _openAturJadwalDokter,
               ),
             ),
           ],

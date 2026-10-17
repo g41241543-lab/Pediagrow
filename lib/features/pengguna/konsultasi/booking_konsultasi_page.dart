@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
@@ -71,12 +72,26 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     _refreshSlots();
 
     ChildService().childrenNotifier.addListener(_onChildrenUpdated);
+    JadwalDokterService().jadwalListNotifier.addListener(_onScheduleOrBookingChanged);
+    JadwalDokterService().cutiListNotifier.addListener(_onScheduleOrBookingChanged);
+    BookingService().bookingsNotifier.addListener(_onScheduleOrBookingChanged);
   }
 
   @override
   void dispose() {
     ChildService().childrenNotifier.removeListener(_onChildrenUpdated);
+    JadwalDokterService().jadwalListNotifier.removeListener(_onScheduleOrBookingChanged);
+    JadwalDokterService().cutiListNotifier.removeListener(_onScheduleOrBookingChanged);
+    BookingService().bookingsNotifier.removeListener(_onScheduleOrBookingChanged);
     super.dispose();
+  }
+
+  void _onScheduleOrBookingChanged() {
+    if (mounted) {
+      setState(() {
+        _refreshSlots();
+      });
+    }
   }
 
   void _onChildrenUpdated() {
@@ -533,6 +548,63 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               final dayName = daysAbbr[d.weekday - 1];
               final monthName = monthsAbbr[d.month - 1];
 
+              final cuti = JadwalDokterService().getCutiPadaTanggal(widget.doctor.id, d);
+              final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(widget.doctor.id, d.weekday);
+
+              Widget statusBadge;
+              if (cuti != null) {
+                statusBadge = Container(
+                  margin: const EdgeInsets.only(top: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white.withValues(alpha: 0.22) : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Text(
+                    'Cuti',
+                    style: GoogleFonts.lato(
+                      fontSize: 9.0,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : const Color(0xFFD97706),
+                    ),
+                  ),
+                );
+              } else if (!isPraktik) {
+                statusBadge = Container(
+                  margin: const EdgeInsets.only(top: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white.withValues(alpha: 0.22) : const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Text(
+                    'Libur',
+                    style: GoogleFonts.lato(
+                      fontSize: 9.0,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.white70 : _kTextMuted,
+                    ),
+                  ),
+                );
+              } else {
+                statusBadge = Container(
+                  margin: const EdgeInsets.only(top: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white.withValues(alpha: 0.22) : const Color(0xFFD1FAE5),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Text(
+                    'Praktik',
+                    style: GoogleFonts.lato(
+                      fontSize: 9.0,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : const Color(0xFF059669),
+                    ),
+                  ),
+                );
+              }
+
               return GestureDetector(
                 onTap: () => _onDateSelected(d),
                 child: Container(
@@ -576,6 +648,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           color: isSelected ? Colors.white70 : _kTextMuted,
                         ),
                       ),
+                      statusBadge,
                     ],
                   ),
                 ),
@@ -659,15 +732,146 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
         const SizedBox(height: 12.0),
 
         // Grid Slot Waktu
-        if (filteredSlots.isEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
-            alignment: Alignment.center,
-            child: Text(
-              'Tidak ada slot waktu tersedia pada kategori ini',
-              style: GoogleFonts.lato(fontSize: 13.0, color: _kTextMuted),
-            ),
-          )
+        if (filteredSlots.isEmpty) ...[
+          () {
+            final cuti = JadwalDokterService().getCutiPadaTanggal(widget.doctor.id, _selectedDate);
+            final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(widget.doctor.id, _selectedDate.weekday);
+
+            if (cuti != null) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(color: const Color(0xFFFCD34D)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.event_busy_rounded, color: Color(0xFFD97706), size: 26),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dokter Sedang Cuti / Berhalangan',
+                            style: GoogleFonts.lato(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF92400E),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${widget.doctor.name} sedang cuti: ${cuti.alasan} (${cuti.rentangTanggalStr}). Silakan pilih tanggal lain yang tersedia.',
+                            style: GoogleFonts.lato(
+                              fontSize: 11.5,
+                              color: const Color(0xFFB45309),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (!isPraktik) {
+              const dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+              final dayName = dayNames[_selectedDate.weekday - 1];
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(color: _kBorderLight),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.hotel_rounded, color: _kTextMuted, size: 24),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tidak Ada Jadwal Praktik',
+                            style: GoogleFonts.lato(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.bold,
+                              color: _kTextDark,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Dokter tidak memiliki jadwal praktik reguler pada hari $dayName. Silakan lihat jadwal praktik dokter pada profil atau pilih tanggal lain.',
+                            style: GoogleFonts.lato(
+                              fontSize: 11.5,
+                              color: _kTextMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (_availableSlots.isNotEmpty && _selectedPeriodFilter != 'Semua') {
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                alignment: Alignment.center,
+                child: Text(
+                  'Tidak ada slot waktu pada kategori "$_selectedPeriodFilter". Coba pilih kategori lain atau "Semua".',
+                  style: GoogleFonts.lato(fontSize: 12.5, color: _kTextMuted),
+                ),
+              );
+            }
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(color: _kBorderLight),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, color: _kTextMuted, size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Slot Konsultasi Penuh / Telah Lewat',
+                          style: GoogleFonts.lato(
+                            fontSize: 13.0,
+                            fontWeight: FontWeight.bold,
+                            color: _kTextDark,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Semua slot jadwal konsultasi dokter pada tanggal ini telah terisi atau jam praktik telah selesai. Silakan pilih tanggal berikutnya.',
+                          style: GoogleFonts.lato(
+                            fontSize: 11.5,
+                            color: _kTextMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }(),
+        ]
         else
           Wrap(
             spacing: 10.0,

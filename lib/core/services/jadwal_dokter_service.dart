@@ -6,8 +6,12 @@ import 'package:flutter/foundation.dart';
 import '../../models/booking_consultation_model.dart';
 import '../../models/jadwal_praktik_model.dart';
 import '../../models/notification_model.dart';
+
+export '../../models/jadwal_praktik_model.dart';
 import 'booking_service.dart';
+import 'doctor_service.dart';
 import 'notification_service.dart';
+import 'staff_auth_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service utama untuk mengelola jadwal praktik dokter, cuti, dan kalkulasi slot reservasi.
@@ -76,10 +80,55 @@ class JadwalDokterService {
   // JADWAL PRAKTIK STANDAR & SEED
   // ---------------------------------------------------------------------------
 
+  /// Mengumpulkan alias identitas dokter (ID dokter, StaffAccountId, dan Email)
+  /// agar integrasi antara role dokter dan role pengguna selalu sinkron tanpa kendala ID mismatch.
+  Set<String> getDoctorIdAliases(String dokterId) {
+    final cleanId = dokterId.trim();
+    final aliases = <String>{cleanId};
+    final lowerClean = cleanId.toLowerCase();
+
+    // 1. Cek dari daftar dokter yang terdaftar di DoctorService
+    try {
+      final doctors = DoctorService().currentDoctors;
+      for (final doc in doctors) {
+        final matches = doc.id == cleanId ||
+            doc.staffAccountId == cleanId ||
+            (doc.email != null && doc.email!.trim().toLowerCase() == lowerClean) ||
+            doc.name.trim().toLowerCase() == lowerClean;
+        if (matches) {
+          aliases.add(doc.id);
+          if (doc.staffAccountId.isNotEmpty) aliases.add(doc.staffAccountId);
+          if (doc.email != null && doc.email!.isNotEmpty) {
+            aliases.add(doc.email!.trim());
+            aliases.add(doc.email!.trim().toLowerCase());
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. Cek dari staff account yang sedang aktif
+    try {
+      final staff = StaffAuthService().currentStaff;
+      if (staff != null) {
+        if (staff.id == cleanId ||
+            staff.email.trim().toLowerCase() == lowerClean ||
+            staff.name.trim().toLowerCase() == lowerClean) {
+          aliases.add(staff.id);
+          aliases.add(staff.email.trim());
+          aliases.add(staff.email.trim().toLowerCase());
+        }
+      }
+    } catch (_) {}
+
+    return aliases;
+  }
+
   /// Mengambil jadwal mingguan dokter (Senin - Minggu)
   List<JadwalPraktikModel> getJadwalDokter(String dokterId) {
-    final list =
-        jadwalListNotifier.value.where((j) => j.dokterId == dokterId).toList();
+    final aliases = getDoctorIdAliases(dokterId);
+    final list = jadwalListNotifier.value
+        .where((j) => aliases.contains(j.dokterId))
+        .toList();
     if (list.isNotEmpty) return list;
 
     // Fallback jadwal default (Senin - Jumat 08:30-11:30 dan 15:00-17:00)
@@ -187,9 +236,10 @@ class JadwalDokterService {
       await batch.commit();
     }
 
-    // Update in-memory
+    // Update in-memory: hapus semua jadwal dengan dokterId atau aliases-nya
+    final aliases = getDoctorIdAliases(dokterId);
     final current = List<JadwalPraktikModel>.from(jadwalListNotifier.value)
-      ..removeWhere((j) => j.dokterId == dokterId)
+      ..removeWhere((j) => aliases.contains(j.dokterId))
       ..addAll(jadwalList);
     jadwalListNotifier.value = current;
 
@@ -214,7 +264,8 @@ class JadwalDokterService {
 
   /// Mengambil daftar cuti dokter
   List<CutiDokterModel> getCutiDokter(String dokterId) {
-    return cutiListNotifier.value.where((c) => c.dokterId == dokterId).toList();
+    final aliases = getDoctorIdAliases(dokterId);
+    return cutiListNotifier.value.where((c) => aliases.contains(c.dokterId)).toList();
   }
 
   /// Menghitung berapa banyak booking pasien yang terdampak oleh cuti baru
@@ -227,6 +278,7 @@ class JadwalDokterService {
   }) {
     final allBookings = BookingService().bookings;
     final affected = <BookingConsultationModel>[];
+    final aliases = getDoctorIdAliases(dokterId);
 
     final startDay = DateTime(
       tanggalMulai.year,
@@ -244,7 +296,7 @@ class JadwalDokterService {
     final isSeharian = cutiStartMin == null || cutiEndMin == null;
 
     for (final b in allBookings) {
-      if (b.doctor.id != dokterId) continue;
+      if (!aliases.contains(b.doctor.id)) continue;
       if (b.status.toLowerCase() == 'dibatalkan') continue;
 
       final bDate = DateTime(
@@ -415,8 +467,9 @@ class JadwalDokterService {
         if (isCutiClash) continue;
 
         // 5. Buang slot yang sudah dibooking (status selain dibatalkan)
+        final aliases = getDoctorIdAliases(dokterId);
         final isBooked = BookingService().bookings.any((b) {
-          if (b.doctor.id != dokterId) return false;
+          if (!aliases.contains(b.doctor.id)) return false;
           if (b.status.toLowerCase() == 'dibatalkan') return false;
 
           final bDate = DateTime(
@@ -523,6 +576,38 @@ class JadwalDokterService {
       type: DoctorBadgeType.belumAdaJadwal,
       label: 'Belum Ada Jadwal',
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // HELPER INTEGRASI JADWAL UNTUK UI
+  // ---------------------------------------------------------------------------
+
+  /// Mengambil Cuti yang aktif pada tanggal tertentu jika ada
+  CutiDokterModel? getCutiPadaTanggal(String dokterId, DateTime tanggal) {
+    final targetDate = DateTime(tanggal.year, tanggal.month, tanggal.day);
+    final cutis = getCutiDokter(dokterId);
+    for (final c in cutis) {
+      if (c.berlakuPada(targetDate)) {
+        return c;
+      }
+    }
+    return null;
+  }
+
+  /// Cek apakah dokter memiliki sesi praktik aktif pada hari tersebut (1: Senin .. 7: Minggu)
+  bool isDokterPraktikPadaHari(String dokterId, int weekday) {
+    final sessions = getJadwalDokter(dokterId);
+    return sessions.any((j) => j.hari == weekday && j.aktif);
+  }
+
+  /// Mengelompokkan jadwal mingguan per hari (1: Senin .. 7: Minggu)
+  Map<int, List<JadwalPraktikModel>> getJadwalPerHari(String dokterId) {
+    final all = getJadwalDokter(dokterId);
+    final Map<int, List<JadwalPraktikModel>> map = {};
+    for (int day = 1; day <= 7; day++) {
+      map[day] = all.where((j) => j.hari == day).toList();
+    }
+    return map;
   }
 
   // ---------------------------------------------------------------------------
