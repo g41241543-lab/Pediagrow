@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 
 import '../../models/staff_account_model.dart';
 import '../../models/doctor_permissions.dart';
+import 'session_service.dart';
+import 'storage_service.dart';
 import 'superadmin_notification_service.dart';
 
 /// Service untuk mengelola login dan akun staff internal PediaGrow.
@@ -53,6 +55,29 @@ class StaffAuthService {
   /// Keluar dari sesi staff.
   void logout() {
     currentStaffNotifier.value = null;
+    SessionService().clearSession();
+  }
+
+  /// Mengatur akun staf aktif yang dipulihkan dari sesi.
+  void setStaff(StaffAccount staff) {
+    currentStaffNotifier.value = staff;
+  }
+
+  /// Mengambil data staf dari Firestore berdasarkan document ID.
+  Future<StaffAccount?> getStaffById(String id) async {
+    try {
+      final db = _db;
+      if (db == null || id.isEmpty) return null;
+
+      final doc = await db.collection(_collection).doc(id).get();
+      if (doc.exists && doc.data() != null) {
+        return StaffAccount.fromMap(doc.id, doc.data()!);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[StaffAuthService] getStaffById error: $e');
+      return null;
+    }
   }
 
   // ============================================================
@@ -156,10 +181,10 @@ class StaffAuthService {
         return;
       }
 
-      await db.collection(_collection).add(
+      final newStaffRef = await db.collection(_collection).add(
             StaffAccount(
               id: '',
-              name: 'dr. Ahmad Nuri, Sp.A',
+              name: 'dr. Reny, Sp.A',
               email: defaultDokterEmail,
               passwordHash: _hashPassword(defaultDokterPassword),
               role: StaffRole.dokter,
@@ -172,6 +197,31 @@ class StaffAuthService {
               },
             ).toMap(),
           );
+
+      // Pastikan profil dokter di collection 'doctors' juga tersedia dan terhubung
+      final docQuery = await db
+          .collection('doctors')
+          .where('email', isEqualTo: defaultDokterEmail.toLowerCase())
+          .limit(1)
+          .get();
+
+      if (docQuery.docs.isEmpty) {
+        await db.collection('doctors').add({
+          'name': 'dr. Reny, Sp. A',
+          'specialization': 'Spesialis Anak',
+          'email': defaultDokterEmail,
+          'experience_years': 8,
+          'str_number': 'STR-33.1.1.100.2.20.123456',
+          'places_of_practice': [
+            'RSIA PediaGrow',
+            'Praktek Mandiri',
+          ],
+          'hospital': 'RSIA PediaGrow',
+          'staff_account_id': newStaffRef.id,
+          'is_online': true,
+        });
+      }
+
       debugPrint(
         '[StaffAuthService] Akun dokter default dibuat: '
         '$defaultDokterEmail / $defaultDokterPassword',
@@ -302,6 +352,10 @@ class StaffAuthService {
               ? DoctorPermissions.defaultPermissions
               : const <String, bool>{});
 
+      final persistableAvatar = avatarPath != null && avatarPath.isNotEmpty
+          ? await StorageService.toPersistableString(avatarPath)
+          : null;
+
       final account = StaffAccount(
         id: '',
         name: name.trim(),
@@ -312,7 +366,7 @@ class StaffAuthService {
         createdBy: createdByEmail,
         createdAt: DateTime.now(),
         permissions: actualPermissions,
-        avatarPath: avatarPath,
+        avatarPath: persistableAvatar,
         experience: experience,
         strNumber: strNumber,
         birthDate: birthDate,
@@ -434,7 +488,13 @@ class StaffAuthService {
       }
       if (role != null) updates['role'] = role.name;
       if (permissions != null) updates['permissions'] = permissions;
-      if (avatarPath != null) updates['avatarPath'] = avatarPath;
+      String? persistableAvatar;
+      if (avatarPath != null) {
+        persistableAvatar = avatarPath.isNotEmpty
+            ? await StorageService.toPersistableString(avatarPath)
+            : '';
+        updates['avatarPath'] = persistableAvatar;
+      }
       if (isActive != null) updates['isActive'] = isActive;
       if (experience != null) updates['experience'] = experience;
       if (strNumber != null) updates['strNumber'] = strNumber;
@@ -459,7 +519,7 @@ class StaffAuthService {
               : current.passwordHash,
           role: role ?? current.role,
           permissions: permissions ?? current.permissions,
-          avatarPath: avatarPath ?? current.avatarPath,
+          avatarPath: persistableAvatar ?? current.avatarPath,
           isActive: isActive ?? current.isActive,
           experience: experience ?? current.experience,
           strNumber: strNumber ?? current.strNumber,

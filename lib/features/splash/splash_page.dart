@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../auth/auth_choice_page.dart';
+import '../../core/services/session_service.dart';
 
 /// Halaman Splash Screen PediaGrow.
 ///
@@ -65,10 +66,19 @@ class _SplashPageState extends State<SplashPage>
   late Animation<double> _titleFadeInAnim;
 
   bool _hasNavigated = false;
+  SessionDestination _resolvedDestination =
+      const SessionDestination(page: AuthChoicePage());
 
   @override
   void initState() {
     super.initState();
+
+    // Evaluasi destinasi session sedini mungkin
+    SessionService().getInitialDestination().then((dest) {
+      if (mounted) {
+        _resolvedDestination = dest;
+      }
+    });
 
     _controller = AnimationController(
       vsync: this,
@@ -79,7 +89,7 @@ class _SplashPageState extends State<SplashPage>
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        _navigateToAuthChoice();
+        _navigateToNextScreen();
       }
     });
 
@@ -143,25 +153,35 @@ class _SplashPageState extends State<SplashPage>
     );
   }
 
-  void _navigateToAuthChoice() {
+  void _navigateToNextScreen() {
     if (!mounted || _hasNavigated) return;
     _hasNavigated = true;
 
+    _doNavigate(_resolvedDestination);
+  }
+
+  void _doNavigate(SessionDestination destination) {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const AuthChoicePage(),
+            destination.page,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
         transitionDuration: const Duration(milliseconds: 400),
       ),
     );
+
+    if (destination.expiredMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        SessionService.showExpiredNotice(destination.expiredMessage!);
+      });
+    }
   }
 
   void _skipToEnd() {
     if (widget.enableTapToSkip && !_hasNavigated) {
-      _navigateToAuthChoice();
+      _navigateToNextScreen();
     }
   }
 

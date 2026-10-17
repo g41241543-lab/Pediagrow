@@ -21,6 +21,7 @@ import '../profil/profil_superadmin_page.dart';
 import '../profil/hak_akses/hak_akses_page.dart';
 import '../../../widgets/hak_akses_logo.dart';
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/staff_account_model.dart';
 
 /// Halaman Beranda PMIK Superadmin PediaGrow.
@@ -1075,21 +1076,13 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 child: SizedBox(
                   width: double.infinity,
                   height: 102,
-                  child: hasImage
-                      ? (isAsset
-                            ? Image.asset(
-                                artikel.displayImage!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (ctx, err, _) =>
-                                    _buildFallbackArticleImage(),
-                              )
-                            : Image.network(
-                                artikel.displayImage!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (ctx, err, _) =>
-                                    _buildFallbackArticleImage(),
-                              ))
-                      : _buildFallbackArticleImage(),
+                  child: StorageService.buildImageWidget(
+                    artikel.displayImage,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 102,
+                    errorWidget: _buildFallbackArticleImage(),
+                  ),
                 ),
               ),
               Expanded(

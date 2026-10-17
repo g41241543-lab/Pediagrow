@@ -129,6 +129,22 @@ class CutiDokterModel {
       jamSelesai == null ||
       jamSelesai!.trim().isEmpty;
 
+  String get rentangTanggalStr {
+    final startStr = '${tanggalMulai.day}/${tanggalMulai.month}/${tanggalMulai.year}';
+    final endStr = '${tanggalSelesai.day}/${tanggalSelesai.month}/${tanggalSelesai.year}';
+    if (startStr == endStr) {
+      return startStr;
+    }
+    return '$startStr - $endStr';
+  }
+
+  String get formattedRentangTanggal => rentangTanggalStr;
+
+  String get rentangWaktuStr {
+    if (isSeharian) return 'Seharian Penuh';
+    return '$jamMulai - $jamSelesai WIB';
+  }
+
   bool berlakuPada(DateTime date) {
     final d = DateTime(date.year, date.month, date.day);
     final start = DateTime(

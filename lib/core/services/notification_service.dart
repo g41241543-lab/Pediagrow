@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../models/notification_model.dart';
+import 'local_push_service.dart';
 
 /// Service singleton untuk mengelola sistem notifikasi PediaGrow.
 ///
@@ -86,6 +87,7 @@ class NotificationService {
 
   /// Menambahkan notifikasi baru ke dalam daftar (duplikasi ID dicegah).
   /// Notifikasi baru muncul di posisi paling atas.
+  /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
   void addNotification(NotificationItem item) {
     final currentList = List<NotificationItem>.from(notificationsNotifier.value);
     // Hindari duplikasi ID
@@ -96,6 +98,14 @@ class NotificationService {
     if (!item.isRead) {
       unreadCountNotifier.value = unreadCountNotifier.value + 1;
     }
+
+    // Tampilkan notifikasi sistem (push lokal) — mengikuti role aktif yang sedang login
+    // (pengguna, dokter, pmik, maupun superadmin) agar push HP selalu masuk.
+    LocalPushService().show(
+      title: item.title,
+      body: item.message,
+      targetRole: LocalPushService().activeRole,
+    );
   }
 
   /// Tandai semua notifikasi sebagai sudah dibaca (dipanggil saat buka halaman notifikasi)

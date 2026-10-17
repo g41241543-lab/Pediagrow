@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/resep_mpasi_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/resep_mpasi_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
@@ -525,34 +526,14 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: displayImage == null || displayImage.isEmpty
-            ? _buildThumbnailPlaceholder()
-            : recipe.isNetworkImage
-                ? Image.network(
-                    displayImage,
-                    width: thumbWidth,
-                    height: thumbHeight,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _buildThumbnailPlaceholder(),
-                  )
-                : recipe.isLocalFile
-                    ? Image.file(
-                        File(displayImage.replaceFirst('file://', '')),
-                        width: thumbWidth,
-                        height: thumbHeight,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildThumbnailPlaceholder(),
-                      )
-                    : Image.asset(
-                        displayImage,
-                        width: thumbWidth,
-                        height: thumbHeight,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildThumbnailPlaceholder(),
-                      ),
+        child: StorageService.buildImageWidget(
+          displayImage,
+          width: thumbWidth,
+          height: thumbHeight,
+          fit: BoxFit.cover,
+          placeholder: _buildThumbnailPlaceholder(),
+          errorWidget: _buildThumbnailPlaceholder(),
+        ),
       ),
     );
   }

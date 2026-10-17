@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/services/child_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/child_model.dart';
 import 'pertumbuhan_grafik_page.dart';
 import '../../shared/widgets/child_avatar.dart';
@@ -66,10 +68,7 @@ class PilihAnakGrafikPage extends StatefulWidget {
     }
 
     await Navigator.of(context).push(
-      route(
-        children: effectiveChildren,
-        onChildSelected: onChildSelected,
-      ),
+      route(children: effectiveChildren, onChildSelected: onChildSelected),
     );
   }
 
@@ -136,16 +135,14 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
       reverseCurve: Curves.easeIn,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 1.0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 1.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animController,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
 
     _animController.forward();
   }
@@ -188,9 +185,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
       // Tutup modal dan arahkan ke Halaman Pertumbuhan (Grafik)
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => PertumbuhanGrafikPage(child: child),
-        ),
+        MaterialPageRoute(builder: (_) => PertumbuhanGrafikPage(child: child)),
       );
     }
   }
@@ -336,20 +331,14 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildChildRow(_childList[0]),
-          Container(
-            width: double.infinity,
-            height: 1,
-            color: colorDividerGrey,
-          ),
+          Container(width: double.infinity, height: 1, color: colorDividerGrey),
           _buildChildRow(_childList[1]),
         ],
       );
     }
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(
-        maxHeight: 280,
-      ),
+      constraints: const BoxConstraints(maxHeight: 280),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
@@ -386,8 +375,10 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
           splashColor: colorPrimaryBlue.withValues(alpha: 0.12),
           highlightColor: colorPrimaryBlue.withValues(alpha: 0.06),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 14.0, horizontal: 4.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 14.0,
+              horizontal: 4.0,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -445,9 +436,36 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
   }
 
   Widget _buildBabyAvatar(bool isGirl, String? photoUrl) {
-    return ChildAvatar(
-      isGirl: isGirl,
-      size: 46,
+    final iconColor = isGirl
+        ? const Color(0xFFE83D84)
+        : const Color(0xFF2B7AE8);
+
+    // Avatar bawaan (tanpa foto) memakai widget bersama ChildAvatar.
+    final fallback = ChildAvatar(isGirl: isGirl, size: 46);
+
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return fallback;
+    }
+
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: iconColor.withValues(alpha: 0.25),
+          width: 1.5,
+        ),
+      ),
+      child: ClipOval(
+        child: StorageService.buildImageWidget(
+          photoUrl,
+          fit: BoxFit.cover,
+          width: 46,
+          height: 46,
+          errorWidget: fallback,
+        ),
+      ),
     );
   }
 }

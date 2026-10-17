@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
 import '../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
@@ -504,12 +505,14 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                       maxScale: 3.5,
                       child: Hero(
                         tag: 'foto_profil_preview',
-                        child: isLocalFile
-                            ? Image.file(File(path), fit: BoxFit.contain)
-                            : Image.asset(
-                                ChildAvatar.assetPathFor(gender: _selectedGender),
-                                fit: BoxFit.contain,
-                              ),
+                        child: StorageService.buildImageWidget(
+                          path,
+                          fit: BoxFit.contain,
+                          placeholder: Image.asset(
+                            'assets/images/default_baby_avatar.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -794,8 +797,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FOTO PROFIL ANAK (UNGGAH FOTO ANDA) [EDITABLE]
   // ---------------------------------------------------------------------------
   Widget _buildFotoProfilSection() {
-    final hasPhoto = _fotoProfilPath != null && _fotoProfilPath!.isNotEmpty;
-    final isLocal = hasPhoto && File(_fotoProfilPath!).existsSync();
+    final imageProvider = StorageService.buildImageProvider(_fotoProfilPath);
+    final hasPhoto = imageProvider != null;
 
     return Center(
       child: Column(
@@ -845,13 +848,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                           width: 2.0,
                         ),
                         image: DecorationImage(
-                          image: isLocal
-                              ? FileImage(File(_fotoProfilPath!))
-                              : AssetImage(
-                                  ChildAvatar.assetPathFor(
-                                    gender: _selectedGender,
-                                  ),
-                                ) as ImageProvider,
+                          image: imageProvider,
                           fit: BoxFit.cover,
                         ),
                       ),

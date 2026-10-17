@@ -8,7 +8,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/user_model.dart';
+import 'child_service.dart';
+import 'session_service.dart';
 import 'staff_auth_service.dart';
+import 'storage_service.dart';
 
 /// Hasil dari proses daftar/masuk pengguna dengan email & password.
 class UserAuthResult {
@@ -68,38 +71,33 @@ class UserService {
   // ---------------------------------------------------------------------
 
   /// Inisialisasi sesi pengguna saat aplikasi dibuka:
-  /// 1. Coba pulihkan userId dari SharedPreferences.
-  /// 2. Jika ada, muat dokumen dari collection 'users' dan dengarkan real-time.
-  /// 3. Jika belum ada di preferences, cari apakah ada akun di collection 'users'
-  ///    untuk dihubungkan agar sapaan langsung sinkron dengan database pengguna.
+  /// 1. Cek validitas sesi 30 hari via [SessionService].
+  /// 2. Jika valid, muat data pengguna dari Firestore dan mulai listener real-time.
+  /// 3. Jika sudah kadaluarsa (>= 30 hari) atau belum ada sesi, pastikan state tamu.
   Future<void> init() async {
     try {
+      final hasValid = await SessionService().hasValidPenggunaSession();
+      if (!hasValid) {
+        currentUserNotifier.value = const UserModel(
+          id: '',
+          name: 'Tamu',
+          email: '',
+        );
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final savedUserId = prefs.getString(_prefKeyUserId);
 
       final db = _db;
-      if (db == null) return;
+      if (db == null || savedUserId == null || savedUserId.isEmpty) return;
 
-      if (savedUserId != null && savedUserId.isNotEmpty) {
-        final doc = await db.collection(_collection).doc(savedUserId).get();
-        if (doc.exists && doc.data() != null) {
-          final user = UserModel.fromMap({...doc.data()!, 'id': doc.id});
-          currentUserNotifier.value = user;
-          _startListeningToUser(savedUserId);
-          return;
-        }
-      }
-
-      // Fallback: jika belum ada sesi tersimpan tetapi ada dokumen di collection 'users'
-      if (currentUserNotifier.value.id.isEmpty) {
-        final query = await db.collection(_collection).limit(1).get();
-        if (query.docs.isNotEmpty) {
-          final firstDoc = query.docs.first;
-          final user = UserModel.fromMap({...firstDoc.data(), 'id': firstDoc.id});
-          currentUserNotifier.value = user;
-          await _saveSession(firstDoc.id);
-          _startListeningToUser(firstDoc.id);
-        }
+      final doc = await db.collection(_collection).doc(savedUserId).get();
+      if (doc.exists && doc.data() != null) {
+        final user = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+        currentUserNotifier.value = user;
+        _startListeningToUser(savedUserId);
+        await ChildService().loadChildrenForCurrentUser();
       }
     } catch (e) {
       debugPrint('[UserService] init error: $e');
@@ -142,6 +140,7 @@ class UserService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_prefKeyUserId, userId);
+      await SessionService().savePenggunaSession(userId: userId);
     } catch (e) {
       debugPrint('[UserService] saveSession error: $e');
     }
@@ -151,6 +150,7 @@ class UserService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_prefKeyUserId);
+      await SessionService().clearSession();
     } catch (e) {
       debugPrint('[UserService] clearSession error: $e');
     }
@@ -208,16 +208,13 @@ class UserService {
         passwordHash: _hashPassword(password),
       );
 
-      final docRef = await db.collection(_collection).add({
+      await db.collection(_collection).add({
         ...newUser.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
-      final savedUser = newUser.copyWith(id: docRef.id);
 
-      currentUserNotifier.value = savedUser;
-      await _saveSession(docRef.id);
-      _startListeningToUser(docRef.id);
-
+      // Akun baru berhasil dibuat di Firestore.
+      // Sesi resmi akan diaktifkan setelah pengguna masuk lewat halaman Masuk.
       return UserAuthResult.success();
     } catch (e) {
       debugPrint('[UserService] registerWithEmail error: $e');
@@ -310,7 +307,8 @@ class UserService {
           .get();
 
       if (query.docs.isEmpty) {
-        final displayName = account.displayName ?? normalizedEmail.split('@').first;
+        final displayName =
+            account.displayName ?? normalizedEmail.split('@').first;
         final newUser = UserModel(
           id: '',
           name: displayName,
@@ -328,10 +326,7 @@ class UserService {
         _startListeningToUser(docRef.id);
       } else {
         final doc = query.docs.first;
-        final user = UserModel.fromMap({
-          ...doc.data(),
-          'id': doc.id,
-        });
+        final user = UserModel.fromMap({...doc.data(), 'id': doc.id});
         currentUserNotifier.value = user;
         await _saveSession(doc.id);
         _startListeningToUser(doc.id);
@@ -345,11 +340,31 @@ class UserService {
   // PROFIL
   // ---------------------------------------------------------------------
 
-  /// Memperbarui path foto profil pengguna (lokal + Firestore)
+  /// Memperbarui foto profil pengguna:
+  /// upload ke Firebase Storage jika path lokal, lalu simpan URL ke Firestore.
   Future<void> updateAvatar(String? path) async {
-    currentUserNotifier.value = currentUserNotifier.value.copyWith(
-      avatarPath: path,
-    );
+    if (path == null || path.isEmpty) {
+      currentUserNotifier.value = currentUserNotifier.value.copyWith(
+        avatarPath: path,
+      );
+      await _syncCurrentUserToFirestore();
+      return;
+    }
+    try {
+      final url = await StorageService.uploadIfLocal(
+        path,
+        folder: StorageService.profilIbu,
+        fileName: currentUserNotifier.value.id,
+      );
+      currentUserNotifier.value = currentUserNotifier.value.copyWith(
+        avatarPath: url,
+      );
+    } catch (_) {
+      // Gagal upload: simpan path lokal sebagai fallback sementara
+      currentUserNotifier.value = currentUserNotifier.value.copyWith(
+        avatarPath: path,
+      );
+    }
     await _syncCurrentUserToFirestore();
   }
 

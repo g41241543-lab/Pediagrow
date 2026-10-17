@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/staff_auth_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_pmik_page.dart';
@@ -173,12 +174,14 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       );
       if (picked != null) {
         setState(() => _avatarPath = picked.path);
+        final persistable =
+            await StorageService.uploadIfLocal(picked.path) ?? picked.path;
         final prefs = await SharedPreferences.getInstance();
         if (_pmik?.id != null) {
-          await prefs.setString('pmik_avatar_${_pmik!.id}', picked.path);
+          await prefs.setString('pmik_avatar_${_pmik!.id}', persistable);
           await StaffAuthService().updateStaffAccount(
             _pmik!.id,
-            avatarPath: picked.path,
+            avatarPath: persistable,
           );
         }
         if (mounted) {
@@ -582,10 +585,8 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 CircleAvatar(
                   radius: avatarRadius,
                   backgroundColor: const Color(0xFFE0F2FE),
-                  backgroundImage: _avatarPath != null
-                      ? FileImage(File(_avatarPath!)) as ImageProvider
-                      : null,
-                  child: _avatarPath == null
+                  backgroundImage: StorageService.buildImageProvider(_avatarPath),
+                  child: StorageService.buildImageProvider(_avatarPath) == null
                       ? Icon(
                           Icons.person_rounded,
                           size: avatarRadius * 1.1,

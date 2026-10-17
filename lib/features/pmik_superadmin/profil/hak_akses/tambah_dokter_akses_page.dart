@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/doctor_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
 
@@ -797,23 +796,19 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   }
 
   Widget _buildAvatarImage() {
-    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-      if (File(_avatarPath!).existsSync()) {
-        return Image.file(
-          File(_avatarPath!),
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-        );
-      }
-    }
-    return Container(
-      color: const Color(0xFFF1F5F9),
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.person_rounded,
-        size: 46.0,
-        color: Color(0xFF94A3B8),
+    return StorageService.buildImageWidget(
+      _avatarPath,
+      fit: BoxFit.cover,
+      width: 82.0,
+      height: 82.0,
+      errorWidget: Container(
+        color: const Color(0xFFF1F5F9),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.person_rounded,
+          size: 46.0,
+          color: Color(0xFF94A3B8),
+        ),
       ),
     );
   }

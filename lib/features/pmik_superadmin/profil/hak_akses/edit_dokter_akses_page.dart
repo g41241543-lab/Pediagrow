@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/doctor_service.dart';
 import '../../../../core/services/jadwal_dokter_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/jadwal_praktik_model.dart';
@@ -775,35 +776,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   }
 
   Widget _buildAvatarImage() {
-    if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-      if (File(_avatarPath!).existsSync()) {
-        return Image.file(
-          File(_avatarPath!),
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-        );
-      }
-      if (_avatarPath!.startsWith('http')) {
-        return Image.network(
-          _avatarPath!,
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-          errorBuilder: (_, _, _) => _buildAvatarFallback(),
-        );
-      }
-      if (_avatarPath!.startsWith('assets/')) {
-        return Image.asset(
-          _avatarPath!,
-          fit: BoxFit.cover,
-          width: 82.0,
-          height: 82.0,
-          errorBuilder: (_, _, _) => _buildAvatarFallback(),
-        );
-      }
-    }
-    return _buildAvatarFallback();
+    return StorageService.buildImageWidget(
+      _avatarPath,
+      fit: BoxFit.cover,
+      width: 82.0,
+      height: 82.0,
+      errorWidget: _buildAvatarFallback(),
+    );
   }
 
   Widget _buildAvatarFallback() {

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,19 +6,20 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
-import '../../../models/jadwal_praktik_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda/beranda_page.dart';
 import '../beranda/notifikasi_page.dart';
+import 'chat_konsultasi_page.dart';
+import 'formulir_konsultasi_page.dart';
 import 'profil_dokter_page.dart';
 import 'status_booking_page.dart';
-import '../../../shared/widgets/child_avatar.dart';
 
 /// Halaman Konsultasi POV Pengguna di PediaGrow.
 ///
@@ -62,6 +62,14 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   }
 
   @override
+  void didUpdateWidget(covariant DaftarDokterPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTabIndex != widget.initialTabIndex) {
+      _tabController.animateTo(widget.initialTabIndex.clamp(0, 1));
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
@@ -94,18 +102,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-  /// Menampilkan pesan saat dokter yang dipilih sedang offline
-  void _showDoctorOfflineMessage(DoctorModel doctor) {
-    _searchFocusNode.unfocus();
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text('${doctor.name} sedang offline saat ini.'),
-        ),
-      );
-  }
 
   void _navigateToNotification() {
     Navigator.of(context).push(
@@ -120,208 +116,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-  void _showBookingDetailModal(BookingConsultationModel booking) {
-    final isFemale = booking.child.gender.toLowerCase() == 'perempuan';
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEBF5FF),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Detail Booking',
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _colorPrimaryBlue,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  booking.status,
-                  style: GoogleFonts.lato(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF10B981),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Info Anak
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _colorBorder, width: 1),
-              ),
-              child: Row(
-                children: [
-                  _buildChildAvatar(
-                    photoUrl: booking.child.photoUrl,
-                    isFemale: isFemale,
-                    size: 44,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          booking.child.name,
-                          style: GoogleFonts.lato(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: _colorTextBlack,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${booking.child.gender} • ${booking.child.ageDescription}',
-                          style: GoogleFonts.lato(
-                            fontSize: 12.5,
-                            color: _colorLabelGrey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            // Jadwal
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today_rounded,
-                  size: 16,
-                  color: _colorPrimaryBlue,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  booking.formattedDate,
-                  style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
-                  ),
-                ),
-                const Spacer(),
-                const Icon(
-                  Icons.access_time_rounded,
-                  size: 16,
-                  color: _colorPrimaryBlue,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  booking.scheduledTimeSlot,
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Dokter
-            Row(
-              children: [
-                const Icon(
-                  Icons.medical_services_rounded,
-                  size: 16,
-                  color: _colorLabelGrey,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${booking.doctor.name} (${booking.doctor.specialization})',
-                    style: GoogleFonts.lato(
-                      fontSize: 13,
-                      color: _colorLabelGrey,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFBFDBFE), width: 0.8),
-              ),
-              child: Text(
-                'Form keluhan akan diisi saat waktu jadwal booking tiba sebelum memulai obrolan dengan dokter.',
-                style: GoogleFonts.lato(
-                  fontSize: 12,
-                  color: _colorPrimaryBlue,
-                  height: 1.4,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _colorPrimaryBlue,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: Text(
-                  'Tutup',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -502,7 +296,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                 ValueListenableBuilder<List<DoctorModel>>(
                   valueListenable: DoctorService().doctorsNotifier,
                   builder: (context, doctors, _) {
-                    return _buildTabBadge(doctors.length, isFirstTab: true);
+                    final count = DoctorService().currentDoctors.length;
+                    return _buildTabBadge(count, isFirstTab: true);
                   },
                 ),
               ],
@@ -531,14 +326,25 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             .toSet();
 
                         final myBookings = allBookings.where((booking) {
-                          return userChildIds.contains(booking.child.id) ||
+                          final isChildMatch = userChildIds.contains(booking.child.id) ||
                               userChildNames.contains(
                                 booking.child.name.toLowerCase().trim(),
                               );
+                          return isChildMatch && !booking.isExpired;
                         }).toList();
 
+                        // Deduplikasi aman untuk memastikan tidak ada kartu ganda
+                        final seen = <String>{};
+                        final uniqueBookings = <BookingConsultationModel>[];
+                        for (final b in myBookings) {
+                          final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                          if (seen.add(b.id) && seen.add(slotKey)) {
+                            uniqueBookings.add(b);
+                          }
+                        }
+
                         return _buildTabBadge(
-                          myBookings.length,
+                          uniqueBookings.length,
                           isFirstTab: false,
                         );
                       },
@@ -616,9 +422,15 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                     ),
                     const SizedBox(height: 10),
                     // Doctor List
-                    ValueListenableBuilder<List<DoctorModel>>(
-                      valueListenable: DoctorService().doctorsNotifier,
-                      builder: (context, allDoctors, _) {
+                    AnimatedBuilder(
+                      animation: Listenable.merge([
+                        DoctorService().doctorsNotifier,
+                        JadwalDokterService().jadwalListNotifier,
+                        JadwalDokterService().cutiListNotifier,
+                        BookingService().bookingsNotifier,
+                      ]),
+                      builder: (context, _) {
+                        final allDoctors = DoctorService().currentDoctors;
                         final filteredDoctors = _searchQuery.isEmpty
                             ? allDoctors
                             : DoctorService().filterDoctors(_searchQuery);
@@ -997,13 +809,24 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               .toSet();
 
                           final myBookings = allBookings.where((booking) {
-                            return userChildIds.contains(booking.child.id) ||
+                            final isChildMatch = userChildIds.contains(booking.child.id) ||
                                 userChildNames.contains(
                                   booking.child.name.toLowerCase().trim(),
                                 );
+                            return isChildMatch && !booking.isExpired;
                           }).toList();
 
-                          if (myBookings.isEmpty) {
+                          // Deduplikasi aman untuk memastikan tidak ada kartu ganda di UI
+                          final seen = <String>{};
+                          final uniqueBookings = <BookingConsultationModel>[];
+                          for (final b in myBookings) {
+                            final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                            if (seen.add(b.id) && seen.add(slotKey)) {
+                              uniqueBookings.add(b);
+                            }
+                          }
+
+                          if (uniqueBookings.isEmpty) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 40),
                               child: _buildEmptyBookingsState(
@@ -1013,7 +836,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                           }
 
                           return Column(
-                            children: myBookings.map((booking) {
+                            children: uniqueBookings.map((booking) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -1317,56 +1140,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                       ),
                     ),
                     const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => StatusBookingPage(booking: booking),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: booking.isInTimeWindow
-                              ? const Color(0xFF16A34A)
-                              : (booking.isExpired
-                                  ? const Color(0xFF64748B)
-                                  : _colorPrimaryBlue),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              booking.isInTimeWindow
-                                  ? Icons.play_circle_outline_rounded
-                                  : (booking.isExpired
-                                      ? Icons.timer_off_outlined
-                                      : Icons.info_outline_rounded),
-                              size: 13,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              booking.isInTimeWindow
-                                  ? 'Mulai Konsultasi'
-                                  : (booking.isExpired
-                                      ? 'Selesai'
-                                      : 'Lihat Status'),
-                              style: GoogleFonts.lato(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildBookingActionButton(booking),
                   ],
                 ),
               ),
@@ -1375,6 +1149,120 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         ),
       ),
     );
+  }
+
+  Widget _buildBookingActionButton(BookingConsultationModel booking) {
+    final bool isReady = booking.isInTimeWindow || booking.status == 'Sedang Berlangsung';
+    final bool isExpired = booking.isExpired;
+
+    String text;
+    IconData icon;
+    Color bgColor;
+
+    if (isReady) {
+      // Jika sudah jadwalnya, ganti tombol menjadi masuk ke ruang obrolan
+      text = booking.hasFilledForm ? 'Masuk ke Ruang Obrolan' : 'Mulai Obrolan';
+      icon = booking.hasFilledForm
+          ? Icons.chat_bubble_outline_rounded
+          : Icons.edit_note_rounded;
+      bgColor = const Color(0xFF16A34A); // Hijau aktif
+    } else if (isExpired) {
+      text = 'Selesai';
+      icon = Icons.timer_off_outlined;
+      bgColor = const Color(0xFF64748B);
+    } else {
+      // Belum jadwalnya
+      text = 'Lihat Status';
+      icon = Icons.info_outline_rounded;
+      bgColor = _colorPrimaryBlue;
+    }
+
+    return GestureDetector(
+      onTap: () => _onAksiBookingPressed(booking),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isReady
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF16A34A).withValues(alpha: 0.28),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13.5, color: Colors.white),
+            const SizedBox(width: 5),
+            Text(
+              text,
+              style: GoogleFonts.lato(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onAksiBookingPressed(BookingConsultationModel booking) {
+    if (booking.isExpired) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => StatusBookingPage(booking: booking),
+        ),
+      );
+      return;
+    }
+
+    // Jika sudah masuk waktu jadwal konsultasi (atau status sedang berlangsung)
+    if (booking.isInTimeWindow || booking.status == 'Sedang Berlangsung') {
+      // Untuk pertama kalinya memulai obrolan: diarahkan ke formulir konsultasi dahulu
+      if (!booking.hasFilledForm) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => FormulirKonsultasiPage(
+              doctor: booking.doctor,
+              child: booking.child,
+              booking: booking,
+            ),
+          ),
+        );
+      } else {
+        // Jika sudah pernah mengisi formulir konsultasi, langsung masuk ke ruang obrolan dokter
+        final effectiveSessionId =
+            booking.sessionId ?? 'session_${booking.id}';
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChatKonsultasiPage(
+              doctor: booking.doctor,
+              child: booking.child,
+              weightKg: booking.weightKg,
+              heightCm: booking.heightCm,
+              complaint: booking.complaint,
+              sessionId: effectiveSessionId,
+              booking: booking,
+            ),
+          ),
+        );
+      }
+    } else {
+      // Belum waktu jadwalnya: buka halaman detail & status booking
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => StatusBookingPage(booking: booking),
+        ),
+      );
+    }
   }
 
   Widget _buildEmptyBookingsState({bool hasNoChildren = false}) {
@@ -1430,23 +1318,12 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         errorBuilder: (_, _, _) => _fallbackAvatar(),
       );
     }
-    final url = doctor.avatarUrl;
-    if (url != null && url.isNotEmpty) {
-      if (url.startsWith('/') || url.startsWith('file://')) {
-        final file = File(url.replaceFirst('file://', ''));
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _fallbackAvatar(),
-        );
-      }
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _fallbackAvatar(),
-      );
-    }
-    return _fallbackAvatar();
+    return StorageService.buildImageWidget(
+      doctor.avatarUrl,
+      fit: BoxFit.cover,
+      placeholder: _fallbackAvatar(),
+      errorWidget: _fallbackAvatar(),
+    );
   }
 
   Widget _fallbackAvatar() {
@@ -1466,29 +1343,27 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     required bool isFemale,
     required double size,
   }) {
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Image.network(
-          photoUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => ChildAvatar(
-            isGirl: isFemale,
-            size: size,
-          ),
-        ),
-      );
-    }
+    final bgColor = isFemale
+        ? const Color(0xFFFFE4E6)
+        : const Color(0xFFDBEAFE);
 
-    return ChildAvatar(
-      isGirl: isFemale,
-      size: size,
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: bgColor),
+      clipBehavior: Clip.antiAlias,
+      child: StorageService.buildImageWidget(
+        photoUrl,
+        fit: BoxFit.cover,
+        placeholder: Container(
+          color: bgColor,
+          child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+        ),
+        errorWidget: Container(
+          color: bgColor,
+          child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+        ),
+      ),
     );
   }
 

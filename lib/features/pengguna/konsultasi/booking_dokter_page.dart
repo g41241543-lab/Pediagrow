@@ -1,12 +1,12 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -22,11 +22,7 @@ class BookingDokterPage extends StatefulWidget {
   final DoctorModel? doctor;
   final ChildModel? child;
 
-  const BookingDokterPage({
-    super.key,
-    this.doctor,
-    this.child,
-  });
+  const BookingDokterPage({super.key, this.doctor, this.child});
 
   @override
   State<BookingDokterPage> createState() => _BookingDokterPageState();
@@ -43,16 +39,8 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
   late ChildModel _child;
 
   late DateTime _selectedDate;
-  late String _selectedTimeSlot;
-
-  final List<String> _timeSlots = [
-    '08:30 - 09:00 WIB',
-    '09:30 - 10:00 WIB',
-    '10:30 - 11:00 WIB',
-    '13:30 - 14:00 WIB',
-    '14:30 - 15:00 WIB',
-    '15:30 - 16:00 WIB',
-  ];
+  String? _selectedTimeSlot;
+  List<SlotWaktuDokter> _availableSlots = [];
 
   late List<DateTime> _availableDates;
 
@@ -62,20 +50,15 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
 
     final availableDoctors = DoctorService().doctorsNotifier.value;
     // Resolusi dokter (fallback ke dokter pertama dari DoctorService jika null)
-    _doctor = widget.doctor ??
+    _doctor =
+        widget.doctor ??
         (availableDoctors.isNotEmpty
             ? availableDoctors.first
-            : const DoctorModel(
-                id: 'doc_default',
-                name: 'dr. Ahmad Nuri, Sp. A',
-                specialization: 'Spesialis Anak',
-                experienceYears: 10,
-                isOnline: true,
-                placesOfPractice: ['Klinik Tumbuh Kembang PediaGrow'],
-              ));
+            : DoctorModel.defaultDoctor);
 
     // Resolusi anak (fallback ke active child atau anak pertama dari ChildService)
-    _child = widget.child ??
+    _child =
+        widget.child ??
         (ChildService().activeChild ??
             ChildModel(
               id: 'child_default',
@@ -91,10 +74,50 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       (i) => DateTime(now.year, now.month, now.day + 1 + i),
     );
     _selectedDate = _availableDates.first;
-    _selectedTimeSlot = _timeSlots[1]; // default jam 09:30
+    _refreshSlots();
+
+    DoctorService().doctorsNotifier.addListener(_onDataUpdated);
+    JadwalDokterService().jadwalListNotifier.addListener(_onDataUpdated);
+    JadwalDokterService().cutiListNotifier.addListener(_onDataUpdated);
+    BookingService().bookingsNotifier.addListener(_onDataUpdated);
   }
 
+  @override
+  void dispose() {
+    DoctorService().doctorsNotifier.removeListener(_onDataUpdated);
+    JadwalDokterService().jadwalListNotifier.removeListener(_onDataUpdated);
+    JadwalDokterService().cutiListNotifier.removeListener(_onDataUpdated);
+    BookingService().bookingsNotifier.removeListener(_onDataUpdated);
+    super.dispose();
+  }
 
+  void _onDataUpdated() {
+    if (mounted) {
+      setState(() {
+        _refreshSlots();
+      });
+    }
+  }
+
+  void _refreshSlots() {
+    final slots = JadwalDokterService().hitungSlotKosong(
+      dokterId: _doctor.id,
+      tanggal: _selectedDate,
+    );
+    _availableSlots = slots;
+
+    // Sinkronkan slot terpilih
+    if (_selectedTimeSlot != null) {
+      final exists = slots.any((s) => s.timeLabel == _selectedTimeSlot && s.isAvailable);
+      if (!exists) {
+        final firstAvail = slots.where((s) => s.isAvailable).firstOrNull;
+        _selectedTimeSlot = firstAvail?.timeLabel;
+      }
+    } else {
+      final firstAvail = slots.where((s) => s.isAvailable).firstOrNull;
+      _selectedTimeSlot = firstAvail?.timeLabel;
+    }
+  }
 
   void _changeChild() {
     PilihAnakPage.show(
@@ -134,6 +157,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         if (!_availableDates.any((d) => _isSameDay(d, picked))) {
           _availableDates.insert(0, picked);
         }
+        _refreshSlots();
       });
     }
   }
@@ -142,28 +166,93 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  void _confirmBooking() {
+  bool _isSubmitting = false;
+
+  Future<void> _confirmBooking() async {
+    if (_isSubmitting) return;
+
+    if (_selectedTimeSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Silakan pilih tanggal dan sesi waktu yang tersedia terlebih dahulu',
+          ),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final selectedSlotObj = _availableSlots
+        .where((s) => s.timeLabel == _selectedTimeSlot)
+        .firstOrNull;
+    final startDt = selectedSlotObj?.startDateTime ??
+        DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          9,
+          0,
+        );
+    final endDt = selectedSlotObj?.endDateTime ??
+        startDt.add(const Duration(minutes: 30));
+
+    final calUrl = BookingService().generateGoogleCalendarUrl(
+      doctor: _doctor,
+      child: _child,
+      startTime: startDt,
+      endTime: endDt,
+    );
+
     final newBooking = BookingConsultationModel(
-      id: 'book_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'booking-${DateTime.now().millisecondsSinceEpoch}',
+      userId: _child.ownerId.isNotEmpty ? _child.ownerId : null,
       doctor: _doctor,
       child: _child,
       scheduledDate: _selectedDate,
-      scheduledTimeSlot: _selectedTimeSlot,
+      scheduledTimeSlot: _selectedTimeSlot!,
+      scheduledStartDateTime: startDt,
+      scheduledEndDateTime: endDt,
+      googleCalendarUrl: calUrl,
       status: 'Terjadwal',
       createdAt: DateTime.now(),
     );
 
-    // Simpan ke BookingService
-    BookingService().addBooking(newBooking);
+    // Simpan ke BookingService (tersimpan ke Cloud Firestore koleksi consultation_booking)
+    try {
+      await BookingService().addBooking(newBooking);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan booking: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+      return;
+    }
 
     // Otomatis jadwalkan notifikasi pengingat kalender
     NotificationService().addBookingReminderNotification(
       doctorName: _doctor.name,
       childName: _child.name,
       dateFormatted: newBooking.formattedDate,
-      timeSlot: _selectedTimeSlot,
-      scheduledTime: newBooking.bookingDate,
+      timeSlot: _selectedTimeSlot!,
+      scheduledTime: startDt,
     );
+
+    if (!mounted) return;
+    setState(() {
+      _isSubmitting = false;
+    });
 
     // Tampilkan dialog sukses
     showDialog(
@@ -173,7 +262,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildSuccessDialog(BuildContext ctx, BookingConsultationModel booking) {
+  Widget _buildSuccessDialog(
+    BuildContext ctx,
+    BookingConsultationModel booking,
+  ) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
@@ -223,9 +315,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   // Arahkan ke DaftarDokterPage dengan Tab Jadwal Konsultasi (index 1)
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (_) => const DaftarDokterPage(initialTabIndex: 1),
+                      builder: (_) =>
+                          const DaftarDokterPage(initialTabIndex: 1),
                     ),
-                    (route) => false,
+                    (route) => route.isFirst,
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -284,8 +377,6 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               // Bagian Pilihan Jam
               _buildTimeSlotSection(),
               const SizedBox(height: 18),
-
-
 
               // Info Banner Form Keluhan
               _buildInfoBanner(),
@@ -386,8 +477,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 onTap: _changeChild,
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   child: Row(
                     children: [
                       Text(
@@ -596,7 +689,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 72,
+          height: 84,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _availableDates.length,
@@ -607,10 +700,93 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               final dayOfWeek = daysName[date.weekday % 7];
               final month = monthsName[date.month - 1];
 
+              final cuti = JadwalDokterService().getCutiPadaTanggal(
+                _doctor.id,
+                date,
+              );
+              final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(
+                _doctor.id,
+                date.weekday,
+              );
+
+              Widget statusBadge;
+              if (cuti != null) {
+                statusBadge = Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Cuti',
+                    style: GoogleFonts.lato(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFFD97706),
+                    ),
+                  ),
+                );
+              } else if (!isPraktik) {
+                statusBadge = Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Libur',
+                    style: GoogleFonts.lato(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.white70 : _colorLabelGrey,
+                    ),
+                  ),
+                );
+              } else {
+                statusBadge = Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : const Color(0xFFD1FAE5),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Praktik',
+                    style: GoogleFonts.lato(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF059669),
+                    ),
+                  ),
+                );
+              }
+
               return GestureDetector(
                 onTap: () {
                   setState(() {
                     _selectedDate = date;
+                    _refreshSlots();
                   });
                 },
                 child: Container(
@@ -642,23 +818,24 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                           color: isSelected ? Colors.white70 : _colorLabelGrey,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         '${date.day}',
                         style: GoogleFonts.lato(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isSelected ? Colors.white : _colorTextBlack,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
                         month,
                         style: GoogleFonts.lato(
-                          fontSize: 10,
+                          fontSize: 9.5,
                           color: isSelected ? Colors.white70 : _colorLabelGrey,
                         ),
                       ),
+                      statusBadge,
                     ],
                   ),
                 ),
@@ -671,69 +848,182 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
   }
 
   Widget _buildTimeSlotSection() {
+    final cuti = JadwalDokterService().getCutiPadaTanggal(
+      _doctor.id,
+      _selectedDate,
+    );
+    final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(
+      _doctor.id,
+      _selectedDate.weekday,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Pilih Sesi Waktu',
-          style: GoogleFonts.lato(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: _colorTextBlack,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Pilih Sesi Waktu',
+              style: GoogleFonts.lato(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: _colorTextBlack,
+              ),
+            ),
+            Text(
+              'Sinkron Real-Time',
+              style: GoogleFonts.lato(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF0284C7),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _timeSlots.map((slot) {
-            final isSelected = _selectedTimeSlot == slot;
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedTimeSlot = slot;
-                });
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isSelected ? _colorPrimaryBlue : _colorBorder,
-                    width: isSelected ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 14,
-                      color: isSelected ? _colorPrimaryBlue : _colorLabelGrey,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      slot,
+        if (_availableSlots.isEmpty) ...[
+          if (cuti != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCD34D)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.event_busy_rounded, color: Color(0xFFD97706), size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '${_doctor.name} sedang cuti (${cuti.alasan}). Silakan pilih tanggal lain yang tersedia.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? _colorPrimaryBlue : _colorTextBlack,
+                        color: const Color(0xFF92400E),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          }).toList(),
-        ),
+            )
+          else if (!isPraktik)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _colorBorder),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.hotel_rounded, color: _colorLabelGrey, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Dokter tidak memiliki jadwal praktik reguler pada hari ini. Silakan pilih tanggal praktik lainnya.',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: _colorLabelGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _colorBorder),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, color: _colorLabelGrey, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Semua slot konsultasi pada tanggal ini telah penuh atau jam praktik telah selesai. Silakan pilih tanggal berikutnya.',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: _colorLabelGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+        ] else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableSlots.map((slot) {
+              final isSelected = _selectedTimeSlot == slot.timeLabel;
+              final isAvail = slot.isAvailable;
+              return GestureDetector(
+                onTap: isAvail
+                    ? () {
+                        setState(() {
+                          _selectedTimeSlot = slot.timeLabel;
+                        });
+                      }
+                    : null,
+                child: Opacity(
+                  opacity: isAvail ? 1.0 : 0.45,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? _colorPrimaryBlue : _colorBorder,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: isSelected ? _colorPrimaryBlue : _colorLabelGrey,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          slot.timeLabel,
+                          style: GoogleFonts.lato(
+                            fontSize: 12.5,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected ? _colorPrimaryBlue : _colorTextBlack,
+                            decoration: isAvail ? null : TextDecoration.lineThrough,
+                          ),
+                        ),
+                        if (!isAvail) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '(Penuh)',
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              color: const Color(0xFFEF4444),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
       ],
     );
   }
-
-
 
   Widget _buildInfoBanner() {
     return Container(
@@ -772,13 +1062,27 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
   }
 
   Widget _buildConfirmButton() {
+    final canBook = _selectedTimeSlot != null;
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: _confirmBooking,
+        onPressed: canBook
+            ? _confirmBooking
+            : () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Silakan pilih tanggal dan sesi waktu yang tersedia terlebih dahulu',
+                    ),
+                    backgroundColor: Color(0xFFEF4444),
+                  ),
+                );
+              },
         style: ElevatedButton.styleFrom(
-          backgroundColor: _colorPrimaryBlue,
+          backgroundColor: canBook
+              ? _colorPrimaryBlue
+              : const Color(0xFF94A3B8),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -801,6 +1105,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     required bool isFemale,
     required double size,
   }) {
+    // Avatar bawaan memakai widget bersama ChildAvatar.
+    final fallback = ChildAvatar(isGirl: isFemale, size: size);
+
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
         width: size,
@@ -810,114 +1117,16 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
           color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Image.network(
+        child: StorageService.buildImageWidget(
           photoUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => ChildAvatar(
-            isGirl: isFemale,
-            size: size,
-          ),
+          width: size,
+          height: size,
+          errorWidget: fallback,
         ),
       );
     }
 
-    return ChildAvatar(
-      isGirl: isFemale,
-      size: size,
-    );
+    return fallback;
   }
-}
-
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
-
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(
-      cx,
-      cy + r * 0.62,
-      cx + r * 0.35,
-      cy + r * 0.18,
-    );
-    canvas.drawPath(smilePath, strokePaint);
-
-    if (isGirl) {
-      final bowPaint = Paint()
-        ..color = const Color(0xFFFF6B9D)
-        ..style = PaintingStyle.fill;
-      final bowPath = Path();
-      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.4, cy - r * 1.15, cx - r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.1, cy - r * 1.05, cx + r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.4, cy - r * 1.15, cx + r * 0.1, cy - r * 0.85);
-      canvas.drawPath(bowPath, bowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

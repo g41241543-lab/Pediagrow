@@ -100,7 +100,7 @@ class StuntingPredictionResult {
   final double zScoreHeightForAge;
   final double zScoreWeightForAge;
 
-  /// Tingkat kesepakatan 200 pohon (0.5 - 1.0), bukan peluang medis.
+  /// Tingkat kesepakatan 100 pohon (0.5 - 1.0), bukan peluang medis.
   final double confidenceProbability;
   final String description;
   final List<String> recommendations;
@@ -166,7 +166,7 @@ class StuntingPredictionResult {
 
 /// Service Machine Learning Stunting.
 ///
-/// Seluruh inferensi Random Forest (200 pohon, hasil GridSearchCV) berjalan
+/// Seluruh inferensi Random Forest (100 pohon, hasil GridSearchCV) berjalan
 /// langsung di dalam aplikasi lewat [StuntingRandomForest]; tidak memakai
 /// server Python, REST API, maupun koneksi internet.
 class StuntingMlService {
@@ -278,7 +278,7 @@ class StuntingMlService {
       description: inRange ? desc : '$desc$outOfRangeNote',
       recommendations: recs,
       isFromRemoteApi: false,
-      modelName: 'Random Forest (200 pohon, GridSearchCV) - berjalan di aplikasi',
+      modelName: 'Random Forest (100 pohon, GridSearchCV) - berjalan di aplikasi',
       isInTrainingRange: inRange,
     );
   }

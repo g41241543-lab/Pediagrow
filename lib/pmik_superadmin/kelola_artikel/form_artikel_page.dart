@@ -1,12 +1,11 @@
-import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/artikel_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../../models/staff_account_model.dart';
@@ -388,11 +387,14 @@ Referensi: Kemenkes RI, 2022''';
       final deskripsi = _extractDeskripsi(isi);
       final subKategori = _extractSubKategori(judul, isi);
 
-      final resolvedImage =
+      final rawImage =
           _imagePath ??
           (widget.artikel?.displayImage ??
               'assets/images/artikel_stunting.jpg');
-      final isAsset = resolvedImage.startsWith('assets/');
+      final isAsset = rawImage.startsWith('assets/');
+      final resolvedImage = isAsset
+          ? rawImage
+          : await StorageService.toPersistableString(rawImage);
 
       if (widget.isEditMode) {
         // ==========================================
@@ -756,39 +758,16 @@ Referensi: Kemenkes RI, 2022''';
     );
   }
 
-  /// Menampilkan gambar baik dari aset, file disk lokal, maupun URL remote
+  /// Menampilkan gambar baik dari aset, file disk lokal, Base64, maupun URL remote
   Widget _buildImageWidget(String path) {
-    if (path.startsWith('assets/')) {
-      return Image.asset(
-        path,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
-      );
-    }
-
-    if (!kIsWeb && File(path).existsSync()) {
-      return Image.file(
-        File(path),
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
-      );
-    }
-
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return Image.network(
-        path,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _buildFallbackPhotoIcon(),
-      );
-    }
-
-    return _buildFallbackPhotoIcon();
+    return StorageService.buildImageWidget(
+      path,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      placeholder: _buildFallbackPhotoIcon(),
+      errorWidget: _buildFallbackPhotoIcon(),
+    );
   }
 
   Widget _buildFallbackPhotoIcon() {

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/artikel_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/staff_auth_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../models/artikel_model.dart';
 import '../../models/staff_account_model.dart';
 import '../pengguna/beranda/widgets/full_page_sky_background.dart';
@@ -840,16 +841,13 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: artikel.imageUrl != null && artikel.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      artikel.imageUrl!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          _buildArticleImagePlaceholder(),
-                    )
-                  : _buildArticleImagePlaceholder(),
+              child: StorageService.buildImageWidget(
+                artikel.imageUrl,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                errorWidget: _buildArticleImagePlaceholder(),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(

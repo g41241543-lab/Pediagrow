@@ -88,12 +88,18 @@ class PediaBottomNavBar extends StatelessWidget {
       _NavData(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF2EDED);
+    final activeCircleBg = isDark ? const Color(0xFF334155) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+    final inactiveColor = isDark ? const Color(0xFF64748B) : const Color(0xFF9E9E9E);
+
     return Container(
       width: double.infinity,
       height: 68,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: navBg,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8,
@@ -121,14 +127,14 @@ class PediaBottomNavBar extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isSelected) ...[
-                        // State aktif: lingkaran putih dengan icon biru #72A9F4
+                        // State aktif: lingkaran dengan icon biru #72A9F4
                         Container(
                           width: 36,
                           height: 36,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: activeCircleBg,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4,
@@ -153,17 +159,17 @@ class PediaBottomNavBar extends StatelessWidget {
                               style: GoogleFonts.lato(
                                 fontSize: 11,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: activeLabelColor,
                               ),
                             ),
                           ),
                         ),
                       ] else ...[
-                        // State tidak aktif: icon & label abu-abu #9E9E9E
+                        // State tidak aktif: icon & label abu-abu
                         Icon(
                           item.icon,
                           size: 24,
-                          color: const Color(0xFF9E9E9E),
+                          color: inactiveColor,
                         ),
                         const SizedBox(height: 3),
                         Flexible(
@@ -177,7 +183,7 @@ class PediaBottomNavBar extends StatelessWidget {
                               style: GoogleFonts.lato(
                                 fontSize: 11,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: inactiveColor,
                               ),
                             ),
                           ),

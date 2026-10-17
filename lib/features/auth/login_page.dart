@@ -8,6 +8,7 @@ import '../../core/services/user_service.dart';
 import '../../core/services/child_service.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/services/staff_auth_service.dart';
+import '../../core/services/session_service.dart';
 import '../pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import '../dokter/beranda/beranda_dokter_page.dart';
 import '../pmik_admin/beranda/beranda_pmik_page.dart';
@@ -36,7 +37,12 @@ import '../pengguna/beranda/beranda_page.dart';
 /// 9. Footer: Belum memiliki Akun? Daftar (menuju RegisterPage).
 /// 10. Seluruh batas konten berada 16dp dari pinggir kiri dan kanan layar.
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final String? sessionExpiredMessage;
+
+  const LoginPage({
+    super.key,
+    this.sessionExpiredMessage,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -69,6 +75,12 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _emailFocus.addListener(() => setState(() {}));
     _passwordFocus.addListener(() => setState(() {}));
+
+    if (widget.sessionExpiredMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        SessionService.showExpiredNotice(widget.sessionExpiredMessage!);
+      });
+    }
   }
 
   @override
@@ -118,6 +130,7 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
+      await SessionService().saveStaffSession(staff);
 
       // Arahkan setiap role ke beranda yang sesuai.
       Widget destination;
@@ -161,6 +174,10 @@ class _LoginPageState extends State<LoginPage> {
       );
       return;
     }
+
+    await SessionService().savePenggunaSession(
+      userId: UserService().currentUser.id,
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -234,6 +251,9 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       final account = result.account!;
+      await SessionService().savePenggunaSession(
+        userId: UserService().currentUser.id,
+      );
       await ChildService().loadChildrenForCurrentUser();
 
       // Berhasil — tampilkan pesan sambutan lalu navigasi
@@ -298,6 +318,45 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (widget.sessionExpiredMessage != null) ...[
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF2F2),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFFFCA5A5),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.info_outline,
+                                  color: Color(0xFFDC2626),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    widget.sessionExpiredMessage!,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 13,
+                                      color: const Color(0xFF991B1B),
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 8),
 
                         // 1. Ilustrasi Login (width: 291, height: 163)
