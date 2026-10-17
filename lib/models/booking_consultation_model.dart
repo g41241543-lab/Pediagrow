@@ -14,6 +14,7 @@ enum BookingStatus {
 /// Model data untuk pemesanan jadwal (Booking) konsultasi dokter anak.
 class BookingConsultationModel {
   final String id;
+  final String? userId;
   final DoctorModel doctor;
   final ChildModel child;
   final DateTime scheduledDate;
@@ -51,8 +52,9 @@ class BookingConsultationModel {
     }
   }
 
-  const BookingConsultationModel({
+  BookingConsultationModel({
     required this.id,
+    this.userId,
     required this.doctor,
     required this.child,
     DateTime? scheduledDate,
@@ -70,8 +72,50 @@ class BookingConsultationModel {
     required this.createdAt,
   })  : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
         scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
-        scheduledStartDateTime = scheduledStartDateTime ?? (scheduledDate ?? bookingDate ?? createdAt),
-        scheduledEndDateTime = scheduledEndDateTime ?? (scheduledDate ?? bookingDate ?? createdAt);
+        scheduledStartDateTime = _resolveStartDateTime(
+          scheduledStartDateTime,
+          scheduledDate ?? bookingDate ?? createdAt,
+          scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
+        ),
+        scheduledEndDateTime = _resolveEndDateTime(
+          scheduledEndDateTime,
+          scheduledDate ?? bookingDate ?? createdAt,
+          scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
+        );
+
+  static DateTime _resolveStartDateTime(
+    DateTime? explicit,
+    DateTime baseDate,
+    String slotStr,
+  ) {
+    if (explicit != null) return explicit;
+    // Coba ekstrak jam & menit dari string slot, contoh: "09:00 - 09:30 WIB"
+    final matches = RegExp(r'(\d{1,2})[:.](\d{2})').allMatches(slotStr).toList();
+    if (matches.isNotEmpty) {
+      final hour = int.tryParse(matches[0].group(1) ?? '') ?? 9;
+      final minute = int.tryParse(matches[0].group(2) ?? '') ?? 0;
+      return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+    }
+    return baseDate;
+  }
+
+  static DateTime _resolveEndDateTime(
+    DateTime? explicit,
+    DateTime baseDate,
+    String slotStr,
+  ) {
+    if (explicit != null) return explicit;
+    final matches = RegExp(r'(\d{1,2})[:.](\d{2})').allMatches(slotStr).toList();
+    if (matches.length >= 2) {
+      final hour = int.tryParse(matches[1].group(1) ?? '') ?? 9;
+      final minute = int.tryParse(matches[1].group(2) ?? '') ?? 30;
+      return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+    } else if (matches.isNotEmpty) {
+      final start = _resolveStartDateTime(null, baseDate, slotStr);
+      return start.add(const Duration(minutes: 30));
+    }
+    return baseDate.add(const Duration(minutes: 30));
+  }
 
   /// Konversi dari DocumentSnapshot Firestore
   factory BookingConsultationModel.fromDoc(
@@ -133,12 +177,13 @@ class BookingConsultationModel {
     final ChildModel child = childMap is Map
         ? ChildModel.fromMap(Map<String, dynamic>.from(childMap))
         : ChildModel(
-            id: '',
+            id: (map['childId'] as String?) ?? '',
             name: map['childName'] as String? ?? 'Ananda',
           );
 
     return BookingConsultationModel(
       id: id ?? (map['id'] as String? ?? ''),
+      userId: map['userId'] as String? ?? (child.ownerId.isNotEmpty ? child.ownerId : null),
       doctor: doctor,
       child: child,
       scheduledDate: scheduledDate,
@@ -160,9 +205,23 @@ class BookingConsultationModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'userId': userId ?? child.ownerId,
+      'doctorId': doctor.id,
+      'childId': child.id,
       'doctor': {
         'id': doctor.id,
-        ...doctor.toMap(),
+        'name': doctor.name,
+        'specialization': doctor.specialization,
+        'avatar_url': doctor.avatarUrl,
+        'asset_image_path': doctor.assetImagePath,
+        'experience_years': doctor.experienceYears,
+        'str_number': doctor.strNumber,
+        'hospital': doctor.hospital,
+        'places_of_practice': doctor.placesOfPractice,
+        'consultation_fee': doctor.consultationFee,
+        'is_online': doctor.isOnline,
+        'staff_account_id': doctor.staffAccountId,
+        'email': doctor.email,
       },
       'child': child.toMap(),
       'childName': child.name,
@@ -243,6 +302,7 @@ class BookingConsultationModel {
 
   BookingConsultationModel copyWith({
     String? id,
+    String? userId,
     DoctorModel? doctor,
     ChildModel? child,
     DateTime? scheduledDate,
@@ -283,6 +343,7 @@ class BookingConsultationModel {
 
     return BookingConsultationModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       doctor: doctor ?? this.doctor,
       child: child ?? this.child,
       scheduledDate: scheduledDate ?? bookingDate ?? this.scheduledDate,

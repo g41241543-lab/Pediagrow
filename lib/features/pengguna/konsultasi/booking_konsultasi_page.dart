@@ -7,10 +7,12 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
 import 'status_booking_page.dart';
+
 
 /// Halaman "Booking Konsultasi Dokter" PediaGrow.
 ///
@@ -155,13 +157,35 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       return;
     }
 
-    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
-    final booking = BookingService().createBooking(
-      doctor: widget.doctor,
-      child: _selectedChild!,
-      date: _selectedDate,
-      slot: _selectedSlot!,
-    );
+    // Tampilkan loading indicator
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(color: Color(0xFF2B7AE8)),
+        ),
+      );
+    }
+
+    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis & tersimpan ke Firestore)
+    BookingConsultationModel booking;
+    try {
+      booking = await BookingService().createBooking(
+        doctor: widget.doctor,
+        child: _selectedChild!,
+        date: _selectedDate,
+        slot: _selectedSlot!,
+      );
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop(); // tutup loading
+      if (mounted) {
+        _showSnackbar('Gagal membuat booking: $e');
+      }
+      return;
+    }
+
+    if (mounted) Navigator.of(context, rootNavigator: true).pop(); // tutup loading
 
     // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
     NotificationService().addBookingReminderNotification(

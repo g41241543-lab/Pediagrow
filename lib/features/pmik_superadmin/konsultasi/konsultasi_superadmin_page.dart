@@ -44,7 +44,9 @@ class _KonsultasiItem {
     this.childPhotoUrl,
     required this.doctorName,
     required this.status,
+    // ignore: unused_element_parameter
     this.scheduledDate,
+    // ignore: unused_element_parameter
     this.scheduledTime,
     this.sessionId,
     this.parentName,
@@ -54,124 +56,9 @@ class _KonsultasiItem {
   });
 }
 
-// ─── Mock data (mirip screenshot desain) ─────────────────────────────────────
-final List<_KonsultasiItem> _mockBerlangsung = [
-  const _KonsultasiItem(
-    id: 'k1',
-    childName: 'Devaro Ramadhan',
-    childAge: '1 tahun 2 bulan 13 hari',
-    childGender: 'Laki-laki',
-    childPhotoUrl: null,
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k2',
-    childName: 'Arfa Zivano Kayfan',
-    childAge: '0 tahun 4 bulan 23 hari',
-    childGender: 'Laki-laki',
-    childPhotoUrl: null,
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k3',
-    childName: 'Naya Seiza Putri',
-    childAge: '0 tahun 8 bulan 20 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k4',
-    childName: 'Zafran Aditya',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k5',
-    childName: 'Aisha Arunika Zahra',
-    childAge: '0 tahun 5 bulan 0 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'berlangsung',
-  ),
-];
-
-final List<_KonsultasiItem> _mockJadwal = [
-  const _KonsultasiItem(
-    id: 'j1',
-    childName: 'Amara Adiratna',
-    childAge: '1 tahun 2 bulan 10 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
-    status: 'jadwal',
-    scheduledDate: 'Senin, 13 Okt 2026',
-    scheduledTime: '09:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j2',
-    childName: 'Kaia Anastasya',
-    childAge: '1 tahun 3 bulan 3 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Selasa, 14 Okt 2026',
-    scheduledTime: '10:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j3',
-    childName: 'Zafran Aditya',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Rabu, 15 Okt 2026',
-    scheduledTime: '08:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j4',
-    childName: 'Arlo Gavindra',
-    childAge: '0 tahun 11 bulan 21 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Devina Marchita I. S., Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Kamis, 16 Okt 2026',
-    scheduledTime: '11:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j5',
-    childName: 'Amara Adiratna',
-    childAge: '1 tahun 10 bulan 09 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Jumat, 17 Okt 2026',
-    scheduledTime: '13:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j6',
-    childName: 'Zalvian Sadewa',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'jadwal',
-    scheduledDate: 'Senin, 20 Okt 2026',
-    scheduledTime: '09:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j7',
-    childName: 'Mahesa Putra',
-    childAge: '1 tahun 1 bulan 16 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Selasa, 21 Okt 2026',
-    scheduledTime: '15:00',
-  ),
-];
+// ─── Data Konsultasi: 100% Menggunakan Data Asli Firebase Firestore ─────────
+final List<_KonsultasiItem> _mockBerlangsung = [];
+final List<_KonsultasiItem> _mockJadwal = [];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -208,6 +95,33 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Returns true jika jadwal mock item ini belum lewat (tanggal & jam masih di depan sekarang).
+  /// Format scheduledDate: "Senin, 20 Okt 2026", scheduledTime: "09:30"
+  bool _isJadwalBelumLewat(_KonsultasiItem item) {
+    final dateStr = item.scheduledDate;
+    final timeStr = item.scheduledTime;
+    if (dateStr == null || dateStr.isEmpty) return false;
+    const bulan = {
+      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'Mei': 5, 'Jun': 6,
+      'Jul': 7, 'Agu': 8, 'Sep': 9, 'Okt': 10, 'Nov': 11, 'Des': 12,
+    };
+    final parts = dateStr.replaceAll(',', '').split(' ');
+    if (parts.length < 4) return false;
+    final day = int.tryParse(parts[1]);
+    final month = bulan[parts[2]];
+    final year = int.tryParse(parts[3]);
+    if (day == null || month == null || year == null) return false;
+    int hour = 23, minute = 59;
+    if (timeStr != null && timeStr.isNotEmpty) {
+      final timeParts = timeStr.split(':');
+      hour = int.tryParse(timeParts[0]) ?? 23;
+      minute = timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 59) : 59;
+    }
+    final scheduledEnd = DateTime(year, month, day, hour, minute)
+        .add(const Duration(minutes: 30));
+    return DateTime.now().isBefore(scheduledEnd);
   }
 
   // ─── Navigation ────────────────────────────────────────────────────────────
@@ -497,14 +411,24 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, userBookings, _) {
-            // PMIK Superadmin menampilkan seluruh data konsultasi (tanpa filter per dokter):
+            // PMIK Superadmin menampilkan seluruh data konsultasi (tanpa filter per dokter)
             final allBerlangsung = [
               ...firestoreBerlangsung,
               ..._mockBerlangsung,
             ];
 
+            // Filter mock jadwal yang sudah lewat
+            final validMockJadwal = _mockJadwal
+                .where(_isJadwalBelumLewat)
+                .toList();
+
+            // Filter booking dari Firebase yang sudah expired
+            final validUserBookings = userBookings
+                .where((b) => !b.isExpired)
+                .toList();
+
             final int berlangsungCount = allBerlangsung.length;
-            final int jadwalCount = _mockJadwal.length + userBookings.length;
+            final int jadwalCount = validMockJadwal.length + validUserBookings.length;
 
             return Scaffold(
               backgroundColor: Colors.white,
@@ -523,7 +447,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         controller: _tabController,
                         children: [
                           _buildBerlangsungTab(allBerlangsung),
-                          _buildJadwalKonsultasiTab(userBookings, _mockJadwal),
+                          _buildJadwalKonsultasiTab(validUserBookings, validMockJadwal),
                         ],
                       ),
                     ),
