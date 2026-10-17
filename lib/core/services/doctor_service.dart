@@ -419,12 +419,11 @@ class DoctorService {
       await db.collection(_collection).doc(doctorToSave.id).update(data);
 
       // Sinkronkan juga avatar ke staff_accounts jika staffAccountId ada
-      if (doctorToSave.staffAccountId != null &&
-          doctorToSave.staffAccountId!.isNotEmpty &&
+      if (doctorToSave.staffAccountId.isNotEmpty &&
           persistableAvatar != null) {
         try {
           await StaffAuthService().updateStaffAccount(
-            doctorToSave.staffAccountId!,
+            doctorToSave.staffAccountId,
             avatarPath: persistableAvatar,
           );
         } catch (_) {}

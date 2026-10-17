@@ -11,6 +11,7 @@ import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart'
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import '../../pmik_superadmin/beranda/rekapitulasi/rekapitulasi_stunting_page.dart';
 import 'data_pasien/data_pasien_page.dart';
+import '../jadwal/atur_jadwal_dokter_page.dart';
 import '../konsultasi/konsultasi_dokter_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil_dokter_page.dart';
@@ -437,7 +438,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 customIcon: _buildJadwalPraktikLogo(),
                 blobColor: const Color(0xFF0284C7),
                 isDisabled: false,
-                onTap: () => _navigateTo(const AturJadwalDokterPage()),
+                onTap: _openAturJadwalDokter,
               ),
             ),
           ],
@@ -484,6 +485,30 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           ],
         ),
       ],
+    );
+  }
+
+  /// Logo Jadwal Praktik: kalender biru berikon jam/kalender
+  Widget _buildJadwalPraktikLogo() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0284C7),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.calendar_month_rounded,
+        color: Colors.white,
+        size: 24,
+      ),
     );
   }
 

@@ -127,12 +127,13 @@ class BookingService {
     return newBooking;
   }
 
-  /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan)
+  /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan, dan sessionId)
   void updateBookingForm({
     required String bookingId,
     required double weightKg,
     required double heightCm,
     required String complaint,
+    String? sessionId,
   }) {
     final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
     final idx = list.indexWhere((b) => b.id == bookingId);
@@ -141,6 +142,7 @@ class BookingService {
         weightKg: weightKg,
         heightCm: heightCm,
         complaint: complaint,
+        sessionId: sessionId ?? list[idx].sessionId,
         status: 'Sedang Berlangsung',
       );
       list[idx] = updated;

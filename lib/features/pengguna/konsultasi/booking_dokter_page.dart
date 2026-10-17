@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
@@ -80,7 +81,49 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       (i) => DateTime(now.year, now.month, now.day + 1 + i),
     );
     _selectedDate = _availableDates.first;
-    _selectedTimeSlot = _timeSlots[1]; // default jam 09:30
+    _refreshSlots();
+
+    DoctorService().doctorsNotifier.addListener(_onDataUpdated);
+    JadwalDokterService().jadwalListNotifier.addListener(_onDataUpdated);
+    JadwalDokterService().cutiListNotifier.addListener(_onDataUpdated);
+    BookingService().bookingsNotifier.addListener(_onDataUpdated);
+  }
+
+  @override
+  void dispose() {
+    DoctorService().doctorsNotifier.removeListener(_onDataUpdated);
+    JadwalDokterService().jadwalListNotifier.removeListener(_onDataUpdated);
+    JadwalDokterService().cutiListNotifier.removeListener(_onDataUpdated);
+    BookingService().bookingsNotifier.removeListener(_onDataUpdated);
+    super.dispose();
+  }
+
+  void _onDataUpdated() {
+    if (mounted) {
+      setState(() {
+        _refreshSlots();
+      });
+    }
+  }
+
+  void _refreshSlots() {
+    final slots = JadwalDokterService().hitungSlotKosong(
+      dokterId: _doctor.id,
+      tanggal: _selectedDate,
+    );
+    _availableSlots = slots;
+
+    // Sinkronkan slot terpilih
+    if (_selectedTimeSlot != null) {
+      final exists = slots.any((s) => s.timeLabel == _selectedTimeSlot && s.isAvailable);
+      if (!exists) {
+        final firstAvail = slots.where((s) => s.isAvailable).firstOrNull;
+        _selectedTimeSlot = firstAvail?.timeLabel;
+      }
+    } else {
+      final firstAvail = slots.where((s) => s.isAvailable).firstOrNull;
+      _selectedTimeSlot = firstAvail?.timeLabel;
+    }
   }
 
   void _changeChild() {
@@ -161,7 +204,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       doctorName: _doctor.name,
       childName: _child.name,
       dateFormatted: newBooking.formattedDate,
-      timeSlot: _selectedTimeSlot,
+      timeSlot: _selectedTimeSlot!,
       scheduledTime: newBooking.bookingDate,
     );
 
@@ -793,55 +836,145 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
           ],
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _timeSlots.map((slot) {
-            final isSelected = _selectedTimeSlot == slot;
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedTimeSlot = slot;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isSelected ? _colorPrimaryBlue : _colorBorder,
-                    width: isSelected ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 14,
-                      color: isSelected ? _colorPrimaryBlue : _colorLabelGrey,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      slot,
+        if (_availableSlots.isEmpty) ...[
+          if (cuti != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCD34D)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.event_busy_rounded, color: Color(0xFFD97706), size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '${_doctor.name} sedang cuti (${cuti.alasan}). Silakan pilih tanggal lain yang tersedia.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: isSelected ? _colorPrimaryBlue : _colorTextBlack,
+                        color: const Color(0xFF92400E),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          }).toList(),
-        ),
+            )
+          else if (!isPraktik)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _colorBorder),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.hotel_rounded, color: _colorLabelGrey, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Dokter tidak memiliki jadwal praktik reguler pada hari ini. Silakan pilih tanggal praktik lainnya.',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: _colorLabelGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _colorBorder),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, color: _colorLabelGrey, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Semua slot konsultasi pada tanggal ini telah penuh atau jam praktik telah selesai. Silakan pilih tanggal berikutnya.',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: _colorLabelGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+        ] else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableSlots.map((slot) {
+              final isSelected = _selectedTimeSlot == slot.timeLabel;
+              final isAvail = slot.isAvailable;
+              return GestureDetector(
+                onTap: isAvail
+                    ? () {
+                        setState(() {
+                          _selectedTimeSlot = slot.timeLabel;
+                        });
+                      }
+                    : null,
+                child: Opacity(
+                  opacity: isAvail ? 1.0 : 0.45,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? _colorPrimaryBlue : _colorBorder,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 14,
+                          color: isSelected ? _colorPrimaryBlue : _colorLabelGrey,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          slot.timeLabel,
+                          style: GoogleFonts.lato(
+                            fontSize: 12.5,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected ? _colorPrimaryBlue : _colorTextBlack,
+                            decoration: isAvail ? null : TextDecoration.lineThrough,
+                          ),
+                        ),
+                        if (!isAvail) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '(Penuh)',
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              color: const Color(0xFFEF4444),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
       ],
     );
   }

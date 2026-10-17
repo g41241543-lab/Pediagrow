@@ -208,11 +208,10 @@ class UserService {
         passwordHash: _hashPassword(password),
       );
 
-      final docRef = await db.collection(_collection).add({
+      await db.collection(_collection).add({
         ...newUser.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
-      final savedUser = newUser.copyWith(id: docRef.id);
 
       // Akun baru berhasil dibuat di Firestore.
       // Sesi resmi akan diaktifkan setelah pengguna masuk lewat halaman Masuk.
