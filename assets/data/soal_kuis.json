@@ -1,73 +1,73 @@
 [
   {
     "id": 1,
-    "kategori": "Nutrisi",
-    "pertanyaan": "ASI eksklusif diberikan kepada bayi selama 6 bulan pertama tanpa makanan atau minuman tambahan apapun.",
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Menurut Permenkes No. 2 Tahun 2020, stunting ditentukan berdasarkan indikator tinggi badan menurut umur (TB/U) dengan nilai Z-score di bawah -2 SD.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. WHO dan Kemenkes RI merekomendasikan ASI eksklusif selama 6 bulan pertama kehidupan bayi. ASI mengandung semua nutrisi yang dibutuhkan bayi dan memberikan perlindungan imunologis yang optimal."
+    "penjelasan": "Benar. Berdasarkan Permenkes RI No. 2 Tahun 2020 tentang Standar Antropometri Anak, kategori pendek (stunted) ditetapkan jika Z-score TB/U berada pada rentang -3 SD hingga kurang dari -2 SD, dan sangat pendek (severely stunted) jika Z-score di bawah -3 SD."
   },
   {
     "id": 2,
-    "kategori": "Nutrisi",
-    "pertanyaan": "Bayi berusia 3 bulan sudah boleh diberikan bubur sebagai makanan pendamping ASI.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. MPASI (Makanan Pendamping ASI) baru boleh diberikan setelah bayi berusia 6 bulan. Sistem pencernaan bayi belum siap menerima makanan padat sebelum usia tersebut."
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Berdasarkan Perpres No. 72 Tahun 2021, target prevalensi stunting nasional Indonesia pada tahun 2024 adalah di bawah 14 persen.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Peraturan Presiden No. 72 Tahun 2021 tentang Percepatan Penurunan Stunting menetapkan target penurunan prevalensi stunting hingga 14% pada tahun 2024, dari angka 24,4% pada tahun 2021 berdasarkan SSGI."
   },
   {
     "id": 3,
-    "kategori": "Imunisasi",
-    "pertanyaan": "Vaksin BCG diberikan untuk mencegah penyakit tuberkulosis (TBC) pada anak.",
-    "jawaban_benar": true,
-    "penjelasan": "Benar. Vaksin BCG (Bacillus Calmette-Guérin) adalah vaksin yang diberikan untuk memberikan perlindungan terhadap infeksi tuberkulosis, terutama bentuk TB yang berat pada anak-anak."
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Menurut WHO (2006), 1000 Hari Pertama Kehidupan (HPK) dihitung sejak anak lahir hingga usia 3 tahun.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Menurut WHO, 1000 Hari Pertama Kehidupan (HPK) dihitung sejak masa kehamilan (270 hari dalam kandungan) hingga anak berusia 2 tahun (730 hari), bukan sejak lahir hingga 3 tahun. Periode ini adalah jendela emas pencegahan stunting."
   },
   {
     "id": 4,
-    "kategori": "Imunisasi",
-    "pertanyaan": "Imunisasi dapat menyebabkan anak menderita penyakit yang ingin dicegah oleh vaksin tersebut.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Vaksin menggunakan virus/bakteri yang sudah dilemahkan atau dimatikan, sehingga tidak bisa menyebabkan penyakit. Efek samping ringan seperti demam adalah respons normal sistem imun."
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Berdasarkan Permenkes No. 2 Tahun 2020, anak dengan Z-score berat badan menurut tinggi badan (BB/TB) di atas +3 SD dikategorikan sebagai obesitas.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Permenkes RI No. 2 Tahun 2020 menetapkan bahwa nilai Z-score BB/TB di atas +3 SD dikategorikan sebagai obesitas, sementara +2 SD hingga +3 SD dikategorikan gizi lebih, dan +1 SD hingga +2 SD dikategorikan berisiko gizi lebih."
   },
   {
     "id": 5,
-    "kategori": "Stunting",
-    "pertanyaan": "Stunting adalah kondisi gagal tumbuh pada anak akibat kekurangan gizi kronis yang ditandai dengan tinggi badan di bawah rata-rata.",
+    "kategori": "ASI & MPASI",
+    "pertanyaan": "Menurut rekomendasi IDAI dan WHO, ASI eksklusif diberikan selama 6 bulan penuh tanpa tambahan makanan atau minuman apapun termasuk air putih.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Stunting terjadi ketika anak memiliki tinggi badan lebih dari 2 standar deviasi di bawah median WHO. Penyebab utamanya adalah kekurangan gizi kronis pada 1000 Hari Pertama Kehidupan."
+    "penjelasan": "Benar. IDAI dan WHO merekomendasikan ASI eksklusif selama 6 bulan pertama kehidupan tanpa tambahan makanan atau minuman apapun termasuk air putih, karena ASI sudah mengandung 88% air yang cukup untuk memenuhi kebutuhan bayi."
   },
   {
     "id": 6,
-    "kategori": "Stunting",
-    "pertanyaan": "Stunting hanya berdampak pada pertumbuhan fisik anak dan tidak mempengaruhi kecerdasan.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Stunting berdampak ganda: selain menghambat pertumbuhan fisik, juga mengganggu perkembangan otak sehingga menurunkan kecerdasan, kemampuan belajar, dan produktivitas di masa dewasa."
+    "kategori": "ASI & MPASI",
+    "pertanyaan": "Menurut Permenkes No. 41 Tahun 2014 tentang Pedoman Gizi Seimbang, MPASI yang baik harus memenuhi prinsip tepat waktu, tepat jumlah, tepat jenis, dan tepat cara pemberian.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Permenkes RI No. 41 Tahun 2014 tentang Pedoman Gizi Seimbang menyebutkan bahwa MPASI yang berkualitas harus memenuhi empat prinsip: tepat waktu (dimulai usia 6 bulan), tepat jumlah (sesuai kebutuhan energi), tepat jenis (beragam dan bergizi), dan tepat cara (higienis dan responsif)."
   },
   {
     "id": 7,
-    "kategori": "Perkembangan",
-    "pertanyaan": "Bayi normal umumnya mulai bisa berjalan secara mandiri pada usia 9-15 bulan.",
-    "jawaban_benar": true,
-    "penjelasan": "Benar. Sebagian besar bayi mulai berjalan antara usia 9-15 bulan. Variasi ini adalah normal, karena setiap anak berkembang dengan kecepatan yang berbeda-beda."
+    "kategori": "ASI & MPASI",
+    "pertanyaan": "Berdasarkan panduan IDAI, pemberian madu pada bayi di bawah usia 1 tahun diperbolehkan karena kandungan nutrisinya tinggi.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. IDAI menegaskan bahwa madu TIDAK boleh diberikan kepada bayi di bawah usia 1 tahun karena berisiko mengandung spora Clostridium botulinum yang dapat menyebabkan botulisme bayi, kondisi serius akibat sistem pencernaan bayi yang belum matang."
   },
   {
     "id": 8,
-    "kategori": "Perkembangan",
-    "pertanyaan": "Anak usia 2 tahun sudah seharusnya bisa berbicara dengan kalimat lengkap dan jelas seperti orang dewasa.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Pada usia 2 tahun, anak umumnya mampu mengucapkan sekitar 50 kata dan mulai menggabungkan 2 kata. Kemampuan berbicara seperti orang dewasa berkembang bertahap hingga usia 5-6 tahun."
+    "kategori": "Perkembangan Motorik & Bahasa",
+    "pertanyaan": "Berdasarkan Buku KIA Kemenkes RI, anak usia 9 bulan seharusnya sudah bisa duduk tanpa bantuan dan mulai merangkak.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Buku KIA (Kesehatan Ibu dan Anak) Kemenkes RI mencantumkan bahwa pada usia 9 bulan, milestone perkembangan motorik anak meliputi duduk tanpa bantuan dan mulai merangkak, sebagai bagian dari pemantauan tumbuh kembang di posyandu."
   },
   {
     "id": 9,
-    "kategori": "Nutrisi",
-    "pertanyaan": "Zat besi sangat penting untuk mencegah anemia dan mendukung perkembangan otak anak.",
-    "jawaban_benar": true,
-    "penjelasan": "Benar. Zat besi berperan dalam pembentukan hemoglobin yang membawa oksigen ke otak. Kekurangan zat besi dapat menyebabkan anemia dan menghambat perkembangan kognitif anak."
+    "kategori": "Perkembangan Motorik & Bahasa",
+    "pertanyaan": "Menurut IDAI, keterlambatan bicara pada anak usia 2 tahun yang belum bisa mengucapkan minimal 50 kata tidak perlu segera dikonsultasikan ke dokter.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. IDAI menyatakan bahwa pada usia 2 tahun, anak normalnya sudah memiliki kosakata minimal 50 kata dan bisa merangkai 2 kata. Jika belum tercapai, kondisi ini disebut keterlambatan bicara (speech delay) dan harus segera dikonsultasikan untuk evaluasi dan intervensi dini."
   },
   {
     "id": 10,
-    "kategori": "Kebersihan",
-    "pertanyaan": "Mencuci tangan dengan sabun cukup dilakukan setelah buang air besar saja.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Cuci tangan dengan sabun harus dilakukan di berbagai momen penting: sebelum dan sesudah makan, setelah BAB/BAK, setelah bermain, setelah batuk/bersin, dan setelah memegang hewan."
+    "kategori": "Imunisasi & Kesehatan",
+    "pertanyaan": "Berdasarkan jadwal imunisasi IDAI 2023, vaksin MR (Measles-Rubella) diberikan pertama kali pada usia 9 bulan.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Jadwal imunisasi IDAI 2023 merekomendasikan pemberian vaksin MR (Measles-Rubella) pertama pada usia 9 bulan, dilanjutkan pada usia 18 bulan, sebagai perlindungan terhadap campak dan rubella yang dapat menghambat tumbuh kembang anak."
   },
   {
     "id": 11,

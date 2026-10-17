@@ -378,7 +378,6 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
-        sessionId: targetBooking.sessionId ?? sessionId,
       );
     }
 
