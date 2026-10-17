@@ -128,11 +128,13 @@ class BookingService {
   }
 
   /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan)
+  /// dan ID sesi chat (jika sesi sudah dibuat di Firestore).
   void updateBookingForm({
     required String bookingId,
     required double weightKg,
     required double heightCm,
     required String complaint,
+    String? sessionId,
   }) {
     final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
     final idx = list.indexWhere((b) => b.id == bookingId);
@@ -141,6 +143,7 @@ class BookingService {
         weightKg: weightKg,
         heightCm: heightCm,
         complaint: complaint,
+        sessionId: sessionId,
         status: 'Sedang Berlangsung',
       );
       list[idx] = updated;
