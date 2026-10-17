@@ -54,14 +54,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         widget.doctor ??
         (availableDoctors.isNotEmpty
             ? availableDoctors.first
-            : const DoctorModel(
-                id: 'doc_default',
-                name: 'dr. Ahmad Nuri, Sp. A',
-                specialization: 'Spesialis Anak',
-                experienceYears: 10,
-                isOnline: true,
-                placesOfPractice: ['Klinik Tumbuh Kembang PediaGrow'],
-              ));
+            : DoctorModel.defaultDoctor);
 
     // Resolusi anak (fallback ke active child atau anak pertama dari ChildService)
     _child =
@@ -173,7 +166,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  void _confirmBooking() {
+  Future<void> _confirmBooking() async {
     if (_selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -186,18 +179,54 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       return;
     }
 
+    final selectedSlotObj = _availableSlots
+        .where((s) => s.timeLabel == _selectedTimeSlot)
+        .firstOrNull;
+    final startDt = selectedSlotObj?.startDateTime ??
+        DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          9,
+          0,
+        );
+    final endDt = selectedSlotObj?.endDateTime ??
+        startDt.add(const Duration(minutes: 30));
+
+    final calUrl = BookingService().generateGoogleCalendarUrl(
+      doctor: _doctor,
+      child: _child,
+      startTime: startDt,
+      endTime: endDt,
+    );
+
     final newBooking = BookingConsultationModel(
       id: 'book_${DateTime.now().millisecondsSinceEpoch}',
+      userId: _child.ownerId.isNotEmpty ? _child.ownerId : null,
       doctor: _doctor,
       child: _child,
       scheduledDate: _selectedDate,
       scheduledTimeSlot: _selectedTimeSlot!,
+      scheduledStartDateTime: startDt,
+      scheduledEndDateTime: endDt,
+      googleCalendarUrl: calUrl,
       status: 'Terjadwal',
       createdAt: DateTime.now(),
     );
 
-    // Simpan ke BookingService
-    BookingService().addBooking(newBooking);
+    // Simpan ke BookingService (tersimpan ke Cloud Firestore koleksi consultation_booking)
+    try {
+      await BookingService().addBooking(newBooking);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan booking: $e'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
 
     // Otomatis jadwalkan notifikasi pengingat kalender
     NotificationService().addBookingReminderNotification(
@@ -205,8 +234,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       childName: _child.name,
       dateFormatted: newBooking.formattedDate,
       timeSlot: _selectedTimeSlot!,
-      scheduledTime: newBooking.bookingDate,
+      scheduledTime: startDt,
     );
+
+    if (!mounted) return;
 
     // Tampilkan dialog sukses
     showDialog(
@@ -272,7 +303,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                       builder: (_) =>
                           const DaftarDokterPage(initialTabIndex: 1),
                     ),
-                    (route) => false,
+                    (route) => route.isFirst,
                   );
                 },
                 style: ElevatedButton.styleFrom(

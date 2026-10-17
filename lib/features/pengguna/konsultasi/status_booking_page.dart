@@ -8,6 +8,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../beranda/beranda_page.dart';
 import 'chat_konsultasi_page.dart';
+import 'daftar_dokter_page.dart';
 import 'formulir_konsultasi_page.dart';
 
 /// Halaman "Status Booking Konsultasi" PediaGrow.
@@ -129,16 +130,34 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
 
+  void _handleNavigateBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const DaftarDokterPage(initialTabIndex: 1),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header (56dp)
-            _buildHeader(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleNavigateBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        bottomNavigationBar: _buildBottomBar(),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Header (56dp)
+              _buildHeader(),
 
             // Konten Tiket Booking
             Expanded(
@@ -172,8 +191,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Header (56dp) ──────────────────────────────────────────────────────────
   Widget _buildHeader() {
@@ -184,6 +204,31 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
+          GestureDetector(
+            onTap: _handleNavigateBack,
+            behavior: HitTestBehavior.opaque,
+            child: const Padding(
+              padding: EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: _kTextDark,
+                size: 24.0,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: Text(
+              'Status Booking',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.lato(
+                fontSize: 19.0,
+                fontWeight: FontWeight.bold,
+                color: _kTextDark,
+              ),
+            ),
+          ),
           GestureDetector(
             onTap: () {
               Navigator.of(context).pushAndRemoveUntil(
@@ -197,20 +242,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               child: Icon(
                 Icons.home_outlined,
                 color: _kTextDark,
-                size: 26.0,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Text(
-              'Status Booking Konsultasi',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.lato(
-                fontSize: 19.0,
-                fontWeight: FontWeight.bold,
-                color: _kTextDark,
+                size: 24.0,
               ),
             ),
           ),

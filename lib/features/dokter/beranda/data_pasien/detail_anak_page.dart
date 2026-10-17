@@ -855,11 +855,6 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               }
             }
 
-            // Cek juga apakah pasien ini termasuk sesi konsultasi aktif default dokter
-            final bool isDummyActive =
-                (docName.contains('ali') && childName.contains('al fatih')) ||
-                    (docName.contains('gebyar') && childName.contains('aisyah'));
-
             // 1. Cek apakah ada sesi konsultasi aktif di Firestore
             final bool isFirestoreActive =
                 matchedSession != null && matchedSession.status == KonsultasiStatus.aktif;
@@ -869,10 +864,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 matchedBooking != null && _isBookingActiveNow(matchedBooking);
 
             // 3. Status aktif riil (hanya aktif saat jadwal bookingnya tiba atau sesi aktif)
-            final bool isCurrentlyActive =
-                isFirestoreActive || isBookingActive || isDummyActive;
+            final bool isCurrentlyActive = isFirestoreActive || isBookingActive;
 
-            if (matchedSession != null || matchedBooking != null || isDummyActive) {
+            if (matchedSession != null || matchedBooking != null) {
               final parentDisplayName = matchedSession?.parentName.isNotEmpty == true
                   ? matchedSession!.parentName
                   : _parentUser?.name.isNotEmpty == true

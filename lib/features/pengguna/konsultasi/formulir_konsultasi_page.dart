@@ -378,10 +378,11 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
+        sessionId: sessionId,
       );
     }
 
-    final effectiveSessionId = targetBooking?.sessionId ?? sessionId;
+    final effectiveSessionId = sessionId ?? targetBooking?.sessionId ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
 
     // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
     Navigator.pushReplacement(

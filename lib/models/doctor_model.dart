@@ -185,20 +185,19 @@ class DoctorModel {
 
   /// Dokter default untuk fallback jika data dokter tidak disertakan
   static const DoctorModel defaultDoctor = DoctorModel(
-    id: 'doc-default',
-    name: 'dr. Ririn Esterina, Sp.A',
+    id: 'doc-reny',
+    name: 'dr. Reny, Sp.A',
     specialization: 'Spesialis Anak',
-    assetImagePath: 'assets/images/doctor_ririn.png',
-    experienceYears: 9,
-    strNumber: '3321201320131150',
-    hospital: 'RS Citra Husada Jember',
+    assetImagePath: 'assets/images/doctor_avatar.png',
+    experienceYears: 8,
+    strNumber: 'STR-33.1.1.100.2.20.123456',
+    hospital: 'RSIA PediaGrow',
     placesOfPractice: [
-      'RS Citra Husada Jember',
-      'IHC RS Perkebunan Jember Klinik',
+      'RSIA PediaGrow',
       'Praktek Mandiri',
     ],
     consultationFee: 35000,
     isOnline: true,
-    email: 'drririnesterina@gmail.com',
+    email: 'reny@pediagrow.com',
   );
 }
