@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -783,7 +784,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
       final effectiveChild = widget.child ?? ChildService().activeChild;
       final effectiveUserId = widget.userId ??
-          effectiveChild?.userId ??
+          effectiveChild?.ownerId ??
           UserService().currentUser.id;
 
       final complaintText = (widget.complaint?.trim().isNotEmpty == true)
@@ -806,9 +807,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         consultationDate: formattedDate,
         consultationTime: formattedTime,
         bbLahir: effectiveChild?.birthWeightKg ?? 2.4,
-        bbSaatIni: widget.weightKg ?? effectiveChild?.currentWeightKg ?? 3.4,
+        bbSaatIni: widget.weightKg ?? effectiveChild?.weightKg ?? 3.4,
         tbLahir: effectiveChild?.birthHeightCm ?? 44.0,
-        tbSaatIni: widget.heightCm ?? effectiveChild?.currentHeightCm ?? 51.0,
+        tbSaatIni: widget.heightCm ?? effectiveChild?.heightCm ?? 51.0,
         complaint: complaintText,
         complaintShort: shortComplaint,
         doctorAssessment:

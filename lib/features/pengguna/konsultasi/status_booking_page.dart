@@ -186,18 +186,22 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         children: [
           GestureDetector(
             onTap: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const BerandaPage()),
-                (route) => false,
-              );
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const BerandaPage()),
+                  (route) => false,
+                );
+              }
             },
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
               child: Icon(
-                Icons.home_outlined,
+                Icons.arrow_back,
                 color: _kTextDark,
-                size: 26.0,
+                size: 24.0,
               ),
             ),
           ),

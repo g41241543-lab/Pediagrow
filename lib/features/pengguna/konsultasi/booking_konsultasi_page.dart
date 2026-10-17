@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
@@ -119,6 +120,17 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     });
   }
 
+  String _formatIndonesianFullDate(DateTime date) {
+    const days = [
+      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+    ];
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
   Future<void> _onConfirmBooking() async {
     if (_selectedChild == null) {
       _showSnackbar('Silakan pilih profil anak terlebih dahulu');
@@ -130,36 +142,415 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       return;
     }
 
-    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
-    final booking = BookingService().createBooking(
-      doctor: widget.doctor,
-      child: _selectedChild!,
-      date: _selectedDate,
-      slot: _selectedSlot!,
+    // Tampilkan Pop-Up Konfirmasi Booking
+    final bool? isConfirmed = await _showConfirmationDialog();
+    if (isConfirmed != true || !mounted) return;
+
+    try {
+      // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
+      final booking = BookingService().createBooking(
+        doctor: widget.doctor,
+        child: _selectedChild!,
+        date: _selectedDate,
+        slot: _selectedSlot!,
+      );
+
+      // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
+      NotificationService().addBookingReminderNotification(
+        doctorName: widget.doctor.name,
+        childName: _selectedChild!.name,
+        dateFormatted:
+            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+        timeSlot: _selectedSlot!.time,
+        scheduledTime: booking.scheduledStartDateTime,
+      );
+
+      if (!mounted) return;
+
+      // 3. Tampilkan Pop-Up Berhasil yang estetik dan informatif
+      _showSuccessDialog(booking);
+    } catch (e) {
+      _showSnackbar('Gagal melakukan booking: $e');
+    }
+  }
+
+  /// Pop-Up Dialog Konfirmasi Pemesanan Jadwal Konsultasi
+  Future<bool?> _showConfirmationDialog() {
+    final formattedDate = _formatIndonesianFullDate(_selectedDate);
+    final timeStr = _selectedSlot!.time;
+    final childName = _selectedChild!.name;
+    final doctorName = widget.doctor.name;
+    final specialization = widget.doctor.specialization;
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Padding(
+            padding: const EdgeInsets.all(22.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Ikon Konfirmasi
+                Container(
+                  width: 60.0,
+                  height: 60.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.event_available_rounded,
+                    color: _kPrimaryBlue,
+                    size: 32.0,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+
+                // Judul
+                Text(
+                  'Konfirmasi Jadwal Konsultasi',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: _kTextDark,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+
+                // Penjelasan
+                Text(
+                  'Apakah Anda yakin ingin melakukan booking jadwal konsultasi dengan rincian berikut?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.0,
+                    color: _kTextMuted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+
+                // Rincian Jadwal dalam Kartu Ringkasan
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16.0),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildConfirmDetailRow(
+                        icon: Icons.person_outline_rounded,
+                        label: 'Dokter',
+                        value: '$doctorName\n($specialization)',
+                        isMultiLine: true,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                      ),
+                      _buildConfirmDetailRow(
+                        icon: Icons.child_care_rounded,
+                        label: 'Pasien (Anak)',
+                        value: childName,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                      ),
+                      _buildConfirmDetailRow(
+                        icon: Icons.calendar_today_rounded,
+                        label: 'Hari & Tanggal',
+                        value: formattedDate,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+                      ),
+                      _buildConfirmDetailRow(
+                        icon: Icons.access_time_rounded,
+                        label: 'Waktu Praktik',
+                        value: timeStr,
+                        valueColor: _kPrimaryBlue,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14.0),
+
+                // Catatan Google Kalender
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.notifications_active_outlined,
+                        color: Color(0xFF16A34A),
+                        size: 18.0,
+                      ),
+                      const SizedBox(width: 8.0),
+                      Expanded(
+                        child: Text(
+                          'Pengingat otomatis akan disinkronkan ke Google Kalender HP Anda.',
+                          style: GoogleFonts.lato(
+                            fontSize: 11.5,
+                            color: const Color(0xFF166534),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+
+                // Tombol Aksi (Batal & Yakin)
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: Text(
+                          'Periksa Lagi',
+                          style: GoogleFonts.lato(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: _kTextMuted,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          backgroundColor: _kPrimaryBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: Text(
+                          'Ya, Booking',
+                          style: GoogleFonts.lato(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+  }
 
-    // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
-    NotificationService().addBookingReminderNotification(
-      doctorName: widget.doctor.name,
-      childName: _selectedChild!.name,
-      dateFormatted:
-          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-      timeSlot: _selectedSlot!.time,
-      scheduledTime: booking.scheduledStartDateTime,
-    );
-
-    if (!mounted) return;
-
-    // 3. Langsung menuju halaman Status Booking tanpa beralih membuka Google Kalender
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, anim, secAnim) => StatusBookingPage(
-          booking: booking,
+  /// Helper baris rincian konfirmasi
+  Widget _buildConfirmDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? valueColor,
+    bool isMultiLine = false,
+  }) {
+    return Row(
+      crossAxisAlignment:
+          isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 16.0, color: _kTextMuted),
+        const SizedBox(width: 8.0),
+        SizedBox(
+          width: 95.0,
+          child: Text(
+            label,
+            style: GoogleFonts.lato(
+              fontSize: 12.0,
+              color: _kTextMuted,
+            ),
+          ),
         ),
-        transitionsBuilder: (context, anim, secAnim, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
+        const Text(': ', style: TextStyle(color: _kTextMuted, fontSize: 12.0)),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: GoogleFonts.lato(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: valueColor ?? _kTextDark,
+              height: 1.25,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Pop-Up Dialog Booking Berhasil
+  void _showSuccessDialog(BookingConsultationModel booking) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Lingkaran Centang Hijau Elegan
+                Container(
+                  width: 68.0,
+                  height: 68.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF86EFAC), width: 2.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.18),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Color(0xFF16A34A),
+                    size: 38.0,
+                  ),
+                ),
+                const SizedBox(height: 18.0),
+
+                // Judul Sukses
+                Text(
+                  'Booking Berhasil Terjadwal!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 18.5,
+                    fontWeight: FontWeight.bold,
+                    color: _kTextDark,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+
+                // Pesan Deskriptif & Ramah
+                Text(
+                  'Jadwal konsultasi Anda bersama ${widget.doctor.name} telah berhasil terkonfirmasi.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.0,
+                    color: _kTextMuted,
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+
+                // Badge Pengingat Kalender
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_month_rounded,
+                        color: _kPrimaryBlue,
+                        size: 20.0,
+                      ),
+                      const SizedBox(width: 10.0),
+                      Expanded(
+                        child: Text(
+                          'Pengingat telah tersambung otomatis ke Google Kalender Anda.',
+                          style: GoogleFonts.lato(
+                            fontSize: 12.0,
+                            color: _kTextDark,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+
+                // Tombol Lihat Status Booking
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14.0),
+                      backgroundColor: _kPrimaryBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
+                          pageBuilder: (context, anim, secAnim) =>
+                              StatusBookingPage(booking: booking),
+                          transitionsBuilder: (context, anim, secAnim, child) =>
+                              FadeTransition(opacity: anim, child: child),
+                          transitionDuration: const Duration(milliseconds: 300),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Lihat Status Booking',
+                      style: GoogleFonts.lato(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

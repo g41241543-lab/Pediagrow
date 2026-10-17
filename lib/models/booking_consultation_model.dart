@@ -51,7 +51,7 @@ class BookingConsultationModel {
     }
   }
 
-  const BookingConsultationModel({
+  BookingConsultationModel({
     required this.id,
     required this.doctor,
     required this.child,
@@ -71,7 +71,9 @@ class BookingConsultationModel {
   })  : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
         scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
         scheduledStartDateTime = scheduledStartDateTime ?? (scheduledDate ?? bookingDate ?? createdAt),
-        scheduledEndDateTime = scheduledEndDateTime ?? (scheduledDate ?? bookingDate ?? createdAt);
+        scheduledEndDateTime = scheduledEndDateTime ??
+            (scheduledStartDateTime ?? (scheduledDate ?? bookingDate ?? createdAt))
+                .add(const Duration(minutes: 30));
 
   /// Konversi dari DocumentSnapshot Firestore
   factory BookingConsultationModel.fromDoc(

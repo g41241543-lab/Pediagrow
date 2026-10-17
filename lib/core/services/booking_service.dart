@@ -127,12 +127,13 @@ class BookingService {
     return newBooking;
   }
 
-  /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan)
+  /// Memperbarui booking dengan data formulir konsultasi (BB, TB, Keluhan, SessionId)
   void updateBookingForm({
     required String bookingId,
     required double weightKg,
     required double heightCm,
     required String complaint,
+    String? sessionId,
   }) {
     final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
     final idx = list.indexWhere((b) => b.id == bookingId);
@@ -141,6 +142,7 @@ class BookingService {
         weightKg: weightKg,
         heightCm: heightCm,
         complaint: complaint,
+        sessionId: sessionId,
         status: 'Sedang Berlangsung',
       );
       list[idx] = updated;
@@ -267,33 +269,40 @@ class BookingService {
       placesOfPractice: ['RS Santo Borromeus'],
     );
 
+    final now = DateTime.now();
     bookingsNotifier.value = [
       BookingConsultationModel(
         id: 'book_1',
         doctor: doc1,
         child: child1,
-        scheduledDate: DateTime.now().add(const Duration(days: 2)),
+        scheduledDate: now.add(const Duration(days: 2)),
         scheduledTimeSlot: '09:00 - 09:30 WIB',
+        scheduledStartDateTime: DateTime(now.year, now.month, now.day + 2, 9, 0),
+        scheduledEndDateTime: DateTime(now.year, now.month, now.day + 2, 9, 30),
         status: 'Terjadwal',
-        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+        createdAt: now.subtract(const Duration(hours: 3)),
       ),
       BookingConsultationModel(
         id: 'book_2',
         doctor: doc2,
         child: child2,
-        scheduledDate: DateTime.now().add(const Duration(days: 4)),
+        scheduledDate: now.add(const Duration(days: 4)),
         scheduledTimeSlot: '13:30 - 14:00 WIB',
+        scheduledStartDateTime: DateTime(now.year, now.month, now.day + 4, 13, 30),
+        scheduledEndDateTime: DateTime(now.year, now.month, now.day + 4, 14, 0),
         status: 'Terjadwal',
-        createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+        createdAt: now.subtract(const Duration(hours: 12)),
       ),
       BookingConsultationModel(
         id: 'book_3',
         doctor: doc3,
         child: child1,
-        scheduledDate: DateTime.now().add(const Duration(days: 7)),
+        scheduledDate: now.subtract(const Duration(days: 1)),
         scheduledTimeSlot: '10:30 - 11:00 WIB',
-        status: 'Terjadwal',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        scheduledStartDateTime: DateTime(now.year, now.month, now.day - 1, 10, 30),
+        scheduledEndDateTime: DateTime(now.year, now.month, now.day - 1, 11, 0),
+        status: 'Selesai',
+        createdAt: now.subtract(const Duration(days: 2)),
       ),
     ];
   }
