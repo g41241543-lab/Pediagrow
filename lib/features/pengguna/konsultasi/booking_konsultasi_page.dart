@@ -13,7 +13,6 @@ import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
 import 'status_booking_page.dart';
 
-
 /// Halaman "Booking Konsultasi Dokter" PediaGrow.
 ///
 /// Alur:
@@ -146,20 +145,32 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     });
   }
 
-<<<<<<< HEAD
   String _formatIndonesianFullDate(DateTime date) {
     const days = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
     ];
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
-=======
-  bool _isSubmitting = false;
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
 
   Future<void> _onConfirmBooking() async {
     if (_isSubmitting) return;
@@ -174,7 +185,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       return;
     }
 
-<<<<<<< HEAD
     // Tampilkan Pop-Up Konfirmasi Booking
     final bool? isConfirmed = await _showConfirmationDialog();
     if (isConfirmed != true || !mounted) return;
@@ -182,33 +192,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     try {
       // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
       final booking = BookingService().createBooking(
-=======
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    // Tampilkan loading indicator
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF2B7AE8)),
-        ),
-      );
-    }
-
-    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis & tersimpan ke Firestore)
-    BookingConsultationModel booking;
-    try {
-      booking = await BookingService().createBooking(
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
         doctor: widget.doctor,
         child: _selectedChild!,
         date: _selectedDate,
         slot: _selectedSlot!,
       );
-<<<<<<< HEAD
 
       // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
       NotificationService().addBookingReminderNotification(
@@ -247,7 +235,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           ),
           elevation: 10,
           backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20.0,
+            vertical: 24.0,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(22.0),
             child: Column(
@@ -260,7 +251,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFEFF6FF),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
+                    border: Border.all(
+                      color: const Color(0xFFBFDBFE),
+                      width: 1.5,
+                    ),
                   ),
                   child: const Icon(
                     Icons.event_available_rounded,
@@ -346,7 +340,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                 // Catatan Google Kalender
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 8.0,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0FDF4),
                     borderRadius: BorderRadius.circular(10.0),
@@ -439,8 +436,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     bool isMultiLine = false,
   }) {
     return Row(
-      crossAxisAlignment:
-          isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      crossAxisAlignment: isMultiLine
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
       children: [
         Icon(icon, size: 16.0, color: _kTextMuted),
         const SizedBox(width: 8.0),
@@ -448,10 +446,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           width: 95.0,
           child: Text(
             label,
-            style: GoogleFonts.lato(
-              fontSize: 12.0,
-              color: _kTextMuted,
-            ),
+            style: GoogleFonts.lato(fontSize: 12.0, color: _kTextMuted),
           ),
         ),
         const Text(': ', style: TextStyle(color: _kTextMuted, fontSize: 12.0)),
@@ -483,7 +478,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           ),
           elevation: 10,
           backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24.0,
+            vertical: 24.0,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -496,7 +494,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF86EFAC), width: 2.0),
+                    border: Border.all(
+                      color: const Color(0xFF86EFAC),
+                      width: 2.0,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF22C55E).withValues(alpha: 0.18),
@@ -539,7 +540,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                 // Badge Pengingat Kalender
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14.0,
+                    vertical: 10.0,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(12.0),
@@ -606,42 +610,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           ),
         );
       },
-=======
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        Navigator.of(context, rootNavigator: true).pop(); // tutup loading
-        _showSnackbar('Gagal membuat booking: $e');
-      }
-      return;
-    }
-
-    if (mounted) Navigator.of(context, rootNavigator: true).pop(); // tutup loading
-
-    // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
-    NotificationService().addBookingReminderNotification(
-      doctorName: widget.doctor.name,
-      childName: _selectedChild!.name,
-      dateFormatted:
-          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-      timeSlot: _selectedSlot!.time,
-      scheduledTime: booking.scheduledStartDateTime,
-    );
-
-    if (!mounted) return;
-
-    // 3. Langsung menuju halaman Status Booking tanpa beralih membuka Google Kalender
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, anim, secAnim) =>
-            StatusBookingPage(booking: booking),
-        transitionsBuilder: (context, anim, secAnim, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
     );
   }
 

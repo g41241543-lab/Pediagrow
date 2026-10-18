@@ -22,10 +22,7 @@ import 'formulir_konsultasi_page.dart';
 class StatusBookingPage extends StatefulWidget {
   final BookingConsultationModel booking;
 
-  const StatusBookingPage({
-    super.key,
-    required this.booking,
-  });
+  const StatusBookingPage({super.key, required this.booking});
 
   @override
   State<StatusBookingPage> createState() => _StatusBookingPageState();
@@ -62,7 +59,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   void dispose() {
     _tickerTimer?.cancel();
     BookingService().bookingsNotifier.removeListener(_syncBookingFromService);
-    BookingService().activeBookingNotifier.removeListener(_syncBookingFromService);
+    BookingService().activeBookingNotifier.removeListener(
+      _syncBookingFromService,
+    );
     super.dispose();
   }
 
@@ -74,7 +73,8 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       setState(() {
         _currentBooking = found.first;
       });
-    } else if (BookingService().activeBookingNotifier.value?.id == _currentBooking.id) {
+    } else if (BookingService().activeBookingNotifier.value?.id ==
+        _currentBooking.id) {
       setState(() {
         _currentBooking = BookingService().activeBookingNotifier.value!;
       });
@@ -82,17 +82,19 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
   void _onIsiFormulirPressed() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FormulirKonsultasiPage(
-          doctor: _currentBooking.doctor,
-          child: _currentBooking.child,
-          booking: _currentBooking,
-        ),
-      ),
-    ).then((_) {
-      _syncBookingFromService();
-    });
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => FormulirKonsultasiPage(
+              doctor: _currentBooking.doctor,
+              child: _currentBooking.child,
+              booking: _currentBooking,
+            ),
+          ),
+        )
+        .then((_) {
+          _syncBookingFromService();
+        });
   }
 
   void _onMasukRoomKonsultasiPressed() {
@@ -112,23 +114,24 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     final effectiveSessionId =
         _currentBooking.sessionId ?? 'session_${_currentBooking.id}';
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChatKonsultasiPage(
-          doctor: _currentBooking.doctor,
-          child: _currentBooking.child,
-          weightKg: _currentBooking.weightKg,
-          heightCm: _currentBooking.heightCm,
-          complaint: _currentBooking.complaint,
-          sessionId: effectiveSessionId,
-          booking: _currentBooking,
-        ),
-      ),
-    ).then((_) {
-      _syncBookingFromService();
-    });
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => ChatKonsultasiPage(
+              doctor: _currentBooking.doctor,
+              child: _currentBooking.child,
+              weightKg: _currentBooking.weightKg,
+              heightCm: _currentBooking.heightCm,
+              complaint: _currentBooking.complaint,
+              sessionId: effectiveSessionId,
+              booking: _currentBooking,
+            ),
+          ),
+        )
+        .then((_) {
+          _syncBookingFromService();
+        });
   }
-
 
   void _handleNavigateBack() {
     if (Navigator.of(context).canPop()) {
@@ -159,41 +162,41 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               // Header (56dp)
               _buildHeader(),
 
-            // Konten Tiket Booking
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
+              // Konten Tiket Booking
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 12),
 
-                    // Banner Status Waktu (Ready vs Waiting)
-                    _buildTimeStatusBanner(),
-                    const SizedBox(height: 18),
+                      // Banner Status Waktu (Ready vs Waiting)
+                      _buildTimeStatusBanner(),
+                      const SizedBox(height: 18),
 
-                    // Kartu Tiket Booking Janji Temu
-                    _buildTicketCard(),
-                    const SizedBox(height: 20),
+                      // Kartu Tiket Booking Janji Temu
+                      _buildTicketCard(),
+                      const SizedBox(height: 20),
 
-                    // Kartu Google Kalender
-                    _buildGoogleCalendarInfoCard(),
-                    const SizedBox(height: 20),
+                      // Kartu Google Kalender
+                      _buildGoogleCalendarInfoCard(),
+                      const SizedBox(height: 20),
 
-                    // Informasi Alur Konsultasi
-                    _buildFlowGuideCard(),
-                    const SizedBox(height: 32),
-                  ],
+                      // Informasi Alur Konsultasi
+                      _buildFlowGuideCard(),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ── Header (56dp) ──────────────────────────────────────────────────────────
   Widget _buildHeader() {
@@ -209,11 +212,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: _kTextDark,
-                size: 24.0,
-              ),
+              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
             ),
           ),
           const SizedBox(width: 12.0),
@@ -243,12 +242,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-              child: Icon(
-                Icons.arrow_back,
-                color: _kTextDark,
-                size: 24.0,
-<<<<<<< HEAD
-              ),
+              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
             ),
           ),
           const SizedBox(width: 12.0),
@@ -261,8 +255,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 fontSize: 19.0,
                 fontWeight: FontWeight.bold,
                 color: _kTextDark,
-=======
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
               ),
             ),
           ),
@@ -290,7 +282,11 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 color: Color(0xFF64748B),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.timer_off_outlined, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.timer_off_outlined,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12.0),
             Expanded(
@@ -348,7 +344,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hasForm ? 'Sesi Konsultasi Sedang Aktif' : 'Waktu Konsultasi Telah Tiba!',
+                    hasForm
+                        ? 'Sesi Konsultasi Sedang Aktif'
+                        : 'Waktu Konsultasi Telah Tiba!',
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.bold,
@@ -417,7 +415,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           // Keterangan menyatu terintegrasi (bukan button yang beralih halaman)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12.0,
+              vertical: 8.0,
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8.0),
@@ -472,7 +473,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         children: [
           // Header Tiket
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
             decoration: const BoxDecoration(
               color: Color(0xFFF8FAFC),
               borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
@@ -499,7 +503,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 3.5,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(20.0),
@@ -532,20 +539,25 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                         width: 50.0,
                         height: 50.0,
                         color: const Color(0xFFE2E8F0),
-                        child: doc.avatarUrl != null && doc.avatarUrl!.isNotEmpty
+                        child:
+                            doc.avatarUrl != null && doc.avatarUrl!.isNotEmpty
                             ? (doc.avatarUrl!.startsWith('http')
-                                ? Image.network(
-                                    doc.avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) =>
-                                        const Icon(Icons.person, color: _kTextMuted),
-                                  )
-                                : Image.file(
-                                    File(doc.avatarUrl!),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) =>
-                                        const Icon(Icons.person, color: _kTextMuted),
-                                  ))
+                                  ? Image.network(
+                                      doc.avatarUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => const Icon(
+                                        Icons.person,
+                                        color: _kTextMuted,
+                                      ),
+                                    )
+                                  : Image.file(
+                                      File(doc.avatarUrl!),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => const Icon(
+                                        Icons.person,
+                                        color: _kTextMuted,
+                                      ),
+                                    ))
                             : const Icon(Icons.person, color: _kTextMuted),
                       ),
                     ),
@@ -597,7 +609,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                         children: [
                           Text(
                             'Jadwal Konsultasi',
-                            style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+                            style: GoogleFonts.lato(
+                              fontSize: 11.5,
+                              color: _kTextMuted,
+                            ),
                           ),
                           const SizedBox(height: 2.0),
                           Text(
@@ -625,7 +640,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                         children: [
                           Text(
                             'Pasien Anak',
-                            style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+                            style: GoogleFonts.lato(
+                              fontSize: 11.5,
+                              color: _kTextMuted,
+                            ),
                           ),
                           const SizedBox(height: 2.0),
                           Text(
@@ -697,10 +715,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 ),
                 Text(
                   'Pengingat otomatis aktif dan notifikasi kalender akan muncul saat jadwal tiba.',
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    color: _kTextMuted,
-                  ),
+                  style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
                 ),
               ],
             ),
@@ -838,10 +853,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 ),
                 Text(
                   subtitle,
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    color: _kTextMuted,
-                  ),
+                  style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
                 ),
               ],
             ),
@@ -914,10 +926,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  buttonIcon,
-                  size: 18.0,
-                ),
+                Icon(buttonIcon, size: 18.0),
                 const SizedBox(width: 8.0),
                 Text(
                   buttonText,
