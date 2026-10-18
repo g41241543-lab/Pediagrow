@@ -16,6 +16,7 @@ import '../beranda/data_pasien/detail_anak_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../beranda/beranda_dokter_page.dart';
 import '../profil_dokter_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
@@ -1600,8 +1601,10 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
     required bool isFemale,
     required double size,
   }) {
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
+    final fallback = ChildAvatar(
+      isGirl: isFemale,
+      size: size,
+    );
 
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
@@ -1609,7 +1612,6 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -1627,7 +1629,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
           loadingBuilder: (ctx, child, progress) {
             if (progress == null) return child;
             return Container(
-              color: bgColor,
+              color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
               child: Center(
                 child: SizedBox(
                   width: size * 0.4,
@@ -1642,32 +1644,12 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
               ),
             );
           },
-          errorBuilder: (ctx, error, stack) => Container(
-            color: bgColor,
-            child: CustomPaint(
-              painter: _BabyFacePainter(isGirl: isFemale),
-            ),
-          ),
+          errorBuilder: (ctx, error, stack) => fallback,
         ),
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-    );
+    return fallback;
   }
 
   // ─── FOOTER ILLUSTRATION (Format PMIK: Gambar Lanskap) ───────────────────

@@ -75,14 +75,13 @@ class RiwayatKonsultasiAdminService {
                   ? formatIndonesianDate(parsedDate)
                   : '26 Agustus 2026');
 
-          // Normalisasi status
-          String status = data['status']?.toString() ?? 'Selesai';
-          if (status.toLowerCase().contains('jadwal') ||
-              status.toLowerCase().contains('terjadwal')) {
-            status = 'Dijadwalkan';
-          } else {
-            status = 'Selesai';
+          // Normalisasi status — hanya masukkan yang sudah selesai
+          String rawStatus = data['status']?.toString().toLowerCase() ?? 'selesai';
+          if (rawStatus.contains('jadwal') || rawStatus.contains('terjadwal') || rawStatus.contains('booking')) {
+            // Sesuai ketentuan: riwayat konsultasi hanya menampilkan yang selesai, yang dijadwalkan tidak perlu ditampilkan
+            continue;
           }
+          final status = 'Selesai';
 
           // Cari data anak dari collection 'children'
           final childData = childrenMap[childId] ??
@@ -163,12 +162,12 @@ class RiwayatKonsultasiAdminService {
                 : '26 Agustus 2026';
 
             String status = b['status']?.toString() ?? 'Dijadwalkan';
-            if (status.toLowerCase().contains('selesai') ||
-                status.toLowerCase().contains('completed')) {
-              status = 'Selesai';
-            } else {
-              status = 'Dijadwalkan';
+            if (!status.toLowerCase().contains('selesai') &&
+                !status.toLowerCase().contains('completed')) {
+              // Abaikan booking yang masih dijadwalkan / belum selesai
+              continue;
             }
+            status = 'Selesai';
 
             final childData = childrenMap[childId] ??
                 childrenMap[childName.toLowerCase().trim()];

@@ -1,6 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import '../../models/notification_model.dart';
 import 'local_push_service.dart';
+
+/// Item pengingat jadwal booking yang masih menunggu waktu tiba
+class _PendingBookingReminder {
+  final String id;
+  final String doctorName;
+  final String childName;
+  final String dateFormatted;
+  final String timeSlot;
+  final DateTime scheduledTime;
+
+  _PendingBookingReminder({
+    required this.id,
+    required this.doctorName,
+    required this.childName,
+    required this.dateFormatted,
+    required this.timeSlot,
+    required this.scheduledTime,
+  });
+}
 
 /// Service singleton untuk mengelola sistem notifikasi PediaGrow.
 ///
@@ -13,12 +34,17 @@ import 'local_push_service.dart';
 /// 2. Notifikasi Konsultasi Berakhir:
 ///    - Dibuat otomatis setiap kali pengguna melakukan/mengakhiri sesi konsultasi dengan dokter.
 ///    - Setiap konsultasi selalu menghasilkan 1 notifikasi baru di daftar dan menambah badge lonceng.
-/// 3. Badge angka unread tersedia via [unreadCountNotifier] untuk ditampilkan di ikon lonceng.
-/// 4. Default awal: daftar notifikasi kosong (menampilkan empty state lonceng).
+/// 3. Notifikasi Pengingat Jadwal Booking Konsultasi:
+///    - HANYA muncul di HP dan daftar notifikasi ketika waktu jadwal konsultasi yang dipilih telah tiba.
+/// 4. Badge angka unread tersedia via [unreadCountNotifier] untuk ditampilkan di ikon lonceng.
+/// 5. Default awal: daftar notifikasi kosong (menampilkan empty state lonceng).
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
-  NotificationService._internal();
+
+  NotificationService._internal() {
+    _startReminderCheckTimer();
+  }
 
   /// State daftar notifikasi secara reaktif
   final ValueNotifier<List<NotificationItem>> notificationsNotifier =
@@ -26,6 +52,18 @@ class NotificationService {
 
   /// Jumlah notifikasi yang belum dibaca (untuk badge di ikon lonceng)
   final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
+
+  /// Timer pengecekan waktu tiba pengingat jadwal konsultasi
+  Timer? _reminderCheckTimer;
+  final List<_PendingBookingReminder> _pendingBookingReminders = [];
+  final Set<String> _triggeredReminderIds = {};
+
+  void _startReminderCheckTimer() {
+    _reminderCheckTimer?.cancel();
+    _reminderCheckTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      checkPendingBookingReminders();
+    });
+  }
 
   /// Mengambil seluruh notifikasi saat ini
   List<NotificationItem> get notifications => notificationsNotifier.value;
@@ -100,7 +138,6 @@ class NotificationService {
     }
 
     // Tampilkan notifikasi sistem (push lokal) — mengikuti role aktif yang sedang login
-    // (pengguna, dokter, pmik, maupun superadmin) agar push HP selalu masuk.
     LocalPushService().show(
       title: item.title,
       body: item.message,
@@ -125,12 +162,6 @@ class NotificationService {
   // ---------------------------------------------------------------------------
 
   /// Sistem otomatis memeriksa dan menambahkan pengingat cek stunting bulanan.
-  ///
-  /// Aturan:
-  /// - Hanya mengirim notifikasi pada rentang tanggal 1–10 setiap bulan.
-  /// - Jika pengguna sudah cek stunting bulan ini → tidak kirim notifikasi.
-  /// - Jika sudah lewat tanggal 10 → tidak kirim notifikasi.
-  /// - Setiap hari (dalam rentang 1–10) hanya membuat 1 notifikasi unik.
   void checkMonthlyStuntingReminder({DateTime? currentDate}) {
     final now = currentDate ?? DateTime.now();
     final day = now.day;
@@ -165,10 +196,6 @@ class NotificationService {
   // ---------------------------------------------------------------------------
 
   /// Menambahkan notifikasi saat konsultasi chat dengan dokter telah berakhir.
-  ///
-  /// Setiap kali pengguna melakukan atau mengakhiri sesi konsultasi dengan dokter,
-  /// selalu dibuatkan notifikasi baru di dalam daftar notifikasi dan menambah
-  /// badge notifikasi yang belum dibaca pada ikon lonceng.
   void addConsultationEndedNotification({DateTime? date}) {
     final now = date ?? DateTime.now();
     final id = 'consultation_ended_${now.microsecondsSinceEpoch}';
@@ -183,8 +210,11 @@ class NotificationService {
     addNotification(newItem);
   }
 
-  /// Menambahkan notifikasi pengingat otomatis jadwal booking konsultasi
-  /// yang tersambung dengan Google Kalender dan sistem pengingat PediaGrow.
+  /// Menambahkan / menjadwalkan notifikasi pengingat jadwal booking konsultasi.
+  ///
+  /// JIKA waktu jadwal konsultasi masih di masa depan (belum tiba), notifikasi
+  /// TIDAK AKAN langsung muncul di HP maupun di daftar notifikasi, melainkan
+  /// dijadwalkan dan baru keluar ketika waktu konsultasi tersebut telah tiba.
   void addBookingReminderNotification({
     required String doctorName,
     required String childName,
@@ -193,16 +223,77 @@ class NotificationService {
     DateTime? scheduledTime,
   }) {
     final now = DateTime.now();
-    final id = 'booking_reminder_${now.microsecondsSinceEpoch}';
-    final newItem = NotificationItem(
-      id: id,
-      title: 'Pengingat Jadwal Konsultasi',
-      message:
-          'Pengingat Kalender: Jadwal konsultasi anak $childName bersama $doctorName pada $dateFormatted ($timeSlot) telah tiba. Silakan masuk ke ruang konsultasi.',
-      date: scheduledTime ?? now,
-      type: NotificationType.consultation,
-    );
-    addNotification(newItem);
+    final id =
+        'booking_reminder_${doctorName.trim()}_${childName.trim()}_${dateFormatted.replaceAll('/', '_')}_${timeSlot.replaceAll(':', '_').replaceAll(' ', '')}';
+
+    // Jika waktu konsultasi dijadwalkan di masa depan (belum tiba)
+    if (scheduledTime != null && scheduledTime.isAfter(now)) {
+      final alreadyRegistered =
+          _pendingBookingReminders.any((r) => r.id == id) ||
+              _triggeredReminderIds.contains(id);
+      if (!alreadyRegistered) {
+        _pendingBookingReminders.add(
+          _PendingBookingReminder(
+            id: id,
+            doctorName: doctorName,
+            childName: childName,
+            dateFormatted: dateFormatted,
+            timeSlot: timeSlot,
+            scheduledTime: scheduledTime,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Jika waktu konsultasi memang sudah tiba saat ini
+    if (!_triggeredReminderIds.contains(id)) {
+      _triggeredReminderIds.add(id);
+      final newItem = NotificationItem(
+        id: id,
+        title: 'Pengingat Jadwal Konsultasi',
+        message:
+            'Pengingat Kalender: Jadwal konsultasi anak $childName bersama $doctorName pada $dateFormatted ($timeSlot) telah tiba. Silakan masuk ke ruang konsultasi.',
+        date: scheduledTime ?? now,
+        type: NotificationType.consultation,
+      );
+      addNotification(newItem);
+    }
+  }
+
+  /// Memeriksa antrean pengingat jadwal booking konsultasi secara berkala.
+  /// Notifikasi baru akan dikirimkan ke HP & sistem saat waktu jadwalnya sudah tiba.
+  void checkPendingBookingReminders() {
+    final now = DateTime.now();
+    final toTrigger = <_PendingBookingReminder>[];
+
+    _pendingBookingReminders.removeWhere((reminder) {
+      if (_triggeredReminderIds.contains(reminder.id)) {
+        return true;
+      }
+      if (now.isAfter(reminder.scheduledTime) ||
+          now.isAtSameMomentAs(reminder.scheduledTime)) {
+        // Cek jika belum kadaluarsa lebih dari 12 jam
+        if (now.difference(reminder.scheduledTime).inHours < 12) {
+          toTrigger.add(reminder);
+        }
+        return true;
+      }
+      return false;
+    });
+
+    for (final reminder in toTrigger) {
+      _triggeredReminderIds.add(reminder.id);
+      final newItem = NotificationItem(
+        id: reminder.id,
+        title: 'Pengingat Jadwal Konsultasi',
+        message:
+            'Pengingat Kalender: Jadwal konsultasi anak ${reminder.childName} bersama ${reminder.doctorName} pada ${reminder.dateFormatted} (${reminder.timeSlot}) telah tiba. Silakan masuk ke ruang konsultasi.',
+        date: reminder.scheduledTime,
+        type: NotificationType.consultation,
+      );
+      addNotification(newItem);
+    }
   }
 
   /// Menghapus seluruh notifikasi (untuk testing atau reset ke empty state)

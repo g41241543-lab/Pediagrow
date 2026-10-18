@@ -46,6 +46,10 @@ class RiwayatKonsultasiAdminItem {
   /// Apakah anak berjenis kelamin perempuan
   bool get isGirl => isGirlGender(childGender, childName);
 
+  /// Apakah status konsultasi sudah selesai
+  bool get isCompleted => status.toLowerCase().contains('selesai');
+  bool get isSelesai => isCompleted;
+
   /// Usia anak yang dihitung otomatis dari tanggal lahir hingga tanggal konsultasi atau hari ini
   /// dalam format "X tahun Y bulan Z hari"
   String get calculatedAge {
@@ -99,23 +103,11 @@ class RiwayatKonsultasiAdminItem {
     );
   }
 
-  /// Sample mock data sesuai desain jika Firestore belum memiliki data
+  /// Sample mock data riwayat konsultasi yang sudah selesai (sesuai ketentuan: hanya yang berstatus Selesai)
   static List<RiwayatKonsultasiAdminItem> getMockData() {
     return [
       RiwayatKonsultasiAdminItem(
         id: 'riwayat-mock-001',
-        childName: 'Amara Adiratna',
-        childGender: 'Perempuan',
-        childBirthDate: DateTime(2025, 2, 10),
-        doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
-        consultationDate: DateTime(2026, 8, 26),
-        formattedDate: '26 Agustus 2026',
-        status: 'Dijadwalkan',
-        complaint: '',
-        summary: '',
-      ),
-      RiwayatKonsultasiAdminItem(
-        id: 'riwayat-mock-002',
         childName: 'Kaia Anastasya',
         childGender: 'Perempuan',
         // Tanggal lahir 23 Mei 2025 -> 26 Agustus 2026 = 1 tahun 3 bulan 3 hari
@@ -129,28 +121,30 @@ class RiwayatKonsultasiAdminItem {
             'Anak dalam kondisi baik secara umum.\nDisarankan pemberian makan lebih sering dengan porsi kecil, tambahkan variasi menu dan pantau berat badan setiap minggu.\nKontrol ulang 2 minggu lagi jika belum ada kenaikan berat badan.',
       ),
       RiwayatKonsultasiAdminItem(
+        id: 'riwayat-mock-002',
+        childName: 'Amara Adiratna',
+        childGender: 'Perempuan',
+        childBirthDate: DateTime(2025, 2, 10),
+        doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
+        consultationDate: DateTime(2026, 8, 24),
+        formattedDate: '24 Agustus 2026',
+        status: 'Selesai',
+        complaint: 'Batuk pilek ringan selama 3 hari tanpa disertai demam tinggi.',
+        summary:
+            'Saluran pernapasan atas mengalami iritasi ringan karena perubahan cuaca.\nDiberikan terapi suportif, jaga kehangatan tubuh dan cairan cukup.\nEvaluasi 3 hari ke depan jika batuk memberat.',
+      ),
+      RiwayatKonsultasiAdminItem(
         id: 'riwayat-mock-003',
         childName: 'Zafran Aditya',
         childGender: 'Laki-laki',
         childBirthDate: DateTime(2025, 6, 12),
         doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-        consultationDate: DateTime(2026, 8, 26),
-        formattedDate: '26 Agustus 2026',
-        status: 'Dijadwalkan',
-        complaint: '',
-        summary: '',
-      ),
-      RiwayatKonsultasiAdminItem(
-        id: 'riwayat-mock-004',
-        childName: 'Devaro Ramadhan',
-        childGender: 'Laki-laki',
-        childBirthDate: DateTime(2024, 11, 5),
-        doctorName: 'dr. Ahmad Nuri, Sp. A',
-        consultationDate: DateTime(2026, 8, 26),
-        formattedDate: '26 Agustus 2026',
-        status: 'Dijadwalkan',
-        complaint: '',
-        summary: '',
+        consultationDate: DateTime(2026, 8, 20),
+        formattedDate: '20 Agustus 2026',
+        status: 'Selesai',
+        complaint: 'Konsultasi imunisasi lanjutan dan pemantauan grafik tumbuh kembang balita.',
+        summary:
+            'Pertumbuhan anak berada di pita hijau (normal) sesuai kurva WHO.\nJadwal imunisasi lanjutan telah dicatat dan disarankan tetap menjaga asupan gizi seimbang.',
       ),
     ];
   }

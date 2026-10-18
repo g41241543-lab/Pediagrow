@@ -1,23 +1,18 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
-<<<<<<< HEAD
-import '../../../models/doctor_model.dart';
-import '../../../shared/widgets/child_avatar.dart';
-=======
-import '../../../core/services/resume_medis_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_model.dart';
-import '../../../models/resume_medis_model.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
 import '../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
 import '../../pmik_admin/profil_pmik_page.dart';
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../profil/profil_superadmin_page.dart';
@@ -28,12 +23,13 @@ import 'riwayat_konsultasi_admin_service.dart';
 /// Halaman Daftar Riwayat Konsultasi untuk PMIK Superadmin.
 ///
 /// Fitur:
-/// - Header 56dp dari atas layar dengan tombol back dan judul tebal
-/// - Filter dropdown "Semua Dokter" & "Semua Status"
-/// - Kolom pencarian real-time nama pasien atau dokter
-/// - Daftar kartu riwayat konsultasi dengan avatar wajah anak dinamis
-/// - Banner info di bagian bawah
-/// - Bottom Navigation Bar 4 menu (Beranda, Konsultasi, Riwayat Konsultasi, Profil) aktif
+/// - Header 56dp dari atas layar dengan tombol back (12dp dari tepi kiri) dan judul sejajar (jarak 12dp)
+/// - Keterangan "Data menampilkan seluruh konsultasi dari seluruh dokter dan pasien" di bagian ATAS
+/// - Kolom pencarian "Cari nama pasien atau dokter..." berdampingan dengan tombol Filter berdesain elegan
+/// - Filter dokter interaktif via Modal Bottom Sheet (default menampilkan semua dokter)
+/// - Seluruh konsultasi yang ditampilkan hanya yang berstatus Selesai
+/// - Kartu riwayat konsultasi dengan avatar profil anak resmi
+/// - Bottom Navigation Bar 4 menu persis seperti di Beranda
 class DaftarRiwayatKonsultasiAdminPage extends StatefulWidget {
   const DaftarRiwayatKonsultasiAdminPage({super.key});
 
@@ -48,22 +44,20 @@ class _DaftarRiwayatKonsultasiAdminPageState
   static const Color _colorNavBg = Color(0xFFF2EDED);
   static const Color _colorSecondaryGrey = Color(0xFF7F7F7F);
   static const Color _colorBorderLight = Color(0xFFC5C5C5);
-  static const Color _colorChipBg = Color(0xFFF3F4F6);
-  static const Color _colorTextBlack = Color(0xFF000000);
-  static const int _selectedNavIndex = 2; // Riwayat Konsultasi
+  static const Color _colorTextBlack = Color(0xFF1E293B);
+  static const Color _colorActiveBlue = Color(0xFF72A9F4);
+  static const Color _colorInactiveNav = Color(0xFF9E9E9E);
+  static const Color _colorFilterAccent = Color(0xFF72A9F4); // Biru primer resmi aplikasi PediaGrow
+  static const Color _colorFilterLightBg = Color(0xFFEFF6FF);
+  static const Color _colorFilterLightBorder = Color(0xFFBFDBFE);
+
+  static const int _selectedNavIndex = 2; // Riwayat Konsultasi aktif
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _filterDoctor = 'Semua Dokter';
-  String _filterStatus = 'Semua Status';
 
   List<DoctorModel> _doctorList = [];
-
-  static const List<String> _statusOptions = [
-    'Semua Status',
-    'Dijadwalkan',
-    'Selesai',
-  ];
 
   @override
   void initState() {
@@ -94,8 +88,18 @@ class _DaftarRiwayatKonsultasiAdminPageState
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
+      final staff = StaffAuthService().currentStaff;
+      final isDokter = staff?.role == StaffRole.dokter;
+      final isPmik = staff?.role == StaffRole.admin;
+
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+        MaterialPageRoute(
+          builder: (_) => isDokter
+              ? const BerandaDokterPage()
+              : isPmik
+                  ? const BerandaPmikPage()
+                  : const BerandaSuperadminPage(),
+        ),
         (route) => false,
       );
     }
@@ -103,12 +107,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   void _onBottomNavTap(int index) {
     if (index == _selectedNavIndex) return;
-<<<<<<< HEAD
-=======
+
     final staff = StaffAuthService().currentStaff;
     final isDokter = staff?.role == StaffRole.dokter;
     final isPmik = staff?.role == StaffRole.admin;
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
 
     Widget targetPage;
     switch (index) {
@@ -126,6 +128,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
                 ? const KonsultasiPmikAdminPage()
                 : const KonsultasiSuperadminPage();
         break;
+      case 2:
+        return;
       case 3:
         targetPage = isDokter
             ? const ProfilDokterPage()
@@ -137,261 +141,137 @@ class _DaftarRiwayatKonsultasiAdminPageState
         return;
     }
 
-    final isLeft = index < _selectedNavIndex;
-    final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
-    final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 250),
-      pageBuilder: (_, _, _) => targetPage,
-      transitionsBuilder: (_, animation, _, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: beginOffset,
-            end: Offset.zero,
-          ).animate(curved),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curved),
-            child: child,
-          ),
-        );
-      },
-    );
-
     if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (r) => false);
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => targetPage,
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+        (route) => false,
+      );
     } else {
-      Navigator.of(context).pushReplacement(route);
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => targetPage,
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+      );
     }
-  }
-
-  void _navigateToDetail(RiwayatKonsultasiAdminItem item) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            DetailRiwayatKonsultasiAdminPage(item: item),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final curved = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          );
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.05, 0.0),
-              end: Offset.zero,
-            ).animate(curved),
-            child: FadeTransition(opacity: curved, child: child),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 250),
-      ),
-    );
   }
 
   List<RiwayatKonsultasiAdminItem> _applyFilters(
       List<RiwayatKonsultasiAdminItem> all) {
+    // Sesuai ketentuan: hanya menampilkan yang selesai
     return all.where((item) {
-      // 1. Filter Dokter
-      if (_filterDoctor != 'Semua Dokter' &&
-          item.doctorName.toLowerCase() != _filterDoctor.toLowerCase()) {
+      if (!item.isCompleted) {
         return false;
       }
-      // 2. Filter Status
-      if (_filterStatus != 'Semua Status' &&
-          item.status.toLowerCase() != _filterStatus.toLowerCase()) {
-        return false;
-      }
-      // 3. Pencarian Nama Pasien atau Dokter
-      if (_searchQuery.trim().isNotEmpty) {
-        final q = _searchQuery.toLowerCase().trim();
-        final matchPatient = item.childName.toLowerCase().contains(q);
-        final matchDoctor = item.doctorName.toLowerCase().contains(q);
-        if (!matchPatient && !matchDoctor) {
+
+      // Filter Dokter jika dipilih selain 'Semua Dokter'
+      if (_filterDoctor != 'Semua Dokter') {
+        if (item.doctorName.toLowerCase() != _filterDoctor.toLowerCase()) {
           return false;
         }
       }
+
+      // Pencarian kata kunci nama pasien atau dokter
+      if (_searchQuery.trim().isNotEmpty) {
+        final query = _searchQuery.toLowerCase().trim();
+        final matchChild = item.childName.toLowerCase().contains(query);
+        final matchDoctor = item.doctorName.toLowerCase().contains(query);
+        final matchComplaint = item.complaint.toLowerCase().contains(query);
+        if (!matchChild && !matchDoctor && !matchComplaint) {
+          return false;
+        }
+      }
+
       return true;
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: StreamBuilder<List<RiwayatKonsultasiAdminItem>>(
-        stream: RiwayatKonsultasiAdminService().streamRiwayatKonsultasi(),
-        builder: (context, snapshot) {
-          final isLoading =
-              snapshot.connectionState == ConnectionState.waiting &&
-                  !snapshot.hasData;
-          final hasError = snapshot.hasError;
-          final allData = snapshot.data ?? [];
-          final filtered = _applyFilters(allData);
-
-          // Kumpulkan opsi nama dokter untuk dropdown
-          final Set<String> doctorOptions = {'Semua Dokter'};
-          for (final d in _doctorList) {
-            doctorOptions.add(d.name);
-          }
-          for (final item in allData) {
-            if (item.doctorName.isNotEmpty) doctorOptions.add(item.doctorName);
-          }
-          if (!doctorOptions.contains(_filterDoctor)) {
-            _filterDoctor = 'Semua Dokter';
-          }
-
-          return Column(
-            children: [
-              // ─── HEADER (56dp dari atas layar) ───────────────────────────
-              _buildHeader(),
-
-              // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 14.0),
-
-                      // 1. Dua Dropdown Chip (Semua Dokter & Semua Status)
-                      _buildFilterRow(doctorOptions.toList()),
-                      const SizedBox(height: 14.0),
-
-                      // 2. Kolom Pencarian
-                      _buildSearchBar(),
-                      const SizedBox(height: 18.0),
-
-                      // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
-                      if (isLoading)
-                        _buildLoadingState()
-                      else if (hasError)
-                        _buildErrorState(snapshot.error.toString())
-                      else if (filtered.isEmpty)
-                        _buildEmptyState()
-                      else
-                        _buildConsultationList(filtered),
-
-                      const SizedBox(height: 18.0),
-
-                      // 4. Banner Info di Bawah Daftar
-                      _buildInfoBanner(),
-                      const SizedBox(height: 24.0),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-=======
-    final staff = StaffAuthService().currentStaff;
-    final isDokter = staff?.role == StaffRole.dokter;
-    final isPmik = staff?.role == StaffRole.admin;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        } else {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => isDokter
-                  ? const BerandaDokterPage()
-                  : isPmik
-                      ? const BerandaPmikPage()
-                      : const BerandaSuperadminPage(),
-            ),
-            (route) => false,
-          );
-        }
+        _handleBack();
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: _buildHeader(),
-        ),
-        body: SafeArea(
-          top: false,
-          bottom: false,
-          child: StreamBuilder<List<ResumeMedisModel>>(
-            stream: ResumeMedisService().streamAllResumeMedis(),
-            builder: (context, snapshot) {
-              final isLoading =
-                  snapshot.connectionState == ConnectionState.waiting;
-              final allData = snapshot.data ?? [];
-              final filtered = _applyFilters(allData);
+        body: StreamBuilder<List<RiwayatKonsultasiAdminItem>>(
+          stream: RiwayatKonsultasiAdminService().streamRiwayatKonsultasi(),
+          builder: (context, snapshot) {
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData;
+            final hasError = snapshot.hasError;
+            final allData = snapshot.data ?? [];
+            final filtered = _applyFilters(allData);
 
-              // Kumpulkan daftar dokter untuk filter dropdown
-              final Set<String> doctorNames = {'Semua Dokter'};
-              for (final d in _doctorList) {
-                doctorNames.add(d.name);
-              }
-              for (final r in allData) {
-                if (r.doctorName.isNotEmpty) doctorNames.add(r.doctorName);
-              }
-              if (!doctorNames.contains(_filterDoctor)) {
-                _filterDoctor = 'Semua Dokter';
-              }
+            // Kumpulkan daftar opsi nama dokter untuk modal filter
+            final Set<String> doctorOptions = {'Semua Dokter'};
+            for (final d in _doctorList) {
+              doctorOptions.add(d.name);
+            }
+            for (final item in allData) {
+              if (item.doctorName.isNotEmpty) doctorOptions.add(item.doctorName);
+            }
+            if (!doctorOptions.contains(_filterDoctor)) {
+              _filterDoctor = 'Semua Dokter';
+            }
 
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(minHeight: constraints.maxHeight),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 12.0),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: _buildFilterRow(doctorNames.toList()),
-                            ),
-                            const SizedBox(height: 12.0),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: _buildSearchBar(),
-                            ),
-                            const SizedBox(height: 16.0),
-                            if (isLoading)
-                              _buildLoadingState()
-                            else if (filtered.isEmpty)
-                              _buildEmptyState()
-                            else
-                              _buildRiwayatList(filtered),
-                            const SizedBox(height: 14.0),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: _buildInfoBanner(),
-                            ),
-                            const SizedBox(height: 24.0),
-                            const Spacer(),
-                            _buildFooterIllustration(),
-                          ],
-                        ),
-                      ),
+            return Column(
+              children: [
+                // ─── HEADER (56dp dari atas layar) ───────────────────────────
+                _buildHeader(),
+
+                // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 12.0),
+
+                        // 1. Banner Keterangan di BAGIAN ATAS
+                        _buildInfoBanner(),
+                        const SizedBox(height: 14.0),
+
+                        // 2. Baris Search Bar berdampingan dengan Tombol Filter Estetik
+                        _buildSearchAndFilterRow(doctorOptions.toList()),
+
+                        // 3. Chip status dokter aktif (bisa di-cancel jika bukan 'Semua Dokter')
+                        _buildActiveDoctorFilterChip(),
+                        const SizedBox(height: 16.0),
+
+                        // 4. Status State: Loading, Error, Empty, atau Daftar Kartu
+                        if (isLoading)
+                          _buildLoadingState()
+                        else if (hasError)
+                          _buildErrorState(snapshot.error.toString())
+                        else if (filtered.isEmpty)
+                          _buildEmptyState()
+                        else
+                          _buildConsultationList(filtered),
+
+                        const SizedBox(height: 24.0),
+                        _buildFooterIllustration(),
+                      ],
                     ),
-                  );
-                },
-              );
-            },
-          ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
       ),
     );
   }
@@ -403,7 +283,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return Container(
       width: double.infinity,
       color: Colors.white,
-<<<<<<< HEAD
       padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -420,48 +299,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   Icons.arrow_back,
                   size: 24.0,
                   color: _colorTextBlack,
-=======
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 56.0,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    } else {
-                      final staff = StaffAuthService().currentStaff;
-                      final isDokter = staff?.role == StaffRole.dokter;
-                      final isPmik = staff?.role == StaffRole.admin;
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (_) => isDokter
-                              ? const BerandaDokterPage()
-                              : isPmik
-                                  ? const BerandaPmikPage()
-                                  : const BerandaSuperadminPage(),
-                        ),
-                        (route) => false,
-                      );
-                    }
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: 36.0,
-                    height: 36.0,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
                 ),
               ),
             ),
@@ -484,323 +321,38 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── FILTER ROW (DROPDOWN CHIPS) ──────────────────────────────────────────
-  Widget _buildFilterRow(List<String> doctorOptions) {
-    return Row(
-      children: [
-        // Dropdown Semua Dokter
-        Expanded(
-          child: _buildDropdownChip(
-            value: doctorOptions.contains(_filterDoctor)
-                ? _filterDoctor
-                : 'Semua Dokter',
-            items: doctorOptions,
-            onChanged: (val) {
-              if (val != null) setState(() => _filterDoctor = val);
-            },
-          ),
-        ),
-        const SizedBox(width: 12.0),
-        // Dropdown Semua Status
-        Expanded(
-          child: _buildDropdownChip(
-            value: _filterStatus,
-            items: _statusOptions,
-            onChanged: (val) {
-              if (val != null) setState(() => _filterStatus = val);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownChip({
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      height: 38.0,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0),
-      decoration: BoxDecoration(
-        color: _colorChipBg,
-        borderRadius: BorderRadius.circular(24.0),
-        border: Border.all(color: _colorBorderLight, width: 1.0),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: items.contains(value) ? value : items.first,
-          isExpanded: true,
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: 20.0,
-            color: _colorSecondaryGrey,
-          ),
-          style: GoogleFonts.lato(
-            fontSize: 13.0,
-            color: _colorSecondaryGrey,
-            fontWeight: FontWeight.w500,
-          ),
-          items: items.map((item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(
-                item,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.lato(
-                  fontSize: 13.0,
-                  color: item == value
-                      ? const Color(0xFF1E293B)
-                      : _colorSecondaryGrey,
-                  fontWeight:
-                      item == value ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  // ─── SEARCH BAR ─────────────────────────────────────────────────────────────
-  Widget _buildSearchBar() {
-    return Container(
-      height: 44.0,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.0),
-        border: Border.all(color: _colorBorderLight, width: 1.0),
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: GoogleFonts.lato(
-          fontSize: 14.0,
-          color: const Color(0xFF1E293B),
-        ),
-        decoration: InputDecoration(
-          hintText: 'Cari nama pasien atau dokter....',
-          hintStyle: GoogleFonts.lato(
-            fontSize: 13.5,
-            color: _colorSecondaryGrey,
-          ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            size: 22.0,
-            color: _colorSecondaryGrey,
-          ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? GestureDetector(
-                  onTap: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                  child: const Icon(
-                    Icons.close_rounded,
-                    size: 18.0,
-                    color: _colorSecondaryGrey,
-                  ),
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
-        ),
-      ),
-    );
-  }
-
-  // ─── DAFTAR KARTU KONSULTASI ───────────────────────────────────────────────
-  Widget _buildConsultationList(List<RiwayatKonsultasiAdminItem> items) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 14.0),
-      itemBuilder: (context, index) {
-        return _buildConsultationCard(items[index]);
-      },
-    );
-  }
-
-  Widget _buildConsultationCard(RiwayatKonsultasiAdminItem item) {
-    final isGirl = item.isGirl;
-    final isSelesai = item.status.toLowerCase().contains('selesai');
-
-    return GestureDetector(
-      onTap: () => _navigateToDetail(item),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.0),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x10000000),
-              blurRadius: 10.0,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ─── Avatar Anak Resmi PediaGrow ──────────────────────────────
-            ChildAvatar(
-              gender: item.childGender,
-              isGirl: isGirl,
-              size: 48.0,
-              backgroundColor:
-                  isGirl ? const Color(0xFFFFD1D6) : const Color(0xFFBBE4FF),
-            ),
-            const SizedBox(width: 14.0),
-
-            // ─── Detail Pasien & Dokter ──────────────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Baris Nama Pasien & Badge Status di pojok kanan atas
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.childName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.lato(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: _colorTextBlack,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8.0),
-                      _buildStatusBadge(isSelesai),
-                    ],
-                  ),
-                  const SizedBox(height: 4.0),
-
-                  // Nama Dokter
-                  Text(
-                    item.doctorName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.0,
-                      color: _colorSecondaryGrey,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-
-                  // Tanggal Konsultasi
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 15.0,
-                        color: _colorSecondaryGrey,
-                      ),
-                      const SizedBox(width: 6.0),
-                      Text(
-                        item.formattedDate,
-                        style: GoogleFonts.lato(
-                          fontSize: 13.0,
-                          color: _colorSecondaryGrey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8.0),
-
-            // ─── Chevron Kanan ───────────────────────────────────────────
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 24.0,
-              color: Color(0xFF4A4A4A),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Badge Status Konsultasi:
-  /// - "Dijadwalkan": Latar kuning dan teks oranye
-  /// - "Selesai": Latar hijau tosca dan teks putih
-  Widget _buildStatusBadge(bool isSelesai) {
-    if (isSelesai) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.5),
-        decoration: BoxDecoration(
-          color: const Color(0xFF33CCA6),
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        child: Text(
-          'Selesai',
-          style: GoogleFonts.lato(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      );
-    } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFEEA0),
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        child: Text(
-          'Dijadwalkan',
-          style: GoogleFonts.lato(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFE67E00),
-          ),
-        ),
-      );
-    }
-  }
-
-  // ─── INFO BANNER ────────────────────────────────────────────────────────────
-  /// Banner berlatar biru muda dengan border dan teks biru, serta ikon info di kiri
+  // ─── BANNER INFORMASI DI BAGIAN ATAS ────────────────────────────────────────
   Widget _buildInfoBanner() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F4FD),
+        color: const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          color: const Color(0xFF72A9F4),
+          color: const Color(0xFFBFDBFE),
           width: 1.0,
         ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.info_outline_rounded,
-            size: 22.0,
-            color: Color(0xFF3985E7),
+          const Padding(
+            padding: EdgeInsets.only(top: 2.0),
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 20.0,
+              color: Color(0xFF2563EB),
+            ),
           ),
           const SizedBox(width: 10.0),
           Expanded(
             child: Text(
               'Data menampilkan seluruh konsultasi dari seluruh dokter dan pasien.',
               style: GoogleFonts.lato(
-                fontSize: 13.5,
-                color: const Color(0xFF2B7CD6),
+                fontSize: 13.0,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF1E40AF),
                 height: 1.35,
               ),
             ),
@@ -810,103 +362,655 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── LOADING STATE ──────────────────────────────────────────────────────────
-  Widget _buildLoadingState() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 60.0),
-      child: Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF3985E7),
+  // ─── BARIS SEARCH BAR & TOMBOL FILTER ESTETIK ──────────────────────────────
+  Widget _buildSearchAndFilterRow(List<String> doctorOptions) {
+    final bool isFilterActive = _filterDoctor != 'Semua Dokter';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // 1. Search Bar (Expanded)
+        Expanded(
+          child: _buildSearchBar(),
+        ),
+        const SizedBox(width: 10.0),
+
+        // 2. Tombol Filter
+        GestureDetector(
+          onTap: () => _showDoctorFilterSheet(doctorOptions),
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: 48.0,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            decoration: BoxDecoration(
+              color: isFilterActive ? _colorFilterLightBg : Colors.white,
+              borderRadius: BorderRadius.circular(14.0),
+              border: Border.all(
+                color: isFilterActive ? _colorFilterAccent : _colorBorderLight,
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 4.0,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Ikon corong filter
+                _FilterFunnelSparkleIcon(
+                  size: 20.0,
+                  color: _colorFilterAccent,
+                ),
+                const SizedBox(width: 6.0),
+                Text(
+                  'Filter',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.w600,
+                    color: _colorFilterAccent,
+                  ),
+                ),
+                if (isFilterActive) ...[
+                  const SizedBox(width: 5.0),
+                  Container(
+                    width: 6.0,
+                    height: 6.0,
+                    decoration: const BoxDecoration(
+                      color: _colorFilterAccent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── CHIP INDIKATOR FILTER DOKTER AKTIF ─────────────────────────────────────
+  Widget _buildActiveDoctorFilterChip() {
+    if (_filterDoctor == 'Semua Dokter') return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+            decoration: BoxDecoration(
+              color: _colorFilterLightBg,
+              borderRadius: BorderRadius.circular(20.0),
+              border: Border.all(color: _colorFilterLightBorder, width: 1.0),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.medical_services_outlined,
+                  size: 13.0,
+                  color: _colorFilterAccent,
+                ),
+                const SizedBox(width: 6.0),
+                Text(
+                  'Dokter: $_filterDoctor',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    color: _colorFilterAccent,
+                  ),
+                ),
+                const SizedBox(width: 6.0),
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _filterDoctor = 'Semua Dokter');
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: const Icon(
+                    Icons.close_rounded,
+                    size: 15.0,
+                    color: _colorFilterAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── SEARCH BAR ───────────────────────────────────────────────────────────
+  Widget _buildSearchBar() {
+    return Container(
+      height: 48.0,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: _colorBorderLight, width: 1.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 4.0,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        style: GoogleFonts.lato(
+          fontSize: 14.0,
+          color: _colorTextBlack,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Cari nama pasien atau dokter...',
+          hintStyle: GoogleFonts.lato(
+            fontSize: 13.5,
+            color: _colorSecondaryGrey,
+          ),
+          prefixIcon: const Icon(
+            Icons.search,
+            color: _colorSecondaryGrey,
+            size: 22.0,
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.clear,
+                    color: _colorSecondaryGrey,
+                    size: 18.0,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 13.0,
+            horizontal: 14.0,
+          ),
         ),
       ),
     );
   }
 
-  // ─── ERROR STATE ────────────────────────────────────────────────────────────
-  Widget _buildErrorState(String message) {
+  // ─── MODAL BOTTOM SHEET PILIH DOKTER ────────────────────────────────────────
+  void _showDoctorFilterSheet(List<String> doctorOptions) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle Bar
+                    Center(
+                      child: Container(
+                        width: 42.0,
+                        height: 4.5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(3.0),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18.0),
+
+                    // Header Sheet
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            const _FilterFunnelSparkleIcon(
+                              size: 20.0,
+                              color: _colorFilterAccent,
+                            ),
+                            const SizedBox(width: 8.0),
+                            Text(
+                              'Filter Dokter',
+                              style: GoogleFonts.lato(
+                                fontSize: 17.0,
+                                fontWeight: FontWeight.bold,
+                                color: _colorTextBlack,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_filterDoctor != 'Semua Dokter')
+                          TextButton(
+                            onPressed: () {
+                              setState(() => _filterDoctor = 'Semua Dokter');
+                              Navigator.of(ctx).pop();
+                            },
+                            child: Text(
+                              'Reset Filter',
+                              style: GoogleFonts.lato(
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFEF4444),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      'Pilih dokter untuk memfilter riwayat konsultasi pasien:',
+                      style: GoogleFonts.lato(
+                        fontSize: 13.0,
+                        color: _colorSecondaryGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 14.0),
+                    const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFF1F5F9)),
+                    const SizedBox(height: 10.0),
+
+                    // Daftar Dokter
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: doctorOptions.length,
+                        separatorBuilder: (context, index) => const Divider(
+                          height: 1.0,
+                          thickness: 1.0,
+                          color: Color(0xFFF8FAFC),
+                        ),
+                        itemBuilder: (context, index) {
+                          final docName = doctorOptions[index];
+                          final isSelected = docName == _filterDoctor;
+
+                          return Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: InkWell(
+                              onTap: () {
+                                setState(() => _filterDoctor = docName);
+                                Navigator.of(ctx).pop();
+                              },
+                              borderRadius: BorderRadius.circular(12.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? _colorFilterLightBg
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 38.0,
+                                      height: 38.0,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? _colorFilterAccent.withValues(alpha: 0.15)
+                                            : const Color(0xFFF1F5F9),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Icon(
+                                        docName == 'Semua Dokter'
+                                            ? Icons.people_outline_rounded
+                                            : Icons.person_rounded,
+                                        size: 20.0,
+                                        color: isSelected
+                                            ? _colorFilterAccent
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12.0),
+                                    Expanded(
+                                      child: Text(
+                                        docName,
+                                        style: GoogleFonts.lato(
+                                          fontSize: 14.0,
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.w500,
+                                          color: isSelected
+                                              ? _colorFilterAccent
+                                              : _colorTextBlack,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      const Icon(
+                                        Icons.check_circle_rounded,
+                                        size: 20.0,
+                                        color: _colorFilterAccent,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── DAFTAR KARTU KONSULTASI ──────────────────────────────────────────────
+  Widget _buildConsultationList(List<RiwayatKonsultasiAdminItem> items) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12.0),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _buildConsultationCard(item);
+      },
+    );
+  }
+
+  // ─── KARTU KONSULTASI SESUAI DESAIN ─────────────────────────────────────────
+  Widget _buildConsultationCard(RiwayatKonsultasiAdminItem item) {
+    final ageText = item.calculatedAge;
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            size: 48.0,
-            color: Color(0xFFEF4444),
-          ),
-          const SizedBox(height: 12.0),
-          Text(
-            'Gagal memuat riwayat konsultasi.',
-            style: GoogleFonts.lato(
-              fontSize: 15.0,
-              fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
-            ),
-          ),
-          const SizedBox(height: 4.0),
-          Text(
-            'Silakan periksa koneksi internet Anda atau coba lagi.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 13.0,
-              color: _colorSecondaryGrey,
-            ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1.0,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 8.0,
+            offset: Offset(0, 2),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16.0),
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DetailRiwayatKonsultasiAdminPage(item: item),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(16.0),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Baris Atas: Avatar + Nama & Usia + Badge Status
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Avatar Anak Profil Resmi
+                    ChildAvatar(
+                      gender: item.childGender,
+                      isGirl: item.isGirl,
+                      size: 46.0,
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.childName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: _colorTextBlack,
+                            ),
+                          ),
+                          const SizedBox(height: 3.0),
+                          Text(
+                            ageText,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              color: _colorSecondaryGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    _buildStatusBadge(item.status),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 10.0),
+
+                // Dokter & Tanggal
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.person_outline_rounded,
+                      size: 15.0,
+                      color: _colorSecondaryGrey,
+                    ),
+                    const SizedBox(width: 6.0),
+                    Expanded(
+                      child: Text(
+                        item.doctorName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          color: _colorSecondaryGrey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4.0),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14.0,
+                      color: _colorSecondaryGrey,
+                    ),
+                    const SizedBox(width: 6.0),
+                    Text(
+                      item.formattedDate,
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        color: _colorSecondaryGrey,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Ringkasan jika ada
+                if (item.complaint.isNotEmpty) ...[
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Keluhan: ${item.complaint}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: const Color(0xFF475569),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  // ─── EMPTY STATE ────────────────────────────────────────────────────────────
+  // ─── STATUS BADGE ─────────────────────────────────────────────────────────
+  Widget _buildStatusBadge(String status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDCFCE7),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Text(
+        'Selesai',
+        style: GoogleFonts.lato(
+          fontSize: 11.5,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF15803D),
+        ),
+      ),
+    );
+  }
+
+  // ─── EMPTY STATE ──────────────────────────────────────────────────────────
   Widget _buildEmptyState() {
-    final isFiltered = _searchQuery.isNotEmpty ||
-        _filterDoctor != 'Semua Dokter' ||
-        _filterStatus != 'Semua Status';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 50.0, horizontal: 24.0),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 76.0,
-            height: 76.0,
-            decoration: const BoxDecoration(
-              color: Color(0xFFEBF5FF),
-              shape: BoxShape.circle,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
+        child: Column(
+          children: [
+            Container(
+              width: 72.0,
+              height: 72.0,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.assignment_outlined,
+                size: 36.0,
+                color: Color(0xFF94A3B8),
+              ),
             ),
-            child: const Icon(
-              Icons.folder_open_rounded,
-              size: 40.0,
-              color: Color(0xFF72A9F4),
+            const SizedBox(height: 16.0),
+            Text(
+              'Belum Ada Riwayat Konsultasi',
+              style: GoogleFonts.lato(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: _colorTextBlack,
+              ),
             ),
-          ),
-          const SizedBox(height: 14.0),
-          Text(
-            isFiltered
-                ? 'Tidak ada riwayat konsultasi yang sesuai.'
-                : 'Belum ada riwayat konsultasi.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 15.0,
-              color: _colorSecondaryGrey,
+            const SizedBox(height: 6.0),
+            Text(
+              _filterDoctor != 'Semua Dokter'
+                  ? 'Tidak ada riwayat selesai bersama $_filterDoctor.'
+                  : 'Seluruh riwayat konsultasi yang selesai akan tercatat di sini.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lato(
+                fontSize: 13.0,
+                color: _colorSecondaryGrey,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // ─── BOTTOM NAVIGATION BAR (4 MENU) ─────────────────────────────────────────
+  // ─── LOADING STATE ────────────────────────────────────────────────────────
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 50.0),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(_colorActiveBlue),
+        ),
+      ),
+    );
+  }
+
+  // ─── ERROR STATE ──────────────────────────────────────────────────────────
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
+        child: Column(
+          children: [
+            const Icon(Icons.error_outline, size: 40.0, color: Color(0xFFEF4444)),
+            const SizedBox(height: 12.0),
+            Text(
+              'Gagal memuat data riwayat',
+              style: GoogleFonts.lato(
+                fontSize: 15.0,
+                fontWeight: FontWeight.bold,
+                color: _colorTextBlack,
+              ),
+            ),
+            const SizedBox(height: 4.0),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lato(
+                fontSize: 12.0,
+                color: _colorSecondaryGrey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
+  Widget _buildFooterIllustration() {
+    return SizedBox(
+      width: double.infinity,
+      child: Image.asset(
+        'assets/images/beranda_landscape_footer_fiks.png',
+        width: double.infinity,
+        fit: BoxFit.fitWidth,
+        alignment: Alignment.bottomCenter,
+        errorBuilder: (context, error, stackTrace) =>
+            const SizedBox(height: 20.0),
+      ),
+    );
+  }
+
+  // ─── BOTTOM NAVIGATION BAR (IDENTIK DENGAN BERANDA) ─────────────────────────
   Widget _buildBottomNavigationBar() {
     const navItems = [
-      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_rounded, label: 'Profil'),
+      _NavData(icon: Icons.home_rounded, label: 'Beranda'),
+      _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
+      _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      _NavData(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
     return Container(
@@ -930,6 +1034,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           children: List.generate(navItems.length, (i) {
             final isSelected = i == _selectedNavIndex;
             final item = navItems[i];
+
             return Expanded(
               child: GestureDetector(
                 onTap: () => _onBottomNavTap(i),
@@ -941,7 +1046,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isSelected) ...[
-                        // Lingkaran sorot di belakang ikon
+                        // Lingkaran putih timbul di belakang ikon aktif biru
                         Container(
                           width: 36.0,
                           height: 36.0,
@@ -960,7 +1065,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                           child: Icon(
                             item.icon,
                             size: 22.0,
-                            color: _colorTextBlack,
+                            color: _colorActiveBlue,
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -982,7 +1087,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: _colorTextBlack,
+                          color: _colorInactiveNav,
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -996,7 +1101,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: _colorTextBlack,
+                                color: _colorInactiveNav,
                               ),
                             ),
                           ),
@@ -1014,8 +1119,108 @@ class _DaftarRiwayatKonsultasiAdminPageState
   }
 }
 
-class _NavItem {
+// ─── WIDGET IKON CORONG FILTER DENGAN SPARKLE (SESUAI SLIDE 2) ───────────────
+class _FilterFunnelSparkleIcon extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _FilterFunnelSparkleIcon({
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _FilterSparklePainter(color: color),
+    );
+  }
+}
+
+class _FilterSparklePainter extends CustomPainter {
+  final Color color;
+
+  const _FilterSparklePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final strokePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.09
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Corong Filter (Funnel)
+    final funnelPath = Path();
+    // Garis horizontal atas
+    funnelPath.moveTo(w * 0.15, h * 0.26);
+    funnelPath.lineTo(w * 0.55, h * 0.26);
+    // Garis miring kanan turun
+    funnelPath.lineTo(w * 0.44, h * 0.48);
+    // Garis vertikal tabung corong ke bawah
+    funnelPath.lineTo(w * 0.44, h * 0.82);
+
+    canvas.drawPath(funnelPath, strokePaint);
+
+    // Garis aksen kecil di kanan tabung corong (seperti pada slide 2)
+    canvas.drawLine(
+      Offset(w * 0.62, h * 0.46),
+      Offset(w * 0.62, h * 0.64),
+      strokePaint,
+    );
+
+    // 2. Bintang Sparkle 4 Sudut (Diamond Star) di kanan atas
+    final starCenterX = w * 0.76;
+    final starCenterY = h * 0.28;
+    final starRadius = w * 0.18;
+
+    final starPath = Path();
+    starPath.moveTo(starCenterX, starCenterY - starRadius);
+    starPath.quadraticBezierTo(
+      starCenterX,
+      starCenterY,
+      starCenterX + starRadius,
+      starCenterY,
+    );
+    starPath.quadraticBezierTo(
+      starCenterX,
+      starCenterY,
+      starCenterX,
+      starCenterY + starRadius,
+    );
+    starPath.quadraticBezierTo(
+      starCenterX,
+      starCenterY,
+      starCenterX - starRadius,
+      starCenterY,
+    );
+    starPath.quadraticBezierTo(
+      starCenterX,
+      starCenterY,
+      starCenterX,
+      starCenterY - starRadius,
+    );
+    starPath.close();
+
+    canvas.drawPath(starPath, fillPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FilterSparklePainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _NavData {
   final IconData icon;
   final String label;
-  const _NavItem({required this.icon, required this.label});
+  const _NavData({required this.icon, required this.label});
 }

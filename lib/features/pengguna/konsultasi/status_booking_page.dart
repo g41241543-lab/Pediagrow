@@ -155,7 +155,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        bottomNavigationBar: _buildBottomBar(),
         body: SafeArea(
           child: Column(
             children: [
@@ -186,6 +185,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
 
                       // Informasi Alur Konsultasi
                       _buildFlowGuideCard(),
+                      const SizedBox(height: 24),
+
+                      // Tombol Aksi Langsung Mengalir (Tanpa Footer Putih Menutupi Layar)
+                      _buildBottomBar(),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -204,44 +207,16 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       height: 56.0,
       width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.only(left: 12.0, right: 16.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onTap: _handleNavigateBack,
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Text(
-              'Status Booking',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.lato(
-                fontSize: 19.0,
-                fontWeight: FontWeight.bold,
-                color: _kTextDark,
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              } else {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const BerandaPage()),
-                  (route) => false,
-                );
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
+            child: const SizedBox(
+              width: 32.0,
+              height: 32.0,
               child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
             ),
           ),
@@ -896,48 +871,32 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       onTap = _onIsiFormulirPressed;
     }
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x10000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -3),
+    return SizedBox(
+      width: double.infinity,
+      height: 48.0,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonBg,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: 48.0,
-          child: ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: buttonBg,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(buttonIcon, size: 18.0),
+            const SizedBox(width: 8.0),
+            Text(
+              buttonText,
+              style: GoogleFonts.lato(
+                fontSize: 14.5,
+                fontWeight: FontWeight.bold,
               ),
-              elevation: 0,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(buttonIcon, size: 18.0),
-                const SizedBox(width: 8.0),
-                Text(
-                  buttonText,
-                  style: GoogleFonts.lato(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );

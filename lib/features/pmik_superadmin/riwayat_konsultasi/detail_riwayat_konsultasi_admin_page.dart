@@ -203,15 +203,19 @@ class _DetailRiwayatKonsultasiAdminPageState
                 children: [
                   const SizedBox(height: 14.0),
 
-                  // 1. Kartu Profil Pasien
+                  // 1. Banner Mode Nonaktif di BAGIAN ATAS (Konsisten & Seragam)
+                  _buildReadOnlyBanner(),
+                  const SizedBox(height: 16.0),
+
+                  // 2. Kartu Profil Pasien
                   _buildPatientProfileCard(isGirl),
                   const SizedBox(height: 16.0),
 
-                  // 2. Kartu Informasi Konsultasi (Latar biru muda)
+                  // 3. Kartu Informasi Konsultasi (Latar biru muda)
                   _buildConsultationInfoCard(isSelesai),
                   const SizedBox(height: 20.0),
 
-                  // 3. Section Keluhan
+                  // 4. Section Keluhan
                   Text(
                     'Keluhan',
                     style: GoogleFonts.lato(
@@ -230,7 +234,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                   ),
                   const SizedBox(height: 24.0),
 
-                  // 4. Section Ringkasan Konsultasi
+                  // 5. Section Ringkasan Konsultasi
                   Text(
                     'Ringkasan Konsultasi',
                     style: GoogleFonts.lato(
@@ -247,10 +251,6 @@ class _DetailRiwayatKonsultasiAdminPageState
                       height: 1.45,
                     ),
                   ),
-                  const SizedBox(height: 26.0),
-
-                  // 5. Banner Mode Nonaktif
-                  _buildReadOnlyBanner(),
                   const SizedBox(height: 24.0),
                 ],
               ),
@@ -601,7 +601,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                           child: Icon(
                             item.icon,
                             size: 22.0,
-                            color: _colorTextBlack,
+                            color: const Color(0xFF72A9F4),
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -614,7 +614,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: _colorTextBlack,
+                                color: const Color(0xFF1E293B),
                               ),
                             ),
                           ),
@@ -623,7 +623,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: _colorTextBlack,
+                          color: const Color(0xFF9E9E9E),
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -637,7 +637,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: _colorTextBlack,
+                                color: const Color(0xFF9E9E9E),
                               ),
                             ),
                           ),

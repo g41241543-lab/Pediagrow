@@ -11,6 +11,7 @@ import '../beranda/beranda_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../shared/widgets/child_avatar.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
@@ -1438,20 +1439,15 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
 
   // ─── CHILD AVATAR ─────────────────────────────────────────────────────────
   /// Menampilkan foto profil anak dari Firebase jika tersedia (field photo_url),
-  /// atau fallback ke avatar wajah bayi bergambar lucu.
+  /// atau fallback ke avatar profil anak resmi PediaGrow (ChildAvatar).
   Widget _buildChildAvatar({
     required String? photoUrl,
     required bool isFemale,
     required double size,
   }) {
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
-
-    final fallback = Container(
-      color: bgColor,
-      child: CustomPaint(
-        painter: _BabyFacePainter(isGirl: isFemale),
-      ),
+    final fallback = ChildAvatar(
+      isGirl: isFemale,
+      size: size,
     );
 
     if (photoUrl != null && photoUrl.isNotEmpty) {
@@ -1460,7 +1456,6 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -1480,22 +1475,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-    );
+    return fallback;
   }
 
   // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
