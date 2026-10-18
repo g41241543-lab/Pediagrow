@@ -21,7 +21,8 @@ class BookingConsultationModel {
   final String scheduledTimeSlot;
   final DateTime scheduledStartDateTime;
   final DateTime scheduledEndDateTime;
-  final String status; // 'Terjadwal' | 'Selesai' | 'Dibatalkan' | 'Siap Konsultasi'
+  final String
+  status; // 'Terjadwal' | 'Selesai' | 'Dibatalkan' | 'Siap Konsultasi'
   final String? googleCalendarUrl;
   final double? weightKg;
   final double? heightCm;
@@ -70,6 +71,7 @@ class BookingConsultationModel {
     this.complaint,
     this.sessionId,
     required this.createdAt,
+<<<<<<< HEAD
   })  : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
         scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
         scheduledStartDateTime = _resolveStartDateTime(
@@ -82,6 +84,20 @@ class BookingConsultationModel {
           scheduledDate ?? bookingDate ?? createdAt,
           scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
         );
+=======
+  }) : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
+       scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
+       scheduledStartDateTime = _resolveStartDateTime(
+         scheduledStartDateTime,
+         scheduledDate ?? bookingDate ?? createdAt,
+         scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
+       ),
+       scheduledEndDateTime = _resolveEndDateTime(
+         scheduledEndDateTime,
+         scheduledDate ?? bookingDate ?? createdAt,
+         scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
+       );
+>>>>>>> fc362ce3324d48e354ba628da7e4bddb4961bf9f
 
   static DateTime _resolveStartDateTime(
     DateTime? explicit,
@@ -90,11 +106,19 @@ class BookingConsultationModel {
   ) {
     if (explicit != null) return explicit;
     // Coba ekstrak jam & menit dari string slot, contoh: "09:00 - 09:30 WIB"
-    final matches = RegExp(r'(\d{1,2})[:.](\d{2})').allMatches(slotStr).toList();
+    final matches = RegExp(r'(\d{1,2})[:.](\d{2})')
+        .allMatches(slotStr)
+        .toList();
     if (matches.isNotEmpty) {
       final hour = int.tryParse(matches[0].group(1) ?? '') ?? 9;
       final minute = int.tryParse(matches[0].group(2) ?? '') ?? 0;
-      return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+      return DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+        hour,
+        minute,
+      );
     }
     return baseDate;
   }
@@ -105,11 +129,19 @@ class BookingConsultationModel {
     String slotStr,
   ) {
     if (explicit != null) return explicit;
-    final matches = RegExp(r'(\d{1,2})[:.](\d{2})').allMatches(slotStr).toList();
+    final matches = RegExp(r'(\d{1,2})[:.](\d{2})')
+        .allMatches(slotStr)
+        .toList();
     if (matches.length >= 2) {
       final hour = int.tryParse(matches[1].group(1) ?? '') ?? 9;
       final minute = int.tryParse(matches[1].group(2) ?? '') ?? 30;
-      return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+      return DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+        hour,
+        minute,
+      );
     } else if (matches.isNotEmpty) {
       final start = _resolveStartDateTime(null, baseDate, slotStr);
       return start.add(const Duration(minutes: 30));
@@ -133,37 +165,39 @@ class BookingConsultationModel {
     final DateTime scheduledDate = rawDate is Timestamp
         ? rawDate.toDate()
         : rawDate is String
-            ? DateTime.tryParse(rawDate) ?? DateTime.now()
-            : DateTime.now();
+        ? DateTime.tryParse(rawDate) ?? DateTime.now()
+        : DateTime.now();
 
     final rawCreated = map['createdAt'];
     final DateTime createdAt = rawCreated is Timestamp
         ? rawCreated.toDate()
         : rawCreated is String
-            ? DateTime.tryParse(rawCreated) ?? DateTime.now()
-            : DateTime.now();
+        ? DateTime.tryParse(rawCreated) ?? DateTime.now()
+        : DateTime.now();
 
     final rawStart = map['scheduledStartDateTime'];
     final DateTime? scheduledStartDateTime = rawStart is Timestamp
         ? rawStart.toDate()
         : rawStart is String
-            ? DateTime.tryParse(rawStart)
-            : null;
+        ? DateTime.tryParse(rawStart)
+        : null;
 
     final rawEnd = map['scheduledEndDateTime'];
     final DateTime? scheduledEndDateTime = rawEnd is Timestamp
         ? rawEnd.toDate()
         : rawEnd is String
-            ? DateTime.tryParse(rawEnd)
-            : null;
+        ? DateTime.tryParse(rawEnd)
+        : null;
 
     final rawWeight = map['weightKg'];
-    final double? weightKg =
-        rawWeight != null ? (rawWeight as num).toDouble() : null;
+    final double? weightKg = rawWeight != null
+        ? (rawWeight as num).toDouble()
+        : null;
 
     final rawHeight = map['heightCm'];
-    final double? heightCm =
-        rawHeight != null ? (rawHeight as num).toDouble() : null;
+    final double? heightCm = rawHeight != null
+        ? (rawHeight as num).toDouble()
+        : null;
 
     final doctorMap = map['doctor'];
     final DoctorModel doctor = doctorMap is Map
@@ -183,7 +217,9 @@ class BookingConsultationModel {
 
     return BookingConsultationModel(
       id: id ?? (map['id'] as String? ?? ''),
-      userId: map['userId'] as String? ?? (child.ownerId.isNotEmpty ? child.ownerId : null),
+      userId:
+          map['userId'] as String? ??
+          (child.ownerId.isNotEmpty ? child.ownerId : null),
       doctor: doctor,
       child: child,
       scheduledDate: scheduledDate,
@@ -246,13 +282,15 @@ class BookingConsultationModel {
   /// Cek apakah waktu saat ini berada dalam rentang jadwal konsultasi (mulai sampai selesai)
   bool get isInTimeWindow {
     final now = DateTime.now();
-    return (now.isAfter(scheduledStartDateTime) || now.isAtSameMomentAs(scheduledStartDateTime)) &&
+    return (now.isAfter(scheduledStartDateTime) ||
+            now.isAtSameMomentAs(scheduledStartDateTime)) &&
         now.isBefore(scheduledEndDateTime);
   }
 
   /// Cek apakah waktu jadwal konsultasi sudah berakhir (waktu booking habis)
   bool get isExpired {
-    return DateTime.now().isAfter(scheduledEndDateTime) || status.toLowerCase() == 'selesai';
+    return DateTime.now().isAfter(scheduledEndDateTime) ||
+        status.toLowerCase() == 'selesai';
   }
 
   /// Cek apakah formulir konsultasi untuk booking ini sudah pernah diisi
@@ -347,8 +385,10 @@ class BookingConsultationModel {
       doctor: doctor ?? this.doctor,
       child: child ?? this.child,
       scheduledDate: scheduledDate ?? bookingDate ?? this.scheduledDate,
-      scheduledTimeSlot: scheduledTimeSlot ?? timeSlot ?? this.scheduledTimeSlot,
-      scheduledStartDateTime: scheduledStartDateTime ?? this.scheduledStartDateTime,
+      scheduledTimeSlot:
+          scheduledTimeSlot ?? timeSlot ?? this.scheduledTimeSlot,
+      scheduledStartDateTime:
+          scheduledStartDateTime ?? this.scheduledStartDateTime,
       scheduledEndDateTime: scheduledEndDateTime ?? this.scheduledEndDateTime,
       status: resolvedStatus,
       googleCalendarUrl: googleCalendarUrl ?? this.googleCalendarUrl,
@@ -360,4 +400,3 @@ class BookingConsultationModel {
     );
   }
 }
-

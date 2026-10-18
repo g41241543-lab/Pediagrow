@@ -13,7 +13,6 @@ import '../../../models/doctor_model.dart';
 import '../profil_anak/tambah_anak_page.dart';
 import 'status_booking_page.dart';
 
-
 /// Halaman "Booking Konsultasi Dokter" PediaGrow.
 ///
 /// Alur:
@@ -146,15 +145,29 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     });
   }
 
-  bool _isSubmitting = false;
-
   String _formatIndonesianFullDate(DateTime date) {
     const days = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
     ];
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -176,50 +189,22 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     final bool? isConfirmed = await _showConfirmationDialog();
     if (isConfirmed != true || !mounted) return;
 
-    // Simpan referensi lokal agar tidak terpengaruh jika _selectedSlot berubah karena listener
-    final chosenChild = _selectedChild!;
-    final chosenSlot = _selectedSlot!;
-    final chosenDate = _selectedDate;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    // Tampilkan loading indicator
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF2B7AE8)),
-        ),
-      );
-    }
-
     try {
-      // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis & tersimpan ke Firestore)
-      final booking = await BookingService().createBooking(
+      // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
+      final booking = BookingService().createBooking(
         doctor: widget.doctor,
-        child: chosenChild,
-        date: chosenDate,
-        slot: chosenSlot,
+        child: _selectedChild!,
+        date: _selectedDate,
+        slot: _selectedSlot!,
       );
-
-      // Tutup dialog loading
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
 
       // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
       NotificationService().addBookingReminderNotification(
-        doctorName: booking.doctor.name,
-        childName: booking.child.name,
+        doctorName: widget.doctor.name,
+        childName: _selectedChild!.name,
         dateFormatted:
-            '${chosenDate.day}/${chosenDate.month}/${chosenDate.year}',
-        timeSlot: booking.scheduledTimeSlot,
+            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+        timeSlot: _selectedSlot!.time,
         scheduledTime: booking.scheduledStartDateTime,
       );
 
@@ -228,14 +213,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       // 3. Tampilkan Pop-Up Berhasil yang estetik dan informatif
       _showSuccessDialog(booking);
     } catch (e) {
-      if (mounted) {
-        // Tutup dialog loading jika masih terbuka
-        Navigator.of(context, rootNavigator: true).pop();
-        setState(() {
-          _isSubmitting = false;
-        });
-        _showSnackbar('Gagal melakukan booking: $e');
-      }
+      _showSnackbar('Gagal melakukan booking: $e');
     }
   }
 
@@ -257,7 +235,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           ),
           elevation: 10,
           backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20.0,
+            vertical: 24.0,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(22.0),
             child: Column(
@@ -270,7 +251,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFEFF6FF),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
+                    border: Border.all(
+                      color: const Color(0xFFBFDBFE),
+                      width: 1.5,
+                    ),
                   ),
                   child: const Icon(
                     Icons.event_available_rounded,
@@ -356,7 +340,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                 // Catatan Google Kalender
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 8.0,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0FDF4),
                     borderRadius: BorderRadius.circular(10.0),
@@ -449,8 +436,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     bool isMultiLine = false,
   }) {
     return Row(
-      crossAxisAlignment:
-          isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      crossAxisAlignment: isMultiLine
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
       children: [
         Icon(icon, size: 16.0, color: _kTextMuted),
         const SizedBox(width: 8.0),
@@ -458,10 +446,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           width: 95.0,
           child: Text(
             label,
-            style: GoogleFonts.lato(
-              fontSize: 12.0,
-              color: _kTextMuted,
-            ),
+            style: GoogleFonts.lato(fontSize: 12.0, color: _kTextMuted),
           ),
         ),
         const Text(': ', style: TextStyle(color: _kTextMuted, fontSize: 12.0)),
@@ -493,7 +478,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           ),
           elevation: 10,
           backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24.0,
+            vertical: 24.0,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -506,7 +494,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF86EFAC), width: 2.0),
+                    border: Border.all(
+                      color: const Color(0xFF86EFAC),
+                      width: 2.0,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF22C55E).withValues(alpha: 0.18),
@@ -549,7 +540,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                 // Badge Pengingat Kalender
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14.0,
+                    vertical: 10.0,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(12.0),

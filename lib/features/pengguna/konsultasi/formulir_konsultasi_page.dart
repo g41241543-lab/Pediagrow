@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -148,8 +147,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     } else if (args is Map<String, dynamic>) {
       setState(() {
         if (args['namaAnak'] != null) _effectiveName = args['namaAnak'];
-        if (args['jenisKelamin'] != null)
+        if (args['jenisKelamin'] != null) {
           _effectiveGender = args['jenisKelamin'];
+        }
         if (args['usiaAnak'] != null) _effectiveAge = args['usiaAnak'];
       });
     }
