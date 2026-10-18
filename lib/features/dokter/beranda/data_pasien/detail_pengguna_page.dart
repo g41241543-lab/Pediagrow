@@ -48,8 +48,27 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // ──────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (_, _, _) => const BerandaDokterPage(),
+                transitionsBuilder: (_, animation, _, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 200),
+              ),
+              (route) => false,
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -111,9 +130,10 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           ],
         ),
       ),
-      bottomNavigationBar: null,
-    );
-  }
+      bottomNavigationBar: _buildFixedNavBar(),
+    ),
+  );
+}
 
   // ──────────────────────────────────────────────────────────────
   // HEADER FIXED 56dp
@@ -128,7 +148,21 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushAndRemoveUntil(
+                  PageRouteBuilder(
+                    pageBuilder: (_, _, _) => const BerandaDokterPage(),
+                    transitionsBuilder: (_, animation, _, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                    transitionDuration: const Duration(milliseconds: 200),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
@@ -670,11 +704,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return gender;
   }
 
-  String _formatShortDate(DateTime? dt) {
-    if (dt == null) return '-';
-    return '${dt.day}/${dt.month}/${dt.year}';
-  }
-
   String _formatChildAge(ChildModel child) {
     if (child.birthDate != null) {
       final bDate = child.birthDate!;
@@ -754,7 +783,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
-            final isSelected = i == 0; // Tab Beranda aktif
             final item = navItems[i];
 
             return Expanded(
@@ -767,67 +795,28 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
-                              ),
+                      Icon(
+                        item.icon,
+                        size: 24.0,
+                        color: const Color(0xFF9E9E9E),
+                      ),
+                      const SizedBox(height: 3.0),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 11.0,
+                              fontWeight: FontWeight.normal,
+                              color: const Color(0xFF9E9E9E),
                             ),
                           ),
                         ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),

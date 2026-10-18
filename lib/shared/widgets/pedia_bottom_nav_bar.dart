@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/services/staff_auth_service.dart';
+import '../../models/staff_account_model.dart';
+import '../../features/dokter/beranda/beranda_dokter_page.dart';
+import '../../features/dokter/konsultasi/konsultasi_dokter_page.dart';
+import '../../features/dokter/profil_dokter_page.dart';
 import '../../features/pengguna/beranda/beranda_page.dart';
 import '../../features/pengguna/konsultasi/daftar_dokter_page.dart';
 import '../../features/pengguna/profil/menu_profil_page.dart';
 import '../../features/pengguna/riwayat_konsultasi/daftar_riwayat_page.dart';
+import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
+import '../../features/pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
+import '../../features/pmik_admin/profil_pmik_page.dart';
+import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
+import '../../features/pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
+import '../../features/pmik_superadmin/profil/profil_superadmin_page.dart';
+import '../../features/pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
 /// Navigation Bar terpusat dan reusable untuk aplikasi PediaGrow.
 ///
@@ -12,10 +24,11 @@ import '../../features/pengguna/riwayat_konsultasi/daftar_riwayat_page.dart';
 /// - Index 0: Beranda (Icons.home_rounded)
 /// - Index 1: Konsultasi (Icons.question_answer_rounded)
 /// - Index 2: Riwayat Konsultasi (Icons.manage_search_rounded)
-/// - Index 3: Profil (Icons.person_outline_rounded)
+/// - Index 3: Profil (Icons.person_rounded)
 ///
 /// Mempertahankan warna background #F2EDED, tinggi 68dp, serta efek lingkaran putih
 /// timbul dengan ikon biru #72A9F4 untuk menu yang sedang aktif.
+/// Jika `selectedIndex` bernilai `-1`, maka animasi lingkaran aktif dihilangkan.
 class PediaBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int>? onNavTap;
@@ -34,25 +47,102 @@ class PediaBottomNavBar extends StatelessWidget {
       return;
     }
 
+    final staff = StaffAuthService().currentStaff;
     Widget targetPage;
     bool removeUntil = false;
 
-    switch (index) {
-      case 0:
-        targetPage = const BerandaPage();
-        removeUntil = true;
-        break;
-      case 1:
-        targetPage = const DaftarDokterPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatPage();
-        break;
-      case 3:
-        targetPage = const MenuProfilPage();
-        break;
-      default:
-        return;
+    if (staff != null) {
+      if (staff.role == StaffRole.dokter) {
+        switch (index) {
+          case 0:
+            targetPage = const BerandaDokterPage();
+            removeUntil = true;
+            break;
+          case 1:
+            targetPage = const KonsultasiDokterPage();
+            break;
+          case 2:
+            targetPage = const DaftarRiwayatKonsultasiAdminPage();
+            break;
+          case 3:
+            targetPage = const ProfilDokterPage();
+            break;
+          default:
+            return;
+        }
+      } else if (staff.role == StaffRole.admin) {
+        switch (index) {
+          case 0:
+            targetPage = const BerandaPmikPage();
+            removeUntil = true;
+            break;
+          case 1:
+            targetPage = const KonsultasiPmikAdminPage();
+            break;
+          case 2:
+            targetPage = const DaftarRiwayatKonsultasiAdminPage();
+            break;
+          case 3:
+            targetPage = const ProfilPmikPage();
+            break;
+          default:
+            return;
+        }
+      } else if (staff.role == StaffRole.superadmin) {
+        switch (index) {
+          case 0:
+            targetPage = const BerandaSuperadminPage();
+            removeUntil = true;
+            break;
+          case 1:
+            targetPage = const KonsultasiSuperadminPage();
+            break;
+          case 2:
+            targetPage = const DaftarRiwayatKonsultasiAdminPage();
+            break;
+          case 3:
+            targetPage = const ProfilSuperadminPage();
+            break;
+          default:
+            return;
+        }
+      } else {
+        switch (index) {
+          case 0:
+            targetPage = const BerandaPage();
+            removeUntil = true;
+            break;
+          case 1:
+            targetPage = const DaftarDokterPage();
+            break;
+          case 2:
+            targetPage = const DaftarRiwayatPage();
+            break;
+          case 3:
+            targetPage = const MenuProfilPage();
+            break;
+          default:
+            return;
+        }
+      }
+    } else {
+      switch (index) {
+        case 0:
+          targetPage = const BerandaPage();
+          removeUntil = true;
+          break;
+        case 1:
+          targetPage = const DaftarDokterPage();
+          break;
+        case 2:
+          targetPage = const DaftarRiwayatPage();
+          break;
+        case 3:
+          targetPage = const MenuProfilPage();
+          break;
+        default:
+          return;
+      }
     }
 
     if (removeUntil) {

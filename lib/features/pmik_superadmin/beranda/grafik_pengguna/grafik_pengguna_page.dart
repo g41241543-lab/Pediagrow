@@ -20,12 +20,14 @@ import '../../../../models/user_model.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/child_service.dart';
 import '../../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../../core/services/staff_auth_service.dart';
+import '../../../../models/staff_account_model.dart';
+import '../../../dokter/beranda/beranda_dokter_page.dart';
+import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
-import '../../konsultasi/konsultasi_superadmin_page.dart';
-import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import '../../profil/profil_superadmin_page.dart';
 import 'pdf_preview_screen.dart';
 import '../../../../shared/widgets/child_avatar.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // WARNA & TOKEN DESAIN
@@ -1115,36 +1117,56 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // ══════════════════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: _buildNavBar(),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // ── HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS ──────────
-            _buildHeader(),
+    final staff = StaffAuthService().currentStaff;
+    final isDokter = staff?.role == StaffRole.dokter;
+    final isAdmin = staff?.role == StaffRole.admin;
 
-            // ── TAB SELECTOR ELEGAN GABUNGAN 2 MENU DALAM 1 TAMPILAN ─────
-            _buildTabSelector(),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (isDokter) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+            );
+          } else if (isAdmin) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const BerandaPmikPage()),
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        bottomNavigationBar: _buildNavBar(),
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // ── HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS ──────────
+              _buildHeader(),
 
-            // ── ISI HALAMAN BERDASARKAN TAB AKTIF ─────────────────────────
-            Expanded(
-              child: _isLoading
-                  ? _buildLoadingSkeleton()
-                  : TabBarView(
-                      controller: _tabController,
-                      physics: const BouncingScrollPhysics(),
-                      children: [
-                        // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
-                        _buildTabGrafikPengguna(),
+              // ── TAB SELECTOR ELEGAN GABUNGAN 2 MENU DALAM 1 TAMPILAN ─────
+              _buildTabSelector(),
 
-                        // TAB 2: REKAPITULASI HASIL CEK STUNTING
-                        _buildTabHasilCekStunting(),
-                      ],
-                    ),
-            ),
-          ],
+              // ── ISI HALAMAN BERDASARKAN TAB AKTIF ─────────────────────────
+              Expanded(
+                child: _isLoading
+                    ? _buildLoadingSkeleton()
+                    : TabBarView(
+                        controller: _tabController,
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
+                          _buildTabGrafikPengguna(),
+
+                          // TAB 2: REKAPITULASI HASIL CEK STUNTING
+                          _buildTabHasilCekStunting(),
+                        ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1167,7 +1189,24 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              final staff = StaffAuthService().currentStaff;
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else if (staff?.role == StaffRole.dokter) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+                );
+              } else if (staff?.role == StaffRole.admin) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const BerandaPmikPage()),
+                );
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+                );
+              }
+            },
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
@@ -1309,6 +1348,15 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   // ── Card Sambutan Sesuai Referensi Desain ───────────────────────────────────
   Widget _buildWelcomeCard() {
+    final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
+    final staff = StaffAuthService().currentStaff;
+    final displayName = isDokter
+        ? (staff?.name.isNotEmpty == true ? staff!.name : 'Dokter')
+        : 'Super Admin';
+    final subtitle = isDokter
+        ? 'Pantau data pengguna dan\nstatus stunting secara berkala'
+        : 'Kelola data pengguna dan\nanak secara keseluruhan';
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: Container(
@@ -1334,7 +1382,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   ),
                   const SizedBox(height: 2.0),
                   Text(
-                    'Super Admin',
+                    displayName,
                     style: GoogleFonts.lato(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
@@ -1343,7 +1391,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   ),
                   const SizedBox(height: 6.0),
                   Text(
-                    'Kelola data pengguna dan\nanak secara keseluruhan',
+                    subtitle,
                     style: GoogleFonts.lato(
                       fontSize: 12.0,
                       height: 1.3,
@@ -2503,112 +2551,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // BOTTOM NAVIGATION BAR (Konsisten 4 Menu)
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildNavBar() {
-    final navItems = [
-      _NavItem(icon: Icons.home_outlined, label: 'Beranda'),
-      _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Konsultasi'),
-      _NavItem(
-        icon: Icons.find_in_page_outlined,
-        label: 'Riwayat Konsultasi',
-      ),
-      _NavItem(icon: Icons.person_outline_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final item = navItems[i];
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 24.0,
-                        color: const Color(0xFF9E9E9E),
-                      ),
-                      const SizedBox(height: 3.0),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            item.label,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 11.0,
-                              fontWeight: FontWeight.normal,
-                              color: const Color(0xFF9E9E9E),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  void _onNavTap(int index) {
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          PageRouteBuilder(
-            pageBuilder: (ctx, anim, child) => const BerandaSuperadminPage(),
-            transitionsBuilder: (ctx, animation, secondaryAnim, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 200),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const KonsultasiSuperadminPage(),
-          ),
-        );
-        break;
-      case 2:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
-          ),
-        );
-        break;
-      case 3:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ProfilSuperadminPage()),
-        );
-        break;
-    }
+    return const PediaBottomNavBar(selectedIndex: -1);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -2970,11 +2913,3 @@ class _DownloadBottomSheet extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// DATA MODEL ITEM NAVIGASI
-// ══════════════════════════════════════════════════════════════════════════
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
-}

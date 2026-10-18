@@ -8,7 +8,7 @@ import '../../features/auth/auth_choice_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/dokter/beranda/beranda_dokter_page.dart';
 import '../../features/pengguna/beranda/beranda_page.dart';
-import '../../features/pmik_admin/beranda_pmik_page.dart';
+import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import '../../models/staff_account_model.dart';
 import 'child_service.dart';

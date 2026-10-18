@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
+import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/soal_model.dart';
+import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
+import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
+import '../beranda_superadmin_page.dart';
 import 'edit_soal_permainan_page.dart';
 
 /// Halaman Permainan untuk Superadmin — Daftar Soal.
@@ -130,15 +135,38 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
     if (mounted) setState(() => _showSuccessBar = false);
   }
 
+  void _navigateBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      final staff = StaffAuthService().currentStaff;
+      if (staff?.role == StaffRole.admin) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const BerandaPmikPage()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+        );
+      }
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────
   // BUILD
   // ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      body: Stack(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _navigateBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
+        body: Stack(
         children: [
           // ── Konten Scrollable dengan Background Langit Beranda ─────
           SingleChildScrollView(
@@ -184,8 +212,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
           if (_showSuccessBar) _buildSuccessBar(),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ──────────────────────────────────────────────────────────────────
   // 1. AREA BIRU SEAMLESS (Header + HeaderSkyIllustration)
@@ -234,7 +263,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
+                          onTap: _navigateBack,
                           behavior: HitTestBehavior.opaque,
                           child: const Padding(
                             padding: EdgeInsets.all(4.0),

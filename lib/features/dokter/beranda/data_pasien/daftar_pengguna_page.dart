@@ -126,12 +126,27 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      // Dismiss keyboard saat pengguna mengetuk di luar Search Bar
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: true,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          Navigator.of(context).pushAndRemoveUntil(
+            PageRouteBuilder(
+              pageBuilder: (_, _, _) => const BerandaDokterPage(),
+              transitionsBuilder: (_, animation, _, child) =>
+                  FadeTransition(opacity: animation, child: child),
+              transitionDuration: const Duration(milliseconds: 200),
+            ),
+            (route) => false,
+          );
+        }
+      },
+      child: GestureDetector(
+        // Dismiss keyboard saat pengguna mengetuk di luar Search Bar
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          resizeToAvoidBottomInset: true,
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -158,8 +173,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         // -----------------------------------------------------------------
         bottomNavigationBar: _buildFixedNavBar(),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // Indeks nav bar (0 = Beranda aktif, karena Data Pengguna sub-fitur Beranda)
   final int _selectedIndex = -1;
@@ -298,7 +314,21 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         children: [
           // Tombol Kembali
           GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushAndRemoveUntil(
+                  PageRouteBuilder(
+                    pageBuilder: (_, _, _) => const BerandaDokterPage(),
+                    transitionsBuilder: (_, animation, _, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                    transitionDuration: const Duration(milliseconds: 200),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),

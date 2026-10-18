@@ -3,8 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/resume_medis_service.dart';
+import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/resume_medis_model.dart';
+import '../../../models/staff_account_model.dart';
+import '../../dokter/beranda/beranda_dokter_page.dart';
+import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
+import '../../dokter/profil_dokter_page.dart';
+import '../../pmik_admin/beranda/beranda_pmik_page.dart';
+import '../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
+import '../../pmik_admin/profil_pmik_page.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../profil/profil_superadmin_page.dart';
@@ -112,16 +120,32 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   void _onBottomNavTap(int index) {
     if (index == _selectedNavIndex) return;
+    final staff = StaffAuthService().currentStaff;
+    final isDokter = staff?.role == StaffRole.dokter;
+    final isPmik = staff?.role == StaffRole.admin;
+
     Widget targetPage;
     switch (index) {
       case 0:
-        targetPage = const BerandaSuperadminPage();
+        targetPage = isDokter
+            ? const BerandaDokterPage()
+            : isPmik
+                ? const BerandaPmikPage()
+                : const BerandaSuperadminPage();
         break;
       case 1:
-        targetPage = const KonsultasiSuperadminPage();
+        targetPage = isDokter
+            ? const KonsultasiDokterPage()
+            : isPmik
+                ? const KonsultasiPmikAdminPage()
+                : const KonsultasiSuperadminPage();
         break;
       case 3:
-        targetPage = const ProfilSuperadminPage();
+        targetPage = isDokter
+            ? const ProfilDokterPage()
+            : isPmik
+                ? const ProfilPmikPage()
+                : const ProfilSuperadminPage();
         break;
       default:
         return;
@@ -157,85 +181,109 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(),
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: StreamBuilder<List<ResumeMedisModel>>(
-          stream: ResumeMedisService().streamAllResumeMedis(),
-          builder: (context, snapshot) {
-            final isLoading =
-                snapshot.connectionState == ConnectionState.waiting;
-            final allData = snapshot.data ?? [];
-            final filtered = _applyFilters(allData);
+    final staff = StaffAuthService().currentStaff;
+    final isDokter = staff?.role == StaffRole.dokter;
+    final isPmik = staff?.role == StaffRole.admin;
 
-            // Kumpulkan daftar dokter untuk filter dropdown
-            final Set<String> doctorNames = {'Semua Dokter'};
-            for (final d in _doctorList) {
-              doctorNames.add(d.name);
-            }
-            for (final r in allData) {
-              if (r.doctorName.isNotEmpty) doctorNames.add(r.doctorName);
-            }
-            if (!doctorNames.contains(_filterDoctor)) {
-              _filterDoctor = 'Semua Dokter';
-            }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => isDokter
+                  ? const BerandaDokterPage()
+                  : isPmik
+                      ? const BerandaPmikPage()
+                      : const BerandaSuperadminPage(),
+            ),
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: _buildHeader(),
+        ),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: StreamBuilder<List<ResumeMedisModel>>(
+            stream: ResumeMedisService().streamAllResumeMedis(),
+            builder: (context, snapshot) {
+              final isLoading =
+                  snapshot.connectionState == ConnectionState.waiting;
+              final allData = snapshot.data ?? [];
+              final filtered = _applyFilters(allData);
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints:
-                        BoxConstraints(minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 12.0),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: _buildFilterRow(doctorNames.toList()),
-                          ),
-                          const SizedBox(height: 12.0),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: _buildSearchBar(),
-                          ),
-                          const SizedBox(height: 16.0),
-                          if (isLoading)
-                            _buildLoadingState()
-                          else if (filtered.isEmpty)
-                            _buildEmptyState()
-                          else
-                            _buildRiwayatList(filtered),
-                          const SizedBox(height: 14.0),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: _buildInfoBanner(),
-                          ),
-                          const SizedBox(height: 24.0),
-                          const Spacer(),
-                          _buildFooterIllustration(),
-                        ],
+              // Kumpulkan daftar dokter untuk filter dropdown
+              final Set<String> doctorNames = {'Semua Dokter'};
+              for (final d in _doctorList) {
+                doctorNames.add(d.name);
+              }
+              for (final r in allData) {
+                if (r.doctorName.isNotEmpty) doctorNames.add(r.doctorName);
+              }
+              if (!doctorNames.contains(_filterDoctor)) {
+                _filterDoctor = 'Semua Dokter';
+              }
+
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 12.0),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: _buildFilterRow(doctorNames.toList()),
+                            ),
+                            const SizedBox(height: 12.0),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: _buildSearchBar(),
+                            ),
+                            const SizedBox(height: 16.0),
+                            if (isLoading)
+                              _buildLoadingState()
+                            else if (filtered.isEmpty)
+                              _buildEmptyState()
+                            else
+                              _buildRiwayatList(filtered),
+                            const SizedBox(height: 14.0),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: _buildInfoBanner(),
+                            ),
+                            const SizedBox(height: 24.0),
+                            const Spacer(),
+                            _buildFooterIllustration(),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
+                  );
+                },
+              );
+            },
+          ),
         ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -258,9 +306,16 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     } else {
+                      final staff = StaffAuthService().currentStaff;
+                      final isDokter = staff?.role == StaffRole.dokter;
+                      final isPmik = staff?.role == StaffRole.admin;
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
-                          builder: (_) => const BerandaSuperadminPage(),
+                          builder: (_) => isDokter
+                              ? const BerandaDokterPage()
+                              : isPmik
+                                  ? const BerandaPmikPage()
+                                  : const BerandaSuperadminPage(),
                         ),
                         (route) => false,
                       );

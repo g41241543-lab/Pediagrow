@@ -432,31 +432,38 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
             final int berlangsungCount = allBerlangsung.length;
             final int jadwalCount = validMockJadwal.length + validUserBookings.length;
 
-            return Scaffold(
-              backgroundColor: Colors.white,
-              appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(56.0),
-                child: _buildHeader(),
-              ),
-              body: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    _buildTabBar(berlangsungCount, jadwalCount),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildBerlangsungTab(allBerlangsung),
-                          _buildJadwalKonsultasiTab(validUserBookings, validMockJadwal),
-                        ],
-                      ),
-                    ),
-                  ],
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, _) {
+                if (didPop) return;
+                _onBottomNavTap(0);
+              },
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                appBar: PreferredSize(
+                  preferredSize: const Size.fromHeight(56.0),
+                  child: _buildHeader(),
                 ),
+                body: SafeArea(
+                  top: false,
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      _buildTabBar(berlangsungCount, jadwalCount),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildBerlangsungTab(allBerlangsung),
+                            _buildJadwalKonsultasiTab(validUserBookings, validMockJadwal),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                bottomNavigationBar: _buildBottomNavigationBar(),
               ),
-              bottomNavigationBar: _buildBottomNavigationBar(),
             );
           },
         );
