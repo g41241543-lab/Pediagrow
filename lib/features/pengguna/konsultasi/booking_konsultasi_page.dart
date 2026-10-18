@@ -49,6 +49,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   late List<DateTime> _upcomingDates;
   late List<DoctorTimeSlot> _availableSlots;
   String _selectedPeriodFilter = 'Semua';
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -189,22 +190,31 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     final bool? isConfirmed = await _showConfirmationDialog();
     if (isConfirmed != true || !mounted) return;
 
+    // Cache referensi lokal sebelum memicu pembaruan jadwal
+    final chosenChild = _selectedChild!;
+    final chosenSlot = _selectedSlot!;
+    final chosenDate = _selectedDate;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
     try {
       // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
-      final booking = BookingService().createBooking(
+      final booking = await BookingService().createBooking(
         doctor: widget.doctor,
-        child: _selectedChild!,
-        date: _selectedDate,
-        slot: _selectedSlot!,
+        child: chosenChild,
+        date: chosenDate,
+        slot: chosenSlot,
       );
 
       // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
       NotificationService().addBookingReminderNotification(
         doctorName: widget.doctor.name,
-        childName: _selectedChild!.name,
+        childName: booking.child.name,
         dateFormatted:
-            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-        timeSlot: _selectedSlot!.time,
+            '${chosenDate.day}/${chosenDate.month}/${chosenDate.year}',
+        timeSlot: booking.scheduledTimeSlot,
         scheduledTime: booking.scheduledStartDateTime,
       );
 
@@ -214,6 +224,12 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       _showSuccessDialog(booking);
     } catch (e) {
       _showSnackbar('Gagal melakukan booking: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 

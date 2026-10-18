@@ -71,7 +71,6 @@ class BookingConsultationModel {
     this.complaint,
     this.sessionId,
     required this.createdAt,
-<<<<<<< HEAD
   })  : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
         scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
         scheduledStartDateTime = _resolveStartDateTime(
@@ -84,20 +83,6 @@ class BookingConsultationModel {
           scheduledDate ?? bookingDate ?? createdAt,
           scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
         );
-=======
-  }) : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
-       scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
-       scheduledStartDateTime = _resolveStartDateTime(
-         scheduledStartDateTime,
-         scheduledDate ?? bookingDate ?? createdAt,
-         scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
-       ),
-       scheduledEndDateTime = _resolveEndDateTime(
-         scheduledEndDateTime,
-         scheduledDate ?? bookingDate ?? createdAt,
-         scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
-       );
->>>>>>> fc362ce3324d48e354ba628da7e4bddb4961bf9f
 
   static DateTime _resolveStartDateTime(
     DateTime? explicit,

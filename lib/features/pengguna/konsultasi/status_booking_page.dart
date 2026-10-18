@@ -242,15 +242,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
-<<<<<<< HEAD
-              child: Icon(
-                Icons.arrow_back,
-                color: _kTextDark,
-                size: 24.0,
-              ),
-=======
               child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
->>>>>>> fc362ce3324d48e354ba628da7e4bddb4961bf9f
             ),
           ),
           const SizedBox(width: 12.0),
