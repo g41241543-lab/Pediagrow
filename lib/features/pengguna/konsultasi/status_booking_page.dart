@@ -247,7 +247,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 Icons.arrow_back,
                 color: _kTextDark,
                 size: 24.0,
-<<<<<<< HEAD
               ),
             ),
           ),
@@ -261,8 +260,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 fontSize: 19.0,
                 fontWeight: FontWeight.bold,
                 color: _kTextDark,
-=======
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
               ),
             ),
           ),

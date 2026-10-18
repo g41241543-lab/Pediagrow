@@ -146,7 +146,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     });
   }
 
-<<<<<<< HEAD
+  bool _isSubmitting = false;
+
   String _formatIndonesianFullDate(DateTime date) {
     const days = [
       'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
@@ -157,9 +158,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     ];
     return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
-=======
-  bool _isSubmitting = false;
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
 
   Future<void> _onConfirmBooking() async {
     if (_isSubmitting) return;
@@ -174,15 +172,15 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       return;
     }
 
-<<<<<<< HEAD
     // Tampilkan Pop-Up Konfirmasi Booking
     final bool? isConfirmed = await _showConfirmationDialog();
     if (isConfirmed != true || !mounted) return;
 
-    try {
-      // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis)
-      final booking = BookingService().createBooking(
-=======
+    // Simpan referensi lokal agar tidak terpengaruh jika _selectedSlot berubah karena listener
+    final chosenChild = _selectedChild!;
+    final chosenSlot = _selectedSlot!;
+    final chosenDate = _selectedDate;
+
     setState(() {
       _isSubmitting = true;
     });
@@ -198,25 +196,30 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       );
     }
 
-    // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis & tersimpan ke Firestore)
-    BookingConsultationModel booking;
     try {
-      booking = await BookingService().createBooking(
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
+      // 1. Simpan booking ke BookingService (URL Google Kalender di-generate otomatis & tersimpan ke Firestore)
+      final booking = await BookingService().createBooking(
         doctor: widget.doctor,
-        child: _selectedChild!,
-        date: _selectedDate,
-        slot: _selectedSlot!,
+        child: chosenChild,
+        date: chosenDate,
+        slot: chosenSlot,
       );
-<<<<<<< HEAD
+
+      // Tutup dialog loading
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
 
       // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
       NotificationService().addBookingReminderNotification(
-        doctorName: widget.doctor.name,
-        childName: _selectedChild!.name,
+        doctorName: booking.doctor.name,
+        childName: booking.child.name,
         dateFormatted:
-            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-        timeSlot: _selectedSlot!.time,
+            '${chosenDate.day}/${chosenDate.month}/${chosenDate.year}',
+        timeSlot: booking.scheduledTimeSlot,
         scheduledTime: booking.scheduledStartDateTime,
       );
 
@@ -225,7 +228,14 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       // 3. Tampilkan Pop-Up Berhasil yang estetik dan informatif
       _showSuccessDialog(booking);
     } catch (e) {
-      _showSnackbar('Gagal melakukan booking: $e');
+      if (mounted) {
+        // Tutup dialog loading jika masih terbuka
+        Navigator.of(context, rootNavigator: true).pop();
+        setState(() {
+          _isSubmitting = false;
+        });
+        _showSnackbar('Gagal melakukan booking: $e');
+      }
     }
   }
 
@@ -606,42 +616,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           ),
         );
       },
-=======
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        Navigator.of(context, rootNavigator: true).pop(); // tutup loading
-        _showSnackbar('Gagal membuat booking: $e');
-      }
-      return;
-    }
-
-    if (mounted) Navigator.of(context, rootNavigator: true).pop(); // tutup loading
-
-    // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
-    NotificationService().addBookingReminderNotification(
-      doctorName: widget.doctor.name,
-      childName: _selectedChild!.name,
-      dateFormatted:
-          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-      timeSlot: _selectedSlot!.time,
-      scheduledTime: booking.scheduledStartDateTime,
-    );
-
-    if (!mounted) return;
-
-    // 3. Langsung menuju halaman Status Booking tanpa beralih membuka Google Kalender
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, anim, secAnim) =>
-            StatusBookingPage(booking: booking),
-        transitionsBuilder: (context, anim, secAnim, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
     );
   }
 

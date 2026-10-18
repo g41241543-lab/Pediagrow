@@ -72,12 +72,6 @@ class BookingConsultationModel {
     required this.createdAt,
   })  : scheduledDate = scheduledDate ?? bookingDate ?? createdAt,
         scheduledTimeSlot = scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
-<<<<<<< HEAD
-        scheduledStartDateTime = scheduledStartDateTime ?? (scheduledDate ?? bookingDate ?? createdAt),
-        scheduledEndDateTime = scheduledEndDateTime ??
-            (scheduledStartDateTime ?? (scheduledDate ?? bookingDate ?? createdAt))
-                .add(const Duration(minutes: 30));
-=======
         scheduledStartDateTime = _resolveStartDateTime(
           scheduledStartDateTime,
           scheduledDate ?? bookingDate ?? createdAt,
@@ -122,7 +116,6 @@ class BookingConsultationModel {
     }
     return baseDate.add(const Duration(minutes: 30));
   }
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
 
   /// Konversi dari DocumentSnapshot Firestore
   factory BookingConsultationModel.fromDoc(

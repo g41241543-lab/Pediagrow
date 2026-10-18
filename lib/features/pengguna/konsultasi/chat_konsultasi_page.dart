@@ -848,12 +848,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       final formattedTime = '$hourStr.$minStr WIB';
 
       final effectiveChild = widget.child ?? ChildService().activeChild;
-<<<<<<< HEAD
-      final effectiveUserId = widget.userId ??
-=======
       final effectiveUserId =
           widget.userId ??
->>>>>>> c750cf2f9a80f5596b6bd95d7b1d0cfa1c76e8d3
           effectiveChild?.ownerId ??
           UserService().currentUser.id;
 
