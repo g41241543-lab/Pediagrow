@@ -4,7 +4,7 @@ import 'package:pediagrow/features/auth/auth_choice_page.dart';
 import 'package:pediagrow/features/auth/login_page.dart';
 import 'package:pediagrow/features/dokter/beranda/beranda_dokter_page.dart';
 import 'package:pediagrow/features/pengguna/beranda/beranda_page.dart';
-import 'package:pediagrow/features/pmik_admin/beranda_pmik_page.dart';
+import 'package:pediagrow/features/pmik_admin/beranda/beranda_pmik_page.dart';
 import 'package:pediagrow/features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import 'package:pediagrow/models/staff_account_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -2,22 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
-<<<<<<< HEAD
-import '../../../models/doctor_model.dart';
-import '../../../shared/widgets/child_avatar.dart';
-=======
-import '../../../core/services/resume_medis_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_model.dart';
-import '../../../models/resume_medis_model.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
 import '../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
 import '../../pmik_admin/profil_pmik_page.dart';
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../profil/profil_superadmin_page.dart';
@@ -94,8 +88,17 @@ class _DaftarRiwayatKonsultasiAdminPageState
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
+      final staff = StaffAuthService().currentStaff;
+      final isDokter = staff?.role == StaffRole.dokter;
+      final isPmik = staff?.role == StaffRole.admin;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+        MaterialPageRoute(
+          builder: (_) => isDokter
+              ? const BerandaDokterPage()
+              : isPmik
+                  ? const BerandaPmikPage()
+                  : const BerandaSuperadminPage(),
+        ),
         (route) => false,
       );
     }
@@ -103,12 +106,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   void _onBottomNavTap(int index) {
     if (index == _selectedNavIndex) return;
-<<<<<<< HEAD
-=======
+
     final staff = StaffAuthService().currentStaff;
     final isDokter = staff?.role == StaffRole.dokter;
     final isPmik = staff?.role == StaffRole.admin;
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
 
     Widget targetPage;
     switch (index) {
@@ -218,180 +219,83 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: StreamBuilder<List<RiwayatKonsultasiAdminItem>>(
-        stream: RiwayatKonsultasiAdminService().streamRiwayatKonsultasi(),
-        builder: (context, snapshot) {
-          final isLoading =
-              snapshot.connectionState == ConnectionState.waiting &&
-                  !snapshot.hasData;
-          final hasError = snapshot.hasError;
-          final allData = snapshot.data ?? [];
-          final filtered = _applyFilters(allData);
-
-          // Kumpulkan opsi nama dokter untuk dropdown
-          final Set<String> doctorOptions = {'Semua Dokter'};
-          for (final d in _doctorList) {
-            doctorOptions.add(d.name);
-          }
-          for (final item in allData) {
-            if (item.doctorName.isNotEmpty) doctorOptions.add(item.doctorName);
-          }
-          if (!doctorOptions.contains(_filterDoctor)) {
-            _filterDoctor = 'Semua Dokter';
-          }
-
-          return Column(
-            children: [
-              // ─── HEADER (56dp dari atas layar) ───────────────────────────
-              _buildHeader(),
-
-              // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 14.0),
-
-                      // 1. Dua Dropdown Chip (Semua Dokter & Semua Status)
-                      _buildFilterRow(doctorOptions.toList()),
-                      const SizedBox(height: 14.0),
-
-                      // 2. Kolom Pencarian
-                      _buildSearchBar(),
-                      const SizedBox(height: 18.0),
-
-                      // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
-                      if (isLoading)
-                        _buildLoadingState()
-                      else if (hasError)
-                        _buildErrorState(snapshot.error.toString())
-                      else if (filtered.isEmpty)
-                        _buildEmptyState()
-                      else
-                        _buildConsultationList(filtered),
-
-                      const SizedBox(height: 18.0),
-
-                      // 4. Banner Info di Bawah Daftar
-                      _buildInfoBanner(),
-                      const SizedBox(height: 24.0),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-=======
-    final staff = StaffAuthService().currentStaff;
-    final isDokter = staff?.role == StaffRole.dokter;
-    final isPmik = staff?.role == StaffRole.admin;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        } else {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => isDokter
-                  ? const BerandaDokterPage()
-                  : isPmik
-                      ? const BerandaPmikPage()
-                      : const BerandaSuperadminPage(),
-            ),
-            (route) => false,
-          );
-        }
+        _handleBack();
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: _buildHeader(),
-        ),
-        body: SafeArea(
-          top: false,
-          bottom: false,
-          child: StreamBuilder<List<ResumeMedisModel>>(
-            stream: ResumeMedisService().streamAllResumeMedis(),
-            builder: (context, snapshot) {
-              final isLoading =
-                  snapshot.connectionState == ConnectionState.waiting;
-              final allData = snapshot.data ?? [];
-              final filtered = _applyFilters(allData);
+        body: StreamBuilder<List<RiwayatKonsultasiAdminItem>>(
+          stream: RiwayatKonsultasiAdminService().streamRiwayatKonsultasi(),
+          builder: (context, snapshot) {
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData;
+            final hasError = snapshot.hasError;
+            final allData = snapshot.data ?? [];
+            final filtered = _applyFilters(allData);
 
-              // Kumpulkan daftar dokter untuk filter dropdown
-              final Set<String> doctorNames = {'Semua Dokter'};
-              for (final d in _doctorList) {
-                doctorNames.add(d.name);
-              }
-              for (final r in allData) {
-                if (r.doctorName.isNotEmpty) doctorNames.add(r.doctorName);
-              }
-              if (!doctorNames.contains(_filterDoctor)) {
-                _filterDoctor = 'Semua Dokter';
-              }
+            // Kumpulkan opsi nama dokter untuk dropdown
+            final Set<String> doctorOptions = {'Semua Dokter'};
+            for (final d in _doctorList) {
+              doctorOptions.add(d.name);
+            }
+            for (final item in allData) {
+              if (item.doctorName.isNotEmpty) doctorOptions.add(item.doctorName);
+            }
+            if (!doctorOptions.contains(_filterDoctor)) {
+              _filterDoctor = 'Semua Dokter';
+            }
 
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(minHeight: constraints.maxHeight),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 12.0),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: _buildFilterRow(doctorNames.toList()),
-                            ),
-                            const SizedBox(height: 12.0),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: _buildSearchBar(),
-                            ),
-                            const SizedBox(height: 16.0),
-                            if (isLoading)
-                              _buildLoadingState()
-                            else if (filtered.isEmpty)
-                              _buildEmptyState()
-                            else
-                              _buildRiwayatList(filtered),
-                            const SizedBox(height: 14.0),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: _buildInfoBanner(),
-                            ),
-                            const SizedBox(height: 24.0),
-                            const Spacer(),
-                            _buildFooterIllustration(),
-                          ],
-                        ),
-                      ),
+            return Column(
+              children: [
+                // ─── HEADER (56dp dari atas layar) ───────────────────────────
+                _buildHeader(),
+
+                // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 14.0),
+
+                        // 1. Dua Dropdown Chip (Semua Dokter & Semua Status)
+                        _buildFilterRow(doctorOptions.toList()),
+                        const SizedBox(height: 14.0),
+
+                        // 2. Kolom Pencarian
+                        _buildSearchBar(),
+                        const SizedBox(height: 18.0),
+
+                        // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
+                        if (isLoading)
+                          _buildLoadingState()
+                        else if (hasError)
+                          _buildErrorState(snapshot.error.toString())
+                        else if (filtered.isEmpty)
+                          _buildEmptyState()
+                        else
+                          _buildConsultationList(filtered),
+
+                        const SizedBox(height: 18.0),
+
+                        // 4. Banner Info di Bawah Daftar
+                        _buildInfoBanner(),
+                        const SizedBox(height: 24.0),
+                      ],
                     ),
-                  );
-                },
-              );
-            },
-          ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
       ),
     );
   }
@@ -403,7 +307,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return Container(
       width: double.infinity,
       color: Colors.white,
-<<<<<<< HEAD
       padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -420,48 +323,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   Icons.arrow_back,
                   size: 24.0,
                   color: _colorTextBlack,
-=======
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 56.0,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    } else {
-                      final staff = StaffAuthService().currentStaff;
-                      final isDokter = staff?.role == StaffRole.dokter;
-                      final isPmik = staff?.role == StaffRole.admin;
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (_) => isDokter
-                              ? const BerandaDokterPage()
-                              : isPmik
-                                  ? const BerandaPmikPage()
-                                  : const BerandaSuperadminPage(),
-                        ),
-                        (route) => false,
-                      );
-                    }
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: 36.0,
-                    height: 36.0,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
->>>>>>> 8a8627c478f99122d98b0a6f93d4f4fdc39c3a3e
                 ),
               ),
             ),

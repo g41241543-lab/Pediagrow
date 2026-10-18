@@ -15,7 +15,7 @@ import '../beranda_pmik_page.dart';
 import '../../konsultasi/konsultasi_pmik_admin_page.dart';
 import '../../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil_pmik_page.dart';
-import 'detail_pengguna_page.dart';
+import '../../../pmik_superadmin/beranda/data_anak/detail_pengguna_page.dart';
 
 /// Halaman Daftar Data Pengguna untuk POV SUPERADMIN aplikasi PediaGrow.
 ///
