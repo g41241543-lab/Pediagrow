@@ -16,6 +16,7 @@ import 'rekapitulasi/rekapitulasi_stunting_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
+import '../../dokter/profil_dokter_page.dart';
 import '../profil/hak_akses/hak_akses_page.dart';
 
 /// Halaman Dashboard & Profil Staf (Dokter / PMIK) setelah login.
@@ -157,7 +158,9 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
         case 'profil':
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => const ProfilSuperadminPage(),
+              builder: (_) => _account.role == StaffRole.dokter
+                  ? const ProfilDokterPage()
+                  : const ProfilSuperadminPage(),
             ),
           );
           break;

@@ -614,38 +614,53 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 final int jadwalCount =
                     filteredMockJadwal.length + filteredUserBookings.length;
 
-            return Scaffold(
-              backgroundColor: Colors.white,
-              appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(56.0),
-                child: _buildHeader(),
-              ),
-              body: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    _buildTabBar(berlangsungCount, jadwalCount),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildSedangBerlangsungTab(
-                            filteredBerlangsung,
-                            loggedInDoctorName,
-                          ),
-                          _buildJadwalKonsultasiTab(
-                            filteredMockJadwal,
-                            filteredUserBookings,
-                            loggedInDoctorName,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, _) {
+                if (didPop) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  PageRouteBuilder(
+                    pageBuilder: (_, _, _) => const BerandaDokterPage(),
+                    transitionsBuilder: (_, animation, _, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                    transitionDuration: const Duration(milliseconds: 200),
+                  ),
+                  (route) => false,
+                );
+              },
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                appBar: PreferredSize(
+                  preferredSize: const Size.fromHeight(56.0),
+                  child: _buildHeader(),
                 ),
+                body: SafeArea(
+                  top: false,
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      _buildTabBar(berlangsungCount, jadwalCount),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildSedangBerlangsungTab(
+                              filteredBerlangsung,
+                              loggedInDoctorName,
+                            ),
+                            _buildJadwalKonsultasiTab(
+                              filteredMockJadwal,
+                              filteredUserBookings,
+                              loggedInDoctorName,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                bottomNavigationBar: _buildBottomNav(),
               ),
-              bottomNavigationBar: _buildBottomNav(),
             );
           },
         );

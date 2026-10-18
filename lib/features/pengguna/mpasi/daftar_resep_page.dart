@@ -1,13 +1,14 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/resep_mpasi_service.dart';
+import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/resep_mpasi_model.dart';
+import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../dokter/beranda/beranda_dokter_page.dart';
 import 'detail_resep_page.dart';
 
 /// Halaman "Daftar Resep MPASI" PediaGrow.
@@ -141,7 +142,19 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     _searchFocusNode.unfocus();
   }
 
-  void _onBackPressed() => Navigator.of(context).maybePop();
+  void _onBackPressed() {
+    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+        );
+      }
+      return;
+    }
+    Navigator.of(context).maybePop();
+  }
 
   // -------------------------------------------------------------------------
   // BUILD
@@ -149,7 +162,18 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
+
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && isDokter) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+          );
+        }
+      },
+      child: Scaffold(
       backgroundColor: _colorWhite,
       // Bottom navigation bar FIXED — PediaBottomNavBar terpusat
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
@@ -177,8 +201,9 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // -------------------------------------------------------------------------
   // 1. HEADER (Back button + Judul "Daftar Resep MPASI") — FIXED 56dp

@@ -7,11 +7,10 @@ import '../../../models/artikel_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../features/dokter/beranda/beranda_dokter_page.dart';
 import '../../features/pengguna/detail/detail_artikel_page.dart';
+import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
-import '../../features/pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
-import '../../features/pmik_superadmin/profil/profil_superadmin_page.dart';
-import '../../features/pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
 import 'form_artikel_page.dart';
@@ -301,33 +300,60 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     }
   }
 
+  void _navigateBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      final staff = StaffAuthService().currentStaff;
+      final isDokter = staff?.role == StaffRole.dokter;
+      final isPmik = staff?.role == StaffRole.admin;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => isDokter
+              ? const BerandaDokterPage()
+              : isPmik
+                  ? const BerandaPmikPage()
+                  : const BerandaSuperadminPage(),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      // Bottom Navigation Bar hanya untuk Superadmin/PMIK
-      bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Header
-            _buildHeader(),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _navigateBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        // Bottom Navigation Bar hanya untuk Superadmin/PMIK
+        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Header
+              _buildHeader(),
 
-            const SizedBox(height: 12.0),
+              const SizedBox(height: 12.0),
 
-            // 2. Search Bar Real-Time
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: _buildSearchBar(),
-            ),
+              // 2. Search Bar Real-Time
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildSearchBar(),
+              ),
 
-            const SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
-            // 3. KONTEN UTAMA
-            Expanded(child: _buildBodyContent()),
-          ],
+              // 3. KONTEN UTAMA
+              Expanded(child: _buildBodyContent()),
+            ],
+          ),
         ),
       ),
     );
@@ -348,7 +374,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => Navigator.of(context).maybePop(),
+                onTap: _navigateBack,
                 borderRadius: BorderRadius.circular(24.0),
                 child: const Padding(
                   padding: EdgeInsets.all(4.0),
@@ -897,61 +923,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     );
   }
 
-  /// Bottom Navigation Bar mengikuti ukuran, bentuk, font, dan icon dashboard beranda
   Widget _buildBottomNavigationBar() {
-    return PediaBottomNavBar(
-      selectedIndex: -1,
-      onNavTap: (index) {
-        // Navigasi menu superadmin sesuai dengan dashboard beranda
-        switch (index) {
-          case 0:
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            } else {
-              Navigator.of(context).pushAndRemoveUntil(
-                PageRouteBuilder(
-                  pageBuilder: (_, _, _) => const BerandaSuperadminPage(),
-                  transitionsBuilder: (_, animation, _, child) =>
-                      FadeTransition(opacity: animation, child: child),
-                  transitionDuration: const Duration(milliseconds: 200),
-                ),
-                (route) => false,
-              );
-            }
-            break;
-          case 1:
-            Navigator.of(context).push(
-              PageRouteBuilder(
-                pageBuilder: (_, _, _) => const KonsultasiSuperadminPage(),
-                transitionsBuilder: (_, animation, _, child) =>
-                    FadeTransition(opacity: animation, child: child),
-                transitionDuration: const Duration(milliseconds: 200),
-              ),
-            );
-            break;
-          case 2:
-            Navigator.of(context).push(
-              PageRouteBuilder(
-                pageBuilder: (_, _, _) =>
-                    const DaftarRiwayatKonsultasiAdminPage(),
-                transitionsBuilder: (_, animation, _, child) =>
-                    FadeTransition(opacity: animation, child: child),
-                transitionDuration: const Duration(milliseconds: 200),
-              ),
-            );
-            break;
-          case 3:
-            Navigator.of(context).push(
-              PageRouteBuilder(
-                pageBuilder: (_, _, _) => const ProfilSuperadminPage(),
-                transitionsBuilder: (_, animation, _, child) =>
-                    FadeTransition(opacity: animation, child: child),
-                transitionDuration: const Duration(milliseconds: 200),
-              ),
-            );
-            break;
-        }
-      },
-    );
+    return const PediaBottomNavBar(selectedIndex: -1);
   }
 }
