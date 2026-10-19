@@ -654,11 +654,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               const SizedBox(height: 18.0),
 
-              // Baris Info: Pengalaman & No. STR
+              // Baris Info: Pengalaman & No. STR (Ikon berwarna)
               Row(
                 children: [
-                  // Kolom Kiri: Pengalaman
                   Expanded(
+<<<<<<< HEAD
                     child: Row(
                       children: [
                         const Icon(
@@ -694,11 +694,19 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                           ),
                         ),
                       ],
+=======
+                    child: _buildStatChip(
+                      icon: Icons.work_rounded,
+                      iconColor: const Color(0xFF2563EB),
+                      bgColor: const Color(0xFFEFF6FF),
+                      label: 'Pengalaman',
+                      value: _superadmin?.experience ?? '7 tahun',
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                     ),
                   ),
-
-                  // Kolom Kanan: No. STR
+                  const SizedBox(width: 12),
                   Expanded(
+<<<<<<< HEAD
                     child: Row(
                       children: [
                         const Icon(
@@ -734,6 +742,14 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                           ),
                         ),
                       ],
+=======
+                    child: _buildStatChip(
+                      icon: Icons.badge_outlined,
+                      iconColor: const Color(0xFF0891B2),
+                      bgColor: const Color(0xFFECFEFF),
+                      label: 'No. STR',
+                      value: _superadmin?.strNumber ?? '3511201402012222',
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                     ),
                   ),
                 ],
@@ -827,6 +843,55 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         size: 52.0,
         color: Color(0xFF72A9F4),
       ),
+    );
+  }
+
+  Widget _buildStatChip({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 20, color: iconColor),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                maxLines: 1,
+                style: GoogleFonts.lato(
+                  fontSize: 11,
+                  color: const Color(0xFF94A3B8),
+                ),
+              ),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

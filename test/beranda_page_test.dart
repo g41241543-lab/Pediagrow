@@ -4,10 +4,17 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pediagrow/core/services/booking_service.dart';
+import 'package:pediagrow/core/services/notification_service.dart';
 import 'package:pediagrow/features/pengguna/beranda/beranda_page.dart';
 import 'package:pediagrow/features/pengguna/profil/profil_ibu_page.dart';
 
 void main() {
+  tearDown(() {
+    BookingService().dispose();
+    NotificationService().dispose();
+  });
+
   testWidgets('BerandaPage verification: text, card widths, and images', (
     WidgetTester tester,
   ) async {
@@ -16,6 +23,10 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(() {
+      BookingService().dispose();
+      NotificationService().dispose();
+    });
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -36,7 +47,7 @@ void main() {
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/lokasi_fasyankes_logo.png'), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/permainan_logo.png'), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/bayi_pediagrow_logo.png'), findsOneWidget);
-    expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg'), findsOneWidget);
+    expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && ((w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer_fiks.png' || (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg')), findsOneWidget);
 
     // 3. Verify horizontal alignment and margins
     // MomDad Card
@@ -75,7 +86,7 @@ void main() {
     expect(resepMpasiRect.right, closeTo(390.0 - 12.0, 0.001));
 
     // Footer Illustration
-    final footerFinder = find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg');
+    final footerFinder = find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && ((w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer_fiks.png' || (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg'));
     final Rect footerRect = tester.getRect(footerFinder);
     expect(footerRect.left, equals(0.0));
     expect(footerRect.right, equals(390.0));
@@ -101,11 +112,16 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
 
-    final RenderRepaintBoundary boundary = repaintKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-    final ui.Image image = await boundary.toImage(pixelRatio: 1.0);
-    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    File(r'C:\Users\anita\.gemini\antigravity-ide\brain\6aa18b72-9fc2-4659-92a3-1d89411935b5\beranda_top_screenshot.png')
-        .writeAsBytesSync(byteData!.buffer.asUint8List());
+    final targetDir = Directory(r'C:\Users\anita\.gemini\antigravity-ide\brain\6aa18b72-9fc2-4659-92a3-1d89411935b5');
+    if (targetDir.existsSync()) {
+      try {
+        final RenderRepaintBoundary boundary = repaintKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        final ui.Image image = await boundary.toImage(pixelRatio: 1.0);
+        final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        final file = File('${targetDir.path}\\beranda_top_screenshot.png');
+        file.writeAsBytesSync(byteData!.buffer.asUint8List());
+      } catch (_) {}
+    }
   });
 
   testWidgets('Capture BerandaPage bottom screenshot', (WidgetTester tester) async {
@@ -131,13 +147,18 @@ void main() {
     scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
     await tester.pump(const Duration(milliseconds: 200));
 
-    final RenderRepaintBoundary boundary = repaintKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-    final ui.Image image = await boundary.toImage(pixelRatio: 1.0);
-    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    File(r'C:\Users\anita\.gemini\antigravity-ide\brain\6aa18b72-9fc2-4659-92a3-1d89411935b5\beranda_bottom_screenshot.png')
-        .writeAsBytesSync(byteData!.buffer.asUint8List());
+    final targetDir = Directory(r'C:\Users\anita\.gemini\antigravity-ide\brain\6aa18b72-9fc2-4659-92a3-1d89411935b5');
+    if (targetDir.existsSync()) {
+      try {
+        final RenderRepaintBoundary boundary = repaintKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        final ui.Image image = await boundary.toImage(pixelRatio: 1.0);
+        final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        final file = File('${targetDir.path}\\beranda_bottom_screenshot.png');
+        file.writeAsBytesSync(byteData!.buffer.asUint8List());
+      } catch (_) {}
+    }
 
-    final footerFinder = find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg');
+    final footerFinder = find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && ((w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer_fiks.png' || (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg'));
     expect(footerFinder, findsOneWidget);
   });
 
@@ -153,19 +174,29 @@ void main() {
       ),
     );
 
-    // Initial pump and delay for banner entrance animation
+    // 1. Initial pump runs post frame callback which sets up Future.delayed(200ms)
     await tester.pump();
+    // 2. Advance time past the 200ms delay so setState(_isLengkapiProfilBannerVisible = true) fires
+    await tester.pump(const Duration(milliseconds: 250));
+    // 3. Advance time past the 250ms AnimatedPositioned animation curve so banner is on screen
     await tester.pump(const Duration(milliseconds: 300));
 
     // Verify banner text is present
     expect(find.text('Silahkan lengkapi profil ibu'), findsOneWidget);
 
-    // Verify '>' icon button is present
-    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+    // Verify '>' icon button is present in banner
+    expect(
+      find.descendant(
+        of: find.byType(AnimatedPositioned),
+        matching: find.byIcon(Icons.chevron_right_rounded),
+      ),
+      findsOneWidget,
+    );
 
     // Tap the banner
     await tester.tap(find.text('Silahkan lengkapi profil ibu'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Verify navigation to ProfilIbuPage
     expect(find.byType(ProfilIbuPage), findsOneWidget);

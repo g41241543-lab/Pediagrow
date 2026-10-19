@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 ﻿import 'dart:math' as math;
+=======
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +14,7 @@ import '../beranda/beranda_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil/profil_superadmin_page.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../shared/widgets/child_avatar.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
@@ -35,6 +39,7 @@ class _KonsultasiItem {
   final String? complaint;
   final double? weightKg;
   final double? heightCm;
+  final BookingConsultationModel? booking;
 
   const _KonsultasiItem({
     required this.id,
@@ -53,6 +58,7 @@ class _KonsultasiItem {
     this.complaint,
     this.weightKg,
     this.heightCm,
+    this.booking,
   });
 }
 
@@ -122,6 +128,19 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     final scheduledEnd = DateTime(year, month, day, hour, minute)
         .add(const Duration(minutes: 30));
     return DateTime.now().isBefore(scheduledEnd);
+  }
+
+  /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
+  bool _isBookingActiveNow(BookingConsultationModel booking) {
+    if (booking.status.toLowerCase().contains('selesai') ||
+        booking.status.toLowerCase().contains('batal') ||
+        booking.isExpired) {
+      return false;
+    }
+    if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
+      return true;
+    }
+    return booking.isInTimeWindow;
   }
 
   // ─── Navigation ────────────────────────────────────────────────────────────
@@ -411,24 +430,62 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, userBookings, _) {
-            // PMIK Superadmin menampilkan seluruh data konsultasi (tanpa filter per dokter)
-            final allBerlangsung = [
-              ...firestoreBerlangsung,
-              ..._mockBerlangsung,
-            ];
-
             // Filter mock jadwal yang sudah lewat
             final validMockJadwal = _mockJadwal
                 .where(_isJadwalBelumLewat)
                 .toList();
 
-            // Filter booking dari Firebase yang sudah expired
-            final validUserBookings = userBookings
-                .where((b) => !b.isExpired)
-                .toList();
+            // Filter booking dari Firebase yang sudah expired & hilangkan duplikasi
+            final seenSuperadmin = <String>{};
+            final validUserBookings = <BookingConsultationModel>[];
+            for (final b in userBookings) {
+              if (b.isExpired) continue;
+              final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+              if (seenSuperadmin.add(b.id) && seenSuperadmin.add(slotKey)) {
+                validUserBookings.add(b);
+              }
+            }
+
+            // Pisahkan booking: yang sedang berlangsung masuk ke tab "Sedang Berlangsung",
+            // sedangkan yang masih terjadwal di masa depan tetap di tab "Jadwal Konsultasi"
+            final activeUserBookings = <BookingConsultationModel>[];
+            final scheduledUserBookings = <BookingConsultationModel>[];
+            for (final b in validUserBookings) {
+              if (_isBookingActiveNow(b)) {
+                activeUserBookings.add(b);
+              } else {
+                scheduledUserBookings.add(b);
+              }
+            }
+
+            final userBookingsBerlangsung = activeUserBookings.map((b) => _KonsultasiItem(
+              id: b.id,
+              childName: b.child.name,
+              childAge: b.child.ageDescription,
+              childGender: b.child.gender,
+              childPhotoUrl: b.child.photoUrl,
+              doctorName: b.doctor.name,
+              status: 'berlangsung',
+              sessionId: b.sessionId ?? 'session_${b.id}',
+              parentName: b.userId,
+              complaint: b.complaint,
+              weightKg: b.child.weightKg,
+              heightCm: b.child.heightCm,
+              booking: b,
+            )).toList();
+
+            // Deduplikasi gabungan tab Sedang Berlangsung agar tidak ada pasien ganda antara firestore session dan booking
+            final seenActive = <String>{};
+            final allBerlangsung = <_KonsultasiItem>[];
+            for (final item in [...firestoreBerlangsung, ...userBookingsBerlangsung, ..._mockBerlangsung]) {
+              final key = item.sessionId ?? '${item.childName.toLowerCase()}|${item.doctorName.toLowerCase()}';
+              if (seenActive.add(key)) {
+                allBerlangsung.add(item);
+              }
+            }
 
             final int berlangsungCount = allBerlangsung.length;
-            final int jadwalCount = validMockJadwal.length + validUserBookings.length;
+            final int jadwalCount = validMockJadwal.length + scheduledUserBookings.length;
 
             return Scaffold(
               backgroundColor: Colors.white,
@@ -447,7 +504,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         controller: _tabController,
                         children: [
                           _buildBerlangsungTab(allBerlangsung),
-                          _buildJadwalKonsultasiTab(validUserBookings, validMockJadwal),
+                          _buildJadwalKonsultasiTab(scheduledUserBookings, validMockJadwal),
                         ],
                       ),
                     ),
@@ -1432,20 +1489,15 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
 
   // ─── CHILD AVATAR ─────────────────────────────────────────────────────────
   /// Menampilkan foto profil anak dari Firebase jika tersedia (field photo_url),
-  /// atau fallback ke avatar wajah bayi bergambar lucu.
+  /// atau fallback ke avatar profil anak resmi PediaGrow (ChildAvatar).
   Widget _buildChildAvatar({
     required String? photoUrl,
     required bool isFemale,
     required double size,
   }) {
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
-
-    final fallback = Container(
-      color: bgColor,
-      child: CustomPaint(
-        painter: _BabyFacePainter(isGirl: isFemale),
-      ),
+    final fallback = ChildAvatar(
+      isGirl: isFemale,
+      size: size,
     );
 
     if (photoUrl != null && photoUrl.isNotEmpty) {
@@ -1454,7 +1506,6 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -1474,22 +1525,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-    );
+    return fallback;
   }
 
   // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
@@ -1635,104 +1671,3 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-/// Painter wajah bayi lucu — fallback jika foto profil anak tidak tersedia.
-/// Anak perempuan mendapat hiasan pita merah muda di atas kepala.
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    // Lingkaran kepala
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
-
-    // Poni rambut
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    // Mata
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    // Pipi kemerahan
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    // Senyuman
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(
-      cx,
-      cy + r * 0.62,
-      cx + r * 0.35,
-      cy + r * 0.18,
-    );
-    canvas.drawPath(smilePath, strokePaint);
-
-    // Hiasan pita untuk anak perempuan
-    if (isGirl) {
-      final bowPaint = Paint()
-        ..color = const Color(0xFFFF6B9D)
-        ..style = PaintingStyle.fill;
-      final bowPath = Path();
-      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.4, cy - r * 1.15, cx - r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.1, cy - r * 1.05, cx + r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.4, cy - r * 1.15, cx + r * 0.1, cy - r * 0.85);
-      canvas.drawPath(bowPath, bowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

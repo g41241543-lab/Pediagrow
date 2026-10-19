@@ -34,6 +34,7 @@ class _KonsultasiItem {
   final String? complaint;
   final double? weightKg;
   final double? heightCm;
+  final BookingConsultationModel? booking;
 
   const _KonsultasiItem({
     required this.id,
@@ -52,6 +53,7 @@ class _KonsultasiItem {
     this.complaint,
     this.weightKg,
     this.heightCm,
+    this.booking,
   });
 }
 
@@ -123,6 +125,19 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     return DateTime.now().isBefore(scheduledEnd);
   }
 
+  /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
+  bool _isBookingActiveNow(BookingConsultationModel booking) {
+    if (booking.status.toLowerCase().contains('selesai') ||
+        booking.status.toLowerCase().contains('batal') ||
+        booking.isExpired) {
+      return false;
+    }
+    if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
+      return true;
+    }
+    return booking.isInTimeWindow;
+  }
+
   // ─── Navigation ────────────────────────────────────────────────────────────
   void _onBottomNavTap(int index) {
     if (index == _selectedNavIndex) return;
@@ -144,8 +159,13 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
+<<<<<<< HEAD
       pageBuilder: (_, _, _) => targetPage,
       transitionsBuilder: (_, animation, _, child) {
+=======
+      pageBuilder: (ctx, anim, secAnim) => targetPage,
+      transitionsBuilder: (ctx, animation, secAnim, child) {
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -407,50 +427,95 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, userBookings, _) {
-            // PMIK menampilkan seluruh data konsultasi (tanpa filter per dokter)
-            final allBerlangsung = [
-              ...firestoreBerlangsung,
-              ..._mockBerlangsung,
-            ];
-
             // Filter mock jadwal yang sudah lewat
             final validMockJadwal = _mockJadwal
                 .where(_isJadwalBelumLewat)
                 .toList();
 
-            // Filter booking dari Firebase yang sudah expired
-            final validUserBookings = userBookings
-                .where((b) => !b.isExpired)
-                .toList();
+            // Filter booking dari Firebase yang sudah expired & hilangkan duplikasi
+            final seenAdmin = <String>{};
+            final validUserBookings = <BookingConsultationModel>[];
+            for (final b in userBookings) {
+              if (b.isExpired) continue;
+              final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+              if (seenAdmin.add(b.id) && seenAdmin.add(slotKey)) {
+                validUserBookings.add(b);
+              }
+            }
+
+            // Pisahkan booking: yang sedang berlangsung masuk ke tab "Sedang Berlangsung",
+            // sedangkan yang masih terjadwal di masa depan tetap di tab "Jadwal Konsultasi"
+            final activeUserBookings = <BookingConsultationModel>[];
+            final scheduledUserBookings = <BookingConsultationModel>[];
+            for (final b in validUserBookings) {
+              if (_isBookingActiveNow(b)) {
+                activeUserBookings.add(b);
+              } else {
+                scheduledUserBookings.add(b);
+              }
+            }
+
+            final userBookingsBerlangsung = activeUserBookings.map((b) => _KonsultasiItem(
+              id: b.id,
+              childName: b.child.name,
+              childAge: b.child.ageDescription,
+              childGender: b.child.gender,
+              childPhotoUrl: b.child.photoUrl,
+              doctorName: b.doctor.name,
+              status: 'berlangsung',
+              sessionId: b.sessionId ?? 'session_${b.id}',
+              parentName: b.userId,
+              complaint: b.complaint,
+              weightKg: b.child.weightKg,
+              heightCm: b.child.heightCm,
+              booking: b,
+            )).toList();
+
+            // Deduplikasi gabungan tab Sedang Berlangsung agar tidak ada pasien ganda antara firestore session dan booking
+            final seenActive = <String>{};
+            final allBerlangsung = <_KonsultasiItem>[];
+            for (final item in [...firestoreBerlangsung, ...userBookingsBerlangsung, ..._mockBerlangsung]) {
+              final key = item.sessionId ?? '${item.childName.toLowerCase()}|${item.doctorName.toLowerCase()}';
+              if (seenActive.add(key)) {
+                allBerlangsung.add(item);
+              }
+            }
 
             final int berlangsungCount = allBerlangsung.length;
-            final int jadwalCount = validMockJadwal.length + validUserBookings.length;
+            final int jadwalCount = validMockJadwal.length + scheduledUserBookings.length;
 
-            return Scaffold(
-              backgroundColor: Colors.white,
-              appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(56.0),
-                child: _buildHeader(),
-              ),
-              body: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    _buildTabBar(berlangsungCount, jadwalCount),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildBerlangsungTab(allBerlangsung),
-                          _buildJadwalKonsultasiTab(validUserBookings, validMockJadwal),
-                        ],
-                      ),
-                    ),
-                  ],
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, _) {
+                if (didPop) return;
+                _onBottomNavTap(0);
+              },
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                appBar: PreferredSize(
+                  preferredSize: const Size.fromHeight(56.0),
+                  child: _buildHeader(),
                 ),
+                body: SafeArea(
+                  top: false,
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      _buildTabBar(berlangsungCount, jadwalCount),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildBerlangsungTab(allBerlangsung),
+                            _buildJadwalKonsultasiTab(scheduledUserBookings, validMockJadwal),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                bottomNavigationBar: _buildBottomNavigationBar(),
               ),
-              bottomNavigationBar: _buildBottomNavigationBar(),
             );
           },
         );

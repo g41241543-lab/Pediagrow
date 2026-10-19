@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
+import '../../../core/services/google_calendar_service.dart';
 import '../../../models/booking_consultation_model.dart';
-import '../beranda/beranda_page.dart';
 import 'chat_konsultasi_page.dart';
 import 'daftar_dokter_page.dart';
 import 'formulir_konsultasi_page.dart';
@@ -22,10 +22,7 @@ import 'formulir_konsultasi_page.dart';
 class StatusBookingPage extends StatefulWidget {
   final BookingConsultationModel booking;
 
-  const StatusBookingPage({
-    super.key,
-    required this.booking,
-  });
+  const StatusBookingPage({super.key, required this.booking});
 
   @override
   State<StatusBookingPage> createState() => _StatusBookingPageState();
@@ -62,7 +59,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   void dispose() {
     _tickerTimer?.cancel();
     BookingService().bookingsNotifier.removeListener(_syncBookingFromService);
-    BookingService().activeBookingNotifier.removeListener(_syncBookingFromService);
+    BookingService().activeBookingNotifier.removeListener(
+      _syncBookingFromService,
+    );
     super.dispose();
   }
 
@@ -74,7 +73,8 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       setState(() {
         _currentBooking = found.first;
       });
-    } else if (BookingService().activeBookingNotifier.value?.id == _currentBooking.id) {
+    } else if (BookingService().activeBookingNotifier.value?.id ==
+        _currentBooking.id) {
       setState(() {
         _currentBooking = BookingService().activeBookingNotifier.value!;
       });
@@ -82,17 +82,19 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
   void _onIsiFormulirPressed() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FormulirKonsultasiPage(
-          doctor: _currentBooking.doctor,
-          child: _currentBooking.child,
-          booking: _currentBooking,
-        ),
-      ),
-    ).then((_) {
-      _syncBookingFromService();
-    });
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => FormulirKonsultasiPage(
+              doctor: _currentBooking.doctor,
+              child: _currentBooking.child,
+              booking: _currentBooking,
+            ),
+          ),
+        )
+        .then((_) {
+          _syncBookingFromService();
+        });
   }
 
   void _onMasukRoomKonsultasiPressed() {
@@ -112,23 +114,24 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     final effectiveSessionId =
         _currentBooking.sessionId ?? 'session_${_currentBooking.id}';
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChatKonsultasiPage(
-          doctor: _currentBooking.doctor,
-          child: _currentBooking.child,
-          weightKg: _currentBooking.weightKg,
-          heightCm: _currentBooking.heightCm,
-          complaint: _currentBooking.complaint,
-          sessionId: effectiveSessionId,
-          booking: _currentBooking,
-        ),
-      ),
-    ).then((_) {
-      _syncBookingFromService();
-    });
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => ChatKonsultasiPage(
+              doctor: _currentBooking.doctor,
+              child: _currentBooking.child,
+              weightKg: _currentBooking.weightKg,
+              heightCm: _currentBooking.heightCm,
+              complaint: _currentBooking.complaint,
+              sessionId: effectiveSessionId,
+              booking: _currentBooking,
+            ),
+          ),
+        )
+        .then((_) {
+          _syncBookingFromService();
+        });
   }
-
 
   void _handleNavigateBack() {
     if (Navigator.of(context).canPop()) {
@@ -153,24 +156,29 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         _handleNavigateBack();
       },
       child: Scaffold(
+<<<<<<< HEAD
         backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         bottomNavigationBar: _buildBottomBar(isDark),
+=======
+        backgroundColor: Colors.white,
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         body: SafeArea(
           child: Column(
             children: [
               // Header (56dp)
               _buildHeader(isDark),
 
-            // Konten Tiket Booking
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
+              // Konten Tiket Booking
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 12),
 
+<<<<<<< HEAD
                     // Banner Status Waktu (Ready vs Waiting)
                     _buildTimeStatusBanner(isDark),
                     const SizedBox(height: 18),
@@ -187,28 +195,57 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                     _buildFlowGuideCard(isDark),
                     const SizedBox(height: 32),
                   ],
+=======
+                      // Banner Status Waktu (Ready vs Waiting)
+                      _buildTimeStatusBanner(),
+                      const SizedBox(height: 18),
+
+                      // Kartu Tiket Booking Janji Temu
+                      _buildTicketCard(),
+                      const SizedBox(height: 20),
+
+                      // Kartu Google Kalender
+                      _buildGoogleCalendarInfoCard(),
+                      const SizedBox(height: 20),
+
+                      // Informasi Alur Konsultasi
+                      _buildFlowGuideCard(),
+                      const SizedBox(height: 24),
+
+                      // Tombol Aksi Langsung Mengalir (Tanpa Footer Putih Menutupi Layar)
+                      _buildBottomBar(),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ── Header (56dp) ──────────────────────────────────────────────────────────
   Widget _buildHeader(bool isDark) {
     return Container(
       height: 56.0,
       width: double.infinity,
+<<<<<<< HEAD
       color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+=======
+      color: Colors.white,
+      padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onTap: _handleNavigateBack,
             behavior: HitTestBehavior.opaque,
+<<<<<<< HEAD
             child: Padding(
               padding: const EdgeInsets.all(4.0),
               child: Icon(
@@ -216,12 +253,18 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 color: isDark ? Colors.white : _kTextDark,
                 size: 24.0,
               ),
+=======
+            child: const SizedBox(
+              width: 32.0,
+              height: 32.0,
+              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
             ),
           ),
           const SizedBox(width: 12.0),
           Expanded(
             child: Text(
-              'Status Booking',
+              'Status Booking Konsultasi',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
@@ -231,6 +274,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               ),
             ),
           ),
+<<<<<<< HEAD
           GestureDetector(
             onTap: () {
               Navigator.of(context).pushAndRemoveUntil(
@@ -248,6 +292,8 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               ),
             ),
           ),
+=======
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         ],
       ),
     );
@@ -275,7 +321,11 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 color: Color(0xFF667781),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.timer_off_outlined, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.timer_off_outlined,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12.0),
             Expanded(
@@ -307,7 +357,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       );
     }
 
-    if (_currentBooking.isInTimeWindow) {
+    if (_currentBooking.isInTimeWindow || _currentBooking.status == 'Sedang Berlangsung') {
       final hasForm = _currentBooking.hasFilledForm;
       return Container(
         padding: const EdgeInsets.all(16.0),
@@ -336,7 +386,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hasForm ? 'Sesi Konsultasi Sedang Aktif' : 'Waktu Konsultasi Telah Tiba!',
+                    hasForm
+                        ? 'Sesi Konsultasi Sedang Aktif'
+                        : 'Waktu Konsultasi Telah Tiba!',
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.bold,
@@ -408,7 +460,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           // Keterangan menyatu terintegrasi
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12.0,
+              vertical: 8.0,
+            ),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF0B1014) : Colors.white,
               borderRadius: BorderRadius.circular(8.0),
@@ -467,10 +522,20 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         children: [
           // Header Tiket
           Container(
+<<<<<<< HEAD
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(15.0)),
+=======
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -494,7 +559,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 3.5,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(20.0),
@@ -529,21 +597,31 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                       child: Container(
                         width: 50.0,
                         height: 50.0,
+<<<<<<< HEAD
                         color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
                         child: doc.avatarUrl != null && doc.avatarUrl!.isNotEmpty
+=======
+                        color: const Color(0xFFE2E8F0),
+                        child:
+                            doc.avatarUrl != null && doc.avatarUrl!.isNotEmpty
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                             ? (doc.avatarUrl!.startsWith('http')
-                                ? Image.network(
-                                    doc.avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) =>
-                                        const Icon(Icons.person, color: _kTextMuted),
-                                  )
-                                : Image.file(
-                                    File(doc.avatarUrl!),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) =>
-                                        const Icon(Icons.person, color: _kTextMuted),
-                                  ))
+                                  ? Image.network(
+                                      doc.avatarUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => const Icon(
+                                        Icons.person,
+                                        color: _kTextMuted,
+                                      ),
+                                    )
+                                  : Image.file(
+                                      File(doc.avatarUrl!),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => const Icon(
+                                        Icons.person,
+                                        color: _kTextMuted,
+                                      ),
+                                    ))
                             : const Icon(Icons.person, color: _kTextMuted),
                       ),
                     ),
@@ -600,7 +678,11 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                             'Jadwal Konsultasi',
                             style: GoogleFonts.lato(
                               fontSize: 11.5,
+<<<<<<< HEAD
                               color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+=======
+                              color: _kTextMuted,
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                             ),
                           ),
                           const SizedBox(height: 2.0),
@@ -631,7 +713,11 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                             'Pasien Anak',
                             style: GoogleFonts.lato(
                               fontSize: 11.5,
+<<<<<<< HEAD
                               color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+=======
+                              color: _kTextMuted,
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                             ),
                           ),
                           const SizedBox(height: 2.0),
@@ -668,16 +754,24 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   // ── Kartu Google Kalender ─────────────────────────────────────────────────
   Widget _buildGoogleCalendarInfoCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
+<<<<<<< HEAD
         color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14.0),
         border: Border.all(
           color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
         ),
+=======
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _kBorderLight),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+<<<<<<< HEAD
           Container(
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
@@ -746,6 +840,107 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                   ),
                 ),
               ],
+=======
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: const Icon(
+                  Icons.calendar_month_rounded,
+                  color: Color(0xFF1E88E5),
+                  size: 24.0,
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Terhubung ke Google Kalender',
+                      style: GoogleFonts.lato(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: _kTextDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2.0),
+                    Text(
+                      'Jadwal ${_currentBooking.formattedDate} (${_currentBooking.timeSlot}) telah tersambung sebagai kegiatan kalender.',
+                      style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(color: const Color(0xFF86EFAC)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      size: 14.0,
+                      color: Color(0xFF16A34A),
+                    ),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      'Aktif',
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF166534),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12.0),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF1E88E5), width: 1.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                backgroundColor: Colors.white,
+              ),
+              icon: const Icon(
+                Icons.event_note_rounded,
+                color: Color(0xFF1E88E5),
+                size: 18.0,
+              ),
+              label: Text(
+                'Buka di Google Kalender',
+                style: GoogleFonts.lato(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E88E5),
+                ),
+              ),
+              onPressed: () {
+                final url = _currentBooking.googleCalendarUrl ??
+                    GoogleCalendarService().generateCalendarUrl(_currentBooking);
+                BookingService().launchGoogleCalendar(url);
+              },
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
             ),
           ),
         ],
@@ -754,8 +949,14 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   }
 
   // ── Informasi Alur Konsultasi ─────────────────────────────────────────────
+<<<<<<< HEAD
   Widget _buildFlowGuideCard(bool isDark) {
     final isInWindow = _currentBooking.isInTimeWindow;
+=======
+  Widget _buildFlowGuideCard() {
+    final isInWindow =
+        _currentBooking.isInTimeWindow || _currentBooking.status == 'Sedang Berlangsung';
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
     final hasFilled = _currentBooking.hasFilledForm;
     final isDone = _currentBooking.status.toLowerCase() == 'selesai';
 
@@ -857,10 +1058,14 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 ),
                 Text(
                   subtitle,
+<<<<<<< HEAD
                   style: GoogleFonts.lato(
                     fontSize: 11.5,
                     color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                   ),
+=======
+                  style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                 ),
               ],
             ),
@@ -873,7 +1078,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   // ── Bottom Action Bar ─────────────────────────────────────────────────────
   Widget _buildBottomBar(bool isDark) {
     final isExpired = _currentBooking.isExpired;
-    final isBefore = _currentBooking.isBeforeStart;
+    final isOngoing = _currentBooking.status == 'Sedang Berlangsung' ||
+        _currentBooking.isInTimeWindow;
+    final isBefore = _currentBooking.isBeforeStart && !isOngoing;
     final hasFilled = _currentBooking.hasFilledForm;
 
     String buttonText;
@@ -903,6 +1110,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       onTap = _onIsiFormulirPressed;
     }
 
+<<<<<<< HEAD
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
       decoration: BoxDecoration(
@@ -918,42 +1126,34 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 8.0,
             offset: const Offset(0, -3),
+=======
+    return SizedBox(
+      width: double.infinity,
+      height: 48.0,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonBg,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: 48.0,
-          child: ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: buttonBg,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(buttonIcon, size: 18.0),
+            const SizedBox(width: 8.0),
+            Text(
+              buttonText,
+              style: GoogleFonts.lato(
+                fontSize: 14.5,
+                fontWeight: FontWeight.bold,
               ),
-              elevation: 0,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  buttonIcon,
-                  size: 18.0,
-                ),
-                const SizedBox(width: 8.0),
-                Text(
-                  buttonText,
-                  style: GoogleFonts.lato(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );

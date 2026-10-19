@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,7 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/resume_medis_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/chat_message_model.dart';
@@ -50,6 +51,7 @@ class ChatKonsultasiPage extends StatefulWidget {
   final String? sessionId;
   // ID pengguna yang login (Firebase Auth UID)
   final String? userId;
+  final bool autoGreet;
 
   const ChatKonsultasiPage({
     super.key,
@@ -65,6 +67,7 @@ class ChatKonsultasiPage extends StatefulWidget {
     this.booking,
     this.sessionId,
     this.userId,
+    this.autoGreet = false,
   });
 
   @override
@@ -112,7 +115,16 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // Stream Firestore – aktif jika sessionId tersedia
   Stream<List<ChatMessageModel>>? _messageStream;
 
+  // Listener status sesi (untuk deteksi pengakhiran dari pihak dokter)
+  StreamSubscription<dynamic>? _sessionSub;
+  // Flag: true jika kita sendiri yang mengakhiri (hindari reaksi ganda)
+  bool _sessionEndedByUs = false;
+
   Timer? _sessionExpiryTimer;
+  Timer? _initialGreetingTimer;
+  Timer? _initialGreetingTypingTimer;
+  Timer? _doctorResponseTimer;
+  Timer? _doctorResponseTypingTimer;
 
   BookingConsultationModel? get _effectiveBooking =>
       widget.booking ?? BookingService().activeBookingNotifier.value;
@@ -131,27 +143,44 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _initMessages();
 
     // Jika waktu booking konsultasi sudah habis saat masuk, tutup ruangan
-    if (_effectiveBooking != null && _effectiveBooking!.isExpired) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _handleAlreadyExpired();
-      });
-    } else {
-      // Timer cek realtime apakah waktu konsultasi telah habis
-      _sessionExpiryTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted &&
-            _effectiveBooking != null &&
-            _effectiveBooking!.isExpired) {
-          _handleTimeExpired();
-        }
-      });
+    if (_effectiveBooking != null) {
+      if (_effectiveBooking!.isExpired) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _handleAlreadyExpired();
+        });
+      } else {
+        // Timer cek realtime apakah waktu konsultasi telah habis
+        _sessionExpiryTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+          if (mounted &&
+              _effectiveBooking != null &&
+              _effectiveBooking!.isExpired) {
+            _handleTimeExpired();
+          }
+        });
+      }
     }
 
     // Jika sessionId ada, gunakan stream Firestore (real-time)
-    if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
-      _messageStream = ChatMessageService.instance.streamPesan(
-        widget.sessionId!,
-      );
-    } else {
+    final effSession = _effectiveSessionId;
+    if (effSession.isNotEmpty && !effSession.endsWith('default')) {
+      _messageStream = ChatMessageService.instance.streamPesan(effSession);
+
+      // Dengarkan perubahan status sesi agar tahu jika DOKTER mengakhiri
+      _sessionSub = KonsultasiService.instance
+          .streamSesi(effSession)
+          .listen((sesi) {
+        if (!mounted) return;
+        if (_sessionEndedByUs) return; // kita yang mengakhiri, abaikan
+        if (sesi != null && sesi.isSelesai) {
+          // Dokter mengakhiri konsultasi → proses dari sisi pengguna
+          _sessionEndedByUs = true;
+          _sessionSub?.cancel();
+          _selesaikanKonsultasiDanBuatRiwayat().then((_) {
+            if (mounted) showKonsultasiSelesaiDialog(context);
+          });
+        }
+      });
+    } else if (widget.autoGreet) {
       // Mode offline: simulasi dokter menyapa jika belum ada sapaan
       final hasDoctorGreeting = _messages.any((m) => m['sender'] == 'doctor');
       if (!hasDoctorGreeting) {
@@ -163,12 +192,48 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _typingAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat();
+    );
+  }
+
+  void _setDoctorTyping(bool typing) {
+    if (!mounted) return;
+    setState(() {
+      _isDoctorTyping = typing;
+      if (typing) {
+        if (!_typingAnimController.isAnimating) {
+          _typingAnimController.repeat();
+        }
+      } else {
+        if (_typingAnimController.isAnimating) {
+          _typingAnimController.stop();
+          _typingAnimController.reset();
+        }
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatKonsultasiPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sessionId != widget.sessionId ||
+        oldWidget.booking?.sessionId != widget.booking?.sessionId) {
+      final effSession = _effectiveSessionId;
+      if (effSession.isNotEmpty && !effSession.endsWith('default')) {
+        setState(() {
+          _messageStream = ChatMessageService.instance.streamPesan(effSession);
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
     _sessionExpiryTimer?.cancel();
+    _sessionSub?.cancel();
+    _initialGreetingTimer?.cancel();
+    _initialGreetingTypingTimer?.cancel();
+    _doctorResponseTimer?.cancel();
+    _doctorResponseTypingTimer?.cancel();
     _textController.dispose();
     _scrollController.dispose();
     _typingAnimController.dispose();
@@ -236,12 +301,14 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   /// Dokter membaca formulir dan menyapa pasien secara formal & personal
   void _scheduleInitialDoctorGreeting() {
-    Future.delayed(const Duration(milliseconds: 1200), () {
+    _initialGreetingTimer?.cancel();
+    _initialGreetingTypingTimer?.cancel();
+    _initialGreetingTimer = Timer(const Duration(milliseconds: 1200), () {
       if (!mounted) return;
-      setState(() => _isDoctorTyping = true);
+      _setDoctorTyping(true);
       _scrollToBottom();
 
-      Future.delayed(const Duration(milliseconds: 1900), () {
+      _initialGreetingTypingTimer = Timer(const Duration(milliseconds: 1900), () {
         if (!mounted) return;
 
         final replyTime = DateTime.now();
@@ -250,8 +317,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
         final greetingMessage = _generateOpeningGreeting();
 
+        _setDoctorTyping(false);
         setState(() {
-          _isDoctorTyping = false;
           _messages.add({
             'sender': 'doctor',
             'type': 'text',
@@ -293,17 +360,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _textController.clear();
 
     // Jika ada sessionId → kirim ke Firestore (real-time, dokter menerima)
-    if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
-      final uid = widget.userId ?? '';
+    final effSession = _effectiveSessionId;
+    if (effSession.isNotEmpty && !effSession.endsWith('default')) {
+      final uid = widget.userId ?? UserService().currentUser.id;
       ChatMessageService.instance.kirimTeks(
-        sessionId: widget.sessionId!,
+        sessionId: effSession,
         senderId: uid,
         senderRole: MessageSender.user,
         text: text,
       );
       // Tandai pesan dokter sebagai sudah dibaca
       ChatMessageService.instance.tandaiSudahDibaca(
-        sessionId: widget.sessionId!,
+        sessionId: effSession,
         readerRole: MessageSender.user,
       );
       return;
@@ -332,13 +400,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _scrollToBottom();
 
     // Munculkan indikator dokter mengetik (...)
-    Future.delayed(const Duration(milliseconds: 600), () {
+    _doctorResponseTimer?.cancel();
+    _doctorResponseTypingTimer?.cancel();
+    _doctorResponseTimer = Timer(const Duration(milliseconds: 600), () {
       if (!mounted) return;
-      setState(() => _isDoctorTyping = true);
+      _setDoctorTyping(true);
       _scrollToBottom();
 
       // Durasi mengetik yang realistis (1.6 - 2.2 detik)
-      Future.delayed(const Duration(milliseconds: 1800), () {
+      _doctorResponseTypingTimer = Timer(const Duration(milliseconds: 1800), () {
         if (!mounted) return;
 
         final replyTime = DateTime.now();
@@ -347,8 +417,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
         final doctorAnswer = _generateDoctorResponse(text);
 
+        _setDoctorTyping(false);
         setState(() {
-          _isDoctorTyping = false;
           _messages.add({
             'sender': 'doctor',
             'type': 'text',
@@ -743,6 +813,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     showKonfirmasiSelesaiDialog(
       context,
       onConfirmed: () async {
+        _sessionEndedByUs = true; // Kita yang mengakhiri → abaikan stream
         await _selesaikanKonsultasiDanBuatRiwayat();
         if (mounted) {
           showKonsultasiSelesaiDialog(context);
@@ -906,21 +977,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         childAgeAtConsultation: _effectiveChildAge,
         consultationDate: formattedDate,
         consultationTime: formattedTime,
-        bbLahir: effectiveChild?.birthWeightKg ?? 2.4,
-        bbSaatIni: widget.weightKg ?? effectiveChild?.weightKg ?? 3.4,
-        tbLahir: effectiveChild?.birthHeightCm ?? 44.0,
-        tbSaatIni: widget.heightCm ?? effectiveChild?.heightCm ?? 51.0,
+        bbLahir: effectiveChild?.birthWeightKg ?? 0.0,
+        bbSaatIni: widget.weightKg ?? effectiveChild?.weightKg ?? 0.0,
+        tbLahir: effectiveChild?.birthHeightCm ?? 0.0,
+        tbSaatIni: widget.heightCm ?? effectiveChild?.heightCm ?? 0.0,
         complaint: complaintText,
         complaintShort: shortComplaint,
-        doctorAssessment: 'Pemeriksaan klinis dan konsultasi telah dilaksanakan. Kondisi umum anak baik dan stabil. Keluhan yang dialami dalam observasi penanganan harian orang tua.',
-        summary: 'Konsultasi telah selesai. Edukasi nutrisi seimbang, hidrasi, dan pemantauan berkala telah diberikan.',
-        recommendations: const [
-          'Berikan asupan gizi seimbang dan cairan yang cukup sesuai usia anak.',
-          'Pantau suhu tubuh dan perkembangan keluhan anak secara berkala.',
-          'Jaga higienitas makanan dan lingkungan di sekitar anak.',
-          'Segera hubungi faskes atau dokter spesialis anak bila keluhan berlanjut.',
-        ],
-        prescription: 'Sesuai arahan klinis dokter anak',
+        // Field di bawah ini hanya boleh diisi oleh dokter melalui BuatResumeMedisDokterPage.
+        // Dibiarkan kosong/strip agar tidak ada isian palsu.
+        doctorAssessment: '',
+        summary: '',
+        recommendations: const [],
+        prescription: '-',
         status: 'Selesai',
         sessionId: widget.sessionId,
         createdAt: now,
@@ -928,19 +996,16 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
       await ResumeMedisService().addResumeMedis(resume);
 
-      // Perbarui status sesi konsultasi di Firestore jika tersedia
-      if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
-        try {
-          await FirebaseFirestore.instance
-              .collection('consultations')
-              .doc(widget.sessionId)
-              .update({
-                'status': 'Selesai',
-                'ended_at': FieldValue.serverTimestamp(),
-              });
-        } catch (e) {
-          debugPrint('[ChatKonsultasi] Error updating consultation status: $e');
-        }
+      // Tandai sesi sebagai selesai di Firestore (koleksi konsultasi_sessions)
+      final effSession = _effectiveSessionId;
+      if (effSession.isNotEmpty && !effSession.endsWith('default')) {
+        await KonsultasiService.instance.akhiriSesi(effSession);
+      }
+
+      // Perbarui status booking jika ada
+      final booking = _effectiveBooking;
+      if (booking != null) {
+        BookingService().updateBookingStatus(booking.id, 'Selesai');
       }
     } catch (e) {
       debugPrint(
@@ -1441,7 +1506,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           ? 'user_attachment'
           : 'text',
       'message': msg.text ?? '',
+      // imageUrl diteruskan ke map — dipakai oleh _buildUserAttachmentBubble
       'imageUrl': msg.imageUrl,
+      // filePath diisi hanya jika imageUrl adalah path lokal (bukan base64/URL)
+      'filePath': (msg.imageUrl != null &&
+              !msg.imageUrl!.startsWith('data:image/') &&
+              !msg.imageUrl!.startsWith('http'))
+          ? msg.imageUrl
+          : null,
+      'fileName': msg.imageUrl != null ? msg.imageUrl!.split('/').last : '',
       'title': 'Formulir Keluhan Pasien',
       'timestamp': timeStr,
       'isRead': msg.isRead,
@@ -1604,16 +1677,22 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // Bubble Lampiran Pengguna (Kanan, Soft Blue, Dukungan Foto & Dokumen File Manager)
   Widget _buildUserAttachmentBubble(Map<String, dynamic> item, bool isDark) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final imageUrl = item['imageUrl'] as String?;
     final filePath = item['filePath'] as String?;
-    final fileName = item['fileName'] as String? ?? 'Lampiran Dokumen';
-    final isImage =
-        filePath != null &&
+    final fileName = item['fileName'] as String? ?? 'Lampiran Gambar';
+
+    // Tentukan apakah konten adalah gambar
+    final bool isBase64Image =
+        imageUrl != null && imageUrl.startsWith('data:image/');
+    final bool isNetworkImage = imageUrl != null &&
+        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+    final bool isLocalImage = filePath != null &&
         (filePath.toLowerCase().endsWith('.jpg') ||
             filePath.toLowerCase().endsWith('.jpeg') ||
             filePath.toLowerCase().endsWith('.png') ||
-            filePath.toLowerCase().endsWith('.webp'));
-
-    final fileExists = filePath != null && File(filePath).existsSync();
+            filePath.toLowerCase().endsWith('.webp')) &&
+        File(filePath).existsSync();
+    final bool hasImage = isBase64Image || isNetworkImage || isLocalImage;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1643,15 +1722,33 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isImage && fileExists) ...[
+                // Tampilkan gambar jika tersedia
+                if (hasImage) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(filePath),
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
-                    ),
+                    child: isBase64Image
+                        ? StorageService.buildImageWidget(
+                            imageUrl,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          )
+                        : isNetworkImage
+                        ? Image.network(
+                            imageUrl,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) =>
+                                    const SizedBox.shrink(),
+                          )
+                        : Image.file(
+                            File(filePath!),
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -1659,7 +1756,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isImage
+                      hasImage
                           ? Icons.image_outlined
                           : Icons.insert_drive_file_outlined,
                       size: 20,
@@ -1668,7 +1765,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        fileName,
+                        fileName.isNotEmpty ? fileName : 'Gambar',
                         style: GoogleFonts.lato(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
@@ -2094,6 +2191,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       );
 
       if (file != null) {
+        final effSession = _effectiveSessionId;
+        if (effSession.isNotEmpty && !effSession.endsWith('default')) {
+          final uid = widget.userId ?? UserService().currentUser.id;
+          await ChatMessageService.instance.kirimGambar(
+            sessionId: effSession,
+            senderId: uid,
+            senderRole: MessageSender.user,
+            imageFile: File(file.path),
+          );
+          return;
+        }
+
         final now = DateTime.now();
         final timeStr =
             '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -2114,7 +2223,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         // Respon dokter terhadap lampiran yang dikirim pengguna
         Future.delayed(const Duration(milliseconds: 700), () {
           if (!mounted) return;
-          setState(() => _isDoctorTyping = true);
+          _setDoctorTyping(true);
           _scrollToBottom();
 
           Future.delayed(const Duration(milliseconds: 1800), () {
@@ -2123,8 +2232,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             final replyTimeStr =
                 '${replyTime.hour.toString().padLeft(2, '0')}.${replyTime.minute.toString().padLeft(2, '0')}';
 
+            _setDoctorTyping(false);
             setState(() {
-              _isDoctorTyping = false;
               _messages.add({
                 'sender': 'doctor',
                 'type': 'text',

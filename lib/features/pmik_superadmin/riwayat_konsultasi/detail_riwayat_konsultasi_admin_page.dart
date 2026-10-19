@@ -1,37 +1,136 @@
+<<<<<<< HEAD
 ﻿import 'package:flutter/material.dart';
+=======
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/resume_medis_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../profil/profil_superadmin_page.dart';
+import 'riwayat_konsultasi_admin_model.dart';
 
 /// Halaman Detail Riwayat Konsultasi untuk PMIK Superadmin.
 ///
-/// Menampilkan detail lengkap dari resume medis:
-/// - Data anak (nama, umur saat konsultasi)
-/// - Info konsultasi (dokter, tanggal, status)
-/// - Keluhan lengkap
-/// - Ringkasan konsultasi
-/// - Asesmen dokter & rekomendasi
-/// - Resep/suplemen
-class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
-  final ResumeMedisModel resume;
+/// Fitur:
+/// - Header 56dp dari atas layar dengan tombol back dan judul tebal
+/// - Kartu profil pasien: avatar anak, nama pasien bold, usia anak "X tahun Y bulan Z hari"
+/// - Kartu info konsultasi berlatar biru muda: Dokter, Tanggal Konsultasi, Status Konsultasi
+/// - Section Keluhan dari resume medis
+/// - Section Ringkasan Konsultasi dari resume medis
+/// - Banner info mode nonaktif (read-only)
+/// - Bottom Navigation Bar 4 menu dengan "Riwayat Konsultasi" aktif
+class DetailRiwayatKonsultasiAdminPage extends StatefulWidget {
+  final RiwayatKonsultasiAdminItem? item;
+  final ResumeMedisModel? resume; // Backward compatibility
 
   const DetailRiwayatKonsultasiAdminPage({
     super.key,
-    required this.resume,
+    this.item,
+    this.resume,
   });
 
-  static const Color _colorPrimaryBlue = Color(0xFF3985E7);
-  static const Color _colorNavBg = Color(0xFFF2EDED);
-  static const int _selectedNavIndex = 2;
+  @override
+  State<DetailRiwayatKonsultasiAdminPage> createState() =>
+      _DetailRiwayatKonsultasiAdminPageState();
+}
 
-  void _onBottomNavTap(BuildContext context, int index) {
+class _DetailRiwayatKonsultasiAdminPageState
+    extends State<DetailRiwayatKonsultasiAdminPage> {
+  // ─── Color Palette ─────────────────────────────────────────────────────────
+  static const Color _colorNavBg = Color(0xFFF2EDED);
+  static const Color _colorSecondaryGrey = Color(0xFF7F7F7F);
+  static const Color _colorTextBlack = Color(0xFF000000);
+  static const int _selectedNavIndex = 2; // Riwayat Konsultasi
+
+  late RiwayatKonsultasiAdminItem _item;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.item != null) {
+      _item = widget.item!;
+    } else if (widget.resume != null) {
+      final r = widget.resume!;
+      _item = RiwayatKonsultasiAdminItem(
+        id: r.id,
+        childId: r.childId,
+        childName: r.childName,
+        childAge: r.childAgeAtConsultation,
+        doctorName: r.doctorName,
+        formattedDate: r.consultationDate,
+        status: r.status,
+        complaint: r.complaint,
+        summary: r.summary,
+        resumeMedisId: r.id,
+        sessionId: r.sessionId,
+      );
+    } else {
+      _item = RiwayatKonsultasiAdminItem.getMockData()[1]; // Kaia Anastasya
+    }
+
+    _listenRealTimeChildAndResume();
+  }
+
+  /// Sinkronisasi real-time jika ada pembaruan data anak atau resume medis di Firebase
+  void _listenRealTimeChildAndResume() {
+    try {
+      final db = FirebaseFirestore.instance;
+
+      // 1. Dengarkan pembaruan data anak jika childId tersedia
+      if (_item.childId.isNotEmpty) {
+        db.collection('children').doc(_item.childId).snapshots().listen((doc) {
+          if (!mounted || !doc.exists || doc.data() == null) return;
+          final data = doc.data()!;
+          final birthDate = parseAnyDate(
+            data['birth_date'] ?? data['tanggal_lahir'],
+          );
+          final gender = data['gender']?.toString() ?? _item.childGender;
+          setState(() {
+            _item = _item.copyWith(
+              childBirthDate: birthDate ?? _item.childBirthDate,
+              childGender: gender,
+            );
+          });
+        });
+      }
+
+      // 2. Dengarkan pembaruan resume medis jika resumeMedisId tersedia
+      if (_item.resumeMedisId != null && _item.resumeMedisId!.isNotEmpty) {
+        db
+            .collection('resume_medis')
+            .doc(_item.resumeMedisId)
+            .snapshots()
+            .listen((doc) {
+          if (!mounted || !doc.exists || doc.data() == null) return;
+          final data = doc.data()!;
+          final complaint =
+              (data['complaint'] ?? data['complaint_short'] ?? '').toString();
+          final summary = (data['summary'] ?? '').toString();
+          final status = (data['status'] ?? _item.status).toString();
+          setState(() {
+            _item = _item.copyWith(
+              complaint: complaint.isNotEmpty ? complaint : _item.complaint,
+              summary: summary.isNotEmpty ? summary : _item.summary,
+              status: status,
+            );
+          });
+        });
+      }
+    } catch (_) {
+      // Offline / fallback ke state yang ada
+    }
+  }
+
+  void _onBottomNavTap(int index) {
     if (index == _selectedNavIndex) {
       Navigator.of(context).pop();
       return;
     }
+
     Widget targetPage;
     switch (index) {
       case 0:
@@ -46,10 +145,11 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
       default:
         return;
     }
+
     final isLeft = index < _selectedNavIndex;
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (_, _, _) => targetPage,
       transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
@@ -68,6 +168,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
         );
       },
     );
+
     if (index == 0) {
       Navigator.of(context).pushAndRemoveUntil(route, (r) => false);
     } else {
@@ -77,166 +178,156 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isGirl = _item.isGirl;
+    final isSelesai = _item.status.toLowerCase().contains('selesai');
+
+    // Teks keluhan dan ringkasan dengan penanganan sopan jika belum ada resume
+    final complaintText = _item.complaint.trim().isNotEmpty
+        ? _item.complaint
+        : '-';
+
+    final summaryText = _item.summary.trim().isNotEmpty
+        ? _item.summary
+        : '-';
+    final summaryIsEmpty = _item.summary.trim().isEmpty;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 14.0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1. Kartu Data Anak
-                            _buildPatientCard(),
-                            const SizedBox(height: 16.0),
+      body: Column(
+        children: [
+          // ─── HEADER (56dp dari atas layar) ───────────────────────────
+          _buildHeader(),
 
-                            // 2. Kartu Info Konsultasi
-                            _buildConsultationInfoCard(),
-                            const SizedBox(height: 20.0),
+          // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 14.0),
 
-                            // 3. Keluhan
-                            _buildSectionLabel('Keluhan'),
-                            const SizedBox(height: 6.0),
-                            _buildSectionText(
-                              resume.complaint.isNotEmpty
-                                  ? resume.complaint
-                                  : '-',
-                            ),
-                            const SizedBox(height: 20.0),
+                  // 1. Banner Mode Nonaktif di BAGIAN ATAS (Konsisten & Seragam)
+                  _buildReadOnlyBanner(),
+                  const SizedBox(height: 16.0),
 
-                            // 4. Ringkasan Konsultasi
-                            _buildSectionLabel('Ringkasan Konsultasi'),
-                            const SizedBox(height: 6.0),
-                            _buildSectionText(
-                              resume.summary.isNotEmpty ? resume.summary : '-',
-                            ),
-                            const SizedBox(height: 20.0),
+                  // 2. Kartu Profil Pasien
+                  _buildPatientProfileCard(isGirl),
+                  const SizedBox(height: 16.0),
 
-                            // 5. Asesmen Dokter
-                            if (resume.doctorAssessment.isNotEmpty) ...[
-                              _buildSectionLabel('Asesmen Dokter'),
-                              const SizedBox(height: 6.0),
-                              _buildSectionText(resume.doctorAssessment),
-                              const SizedBox(height: 20.0),
-                            ],
+                  // 3. Kartu Informasi Konsultasi (Latar biru muda)
+                  _buildConsultationInfoCard(isSelesai),
+                  const SizedBox(height: 20.0),
 
-                            // 6. Rekomendasi
-                            if (resume.recommendations.isNotEmpty) ...[
-                              _buildSectionLabel('Rekomendasi'),
-                              const SizedBox(height: 6.0),
-                              _buildRecommendations(resume.recommendations),
-                              const SizedBox(height: 20.0),
-                            ],
-
-                            // 7. Resep / Suplemen
-                            _buildSectionLabel('Resep / Suplemen'),
-                            const SizedBox(height: 6.0),
-                            _buildSectionText(
-                              resume.prescription.isNotEmpty
-                                  ? resume.prescription
-                                  : '-',
-                            ),
-                            const SizedBox(height: 20.0),
-
-                            // 8. Banner Mode Nonaktif
-                            _buildReadOnlyBanner(),
-                            const SizedBox(height: 16.0),
-                          ],
-                        ),
-                      ),
-                      const Spacer(),
-                      _buildFooterIllustration(),
-                    ],
+                  // 4. Section Keluhan
+                  Text(
+                    'Keluhan',
+                    style: GoogleFonts.lato(
+                      fontSize: 14.5,
+                      color: _colorSecondaryGrey,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    complaintText,
+                    style: GoogleFonts.lato(
+                      fontSize: 14.5,
+                      color: _colorTextBlack,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+
+                  // 5. Section Ringkasan Konsultasi
+                  Text(
+                    'Ringkasan Konsultasi',
+                    style: GoogleFonts.lato(
+                      fontSize: 14.5,
+                      color: _colorSecondaryGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    summaryText,
+                    style: GoogleFonts.lato(
+                      fontSize: 14.5,
+                      color:
+                          summaryIsEmpty ? const Color(0xFF9E9E9E) : _colorTextBlack,
+                      fontStyle:
+                          summaryIsEmpty ? FontStyle.italic : FontStyle.normal,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
-  // ─── HEADER ───────────────────────────────────────────────────────────────
-  Widget _buildHeader(BuildContext context) {
+  // ─── HEADER ─────────────────────────────────────────────────────────────────
+  /// Header diletakkan 56dp dari atas layar, berisi tombol back berjarak 12dp
+  /// dari tepi kiri layar, dan judul halaman di sebelah kanannya berjarak 12dp.
+  Widget _buildHeader() {
     return Container(
       width: double.infinity,
       color: Colors.white,
-      child: SafeArea(
-        bottom: false,
-        child: SizedBox(
-          height: 56.0,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: 36.0,
-                    height: 36.0,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
+      padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              behavior: HitTestBehavior.opaque,
+              child: const SizedBox(
+                width: 32.0,
+                height: 32.0,
+                child: Icon(
+                  Icons.arrow_back,
+                  size: 24.0,
+                  color: _colorTextBlack,
                 ),
-                const SizedBox(width: 12.0),
-                Expanded(
-                  child: Text(
-                    'Detail Riwayat Konsultasi',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: 12.0),
+            Expanded(
+              child: Text(
+                'Detail Riwayat Konsultasi',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                  color: _colorTextBlack,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ─── KARTU DATA ANAK ──────────────────────────────────────────────────────
-  Widget _buildPatientCard() {
+  // ─── KARTU PROFIL PASIEN ───────────────────────────────────────────────────
+  /// Kartu berlatar putih dengan sudut membulat dan shadow tipis,
+  /// berisi avatar anak di kiri, nama pasien bold, dan usia anak di bawahnya.
+  Widget _buildPatientProfileCard(bool isGirl) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14.0),
+        borderRadius: BorderRadius.circular(16.0),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x18000000),
+            color: Color(0x10000000),
             blurRadius: 10.0,
             offset: Offset(0, 3),
           ),
@@ -245,36 +336,29 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Avatar dengan inisial
-          Container(
-            width: 52.0,
-            height: 52.0,
-            decoration: BoxDecoration(
-              color: _avatarColor(resume.childName),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _initials(resume.childName),
-              style: GoogleFonts.lato(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+          // Avatar anak
+          ChildAvatar(
+            gender: _item.childGender,
+            isGirl: isGirl,
+            size: 48.0,
+            backgroundColor:
+                isGirl ? const Color(0xFFFFD1D6) : const Color(0xFFBBE4FF),
           ),
           const SizedBox(width: 14.0),
-          // Nama & Umur
+          // Nama Pasien & Usia Anak
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  resume.childName,
+                  _item.childName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lato(
-                    fontSize: 16.0,
+                    fontSize: 16.5,
                     fontWeight: FontWeight.bold,
+<<<<<<< HEAD
                     color: const Color(0xFF1A2228),
                   ),
                 ),
@@ -286,8 +370,19 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
                       fontSize: 13.5,
                       color: const Color(0xFF667781),
                     ),
+=======
+                    color: _colorTextBlack,
                   ),
-                ],
+                ),
+                const SizedBox(height: 4.0),
+                Text(
+                  _item.calculatedAge,
+                  style: GoogleFonts.lato(
+                    fontSize: 14.0,
+                    color: _colorTextBlack,
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+                  ),
+                ),
               ],
             ),
           ),
@@ -296,87 +391,58 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
     );
   }
 
-  // ─── KARTU INFO KONSULTASI ────────────────────────────────────────────────
-  Widget _buildConsultationInfoCard() {
-    final isSelesai = resume.status.toLowerCase().contains('selesai');
-
+  // ─── KARTU INFORMASI KONSULTASI ───────────────────────────────────────────
+  /// Kartu berlatar biru sangat muda dengan border biru muda,
+  /// berisi 3 baris: Dokter, Tanggal Konsultasi, dan Status Konsultasi.
+  Widget _buildConsultationInfoCard(bool isSelesai) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       decoration: BoxDecoration(
         color: const Color(0xFFEAF4FE),
-        borderRadius: BorderRadius.circular(14.0),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: const Color(0xFFBAE6FD),
+          width: 1.0,
+        ),
       ),
       child: Column(
         children: [
-          // Dokter
+          // 1. Baris Dokter
           _buildInfoRow(
             icon: Icons.person_outline_rounded,
             label: 'Dokter',
-            value: resume.doctorName,
+            value: _item.doctorName,
           ),
-          const SizedBox(height: 12.0),
-          // Spesialisasi
-          if (resume.doctorSpecialization.isNotEmpty)
-            _buildInfoRow(
-              icon: Icons.local_hospital_outlined,
-              label: 'Spesialisasi',
-              value: resume.doctorSpecialization,
-            ),
-          if (resume.doctorSpecialization.isNotEmpty)
-            const SizedBox(height: 12.0),
-          // Tanggal Konsultasi
+          const SizedBox(height: 14.0),
+
+          // 2. Baris Tanggal Konsultasi
           _buildInfoRow(
             icon: Icons.calendar_today_outlined,
-            label: 'Tanggal',
-            value: resume.consultationDate,
+            label: 'Tanggal Konsultasi',
+            value: _item.formattedDate,
           ),
-          if (resume.consultationTime.isNotEmpty) ...[
-            const SizedBox(height: 12.0),
-            _buildInfoRow(
-              icon: Icons.access_time_outlined,
-              label: 'Waktu',
-              value: resume.consultationTime,
-            ),
-          ],
           const SizedBox(height: 14.0),
-          // Status
+
+          // 3. Baris Status Konsultasi
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Icon(
                 Icons.assignment_outlined,
-                size: 19.0,
-                color: Color(0xFF7E8B9B),
+                size: 20.0,
+                color: _colorSecondaryGrey,
               ),
-              const SizedBox(width: 8.0),
+              const SizedBox(width: 10.0),
               Text(
-                'Status',
+                'Status Konsultasi',
                 style: GoogleFonts.lato(
                   fontSize: 14.0,
-                  color: const Color(0xFF7E8B9B),
+                  color: _colorSecondaryGrey,
                 ),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14.0,
-                  vertical: 4.0,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelesai
-                      ? const Color(0xFF33CCA6)
-                      : const Color(0xFFFFCD38),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                child: Text(
-                  resume.status,
-                  style: GoogleFonts.lato(
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              _buildStatusBadge(isSelesai),
             ],
           ),
         ],
@@ -392,13 +458,17 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 19.0, color: const Color(0xFF7E8B9B)),
-        const SizedBox(width: 8.0),
+        Icon(
+          icon,
+          size: 20.0,
+          color: _colorSecondaryGrey,
+        ),
+        const SizedBox(width: 10.0),
         Text(
           label,
           style: GoogleFonts.lato(
             fontSize: 14.0,
-            color: const Color(0xFF7E8B9B),
+            color: _colorSecondaryGrey,
           ),
         ),
         const SizedBox(width: 12.0),
@@ -406,10 +476,17 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.lato(
               fontSize: 14.0,
+<<<<<<< HEAD
               fontWeight: FontWeight.w600,
               color: const Color(0xFF1A2228),
+=======
+              fontWeight: FontWeight.bold,
+              color: _colorTextBlack,
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
             ),
           ),
         ),
@@ -417,6 +494,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
     );
   }
 
+<<<<<<< HEAD
   // ─── SECTION HELPERS ──────────────────────────────────────────────────────
   Widget _buildSectionLabel(String label) {
     return Text(
@@ -444,11 +522,46 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
           fontSize: 14.0,
           color: const Color(0xFF1A2228),
           height: 1.5,
+=======
+  /// Badge Status Konsultasi
+  Widget _buildStatusBadge(bool isSelesai) {
+    if (isSelesai) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFF33CCA6),
+          borderRadius: BorderRadius.circular(12.0),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         ),
-      ),
-    );
+        child: Text(
+          'Selesai',
+          style: GoogleFonts.lato(
+            fontSize: 12.0,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFEEA0),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Text(
+          'Dijadwalkan',
+          style: GoogleFonts.lato(
+            fontSize: 12.0,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFE67E00),
+          ),
+        ),
+      );
+    }
   }
 
+<<<<<<< HEAD
   Widget _buildRecommendations(List<String> items) {
     return Container(
       width: double.infinity,
@@ -496,15 +609,18 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
   }
 
   // ─── READ-ONLY BANNER ─────────────────────────────────────────────────────
+=======
+  // ─── READ-ONLY BANNER ───────────────────────────────────────────────────────
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
   Widget _buildReadOnlyBanner() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBF5FF),
+        color: const Color(0xFFE8F4FD),
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          color: _colorPrimaryBlue.withValues(alpha: 0.4),
+          color: const Color(0xFF72A9F4),
           width: 1.0,
         ),
       ),
@@ -513,8 +629,8 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
         children: [
           const Icon(
             Icons.info_outline_rounded,
-            size: 24.0,
-            color: _colorPrimaryBlue,
+            size: 22.0,
+            color: Color(0xFF3985E7),
           ),
           const SizedBox(width: 12.0),
           Expanded(
@@ -522,8 +638,8 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
               'Mode nonaktif. Anda tidak dapat membalas atau mengubah riwayat konsultasi.',
               style: GoogleFonts.lato(
                 fontSize: 13.5,
-                color: _colorPrimaryBlue,
-                height: 1.4,
+                color: const Color(0xFF2B7CD6),
+                height: 1.35,
               ),
             ),
           ),
@@ -532,31 +648,8 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
     );
   }
 
-  // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
-  Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── SUPERADMIN BOTTOM NAVIGATION BAR ─────────────────────────────────────
-  Widget _buildBottomNavigationBar(BuildContext context) {
+  // ─── BOTTOM NAVIGATION BAR (4 MENU) ─────────────────────────────────────────
+  Widget _buildBottomNavigationBar() {
     const navItems = [
       _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -587,7 +680,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
             final item = navItems[i];
             return Expanded(
               child: GestureDetector(
-                onTap: () => _onBottomNavTap(context, i),
+                onTap: () => _onBottomNavTap(i),
                 behavior: HitTestBehavior.opaque,
                 child: SizedBox(
                   height: 68.0,
@@ -596,6 +689,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isSelected) ...[
+                        // Lingkaran sorot di belakang ikon
                         Container(
                           width: 36.0,
                           height: 36.0,
@@ -665,30 +759,6 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// Warna avatar berdasarkan huruf pertama nama
-  Color _avatarColor(String name) {
-    const colors = [
-      Color(0xFF72A9F4),
-      Color(0xFFFF8FA3),
-      Color(0xFF34D399),
-      Color(0xFFFBBF24),
-      Color(0xFFA78BFA),
-      Color(0xFFF87171),
-      Color(0xFF60A5FA),
-      Color(0xFF4ADE80),
-    ];
-    final idx = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
-    return colors[idx];
-  }
-
-  /// Inisial 2 huruf dari nama
-  String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }
 }
 

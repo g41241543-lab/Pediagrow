@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 ﻿import 'package:flutter/material.dart';
+=======
+
+import 'package:flutter/material.dart';
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -9,6 +14,8 @@ import '../../core/services/storage_service.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_pmik_page.dart';
+import 'konsultasi/konsultasi_pmik_admin_page.dart';
+import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
 /// Halaman Profil PMIK Admin PediaGrow.
 ///
@@ -310,13 +317,31 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     Widget targetPage;
     switch (index) {
       case 0:
-        targetPage = const BerandaPmikPage();
-        break;
+        Navigator.of(context).pushAndRemoveUntil(
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 280),
+            pageBuilder: (_, _, _) => const BerandaPmikPage(),
+            transitionsBuilder: (_, anim, _, child) => SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(-0.25, 0.0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+              ),
+              child: FadeTransition(
+                opacity: Tween<double>(begin: 0, end: 1).animate(anim),
+                child: child,
+              ),
+            ),
+          ),
+          (r) => false,
+        );
+        return;
       case 1:
-        targetPage = const _PlaceholderPage(title: 'Konsultasi');
+        targetPage = const KonsultasiPmikAdminPage();
         break;
       case 2:
-        targetPage = const _PlaceholderPage(title: 'Riwayat Konsultasi');
+        targetPage = const DaftarRiwayatKonsultasiAdminPage();
         break;
       default:
         return;
@@ -337,23 +362,24 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         ),
       ),
     );
-
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (r) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
+    Navigator.of(context).pushReplacement(route);
   }
 
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: _buildCustomHeader(),
-      ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _onBottomNavTap(0);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFBFBFB),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: _buildCustomHeader(),
+        ),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -447,8 +473,9 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
-    );
-  }
+    ),
+  );
+}
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
   Widget _buildCustomHeader() {
@@ -460,18 +487,33 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Profil',
-                style: GoogleFonts.lato(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
-                  letterSpacing: -0.2,
+            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () => _onBottomNavTap(0),
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.arrow_back,
+                      size: 24.0,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12.0),
+                Text(
+                  'Profil',
+                  style: GoogleFonts.lato(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -763,13 +805,26 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
 
   // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
   Widget _buildBottomNavigationBar() {
+    final navItems = [
+      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
+      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
+      const _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
+    ];
+
     return Container(
+      width: double.infinity,
+      height: 68.0,
       decoration: const BoxDecoration(
+<<<<<<< HEAD
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFE9EDEF), width: 1.0)),
+=======
+        color: Color(0xFFF2EDED),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         boxShadow: [
           BoxShadow(
-            color: Color(0x0D000000),
+            color: Color(0x18000000),
             blurRadius: 8.0,
             offset: Offset(0, -2),
           ),
@@ -777,26 +832,14 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 62,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, Icons.home_rounded, 'Beranda'),
-              _buildNavItem(1, Icons.chat_bubble_outline_rounded, 'Konsultasi'),
-              _buildNavItem(
-                2,
-                Icons.receipt_long_rounded,
-                'Riwayat\nKonsultasi',
-              ),
-              _buildNavItem(3, Icons.person_rounded, 'Profil'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: List.generate(navItems.length, (i) {
+            final isSelected = i == _selectedIndex;
+            final item = navItems[i];
 
+<<<<<<< HEAD
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = index == _selectedIndex;
     return GestureDetector(
@@ -826,9 +869,85 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     ? const Color(0xFF3985E7)
                     : const Color(0xFF8696A0),
                 height: 1.2,
+=======
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => _onBottomNavTap(i),
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  height: 68.0,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected) ...[
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 4.0,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.icon,
+                            size: 22.0,
+                            color: const Color(0xFF72A9F4),
+                          ),
+                        ),
+                        const SizedBox(height: 2.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        Icon(
+                          item.icon,
+                          size: 24.0,
+                          color: const Color(0xFF9E9E9E),
+                        ),
+                        const SizedBox(height: 3.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF9E9E9E),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
               ),
-            ),
-          ],
+            );
+          }),
         ),
       ),
     );
@@ -851,16 +970,8 @@ class _InfoItem {
   });
 }
 
-// ─── PLACEHOLDER ──────────────────────────────────────────────────────────────
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
-    );
-  }
+class _NavItem {
+  final IconData icon;
+  final String label;
+  const _NavItem({required this.icon, required this.label});
 }

@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pediagrow/core/services/booking_service.dart';
+import 'package:pediagrow/core/services/notification_service.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/chat_konsultasi_page.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/konfirmasi_selesai_dialog.dart';
 import 'package:pediagrow/features/pengguna/konsultasi/konsultasi_selesai_dialog.dart';
 
 void main() {
   group('ChatKonsultasiPage Widget Tests', () {
+    setUp(() {
+      BookingService().dispose();
+      NotificationService().dispose();
+    });
+
+    tearDown(() {
+      BookingService().dispose();
+      NotificationService().dispose();
+    });
+
     testWidgets('Renders header, disclaimer, chat messages, and input bar', (
       WidgetTester tester,
     ) async {
@@ -89,7 +101,7 @@ void main() {
 
       // Enter text in chat field
       final textField = find.byType(TextField);
-      await tester.enterText(textField, 'Halo dokter, mau tanya lagi');
+      await tester.enterText(textField, 'Terima kasih banyak dokter');
       await tester.pump();
 
       // Tap send button
@@ -97,7 +109,7 @@ void main() {
       await tester.pump();
 
       // Verify user message appears immediately
-      expect(find.text('Halo dokter, mau tanya lagi'), findsOneWidget);
+      expect(find.text('Terima kasih banyak dokter'), findsOneWidget);
 
       // Advance time for typing indicator
       await tester.pump(const Duration(milliseconds: 900));
@@ -127,7 +139,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Akhiri Konsultasi button
-      await tester.tap(find.byIcon(Icons.call_end_rounded));
+      await tester.tap(find.byIcon(Icons.comments_disabled_rounded));
       await tester.pumpAndSettle();
 
       // Verify Dialog 1 appears

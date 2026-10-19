@@ -207,8 +207,7 @@ class PdfReportService {
 
     const headers = [
       'No',
-      'Nama Depan',
-      'Nama Belakang',
+      'Nama Lengkap',
       'Jenis Kelamin',
       'Umur',
       'Provinsi',
@@ -222,8 +221,7 @@ class PdfReportService {
       final u = entry.value;
       return [
         '$i',
-        u.namaDepan,
-        u.namaBelakang,
+        u.namaLengkap,
         u.jenisKelamin,
         u.umur,
         u.provinsi,

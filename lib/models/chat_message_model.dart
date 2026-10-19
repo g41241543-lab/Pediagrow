@@ -36,6 +36,16 @@ class ChatMessageModel {
   /// Parsing dari dokumen Firestore.
   factory ChatMessageModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
+    final rawTs = data['timestamp'] ?? data['serverTimestamp'];
+    DateTime parsedTs = DateTime.now();
+    if (rawTs is Timestamp) {
+      parsedTs = rawTs.toDate();
+    } else if (rawTs is int) {
+      parsedTs = DateTime.fromMillisecondsSinceEpoch(rawTs);
+    } else if (rawTs is String) {
+      parsedTs = DateTime.tryParse(rawTs) ?? DateTime.now();
+    }
+
     return ChatMessageModel(
       id: doc.id,
       senderId: data['senderId'] as String? ?? '',
@@ -43,7 +53,7 @@ class ChatMessageModel {
       text: data['text'] as String?,
       imageUrl: data['imageUrl'] as String?,
       type: _parseType(data['type'] as String? ?? 'text'),
-      timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: parsedTs,
       isRead: data['isRead'] as bool? ?? false,
     );
   }
@@ -56,7 +66,8 @@ class ChatMessageModel {
       'text': text,
       'imageUrl': imageUrl,
       'type': type.name,
-      'timestamp': FieldValue.serverTimestamp(),
+      'timestamp': Timestamp.fromDate(timestamp),
+      'serverTimestamp': FieldValue.serverTimestamp(),
       'isRead': isRead,
     };
   }

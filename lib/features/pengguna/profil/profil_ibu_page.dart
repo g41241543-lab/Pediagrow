@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿import 'dart:async';
+=======
+import 'dart:async';
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -713,11 +717,18 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       children: [
         _buildLabel('Jenis Kelamin', isRequired: true, isDark: isDark),
         const SizedBox(height: 6),
-        Row(
+        Wrap(
+          spacing: 24,
+          runSpacing: 8,
           children: [
+<<<<<<< HEAD
             _buildGenderOption('Laki-laki', const Color(0xFF3985E7), isDark),
             const SizedBox(width: 24),
             _buildGenderOption('Perempuan', const Color(0xFFEC4899), isDark),
+=======
+            _buildGenderOption('Laki-laki', const Color(0xFF3985E7)),
+            _buildGenderOption('Perempuan', const Color(0xFFEC4899)),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
           ],
         ),
       ],

@@ -206,6 +206,16 @@ class ResumeMedisService {
     }
   }
 
+  /// Hapus dokumen resume medis dari Firestore
+  Future<void> deleteResumeMedis(String resumeId) async {
+    await _firestore.collection(_collectionName).doc(resumeId).delete();
+
+    // Hapus dari cache lokal jika ada
+    for (final key in _cache.keys) {
+      _cache[key]?.removeWhere((r) => r.id == resumeId);
+    }
+  }
+
   /// Ambil satu dokumen resume medis berdasarkan ID
   Future<ResumeMedisModel?> getResumeMedisById(String resumeId) async {
     final doc = await _firestore.collection(_collectionName).doc(resumeId).get();

@@ -7,6 +7,9 @@ import '../../../../models/resep_mpasi_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_banner.dart';
 import '../../../pengguna/mpasi/detail_resep_page.dart';
+import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
+import '../../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
+import '../../../pmik_admin/profil_pmik_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
@@ -277,20 +280,40 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 8.0),
-            _buildSearchBar(),
-            const SizedBox(height: 12.0),
-            _buildCategoryFilter(),
-            const SizedBox(height: 12.0),
-            Expanded(child: _buildBody()),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          final isPmik =
+              StaffAuthService().currentStaff?.role == StaffRole.admin;
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => isPmik
+                  ? const BerandaPmikPage()
+                  : const BerandaSuperadminPage(),
+            ),
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 8.0),
+              _buildSearchBar(),
+              const SizedBox(height: 12.0),
+              _buildCategoryFilter(),
+              const SizedBox(height: 12.0),
+              Expanded(child: _buildBody()),
+            ],
+          ),
         ),
       ),
     );
@@ -305,7 +328,22 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => Navigator.of(context).maybePop(),
+              onTap: () {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else {
+                  final isPmik =
+                      StaffAuthService().currentStaff?.role == StaffRole.admin;
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => isPmik
+                          ? const BerandaPmikPage()
+                          : const BerandaSuperadminPage(),
+                    ),
+                    (route) => false,
+                  );
+                }
+              },
               borderRadius: BorderRadius.circular(24.0),
               child: const Padding(
                 padding: EdgeInsets.all(4.0),
@@ -729,8 +767,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
-            final isSelected =
-                i == 0; // Beranda aktif karena berada dalam modul Beranda
+            final isSelected = false; // Sub-halaman: animasi lingkaran aktif dihilangkan
             final item = navItems[i];
 
             return Expanded(
@@ -816,16 +853,25 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   }
 
   void _onNavTap(int index) {
+    final isPmik = StaffAuthService().currentStaff?.role == StaffRole.admin;
     switch (index) {
       case 0:
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
+          MaterialPageRoute(
+            builder: (_) => isPmik
+                ? const BerandaPmikPage()
+                : const BerandaSuperadminPage(),
+          ),
           (route) => false,
         );
         break;
       case 1:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const KonsultasiSuperadminPage()),
+          MaterialPageRoute(
+            builder: (_) => isPmik
+                ? const KonsultasiPmikAdminPage()
+                : const KonsultasiSuperadminPage(),
+          ),
         );
         break;
       case 2:
@@ -837,7 +883,11 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         break;
       case 3:
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfilSuperadminPage()),
+          MaterialPageRoute(
+            builder: (_) => isPmik
+                ? const ProfilPmikPage()
+                : const ProfilSuperadminPage(),
+          ),
         );
         break;
     }

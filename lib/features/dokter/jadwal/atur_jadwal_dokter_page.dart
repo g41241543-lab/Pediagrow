@@ -5,6 +5,7 @@ import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../beranda/beranda_dokter_page.dart';
 
 /// Halaman Atur Jadwal Dokter:
 /// - Saklar aktif/nonaktif per hari (Senin sampai Minggu)
@@ -114,6 +115,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
         ? 'Jadwal Praktik - $docDisplayName'
         : 'Atur Jadwal Praktik';
 
+<<<<<<< HEAD
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -123,6 +125,34 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1014)),
           onPressed: () => Navigator.of(context).pop(),
         ),
+=======
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+                );
+              }
+            },
+          ),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         title: Text(
           title,
           style: GoogleFonts.lato(
@@ -191,6 +221,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               ),
             )
           : null,
+      ),
     );
   }
 

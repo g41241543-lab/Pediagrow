@@ -9,6 +9,7 @@ import '../../../models/child_model.dart';
 import '../../../models/resume_medis_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../models/user_model.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 import 'detail_resume_medis_dokter_page.dart';
 
 class BuatResumeMedisDokterPage extends StatefulWidget {
@@ -220,35 +221,21 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Resume medis untuk $_childName berhasil disimpan!',
-            style: GoogleFonts.lato(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => DetailResumeMedisDokterPage(
             resume: savedResume,
             child: widget.child,
             parentUser: widget.parentUser,
+            initialSuccessMessage: 'Berhasil Membuat Resume Medis',
           ),
         ),
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menyimpan resume medis: $e',
-                style: GoogleFonts.lato(color: Colors.white)),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal membuat resume medis: $e',
         );
       }
     } finally {

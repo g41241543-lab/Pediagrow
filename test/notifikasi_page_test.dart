@@ -110,4 +110,49 @@ void main() {
       contains('Konsultasi telah berakhir'),
     );
   });
+
+  test('NotificationService adds booking success notification immediately', () {
+    final service = NotificationService();
+    service.clearNotifications();
+
+    service.addBookingSuccessNotification(
+      doctorName: 'dr. Reny Puspita, Sp.A',
+      childName: 'Anita',
+      dateFormatted: '20 Oktober 2026',
+      timeSlot: '09:00 - 09:30',
+    );
+
+    expect(service.notifications.length, equals(1));
+    expect(service.notifications.first.title, equals('Booking Konsultasi Berhasil'));
+    expect(
+      service.notifications.first.message,
+      contains('Booking konsultasi anak Anita bersama dr. Reny Puspita, Sp.A'),
+    );
+    expect(
+      service.notifications.first.message,
+      contains('Google Kalender'),
+    );
+  });
+
+  test('NotificationService triggers consultation arrived notification when time arrives', () {
+    final service = NotificationService();
+    service.clearNotifications();
+
+    // Jadwal konsultasi yang waktunya telah tiba
+    final pastTime = DateTime.now().subtract(const Duration(minutes: 1));
+    service.addBookingReminderNotification(
+      doctorName: 'dr. Reny Puspita, Sp.A',
+      childName: 'Anita',
+      dateFormatted: '20 Oktober 2026',
+      timeSlot: '09:00 - 09:30',
+      scheduledTime: pastTime,
+    );
+
+    expect(service.notifications.length, equals(1));
+    expect(service.notifications.first.title, equals('Waktu Konsultasi Telah Tiba'));
+    expect(
+      service.notifications.first.message.toLowerCase(),
+      contains('waktu konsultasi telah tiba'),
+    );
+  });
 }

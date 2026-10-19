@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 ﻿import 'package:flutter/material.dart';
+=======
+
+import 'package:flutter/material.dart';
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/chat_message_service.dart';
@@ -337,9 +342,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         ? currentUser.id
         : 'user-${DateTime.now().millisecondsSinceEpoch}';
 
+    final targetBooking =
+        widget.booking ?? BookingService().activeBookingNotifier.value;
+    final desiredSessionId = targetBooking?.sessionId ?? (targetBooking != null ? 'session_${targetBooking.id}' : null);
+
     String? sessionId;
     try {
       sessionId = await KonsultasiService.instance.buatSesi(
+        customSessionId: desiredSessionId,
         childId: childData.id,
         childName: childData.name,
         userId: userId,
@@ -369,19 +379,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     if (!mounted) return;
 
     // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
-    final targetBooking =
-        widget.booking ?? BookingService().activeBookingNotifier.value;
     if (targetBooking != null) {
       BookingService().updateBookingForm(
         bookingId: targetBooking.id,
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
-        sessionId: sessionId,
+        sessionId: sessionId ?? desiredSessionId,
       );
     }
 
-    final effectiveSessionId = sessionId ?? targetBooking?.sessionId ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
+    final effectiveSessionId = sessionId ?? desiredSessionId ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
 
     // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
     Navigator.pushReplacement(

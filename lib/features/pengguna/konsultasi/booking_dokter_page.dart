@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/storage_service.dart';
@@ -166,7 +167,11 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
+  bool _isSubmitting = false;
+
   Future<void> _confirmBooking() async {
+    if (_isSubmitting) return;
+
     if (_selectedTimeSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -178,6 +183,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       );
       return;
     }
+
+    setState(() {
+      _isSubmitting = true;
+    });
 
     final selectedSlotObj = _availableSlots
         .where((s) => s.timeLabel == _selectedTimeSlot)
@@ -201,7 +210,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
 
     final newBooking = BookingConsultationModel(
-      id: 'book_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'booking-${DateTime.now().millisecondsSinceEpoch}',
       userId: _child.ownerId.isNotEmpty ? _child.ownerId : null,
       doctor: _doctor,
       child: _child,
@@ -218,13 +227,17 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     try {
       await BookingService().addBooking(newBooking);
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menyimpan booking: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
-      );
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan booking: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
       return;
     }
 
@@ -238,6 +251,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
 
     if (!mounted) return;
+    setState(() {
+      _isSubmitting = false;
+    });
 
     // Tampilkan dialog sukses
     showDialog(
@@ -294,7 +310,69 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 16),
+            // Card info Google Kalender
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_month_rounded,
+                    color: _colorPrimaryBlue,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Tersambung ke Google Kalender dengan alarm pengingat kegiatan.',
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        color: const Color(0xFF1E40AF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Tombol Buka di Google Kalender
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: _colorPrimaryBlue, width: 1.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: const Icon(
+                  Icons.event_note_rounded,
+                  color: _colorPrimaryBlue,
+                  size: 20,
+                ),
+                label: Text(
+                  'Buka di Google Kalender',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
+                    color: _colorPrimaryBlue,
+                  ),
+                ),
+                onPressed: () {
+                  final url = booking.googleCalendarUrl ??
+                      GoogleCalendarService().generateCalendarUrl(booking);
+                  BookingService().launchGoogleCalendar(url);
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

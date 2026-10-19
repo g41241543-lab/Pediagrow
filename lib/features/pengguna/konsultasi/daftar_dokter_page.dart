@@ -342,8 +342,18 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                           return isChildMatch && !booking.isExpired;
                         }).toList();
 
+                        // Deduplikasi aman untuk memastikan tidak ada kartu ganda
+                        final seen = <String>{};
+                        final uniqueBookings = <BookingConsultationModel>[];
+                        for (final b in myBookings) {
+                          final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                          if (seen.add(b.id) && seen.add(slotKey)) {
+                            uniqueBookings.add(b);
+                          }
+                        }
+
                         return _buildTabBadge(
-                          myBookings.length,
+                          uniqueBookings.length,
                           isFirstTab: false,
                         );
                       },
@@ -831,7 +841,26 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             return isChildMatch && !booking.isExpired;
                           }).toList();
 
-                          if (myBookings.isEmpty) {
+                          // Deduplikasi aman untuk memastikan tidak ada kartu ganda di UI
+                          final seen = <String>{};
+                          final uniqueBookings = <BookingConsultationModel>[];
+                          for (final b in myBookings) {
+                            final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                            if (seen.add(b.id) && seen.add(slotKey)) {
+                              uniqueBookings.add(b);
+                            }
+                          }
+
+                          // Urutkan jadwal: yang sedang berlangsung di paling atas, disusul tanggal & jam terdekat
+                          uniqueBookings.sort((a, b) {
+                            final aActive = (a.isInTimeWindow || a.status == 'Sedang Berlangsung') && !a.isExpired;
+                            final bActive = (b.isInTimeWindow || b.status == 'Sedang Berlangsung') && !b.isExpired;
+                            if (aActive && !bActive) return -1;
+                            if (!aActive && bActive) return 1;
+                            return a.scheduledStartDateTime.compareTo(b.scheduledStartDateTime);
+                          });
+
+                          if (uniqueBookings.isEmpty) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 40),
                               child: _buildEmptyBookingsState(
@@ -841,7 +870,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                           }
 
                           return Column(
-                            children: myBookings.map((booking) {
+                            children: uniqueBookings.map((booking) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,

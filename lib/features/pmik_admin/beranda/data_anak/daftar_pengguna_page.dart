@@ -15,7 +15,7 @@ import '../beranda_pmik_page.dart';
 import '../../konsultasi/konsultasi_pmik_admin_page.dart';
 import '../../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil_pmik_page.dart';
-import 'detail_pengguna_page.dart';
+import '../../../pmik_superadmin/beranda/data_anak/detail_pengguna_page.dart';
 
 /// Halaman Daftar Data Pengguna untuk POV SUPERADMIN aplikasi PediaGrow.
 ///
@@ -140,34 +140,47 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     return GestureDetector(
       // Dismiss keyboard saat pengguna mengetuk di luar Search Bar
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              // -------------------------------------------------------------
-              // 1. HEADER FIXED (56dp) — Tidak ikut scroll
-              // -------------------------------------------------------------
-              _buildFixedHeader(),
+      child: PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => isDokter ? const BerandaDokterPage() : const BerandaPmikPage(),
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // -------------------------------------------------------------
+                // 1. HEADER FIXED (56dp) — Tidak ikut scroll
+                // -------------------------------------------------------------
+                _buildFixedHeader(),
 
-              // -------------------------------------------------------------
-              // 2. SEARCH BAR FIXED — Tidak ikut scroll
-              // -------------------------------------------------------------
-              _buildFixedSearchBar(),
+                // -------------------------------------------------------------
+                // 2. SEARCH BAR FIXED — Tidak ikut scroll
+                // -------------------------------------------------------------
+                _buildFixedSearchBar(),
 
-              // -------------------------------------------------------------
-              // 3. KONTEN UTAMA SCROLLABLE (Daftar Pengguna / Empty State)
-              // -------------------------------------------------------------
-              Expanded(child: _buildUserListStream()),
-            ],
+                // -------------------------------------------------------------
+                // 3. KONTEN UTAMA SCROLLABLE (Daftar Pengguna / Empty State)
+                // -------------------------------------------------------------
+                Expanded(child: _buildUserListStream()),
+              ],
+            ),
           ),
+          // -----------------------------------------------------------------
+          // 4. BOTTOM NAVIGATION BAR FIXED — 4 Menu Konsisten dengan Beranda Superadmin
+          // -----------------------------------------------------------------
+          bottomNavigationBar: _buildFixedNavBar(),
         ),
-        // -----------------------------------------------------------------
-        // 4. BOTTOM NAVIGATION BAR FIXED — 4 Menu Konsisten dengan Beranda Superadmin
-        // -----------------------------------------------------------------
-        bottomNavigationBar: _buildFixedNavBar(),
       ),
     );
   }
@@ -309,7 +322,18 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         children: [
           // Tombol Kembali
           GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => isDokter ? const BerandaDokterPage() : const BerandaPmikPage(),
+                  ),
+                );
+              }
+            },
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),

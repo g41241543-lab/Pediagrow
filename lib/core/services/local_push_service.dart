@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 /// Daftar role yang dikenali oleh [LocalPushService] untuk pemfilteran notifikasi.
 enum PushRole {
@@ -42,11 +44,14 @@ class LocalPushService {
   // INISIALISASI
   // ============================================================
 
-  /// Menginisialisasi plugin dan meminta izin notifikasi (Android 13+).
+  /// Menginisialisasi plugin dan meminta izin notifikasi (Android 13+) serta alarm eksak.
   ///
   /// Harus dipanggil sekali di `main()` sebelum `runApp`.
   Future<void> init() async {
     if (_initialized) return;
+
+    // Inisialisasi basis data zona waktu untuk notifikasi terjadwal
+    tz.initializeTimeZones();
 
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -65,12 +70,17 @@ class LocalPushService {
 
     await _plugin.initialize(initSettings);
 
-    // Minta izin POST_NOTIFICATIONS di Android 13+
+    // Minta izin POST_NOTIFICATIONS di Android 13+ & Exact Alarm
     if (Platform.isAndroid) {
       final androidPlugin =
           _plugin.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       await androidPlugin?.requestNotificationsPermission();
+      try {
+        await androidPlugin?.requestExactAlarmsPermission();
+      } catch (e) {
+        debugPrint('[LocalPushService] requestExactAlarmsPermission info: $e');
+      }
     }
 
     _initialized = true;
@@ -160,6 +170,102 @@ class LocalPushService {
       );
     } catch (e) {
       debugPrint('[LocalPushService] show() error: $e');
+    }
+  }
+
+  // ============================================================
+  // MENJADWALKAN NOTIFIKASI
+  // ============================================================
+
+  /// Menjadwalkan notifikasi sistem di waktu tertentu di masa depan.
+  /// Notifikasi akan muncul di status bar / notification tray HP pada saat
+  /// [scheduledDate] tiba, meskipun aplikasi sedang ditutup / di latar belakang.
+  ///
+  /// [id]            — ID unik integer notifikasi.
+  /// [title]         — Judul notifikasi.
+  /// [body]          — Isi pesan notifikasi.
+  /// [scheduledDate] — Waktu kemunculan notifikasi di masa depan.
+  /// [targetRole]    — Role yang berhak menerima notifikasi ini.
+  Future<void> schedule({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    PushRole? targetRole,
+  }) async {
+    if (!_initialized) {
+      debugPrint('[LocalPushService] schedule() dipanggil sebelum init() — abaikan.');
+      return;
+    }
+
+    // Filter role aktif
+    if (targetRole != null && _activeRole != null && _activeRole != targetRole) {
+      debugPrint(
+        '[LocalPushService] Notifikasi terjadwal difilter: activeRole=$_activeRole, '
+        'targetRole=$targetRole — tidak dijadwalkan.',
+      );
+      return;
+    }
+
+    final now = DateTime.now();
+    // Jika waktu sudah tiba atau lewat, langsung munculkan
+    if (scheduledDate.isBefore(now) || scheduledDate.isAtSameMomentAs(now)) {
+      await show(title: title, body: body, targetRole: targetRole, id: id);
+      return;
+    }
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'pediagrow_consultation_channel',
+      'Pengingat Konsultasi PediaGrow',
+      channelDescription: 'Pengingat saat waktu konsultasi dokter telah tiba',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    try {
+      final tzScheduled = tz.TZDateTime.from(scheduledDate, tz.local);
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzScheduled,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+      debugPrint(
+        '[LocalPushService] Notifikasi berhasil dijadwalkan pada $scheduledDate (id=$id): "$title"',
+      );
+    } catch (e) {
+      debugPrint('[LocalPushService] schedule() error: $e');
+      // Fallback: Jika waktu sudah lewat atau gagal, panggil show() jika dalam hitungan menit
+      if (scheduledDate.difference(now).inSeconds < 10) {
+        await show(title: title, body: body, targetRole: targetRole, id: id);
+      }
+    }
+  }
+
+  /// Membatalkan notifikasi terjadwal berdasarkan ID
+  Future<void> cancel(int id) async {
+    try {
+      await _plugin.cancel(id);
+      debugPrint('[LocalPushService] Notifikasi id=$id dibatalkan');
+    } catch (e) {
+      debugPrint('[LocalPushService] cancel() error: $e');
     }
   }
 }

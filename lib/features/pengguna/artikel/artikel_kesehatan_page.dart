@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 ﻿import 'package:flutter/material.dart';
+=======
+import 'package:flutter/material.dart';
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
+import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/artikel_model.dart';
+import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../detail/detail_artikel_page.dart';
 
 /// Halaman Artikel Kesehatan untuk pengguna PediaGrow.
@@ -127,6 +134,16 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
   /// Navigasi kembali dengan transisi halus
   void _onBackPressed() {
+    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+        );
+      }
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 
@@ -162,12 +179,30 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       // Navigation Bar tetap di Scaffold bagian bawah layar
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
+=======
+    final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
+
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && isDokter) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        // Navigation Bar tetap di Scaffold bagian bawah layar
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
+>>>>>>> 289e71df0313336a1855296b39040c36eaa51608
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnim,
@@ -195,8 +230,9 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// Header tetap 56dp: tombol back 12dp dari kiri dan judul "Artikel Kesehatan"
   Widget _buildHeader(BuildContext context, bool isDark) {
