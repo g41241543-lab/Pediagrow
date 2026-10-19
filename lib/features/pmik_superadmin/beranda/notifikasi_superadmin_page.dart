@@ -1,35 +1,35 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/superadmin_notification_service.dart';
 import '../../../models/superadmin_notification_model.dart';
+import '../../dokter/beranda/beranda_dokter_page.dart';
+import '../../dokter/beranda/data_pasien/data_pasien_page.dart' as dokter_data;
+import '../../dokter/jadwal/atur_jadwal_dokter_page.dart';
+import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
+import '../../dokter/profil_dokter_page.dart';
+import '../../pmik_admin/beranda/beranda_pmik_page.dart';
+import '../../pmik_admin/beranda/data_anak/data_pasien_page.dart' as pmik_data;
+import '../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
+import '../../pmik_admin/profil_pmik_page.dart';
+import '../konsultasi/konsultasi_superadmin_page.dart';
+import '../profil/hak_akses/daftar_dokter_akses_page.dart';
+import '../profil/hak_akses/daftar_pmik_akses_page.dart';
+import '../profil/profil_superadmin_page.dart';
+import 'beranda_superadmin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
-import '../profil/hak_akses/daftar_dokter_akses_page.dart';
-import '../profil/hak_akses/daftar_pmik_akses_page.dart';
-import 'beranda_superadmin_page.dart';
+import '../../../shared/widgets/konfirmasi_hapus_notifikasi_dialog.dart';
+import '../../../shared/widgets/swipeable_notification_tile.dart';
 
-
-/// Halaman Notifikasi Superadmin PediaGrow.
-///
-/// Spesifikasi:
-/// 1. Disimpan di `lib/features/pmik_superadmin/beranda/notifikasi_superadmin_page.dart`.
-/// 2. Header berada di posisi atas (tinggi 56dp, tombol back 12dp dari pinggir kiri,
-///    judul "Notifikasi" 12dp setelah tombol back, tanpa garis/border di bawahnya).
-/// 3. Jika BELUM ada notifikasi:
-///    - Menampilkan Empty State persis seperti pada halaman notifikasi pengguna:
-///      lonceng kuning dengan garis getar, pendulum, dan teks "Belum ada notifikasi" (#C4C4C4).
-/// 4. Notifikasi Otomatis oleh Sistem:
-///    - CRUD Artikel Kesehatan (tambah, edit, hapus).
-///    - CRUD Resep MPASI (tambah, edit, hapus).
-///    - CRUD Dokter (tambah, edit, hapus).
-///    - CRUD PMIK (tambah, edit, hapus).
-///    - Notifikasi ketika superadmin berhasil unduh dataset.
-///    - Notifikasi pengingat unduh dataset bulanan ("Info Dataset Cek Stunting").
-///    - Hanya dibuat jika superadmin melakukan hal-hal tersebut atau jadwal sistem aktif.
+/// Halaman Notifikasi Staff (Superadmin, PMIK, Dokter) PediaGrow.
+/// Menampilkan notifikasi sesuai role masing-masing, dengan item yang dapat diklik
+/// langsung menuju halaman target perubahan yang bersangkutan.
 class NotifikasiSuperadminPage extends StatefulWidget {
-  const NotifikasiSuperadminPage({super.key});
+  final PushRole? role;
+  const NotifikasiSuperadminPage({super.key, this.role});
 
   @override
   State<NotifikasiSuperadminPage> createState() =>
@@ -40,17 +40,21 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
   final SuperadminNotificationService _notifService =
       SuperadminNotificationService();
 
+  PushRole get _effectiveRole =>
+      widget.role ?? LocalPushService().activeRole ?? PushRole.superadmin;
+
   @override
   void initState() {
     super.initState();
     _notifService.init();
-    // Tandai seluruh notifikasi sebagai sudah dibaca ketika halaman ini dibuka
+    // Tandai notifikasi role ini sebagai sudah dibaca ketika halaman dibuka
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _notifService.markAllAsRead();
+      _notifService.markRoleAsRead(_effectiveRole);
     });
   }
 
   void _onNotificationTap(SuperadminNotificationItem item) {
+    final role = _effectiveRole;
     switch (item.type) {
       case SuperadminNotificationType.artikel:
         Navigator.of(context).push(
@@ -63,20 +67,187 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
         );
         break;
       case SuperadminNotificationType.dokter:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
-        );
+        if (role == PushRole.dokter) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+          );
+        }
         break;
       case SuperadminNotificationType.pmik:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DaftarPmikAksesPage()),
-        );
+        if (role == PushRole.pmik) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const DaftarPmikAksesPage()),
+          );
+        }
+        break;
+      case SuperadminNotificationType.profil:
+        if (role == PushRole.dokter) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+          );
+        } else if (role == PushRole.pmik) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfilSuperadminPage()),
+          );
+        }
+        break;
+      case SuperadminNotificationType.jadwal:
+        if (role == PushRole.dokter) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AturJadwalDokterPage()),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+          );
+        }
+        break;
+      case SuperadminNotificationType.konsultasi:
+        if (role == PushRole.dokter) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const KonsultasiDokterPage()),
+          );
+        } else if (role == PushRole.pmik) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const KonsultasiPmikAdminPage()),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const KonsultasiSuperadminPage()),
+          );
+        }
+        break;
+      case SuperadminNotificationType.pasien:
+        if (role == PushRole.dokter) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (_) => const dokter_data.DataPasienPage()),
+          );
+        } else if (role == PushRole.pmik) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const pmik_data.DataPasienPage()),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const RekapitulasiStuntingPage()),
+          );
+        }
         break;
       case SuperadminNotificationType.pengingatDataset:
       case SuperadminNotificationType.unduhDataset:
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const RekapitulasiStuntingPage()),
         );
+        break;
+      case SuperadminNotificationType.umum:
+        final lower = '${item.title} ${item.message}'.toLowerCase();
+        if (lower.contains('profil')) {
+          if (role == PushRole.dokter) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+            );
+          } else if (role == PushRole.pmik) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfilSuperadminPage()),
+            );
+          }
+        } else if (lower.contains('dokter')) {
+          if (role == PushRole.dokter) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+            );
+          }
+        } else if (lower.contains('pmik')) {
+          if (role == PushRole.pmik) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DaftarPmikAksesPage()),
+            );
+          }
+        } else if (lower.contains('artikel')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const DaftarArtikelAdminPage()),
+          );
+        } else if (lower.contains('resep') || lower.contains('mpasi')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (_) => const DaftarResepMpasiAdminPage()),
+          );
+        } else if (lower.contains('jadwal')) {
+          if (role == PushRole.dokter) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AturJadwalDokterPage()),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+            );
+          }
+        } else if (lower.contains('konsultasi') ||
+            lower.contains('resume') ||
+            lower.contains('chat')) {
+          if (role == PushRole.dokter) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const KonsultasiDokterPage()),
+            );
+          } else if (role == PushRole.pmik) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const KonsultasiPmikAdminPage()),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const KonsultasiSuperadminPage()),
+            );
+          }
+        } else if (lower.contains('dataset') ||
+            lower.contains('unduh') ||
+            lower.contains('rekapitulasi')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const RekapitulasiStuntingPage()),
+          );
+        } else if (lower.contains('pasien') || lower.contains('anak')) {
+          if (role == PushRole.dokter) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const dokter_data.DataPasienPage()),
+            );
+          } else if (role == PushRole.pmik) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const pmik_data.DataPasienPage()),
+            );
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const RekapitulasiStuntingPage()),
+            );
+          }
+        }
         break;
     }
   }
@@ -99,7 +270,9 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
             Expanded(
               child: ValueListenableBuilder<List<SuperadminNotificationItem>>(
                 valueListenable: _notifService.notificationsNotifier,
-                builder: (context, notifications, _) {
+                builder: (context, _, _) {
+                  final notifications =
+                      _notifService.getNotificationsForRole(_effectiveRole);
                   if (notifications.isEmpty) {
                     // Tampilan kosong identik dengan notifikasi pengguna
                     return _buildEmptyState();
@@ -132,9 +305,22 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
               if (Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
               } else {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const BerandaSuperadminPage()),
-                );
+                final role = _effectiveRole;
+                if (role == PushRole.dokter) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                        builder: (_) => const BerandaDokterPage()),
+                  );
+                } else if (role == PushRole.pmik) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const BerandaPmikPage()),
+                  );
+                } else {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                        builder: (_) => const BerandaSuperadminPage()),
+                  );
+                }
               }
             },
             child: const Padding(
@@ -144,13 +330,41 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
           ),
           // Nama halaman berjarak 12dp setelah tombol back
           const SizedBox(width: 12.0),
-          Text(
-            'Notifikasi',
-            style: GoogleFonts.lato(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+          Expanded(
+            child: Text(
+              'Notifikasi',
+              style: GoogleFonts.lato(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF000000),
+              ),
             ),
+          ),
+          // Tombol sampah hapus seluruh notifikasi untuk role ini
+          ValueListenableBuilder<List<SuperadminNotificationItem>>(
+            valueListenable: _notifService.notificationsNotifier,
+            builder: (context, _, _) {
+              final notifications =
+                  _notifService.getNotificationsForRole(_effectiveRole);
+              if (notifications.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: Color(0xFFE53E3E),
+                  size: 24,
+                ),
+                tooltip: 'Hapus Semua Notifikasi',
+                onPressed: () {
+                  KonfirmasiHapusNotifikasiDialog.showAll(
+                    context,
+                    onConfirm: () async {
+                      await _notifService
+                          .clearNotificationsForRole(_effectiveRole);
+                    },
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -208,7 +422,19 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
                 const Divider(color: Color(0xFFE9EDEF), height: 1, thickness: 1),
             itemBuilder: (context, index) {
               final item = items[index];
-              return _buildNotificationItem(context, item);
+              return SwipeableNotificationTile(
+                key: ValueKey(item.id),
+                onTap: () => _onNotificationTap(item),
+                onDelete: () {
+                  KonfirmasiHapusNotifikasiDialog.showSingle(
+                    context,
+                    onConfirm: () async {
+                      await _notifService.deleteNotification(item.id);
+                    },
+                  );
+                },
+                child: _buildNotificationItem(context, item),
+              );
             },
           ),
         ),
@@ -219,72 +445,69 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
   /// Item notifikasi dengan leading amplop hitam dalam lingkaran abu-abu
   Widget _buildNotificationItem(
       BuildContext context, SuperadminNotificationItem item) {
-    return InkWell(
-      onTap: () => _onNotificationTap(item),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Lingkaran abu-abu dengan ikon amplop / surat hitam bergaris
-            Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE9EDEF),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.mail_outline_rounded,
-                color: Color(0xFF000000),
-                size: 22,
-              ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Lingkaran abu-abu dengan ikon amplop / surat hitam bergaris
+          Container(
+            width: 42,
+            height: 42,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE9EDEF),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 14),
-
-            // Teks Notifikasi (Judul, Isi Pesan, Tanggal)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Judul Notifikasi (Bold)
-                  Text(
-                    item.title,
-                    style: GoogleFonts.lato(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-
-                  // Isi Pesan Notifikasi
-                  Text(
-                    item.message,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.normal,
-                      color: const Color(0xFF374151),
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Tanggal Notifikasi (misal: "1 September 2026")
-                  Text(
-                    item.formattedDate,
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: const Color(0xFF8696A0),
-                    ),
-                  ),
-                ],
-              ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.mail_outline_rounded,
+              color: Color(0xFF000000),
+              size: 22,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 14),
+
+          // Teks Notifikasi (Judul, Isi Pesan, Tanggal)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Judul Notifikasi (Bold)
+                Text(
+                  item.title,
+                  style: GoogleFonts.lato(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF000000),
+                  ),
+                ),
+                const SizedBox(height: 3),
+
+                // Isi Pesan Notifikasi
+                Text(
+                  item.message,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.normal,
+                    color: const Color(0xFF374151),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Tanggal Notifikasi (misal: "1 September 2026")
+                Text(
+                  item.formattedDate,
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: const Color(0xFF8696A0),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

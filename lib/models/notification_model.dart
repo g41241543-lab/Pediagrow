@@ -1,6 +1,10 @@
 enum NotificationType {
   stunting,
   consultation,
+  profile,
+  article,
+  recipe,
+  system,
 }
 
 /// Model untuk item notifikasi sistem PediaGrow.
@@ -58,6 +62,38 @@ class NotificationItem {
       date: date ?? this.date,
       type: type ?? this.type,
       isRead: isRead ?? this.isRead,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'message': message,
+      'date': date.toIso8601String(),
+      'type': type.name,
+      'isRead': isRead,
+    };
+  }
+
+  factory NotificationItem.fromMap(Map<String, dynamic> map) {
+    NotificationType parseType(String? val) {
+      if (val == null) return NotificationType.system;
+      for (final t in NotificationType.values) {
+        if (t.name == val) return t;
+      }
+      return NotificationType.system;
+    }
+
+    return NotificationItem(
+      id: map['id'] as String? ?? '',
+      title: map['title'] as String? ?? '',
+      message: map['message'] as String? ?? '',
+      date: map['date'] != null
+          ? DateTime.tryParse(map['date'] as String) ?? DateTime.now()
+          : DateTime.now(),
+      type: parseType(map['type'] as String?),
+      isRead: map['isRead'] as bool? ?? false,
     );
   }
 }

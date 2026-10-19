@@ -8,6 +8,7 @@ import '../../../core/services/local_push_service.dart';
 import '../../../core/services/superadmin_notification_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../models/artikel_model.dart';
+import '../../../models/superadmin_notification_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../pengguna/detail/detail_artikel_page.dart';
@@ -247,13 +248,15 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                         const Spacer(),
 
                         // Lingkaran Notifikasi dengan badge angka
-                        ValueListenableBuilder<int>(
+                        ValueListenableBuilder<List<SuperadminNotificationItem>>(
                           valueListenable: SuperadminNotificationService()
-                              .unreadCountNotifier,
-                          builder: (context, unreadCount, _) {
+                              .notificationsNotifier,
+                          builder: (context, _, _) {
+                            final unreadCount = SuperadminNotificationService()
+                                .getUnreadCountForRole(PushRole.superadmin);
                             return GestureDetector(
                               onTap: () =>
-                                  _navigateTo(const NotifikasiSuperadminPage()),
+                                  _navigateTo(const NotifikasiSuperadminPage(role: PushRole.superadmin)),
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [

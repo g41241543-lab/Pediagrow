@@ -88,8 +88,14 @@ class BookingService {
           // Perbarui activeBookingNotifier jika ada booking yang sedang aktif
           _updateActiveBooking(distinctList);
 
-          // Sinkronisasi pengingat jadwal booking ke NotificationService
-          NotificationService().syncActiveBookings(distinctList);
+          // Sinkronisasi pengingat jadwal booking ke NotificationService HANYA untuk akun yang sedang login
+          final currentUid = UserService().currentUser.id;
+          if (currentUid.isNotEmpty) {
+            final userBookings = distinctList.where((b) {
+              return b.userId == currentUid || b.child.ownerId == currentUid;
+            }).toList();
+            NotificationService().syncActiveBookings(userBookings);
+          }
         },
         onError: (e) {
           debugPrint('[BookingService] Firestore listener error: $e');

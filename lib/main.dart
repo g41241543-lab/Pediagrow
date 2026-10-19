@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'features/splash/splash_page.dart';
 
 import 'core/services/local_push_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/services/session_service.dart';
 import 'core/services/staff_auth_service.dart';
+import 'core/services/superadmin_notification_service.dart';
 import 'core/services/theme_service.dart';
 import 'core/services/user_service.dart';
 
@@ -19,8 +21,10 @@ void main() async {
   await SessionService().init();
   await UserService().init();
 
-  // Inisialisasi notifikasi lokal HP (tanpa Firebase Cloud Messaging)
+  // Inisialisasi notifikasi lokal HP & in-app service
   await LocalPushService().init();
+  await NotificationService().init();
+  await SuperadminNotificationService().init();
 
   // Inisialisasi preferensi tema aplikasi (Default Sistem / Terang / Gelap)
   await ThemeService().init();

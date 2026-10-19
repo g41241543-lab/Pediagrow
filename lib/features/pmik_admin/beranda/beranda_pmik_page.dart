@@ -3,12 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
 import '../../../core/services/local_push_service.dart';
-import '../../../core/services/notification_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/superadmin_notification_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../models/superadmin_notification_model.dart';
 import '../../../widgets/hak_akses_logo.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
@@ -209,13 +210,15 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                             },
                           ),
                         ),
-                        ValueListenableBuilder<int>(
+                        ValueListenableBuilder<List<SuperadminNotificationItem>>(
                           valueListenable:
-                              NotificationService().unreadCountNotifier,
-                          builder: (context, unreadCount, _) {
+                              SuperadminNotificationService().notificationsNotifier,
+                          builder: (context, _, _) {
+                            final unreadCount = SuperadminNotificationService()
+                                .getUnreadCountForRole(PushRole.pmik);
                             return GestureDetector(
                               onTap: () =>
-                                  _navigateTo(const NotifikasiSuperadminPage()),
+                                  _navigateTo(const NotifikasiSuperadminPage(role: PushRole.pmik)),
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
