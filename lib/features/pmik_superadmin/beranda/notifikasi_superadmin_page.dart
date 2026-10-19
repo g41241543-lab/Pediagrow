@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/superadmin_notification_service.dart';
@@ -198,14 +198,14 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
     return Column(
       children: [
         // Garis pemisah atas (tepat di bawah header)
-        const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
+        const Divider(color: Color(0xFFE9EDEF), height: 1, thickness: 1),
         Expanded(
           child: ListView.separated(
             physics: const ClampingScrollPhysics(),
             padding: EdgeInsets.zero,
             itemCount: items.length,
             separatorBuilder: (_, _) =>
-                const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
+                const Divider(color: Color(0xFFE9EDEF), height: 1, thickness: 1),
             itemBuilder: (context, index) {
               final item = items[index];
               return _buildNotificationItem(context, item);
@@ -231,7 +231,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
               width: 42,
               height: 42,
               decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
+                color: Color(0xFFE9EDEF),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -277,7 +277,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       fontWeight: FontWeight.normal,
-                      color: const Color(0xFF94A3B8),
+                      color: const Color(0xFF8696A0),
                     ),
                   ),
                 ],

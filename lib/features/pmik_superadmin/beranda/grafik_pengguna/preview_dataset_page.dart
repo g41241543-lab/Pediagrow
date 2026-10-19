@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -34,8 +34,8 @@ class PreviewDatasetPage extends StatefulWidget {
 class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorTealGreen = Color(0xFF3CC3A6);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
-  static const Color _colorBorderGrey = Color(0xFFE2E8F0);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
+  static const Color _colorBorderGrey = Color(0xFFE9EDEF);
 
   bool _isProcessing = false;
   Uint8List? _cachedPdfBytes;
@@ -237,7 +237,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
               color: textBlack,
             ),
             headerDecoration: pw.BoxDecoration(
-              color: PdfColor.fromHex('F1F5F9'),
+              color: PdfColor.fromHex('E9EDEF'),
             ),
             rowDecoration: const pw.BoxDecoration(
               border: pw.Border(
@@ -456,7 +456,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1A2228),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -469,7 +469,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1A2228),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -515,7 +515,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
     final isPdf = widget.format == 'pdf';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFE9EDEF),
       body: SafeArea(
         child: Column(
           children: [
@@ -608,7 +608,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
       canDebug: false,
       useActions: false, // Digantikan dengan bottom action bar sesuai instruksi
       scrollViewDecoration: const BoxDecoration(
-        color: Color(0xFFF1F5F9),
+        color: Color(0xFFE9EDEF),
       ),
       loadingWidget: const Center(
         child: CircularProgressIndicator(
@@ -687,7 +687,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                         'Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan',
                         style: GoogleFonts.lato(
                           fontSize: 10,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -697,7 +697,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                     style: GoogleFonts.lato(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF334155),
+                      color: const Color(0xFF2C363D),
                     ),
                   ),
                 ],
@@ -736,7 +736,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                         // Header baris (Frozen row)
                         Container(
                           decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
+                            color: Color(0xFFE9EDEF),
                             borderRadius:
                                 BorderRadius.vertical(top: Radius.circular(7)),
                           ),
@@ -758,7 +758,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF334155),
+                                    color: const Color(0xFF2C363D),
                                   ),
                                 ),
                               );
@@ -811,7 +811,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                                       cells[ci],
                                       style: GoogleFonts.lato(
                                         fontSize: 11,
-                                        color: const Color(0xFF1E293B),
+                                        color: const Color(0xFF1A2228),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -840,7 +840,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                   'Dokumen dibuat otomatis oleh Aplikasi PediaGrow',
                   style: GoogleFonts.lato(
                     fontSize: 9.5,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                 ),
               ),

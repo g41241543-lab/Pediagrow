@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
@@ -184,7 +184,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
                 const SizedBox(height: 12.0),
@@ -195,7 +195,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
-                    color: const Color(0xFF64748B),
+                    color: const Color(0xFF667781),
                     height: 1.45,
                   ),
                 ),
@@ -213,7 +213,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.white,
                             side: const BorderSide(
-                              color: Color(0xFFCBD5E1),
+                              color: Color(0xFFD1D7DB),
                               width: 1.0,
                             ),
                             shape: RoundedRectangleBorder(
@@ -613,7 +613,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               const Divider(
                 height: 1.0,
                 thickness: 1.0,
-                color: Color(0xFFF1F5F9),
+                color: Color(0xFFE9EDEF),
               ),
 
               // Konten Bawah: Tanggal Artikel di kiri & Dua Tombol Aksi di kanan
@@ -822,7 +822,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                       style: GoogleFonts.lato(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF334155),
+                        color: const Color(0xFF2C363D),
                       ),
                     ),
                     const SizedBox(height: 6.0),
@@ -868,7 +868,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
             const SizedBox(height: 6.0),

@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/staff_auth_service.dart';
@@ -425,7 +423,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       child: Container(
         height: 46.0,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: const Color(0xFFE9EDEF),
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: TextField(
@@ -437,18 +435,18 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           },
           style: GoogleFonts.lato(
             fontSize: 14.5,
-            color: const Color(0xFF1E293B),
+            color: const Color(0xFF1A2228),
           ),
           decoration: InputDecoration(
             hintText: 'Cari PMIK',
             hintStyle: GoogleFonts.lato(
               fontSize: 14.5,
-              color: const Color(0xFF94A3B8),
+              color: const Color(0xFF8696A0),
             ),
             prefixIcon: const Icon(
               Icons.search,
               size: 22.0,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
             ),
             suffixIcon: _searchQuery.isNotEmpty
                 ? GestureDetector(
@@ -459,7 +457,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                     child: const Icon(
                       Icons.close,
                       size: 18.0,
-                      color: Color(0xFF94A3B8),
+                      color: Color(0xFF8696A0),
                     ),
                   )
                 : null,
@@ -482,7 +480,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -507,7 +505,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       width: 1.2,
                     ),
                     color: const Color(0xFFF8FAFC),
@@ -539,7 +537,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                         style: GoogleFonts.lato(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -553,7 +551,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           const Divider(
             height: 1.0,
             thickness: 0.8,
-            color: Color(0xFFF1F5F9),
+            color: Color(0xFFE9EDEF),
           ),
 
           // Bagian Bawah: Aksi Hapus (Sampah) & Edit (Pensil)
@@ -633,12 +631,12 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
 
   Widget _buildFallbackAvatarIcon() {
     return Container(
-      color: const Color(0xFFF1F5F9),
+      color: const Color(0xFFE9EDEF),
       alignment: Alignment.center,
       child: const Icon(
         Icons.person,
         size: 36.0,
-        color: Color(0xFF94A3B8),
+        color: Color(0xFF8696A0),
       ),
     );
   }
@@ -659,13 +657,13 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                 width: 76.0,
                 height: 76.0,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9),
+                  color: Color(0xFFE9EDEF),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.person_search_rounded,
                   size: 40.0,
-                  color: Color(0xFF94A3B8),
+                  color: Color(0xFF8696A0),
                 ),
               ),
               const SizedBox(height: 16.0),
@@ -676,7 +674,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFF1A2228),
                 ),
               ),
               const SizedBox(height: 6.0),
@@ -687,7 +685,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
             ],

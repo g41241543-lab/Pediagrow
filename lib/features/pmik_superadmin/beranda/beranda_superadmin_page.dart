@@ -1,10 +1,11 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
 import '../../../core/services/superadmin_notification_service.dart';
+import '../../../core/services/theme_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
@@ -143,36 +144,39 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // LAYER 0 — Background animasi awan & burung (full-page)
-            const Positioned.fill(child: FullPageSkyBackground()),
+    return Theme(
+      data: ThemeService.lightTheme,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // LAYER 0 — Background animasi awan & burung (full-page)
+              const Positioned.fill(child: FullPageSkyBackground()),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Area Biru Seamless (Header + Card Superadmin)
-                _buildSeamlessBlueArea(context),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Area Biru Seamless (Header + Card Superadmin)
+                  _buildSeamlessBlueArea(context),
 
-                // 2. Konten Putih (Menu, Card Slogan, Artikel)
-                _buildWhiteContentSection(context),
+                  // 2. Konten Putih (Menu, Card Slogan, Artikel)
+                  _buildWhiteContentSection(context),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // 3. Ilustrasi Footer
-                _buildFooterIllustration(),
-              ],
-            ),
-          ],
+                  // 3. Ilustrasi Footer
+                  _buildFooterIllustration(),
+                ],
+              ),
+            ],
+          ),
         ),
+        bottomNavigationBar: _buildFixedNavBar(),
       ),
-      bottomNavigationBar: _buildFixedNavBar(),
     );
   }
 
@@ -286,7 +290,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                     alignment: Alignment.center,
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
-                                      color: Color(0xFF1E293B),
+                                      color: Color(0xFF1A2228),
                                       size: 19,
                                     ),
                                   ),
@@ -445,7 +449,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF334155),
+                    color: const Color(0xFF2C363D),
                     height: 1.35,
                   ),
                 ),
@@ -656,7 +660,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               width: 9,
               height: 9,
               decoration: BoxDecoration(
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
                 borderRadius: BorderRadius.circular(2.5),
               ),
               alignment: Alignment.center,
@@ -801,7 +805,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                           child: Container(
                             padding: const EdgeInsets.all(3.5),
                             decoration: const BoxDecoration(
-                              color: Color(0xFF64748B),
+                              color: Color(0xFF667781),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -825,7 +829,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               fontSize: 14,
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
               color: isLocked
-                  ? const Color(0xFF94A3B8)
+                  ? const Color(0xFF8696A0)
                   : const Color(0xFF000000),
               height: 1.25,
             ),
@@ -940,7 +944,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF334155),
+                    color: const Color(0xFF2C363D),
                     height: 1.3,
                   ),
                   maxLines: 4,
@@ -973,7 +977,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               InkWell(
@@ -1034,9 +1038,6 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   }
 
   Widget _buildArticleCard(BuildContext context, ArtikelModel artikel) {
-    final hasImage =
-        artikel.displayImage != null && artikel.displayImage!.isNotEmpty;
-    final isAsset = artikel.isAssetImage;
     final categoryText = artikel.subKategori.isNotEmpty
         ? artikel.subKategori.first
         : artikel.kategori;
@@ -1052,7 +1053,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -1130,14 +1131,14 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                   const Icon(
                                     Icons.access_time_rounded,
                                     size: 11,
-                                    color: Color(0xFF94A3B8),
+                                    color: Color(0xFF8696A0),
                                   ),
                                   const SizedBox(width: 3),
                                   Text(
                                     '$readTimeMinutes mnt',
                                     style: GoogleFonts.lato(
                                       fontSize: 10.5,
-                                      color: const Color(0xFF64748B),
+                                      color: const Color(0xFF667781),
                                     ),
                                   ),
                                 ],
@@ -1150,7 +1151,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                              color: const Color(0xFF0B1014),
                               height: 1.25,
                             ),
                             maxLines: 2,
@@ -1162,7 +1163,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                         artikel.tanggal,
                         style: GoogleFonts.lato(
                           fontSize: 10.5,
-                          color: const Color(0xFF94A3B8),
+                          color: const Color(0xFF8696A0),
                         ),
                       ),
                     ],
@@ -1188,14 +1189,14 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: const Color(0xFFE9EDEF)),
         ),
         child: Column(
           children: [
             Container(
               height: 102,
               decoration: const BoxDecoration(
-                color: Color(0xFFE2E8F0),
+                color: Color(0xFFE9EDEF),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
               ),
             ),
@@ -1208,7 +1209,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     width: 65,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1217,7 +1218,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     width: double.infinity,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1237,12 +1238,12 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
       ),
       child: Center(
         child: Text(
           'Belum ada artikel terbaru saat ini',
-          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF667781)),
         ),
       ),
     );
@@ -1361,7 +1362,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

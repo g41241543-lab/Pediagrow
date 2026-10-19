@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -132,7 +132,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -142,7 +142,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -164,7 +164,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -172,7 +172,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -191,7 +191,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -271,7 +271,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -280,7 +280,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -294,7 +294,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: const BorderSide(color: Color(0xFFD1D7DB)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -305,7 +305,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF475569),
+                            color: const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -467,7 +467,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
 
@@ -598,7 +598,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
             border: Border.all(
-              color: const Color(0xFFE2E8F0),
+              color: const Color(0xFFE9EDEF),
               width: 1.0,
             ),
             boxShadow: const [
@@ -621,7 +621,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
 
@@ -634,7 +634,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
 
@@ -648,7 +648,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
               ),
 
@@ -664,7 +664,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         const Icon(
                           Icons.work_outline_rounded,
                           size: 26.0,
-                          color: Color(0xFF94A3B8),
+                          color: Color(0xFF8696A0),
                         ),
                         const SizedBox(width: 8.0),
                         Expanded(
@@ -677,7 +677,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
-                                  color: const Color(0xFF94A3B8),
+                                  color: const Color(0xFF8696A0),
                                 ),
                               ),
                               Text(
@@ -687,7 +687,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF334155),
+                                  color: const Color(0xFF2C363D),
                                 ),
                               ),
                             ],
@@ -704,7 +704,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         const Icon(
                           Icons.badge_outlined,
                           size: 26.0,
-                          color: Color(0xFF94A3B8),
+                          color: Color(0xFF8696A0),
                         ),
                         const SizedBox(width: 8.0),
                         Expanded(
@@ -717,7 +717,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
-                                  color: const Color(0xFF94A3B8),
+                                  color: const Color(0xFF8696A0),
                                 ),
                               ),
                               Text(
@@ -727,7 +727,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF334155),
+                                  color: const Color(0xFF2C363D),
                                 ),
                               ),
                             ],
@@ -820,7 +820,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
   Widget _buildFallbackAvatar() {
     return Container(
-      color: const Color(0xFFE2E8F0),
+      color: const Color(0xFFE9EDEF),
       alignment: Alignment.center,
       child: const Icon(
         Icons.person_rounded,
@@ -837,7 +837,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: const Color(0xFFE9EDEF),
           width: 1.0,
         ),
         boxShadow: const [
@@ -859,7 +859,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 const Icon(
                   Icons.calendar_today_outlined,
                   size: 26.0,
-                  color: Color(0xFF94A3B8),
+                  color: Color(0xFF8696A0),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(
@@ -871,7 +871,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -879,7 +879,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         _superadmin?.birthDate ?? '16/07/2006',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -893,7 +893,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           const Divider(
             height: 1.0,
             thickness: 1.0,
-            color: Color(0xFFF1F5F9),
+            color: Color(0xFFE9EDEF),
           ),
 
           // Item 2: Pendidikan
@@ -905,7 +905,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 const Icon(
                   Icons.home_work_outlined,
                   size: 26.0,
-                  color: Color(0xFF94A3B8),
+                  color: Color(0xFF8696A0),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(
@@ -917,7 +917,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -926,7 +926,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                             'DIV - Manajemen Informasi Kesehatan',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -1014,7 +1014,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

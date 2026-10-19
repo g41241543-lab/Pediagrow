@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+﻿// ignore_for_file: use_build_context_synchronously
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -11,8 +11,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
@@ -32,19 +30,14 @@ import '../../../../shared/widgets/child_avatar.dart';
 const Color _kBluePrimary = Color(0xFF2B7AE8);
 const Color _kTealPrimary = Color(0xFF3CC3A6);
 
-// Background dan border kartu ringkasan
-const Color _kBlueCardBg = Color(0xFFE8F0FE);
-const Color _kBlueCardBorder = Color(0xFFCDDBF8);
-const Color _kMintCardBg = Color(0xFFE6FAF6);
-const Color _kMintCardBorder = Color(0xFFBFECE3);
-const Color _kWelcomeMintBg = Color(0xFFDFF7F2);
+
 
 // Warna elemen & teks
-const Color _kBorderColor = Color(0xFFCBD5E1);
-const Color _kBorderLight = Color(0xFFE2E8F0);
-const Color _kTextDark = Color(0xFF1E293B);
-const Color _kTextMuted = Color(0xFF64748B);
-const Color _kTextSubtitle = Color(0xFF475569);
+const Color _kBorderColor = Color(0xFFD1D7DB);
+const Color _kBorderLight = Color(0xFFE9EDEF);
+const Color _kTextDark = Color(0xFF1A2228);
+const Color _kTextMuted = Color(0xFF667781);
+const Color _kTextSubtitle = Color(0xFF2C363D);
 const Color _kNavBarBg = Color(0xFFF2EDED);
 
 // Warna jenis kelamin anak
@@ -744,15 +737,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
 
-  pw.Widget _buildPdfCell(String text) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: pw.Text(
-        text,
-        style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800),
-      ),
-    );
-  }
 
 
   Future<void> _downloadUsersCsv() async {
@@ -1086,7 +1070,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1A2228),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -1099,7 +1083,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF1A2228),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -1245,7 +1229,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _kBluePrimary, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -1366,7 +1350,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                     'Selamat datang,',
                     style: GoogleFonts.lato(
                       fontSize: 13.5,
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF1A2228),
                     ),
                   ),
                   const SizedBox(height: 2.0),
@@ -1375,7 +1359,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                     style: GoogleFonts.lato(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   const SizedBox(height: 6.0),
@@ -1384,7 +1368,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                     style: GoogleFonts.lato(
                       fontSize: 12.0,
                       height: 1.3,
-                      color: const Color(0xFF334155),
+                      color: const Color(0xFF2C363D),
                     ),
                   ),
                 ],
@@ -1398,7 +1382,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               child: Image.asset(
                 'assets/images/admin_woman_tablet.png',
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.analytics_rounded,
                   size: 80.0,
                   color: Color(0xFF2DD4BF),
@@ -1437,7 +1421,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1445,7 +1429,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 24.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1453,7 +1437,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
@@ -1481,7 +1465,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1489,7 +1473,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 24.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1497,7 +1481,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
@@ -1512,7 +1496,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           style: GoogleFonts.lato(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: const Color(0xFF0B1014),
           ),
         ),
       ],
@@ -1991,7 +1975,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
                           fontSize: 12.0,
-                          color: const Color(0xFF334155),
+                          color: const Color(0xFF2C363D),
                         ),
                       ),
                     );
@@ -2096,7 +2080,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                         '$val',
                         style: GoogleFonts.lato(
                           fontSize: 9.5,
-                          color: const Color(0xFF94A3B8),
+                          color: const Color(0xFF8696A0),
                           fontWeight: FontWeight.w500,
                         ),
                       );
@@ -2116,7 +2100,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                           return const Divider(
                             height: 1,
                             thickness: 0.8,
-                            color: Color(0xFFE2E8F0),
+                            color: Color(0xFFE9EDEF),
                           );
                         }),
                       ),
@@ -2176,7 +2160,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                     data.month,
                                     style: GoogleFonts.lato(
                                       fontSize: 9.5,
-                                      color: const Color(0xFF64748B),
+                                      color: const Color(0xFF667781),
                                     ),
                                   ),
                                 ],
@@ -2226,7 +2210,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           text,
           style: GoogleFonts.lato(
             fontSize: 11.5,
-            color: const Color(0xFF475569),
+            color: const Color(0xFF2C363D),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -2599,7 +2583,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           Container(
             height: 120.0,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFE9EDEF),
               borderRadius: BorderRadius.circular(16.0),
             ),
           ),
@@ -2610,7 +2594,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 child: Container(
                   height: 100.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: const Color(0xFFE9EDEF),
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                 ),
@@ -2620,7 +2604,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 child: Container(
                   height: 100.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: const Color(0xFFE9EDEF),
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                 ),
@@ -2631,7 +2615,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           Container(
             height: 240.0,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFE9EDEF),
               borderRadius: BorderRadius.circular(16.0),
             ),
             child: const Center(
@@ -2657,11 +2641,11 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFE2E8F0)
+      ..color = const Color(0xFFE9EDEF)
       ..strokeWidth = 0.8;
 
     final axisPaint = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = const Color(0xFFD1D7DB)
       ..strokeWidth = 1.0;
 
     for (int i = 0; i <= lineCount; i++) {
@@ -2724,195 +2708,6 @@ class _YAxisScale {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CUSTOM PAINTER: AVATAR ANAK LAKI-LAKI & PEREMPUAN
-// ══════════════════════════════════════════════════════════════════════════════
-/// Painter avatar anak laki-laki:
-/// Background biru (diatur di container induk), tanpa pipi merah muda.
-class _BoyAvatarPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width * 0.34;
-
-    final linePaint = Paint()
-      ..color = const Color(0xFF1E3A5F)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
-
-    final eyePaint = Paint()
-      ..color = const Color(0xFF1E3A5F)
-      ..style = PaintingStyle.fill;
-
-    // Wajah
-    canvas.drawCircle(center, radius, linePaint);
-
-    // Telinga kiri
-    canvas.drawArc(
-      Rect.fromCircle(
-          center: Offset(center.dx - radius, center.dy), radius: 3.5),
-      -math.pi / 2,
-      math.pi,
-      false,
-      linePaint,
-    );
-    // Telinga kanan
-    canvas.drawArc(
-      Rect.fromCircle(
-          center: Offset(center.dx + radius, center.dy), radius: 3.5),
-      math.pi / 2,
-      math.pi,
-      false,
-      linePaint,
-    );
-
-    // Rambut pendek (laki-laki)
-    final hairPath = Path();
-    hairPath.moveTo(center.dx - radius * 0.85, center.dy - radius * 0.3);
-    hairPath.quadraticBezierTo(
-      center.dx - radius * 0.4,
-      center.dy - radius * 0.85,
-      center.dx,
-      center.dy - radius * 0.35,
-    );
-    hairPath.quadraticBezierTo(
-      center.dx + radius * 0.4,
-      center.dy - radius * 0.85,
-      center.dx + radius * 0.85,
-      center.dy - radius * 0.3,
-    );
-    canvas.drawPath(hairPath, linePaint);
-
-    // Mata kiri
-    canvas.drawCircle(
-      Offset(center.dx - radius * 0.35, center.dy - radius * 0.05),
-      1.5,
-      eyePaint,
-    );
-    // Mata kanan
-    canvas.drawCircle(
-      Offset(center.dx + radius * 0.35, center.dy - radius * 0.05),
-      1.5,
-      eyePaint,
-    );
-
-    // Senyum
-    final smilePath = Path();
-    smilePath.moveTo(center.dx - radius * 0.3, center.dy + radius * 0.35);
-    smilePath.quadraticBezierTo(
-      center.dx,
-      center.dy + radius * 0.65,
-      center.dx + radius * 0.3,
-      center.dy + radius * 0.35,
-    );
-    canvas.drawPath(smilePath, linePaint);
-    // Tidak ada pipi (blush) untuk laki-laki
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Painter avatar anak perempuan:
-/// Background pink (diatur di container induk), dengan pipi merah muda.
-class _GirlAvatarPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width * 0.34;
-
-    final linePaint = Paint()
-      ..color = const Color(0xFF8B1A4A)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
-
-    final eyePaint = Paint()
-      ..color = const Color(0xFF8B1A4A)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.5)
-      ..style = PaintingStyle.fill;
-
-    // Wajah
-    canvas.drawCircle(center, radius, linePaint);
-
-    // Kuncir kiri
-    canvas.drawArc(
-      Rect.fromCircle(
-          center: Offset(center.dx - radius * 0.95, center.dy - radius * 0.35),
-          radius: 4.5),
-      0,
-      2 * math.pi,
-      false,
-      linePaint,
-    );
-    // Kuncir kanan
-    canvas.drawArc(
-      Rect.fromCircle(
-          center: Offset(center.dx + radius * 0.95, center.dy - radius * 0.35),
-          radius: 4.5),
-      0,
-      2 * math.pi,
-      false,
-      linePaint,
-    );
-
-    // Rambut panjang (perempuan)
-    final hairPath = Path();
-    hairPath.moveTo(center.dx - radius * 0.8, center.dy - radius * 0.2);
-    hairPath.quadraticBezierTo(
-      center.dx,
-      center.dy - radius * 0.6,
-      center.dx + radius * 0.8,
-      center.dy - radius * 0.2,
-    );
-    canvas.drawPath(hairPath, linePaint);
-
-    // Mata kiri
-    canvas.drawCircle(
-      Offset(center.dx - radius * 0.35, center.dy - radius * 0.05),
-      1.5,
-      eyePaint,
-    );
-    // Mata kanan
-    canvas.drawCircle(
-      Offset(center.dx + radius * 0.35, center.dy - radius * 0.05),
-      1.5,
-      eyePaint,
-    );
-
-    // Pipi kiri (blush — hanya perempuan)
-    canvas.drawCircle(
-      Offset(center.dx - radius * 0.55, center.dy + radius * 0.15),
-      size.width * 0.065,
-      blushPaint,
-    );
-    // Pipi kanan (blush — hanya perempuan)
-    canvas.drawCircle(
-      Offset(center.dx + radius * 0.55, center.dy + radius * 0.15),
-      size.width * 0.065,
-      blushPaint,
-    );
-
-    // Senyum
-    final smilePath = Path();
-    smilePath.moveTo(center.dx - radius * 0.3, center.dy + radius * 0.35);
-    smilePath.quadraticBezierTo(
-      center.dx,
-      center.dy + radius * 0.65,
-      center.dx + radius * 0.3,
-      center.dy + radius * 0.35,
-    );
-    canvas.drawPath(smilePath, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
 // MODAL BOTTOM SHEET PILIHAN UNDUH (PDF, CSV, EXCEL)
 // ══════════════════════════════════════════════════════════════════════════
 class _DownloadBottomSheet extends StatelessWidget {
@@ -2942,7 +2737,7 @@ class _DownloadBottomSheet extends StatelessWidget {
               width: 40.0,
               height: 4.0,
               decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
+                color: const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(2.0),
               ),
             ),

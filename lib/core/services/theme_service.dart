@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'staff_auth_service.dart';
+
 /// Pilihan tema aplikasi PediaGrow.
 enum AppThemeMode {
   /// Mengikuti pengaturan tampilan perangkat.
@@ -16,7 +18,8 @@ enum AppThemeMode {
 /// Service singleton untuk mengelola tema aplikasi PediaGrow.
 ///
 /// Fitur:
-/// - Tiga pilihan tema: System (default), Light, Dark.
+/// - Tiga pilihan tema: System (default), Light, Dark (Khusus role Pengguna).
+/// - Role internal staff (Dokter, PMIK Admin, PMIK Superadmin) selalu dikunci ke Light Mode.
 /// - Pilihan disimpan ke SharedPreferences agar bertahan setelah restart.
 /// - [themeModeNotifier] reaktif — rebuild [MaterialApp] secara otomatis.
 class ThemeService {
@@ -34,7 +37,11 @@ class ThemeService {
   AppThemeMode get currentMode => themeModeNotifier.value;
 
   /// ThemeMode Flutter yang sesuai dengan pilihan pengguna.
+  /// Khusus role staff (Dokter, PMIK Admin, PMIK Superadmin), selalu dikunci ke mode terang.
   ThemeMode get flutterThemeMode {
+    if (StaffAuthService().currentStaff != null) {
+      return ThemeMode.light;
+    }
     switch (currentMode) {
       case AppThemeMode.light:
         return ThemeMode.light;
@@ -74,43 +81,88 @@ class ThemeService {
   // TEMA TERANG
   // ---------------------------------------------------------------------------
 
-  /// ThemeData untuk mode terang (identik dengan tampilan saat ini).
   static ThemeData get lightTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
+        cardColor: Colors.white,
+        dialogTheme: const DialogThemeData(
+          backgroundColor: Colors.white,
+        ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF3985E7),
           primary: const Color(0xFF3985E7),
           brightness: Brightness.light,
+          surface: Colors.white,
+          onSurface: const Color(0xFF0B1014),
         ),
+        dividerColor: const Color(0xFFE9EDEF),
       );
 
   // ---------------------------------------------------------------------------
   // TEMA GELAP
   // ---------------------------------------------------------------------------
 
-  /// ThemeData untuk mode gelap — biru tua kehitaman yang lembut.
+  /// ThemeData untuk mode gelap — hitam pekat ala WhatsApp.
   static ThemeData get darkTheme => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
+        scaffoldBackgroundColor: const Color(0xFF0B1014),
+        cardColor: const Color(0xFF1A2228),
+        canvasColor: const Color(0xFF0B1014),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Color(0xFF1A2228),
+          modalBackgroundColor: Color(0xFF1A2228),
+        ),
+        dialogTheme: const DialogThemeData(
+          backgroundColor: Color(0xFF1A2228),
+          surfaceTintColor: Colors.transparent,
+        ),
+        cardTheme: const CardThemeData(
+          color: Color(0xFF1A2228),
+          surfaceTintColor: Colors.transparent,
+        ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF3985E7),
           primary: const Color(0xFF3985E7),
           brightness: Brightness.dark,
-          surface: const Color(0xFF1E293B),
-          onSurface: const Color(0xFFF1F5F9),
+          surface: const Color(0xFF1A2228),
+          onSurface: const Color(0xFFE9EDEF),
         ),
-        cardColor: const Color(0xFF1E293B),
-        dividerColor: const Color(0xFF334155),
-        iconTheme: const IconThemeData(color: Color(0xFFF1F5F9)),
+        dividerColor: const Color(0xFF2C363D),
+        dividerTheme: const DividerThemeData(
+          color: Color(0xFF2C363D),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFFE9EDEF)),
         textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Color(0xFFF1F5F9)),
-          bodyMedium: TextStyle(color: Color(0xFFCBD5E1)),
-          titleLarge: TextStyle(color: Color(0xFFF1F5F9)),
+          bodyLarge: TextStyle(color: Color(0xFFE9EDEF)),
+          bodyMedium: TextStyle(color: Color(0xFFD1D7DB)),
+          bodySmall: TextStyle(color: Color(0xFF8696A0)),
+          titleLarge: TextStyle(color: Color(0xFFE9EDEF)),
+          titleMedium: TextStyle(color: Color(0xFFE9EDEF)),
+          titleSmall: TextStyle(color: Color(0xFFE9EDEF)),
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Color(0xFF11171B),
+        ),
+        navigationBarTheme: const NavigationBarThemeData(
+          backgroundColor: Color(0xFF11171B),
+          indicatorColor: Color(0xFF2C363D),
         ),
       );
+
+  // ---------------------------------------------------------------------------
+  // PALET WARNA TEMA PEDIA GROW
+  // ---------------------------------------------------------------------------
+  static const Color darkBg = Color(0xFF0B1014);
+  static const Color darkCard = Color(0xFF1A2228);
+  static const Color darkBorder = Color(0xFF2C363D);
+  static const Color darkNavBar = Color(0xFF11171B);
+  static const Color darkTextPrimary = Color(0xFFE9EDEF);
+  static const Color darkTextSecondary = Color(0xFF8696A0);
+  static const Color darkTextMuted = Color(0xFF667781);
+  static const Color darkInputBg = Color(0xFF1A2228);
+  static const Color primaryBlue = Color(0xFF3985E7);
 
   // ---------------------------------------------------------------------------
   // HELPERS

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/staff_auth_service.dart';
@@ -121,7 +121,7 @@ class _HapusPmikAksesPageState extends State<HapusPmikAksesPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14.5,
-                color: const Color(0xFF334155),
+                color: const Color(0xFF2C363D),
                 height: 1.45,
               ),
             ),
@@ -138,7 +138,7 @@ class _HapusPmikAksesPageState extends State<HapusPmikAksesPage> {
                       onPressed: _isDeleting ? null : _handleDelete,
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(
-                          color: Color(0xFFCBD5E1),
+                          color: Color(0xFFD1D7DB),
                           width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(

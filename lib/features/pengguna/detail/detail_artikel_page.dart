@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/storage_service.dart';
@@ -77,14 +75,15 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
   @override
   Widget build(BuildContext context) {
     final artikel = widget.artikel;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         child: Column(
           children: [
             // 1. HEADER TETAP (56dp)
-            _buildHeader(context),
+            _buildHeader(context, isDark),
 
             // 2. KONTEN ARTIKEL SCROLLABLE
             Expanded(
@@ -102,7 +101,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Gambar Hero Utama
-                        _buildArticleHeroImage(artikel),
+                        _buildArticleHeroImage(artikel, isDark),
                         const SizedBox(height: 16),
 
                         // Tanggal Publikasi (Lato 16sp abu-abu lembut)
@@ -111,7 +110,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                           style: GoogleFonts.lato(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            color: const Color(0xFF8E8E93),
+                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8E8E93),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -122,7 +121,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF000000),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                             height: 1.3,
                           ),
                         ),
@@ -134,14 +133,14 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: const Color(0xFF8E8E93),
+                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8E8E93),
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Garis pemisah halus
-                        const Divider(
-                          color: Color(0xFFF1F2F6),
+                        Divider(
+                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F2F6),
                           thickness: 1,
                           height: 1,
                         ),
@@ -150,24 +149,24 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                         // Bagian Deskripsi
                         if (artikel.deskripsi != null &&
                             artikel.deskripsi!.isNotEmpty) ...[
-                          _buildSectionTitle('Deskripsi'),
+                          _buildSectionTitle('Deskripsi', isDark),
                           const SizedBox(height: 8),
-                          _buildSectionParagraph(artikel.deskripsi!),
+                          _buildSectionParagraph(artikel.deskripsi!, isDark),
                           const SizedBox(height: 20),
                         ],
 
                         // Bagian Pengertian
                         if (artikel.pengertian != null &&
                             artikel.pengertian!.isNotEmpty) ...[
-                          _buildSectionTitle('Pengertian'),
+                          _buildSectionTitle('Pengertian', isDark),
                           const SizedBox(height: 8),
-                          _buildSectionParagraph(artikel.pengertian!),
+                          _buildSectionParagraph(artikel.pengertian!, isDark),
                           const SizedBox(height: 20),
                         ],
 
                         // Konten Tambahan / Isi Lengkap jika ada
                         if (artikel.isiLengkap.isNotEmpty) ...[
-                          _buildSectionParagraph(artikel.isiLengkap),
+                          _buildSectionParagraph(artikel.isiLengkap, isDark),
                           const SizedBox(height: 20),
                         ],
 
@@ -186,11 +185,11 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
   }
 
   /// Header 56dp dengan tombol kembali 12dp dari sisi kiri dan judul "Detail Artikel"
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       height: 56,
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -201,12 +200,12 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
             child: InkWell(
               onTap: _onBackPressed,
               borderRadius: BorderRadius.circular(24),
-              child: const Padding(
-                padding: EdgeInsets.all(8.0),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Icon(
                   Icons.arrow_back,
                   size: 24,
-                  color: Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
               ),
             ),
@@ -222,7 +221,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
               ),
             ),
           ),
@@ -232,20 +231,20 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
   }
 
   /// Gambar Hero dengan proporsi modern dan placeholder fallback jika null/error
-  Widget _buildArticleHeroImage(ArtikelModel artikel) {
+  Widget _buildArticleHeroImage(ArtikelModel artikel, bool isDark) {
     final displayImage = artikel.displayImage;
 
     return Container(
       width: double.infinity,
       height: 230,
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F2F6),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6),
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.3) : const Color(0x0A000000),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -256,34 +255,34 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
           width: double.infinity,
           height: 230,
           fit: BoxFit.cover,
-          placeholder: _buildPlaceholderImage(),
-          errorWidget: _buildPlaceholderImage(),
+          placeholder: _buildPlaceholderImage(isDark),
+          errorWidget: _buildPlaceholderImage(isDark),
         ),
       ),
     );
   }
 
   /// Placeholder abu-abu dengan icon picture ketika gambar null atau gagal dimuat
-  Widget _buildPlaceholderImage() {
+  Widget _buildPlaceholderImage(bool isDark) {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: const Color(0xFFEEEEEE),
+      color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEEEEEE),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.image_outlined,
               size: 56,
-              color: Color(0xFFBDBDBD),
+              color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
             ),
             const SizedBox(height: 8),
             Text(
               'Tidak ada gambar',
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF9E9E9E),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
               ),
             ),
           ],
@@ -292,39 +291,21 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
     );
   }
 
-  /// Placeholder saat gambar remote dalam proses loading
-  Widget _buildLoadingPlaceholder() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: const Color(0xFFF5F5F5),
-      child: const Center(
-        child: SizedBox(
-          width: 32,
-          height: 32,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF72A9F4)),
-          ),
-        ),
-      ),
-    );
-  }
 
   /// Judul Bagian (Subheading)
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, bool isDark) {
     return Text(
       title,
       style: GoogleFonts.lato(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF000000),
+        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
       ),
     );
   }
 
   /// Paragraf teks isi artikel dengan rendering format kaya (Bold, Italic, Underline)
-  Widget _buildSectionParagraph(String content) {
+  Widget _buildSectionParagraph(String content, bool isDark) {
     return FormattedArticleText(
       content: content,
       textAlign: TextAlign.justify,
@@ -332,7 +313,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
         fontSize: 15,
         fontWeight: FontWeight.w400,
         height: 1.6,
-        color: const Color(0xFF262626),
+        color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF262626),
       ),
     );
   }

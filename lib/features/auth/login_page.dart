@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -220,7 +220,7 @@ class _LoginPageState extends State<LoginPage> {
               'Masuk dengan Google dibatalkan.',
               style: GoogleFonts.lato(color: Colors.white),
             ),
-            backgroundColor: const Color(0xFF64748B),
+            backgroundColor: const Color(0xFF667781),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -390,7 +390,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Masukkan email aktif anda',
@@ -426,7 +426,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Kata Sandi min. 6 karakter',
@@ -435,7 +435,7 @@ class _LoginPageState extends State<LoginPage> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: const Color(0xFF94A3B8),
+                                color: const Color(0xFF8696A0),
                                 size: 20,
                               ),
                               onPressed: () {
@@ -731,17 +731,17 @@ class _LoginPageState extends State<LoginPage> {
       hintStyle: GoogleFonts.lato(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: const Color(0xFF94A3B8),
+        color: const Color(0xFF8696A0),
       ),
       suffixIcon: suffixIcon,
       // Border normal (kotak dengan corner radius 10)
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        borderSide: const BorderSide(color: Color(0xFFD1D7DB)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        borderSide: const BorderSide(color: Color(0xFFD1D7DB)),
       ),
       // Border saat fokus (biru #3985E7)
       focusedBorder: OutlineInputBorder(

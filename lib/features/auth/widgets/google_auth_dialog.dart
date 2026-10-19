@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,7 +42,7 @@ void showGoogleAuthErrorDialog(
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
           ),
@@ -60,7 +60,7 @@ void showGoogleAuthErrorDialog(
                   : errorMessage,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF475569),
+                color: const Color(0xFF2C363D),
                 height: 1.4,
               ),
             ),
@@ -81,7 +81,7 @@ void showGoogleAuthErrorDialog(
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: const Color(0xFFE9EDEF),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -92,7 +92,7 @@ void showGoogleAuthErrorDialog(
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF334155),
+                        color: const Color(0xFF2C363D),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -103,7 +103,7 @@ void showGoogleAuthErrorDialog(
                       '4. Pilih Android, lalu masukkan Package Name & SHA-1 di atas.',
                       style: GoogleFonts.lato(
                         fontSize: 11,
-                        color: const Color(0xFF64748B),
+                        color: const Color(0xFF667781),
                         height: 1.4,
                       ),
                     ),
@@ -160,7 +160,7 @@ void showGoogleAuthErrorDialog(
             'Tutup',
             style: GoogleFonts.plusJakartaSans(
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF64748B),
+              color: const Color(0xFF667781),
             ),
           ),
         ),
@@ -179,7 +179,7 @@ Widget _buildInfoTile(
     decoration: BoxDecoration(
       color: const Color(0xFFF8FAFC),
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFE2E8F0)),
+      border: Border.all(color: const Color(0xFFE9EDEF)),
     ),
     child: Row(
       children: [
@@ -192,7 +192,7 @@ Widget _buildInfoTile(
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
               ),
               const SizedBox(height: 2),
@@ -201,14 +201,14 @@ Widget _buildInfoTile(
                 style: GoogleFonts.robotoMono(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFF1A2228),
                 ),
               ),
             ],
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.copy, size: 16, color: Color(0xFF64748B)),
+          icon: const Icon(Icons.copy, size: 16, color: Color(0xFF667781)),
           onPressed: () {
             Clipboard.setData(ClipboardData(text: value));
             ScaffoldMessenger.of(context).showSnackBar(

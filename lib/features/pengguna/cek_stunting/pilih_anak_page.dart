@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/child_service.dart';
@@ -243,6 +243,8 @@ class _PilihAnakPageState extends State<PilihAnakPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -282,7 +284,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
               bottom: 0,
               child: SlideTransition(
                 position: _slideAnimation,
-                child: _buildBottomSheetCard(),
+                child: _buildBottomSheetCard(isDark),
               ),
             ),
           ],
@@ -295,13 +297,14 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   // BOTTOM SHEET CARD
   // ===========================================================================
 
-  Widget _buildBottomSheetCard() {
+  Widget _buildBottomSheetCard(bool isDark) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
             blurRadius: 20,
@@ -326,7 +329,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                   style: GoogleFonts.lato(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -341,9 +344,9 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
-                      color: colorTextBlack,
+                      color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                       size: 24,
                     ),
                   ),
@@ -357,7 +360,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
               style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
               ),
             ),
 
@@ -367,13 +370,13 @@ class _PilihAnakPageState extends State<PilihAnakPage>
             Container(
               width: double.infinity,
               height: 1,
-              color: colorDividerGrey,
+              color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
             ),
 
             const SizedBox(height: 6),
 
             // Daftar Profil Anak Dinamis
-            _buildChildrenList(),
+            _buildChildrenList(isDark),
           ],
         ),
       ),
@@ -381,14 +384,14 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   }
 
   /// Menampilkan daftar profil anak
-  Widget _buildChildrenList() {
+  Widget _buildChildrenList(bool isDark) {
     if (_childList.isEmpty) {
       return const SizedBox.shrink();
     }
 
     // Kondisi 1 Anak: Cukup 1 profil tanpa divider
     if (_childList.length == 1) {
-      return _buildChildRow(_childList.first);
+      return _buildChildRow(_childList.first, isDark);
     }
 
     // Kondisi 2 Anak: 2 profil dengan divider di antara profil (Sesuai Gambar)
@@ -396,13 +399,13 @@ class _PilihAnakPageState extends State<PilihAnakPage>
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildChildRow(_childList[0]),
+          _buildChildRow(_childList[0], isDark),
           Container(
             width: double.infinity,
             height: 1,
-            color: colorDividerGrey,
+            color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
           ),
-          _buildChildRow(_childList[1]),
+          _buildChildRow(_childList[1], isDark),
         ],
       );
     }
@@ -421,17 +424,17 @@ class _PilihAnakPageState extends State<PilihAnakPage>
         separatorBuilder: (context, index) => Container(
           width: double.infinity,
           height: 1,
-          color: colorDividerGrey,
+          color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
         ),
         itemBuilder: (context, index) {
-          return _buildChildRow(_childList[index]);
+          return _buildChildRow(_childList[index], isDark);
         },
       ),
     );
   }
 
   /// Satu baris profil anak yang dapat ditekan seluruhnya
-  Widget _buildChildRow(ChildModel child) {
+  Widget _buildChildRow(ChildModel child, bool isDark) {
     final isTapped = _tappedChildId == child.id;
     final isGirl = child.gender.toLowerCase().contains('perempuan');
 
@@ -472,7 +475,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: colorTextBlack,
+                          color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -484,7 +487,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.normal,
-                          color: colorTextBlack,
+                          color: isDark ? const Color(0xFFD1D7DB) : colorTextBlack,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -502,8 +505,12 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                               ),
                               decoration: BoxDecoration(
                                 color: isFull
-                                    ? const Color(0xFFFDE8E8)
-                                    : const Color(0xFFEBF5FF),
+                                    ? (isDark
+                                        ? const Color(0xFF7F1D1D).withValues(alpha: 0.3)
+                                        : const Color(0xFFFDE8E8))
+                                    : (isDark
+                                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                        : const Color(0xFFEBF5FF)),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -514,8 +521,8 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: isFull
-                                      ? const Color(0xFFC53030)
-                                      : const Color(0xFF2B7AE8),
+                                      ? (isDark ? const Color(0xFFF87171) : const Color(0xFFC53030))
+                                      : (isDark ? const Color(0xFF60A5FA) : const Color(0xFF2B7AE8)),
                                 ),
                               ),
                             );
@@ -530,14 +537,14 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                 Container(
                   width: 32,
                   height: 32,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF1F5F9),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
                     shape: BoxShape.circle,
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.chevron_right_rounded,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                       size: 20,
                     ),
                   ),
@@ -571,7 +578,7 @@ class CuteBabyFacePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF1A2228)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round
@@ -624,7 +631,7 @@ class CuteBabyFacePainter extends CustomPainter {
     canvas.drawCircle(
       Offset(w * 0.5, h * 0.54),
       1.2,
-      Paint()..color = const Color(0xFF1E293B),
+      Paint()..color = const Color(0xFF1A2228),
     );
 
     // Senyuman Ceria

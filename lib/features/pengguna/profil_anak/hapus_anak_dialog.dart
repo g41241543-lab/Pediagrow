@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Dialog konfirmasi modal untuk menghapus profil anak.
@@ -39,11 +39,13 @@ class HapusAnakDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       elevation: 8,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: Padding(
@@ -57,7 +59,7 @@ class HapusAnakDialog extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0B1014),
               ),
             ),
             const SizedBox(height: 14),
@@ -68,7 +70,7 @@ class HapusAnakDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14,
-                color: const Color(0xFF7F7F7F),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                 height: 1.4,
               ),
             ),
@@ -84,8 +86,11 @@ class HapusAnakDialog extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: onConfirmDelete,
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: Color(0xFFC5C5C5), width: 1.0),
+                        backgroundColor: isDark ? const Color(0xFF2C363D) : Colors.white,
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5),
+                          width: 1.0,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -96,7 +101,7 @@ class HapusAnakDialog extends StatelessWidget {
                         style: GoogleFonts.lato(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF0F172A),
+                          color: isDark ? Colors.white : const Color(0xFF0B1014),
                         ),
                       ),
                     ),

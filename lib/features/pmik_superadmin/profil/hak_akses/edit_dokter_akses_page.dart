@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,7 +9,6 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
-import '../../../../models/jadwal_praktik_model.dart';
 import '../../../../models/staff_account_model.dart';
 import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
 
@@ -148,7 +145,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -158,7 +155,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -180,7 +177,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -188,7 +185,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -207,7 +204,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -476,7 +473,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -499,7 +496,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFCBD5E1),
+                      color: const Color(0xFFD1D7DB),
                       width: 1.5,
                     ),
                     color: const Color(0xFFF8FAFC),
@@ -556,7 +553,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF475569),
+              color: const Color(0xFF2C363D),
             ),
             decoration: const InputDecoration(
               isDense: true,
@@ -576,7 +573,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.lato(
               fontSize: 13.0,
-              color: const Color(0xFF475569),
+              color: const Color(0xFF2C363D),
             ),
             decoration: const InputDecoration(
               isDense: true,
@@ -597,7 +594,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 13.0,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF334155),
+              color: const Color(0xFF2C363D),
             ),
             decoration: InputDecoration(
               isDense: true,
@@ -606,7 +603,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               hintText: 'Kata Sandi Baru (Opsional)',
               hintStyle: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: const Color(0xFF94A3B8),
+                color: const Color(0xFF8696A0),
               ),
               suffixIcon: IconButton(
                 padding: EdgeInsets.zero,
@@ -616,7 +613,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
                   size: 18.0,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
                 onPressed: () {
                   setState(() {
@@ -650,7 +647,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 20.0,
-                        color: Color(0xFF94A3B8),
+                        color: Color(0xFF8696A0),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -662,7 +659,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             'Pengalaman',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF94A3B8),
+                              color: const Color(0xFF8696A0),
                             ),
                           ),
                           Row(
@@ -677,7 +674,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 13.0,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF334155),
+                                    color: const Color(0xFF2C363D),
                                   ),
                                   decoration: const InputDecoration(
                                     isDense: true,
@@ -694,7 +691,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF334155),
+                                  color: const Color(0xFF2C363D),
                                 ),
                               ),
                             ],
@@ -712,7 +709,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               Container(
                 width: 1.0,
                 height: 44.0,
-                color: const Color(0xFFE2E8F0),
+                color: const Color(0xFFE9EDEF),
                 margin: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
 
@@ -726,7 +723,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       child: Icon(
                         Icons.badge_outlined,
                         size: 20.0,
-                        color: Color(0xFF94A3B8),
+                        color: Color(0xFF8696A0),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -738,7 +735,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             'No. STR',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF94A3B8),
+                              color: const Color(0xFF8696A0),
                             ),
                           ),
                           TextFormField(
@@ -750,7 +747,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF334155),
+                              color: const Color(0xFF2C363D),
                             ),
                             decoration: const InputDecoration(
                               isDense: true,
@@ -833,7 +830,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: const Color(0xFFE9EDEF)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0A000000),
@@ -852,7 +849,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     const Icon(
                       Icons.apartment_rounded,
                       size: 22.0,
-                      color: Color(0xFF94A3B8),
+                      color: Color(0xFF8696A0),
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
@@ -864,7 +861,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 14.0,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF334155),
+                              color: const Color(0xFF2C363D),
                             ),
                             decoration: InputDecoration(
                               isDense: true,
@@ -874,7 +871,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               hintText: 'Nama Tempat Praktik',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 14.0,
-                                color: const Color(0xFF94A3B8),
+                                color: const Color(0xFF8696A0),
                               ),
                             ),
                           ),
@@ -968,7 +965,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: const Color(0xFFE9EDEF)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0A000000),
@@ -1005,7 +1002,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -1015,7 +1012,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               : '${activeDays.length} hari aktif per minggu (${activeDays.map((e) => e.namaHari).join(', ')})',
                           style: GoogleFonts.lato(
                             fontSize: 12.0,
-                            color: const Color(0xFF64748B),
+                            color: const Color(0xFF667781),
                           ),
                         ),
                       ],
@@ -1094,7 +1091,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: const Color(0xFFE9EDEF)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0A000000),
@@ -1128,7 +1125,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF334155),
+                                color: const Color(0xFF2C363D),
                               ),
                             ),
                           ),
@@ -1174,7 +1171,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               activeTrackColor:
                                   const Color(0xFF3985E7).withValues(alpha: 0.5),
                               inactiveThumbColor: const Color(0xFFFFFFFF),
-                              inactiveTrackColor: const Color(0xFF94A3B8),
+                              inactiveTrackColor: const Color(0xFF8696A0),
                               onChanged: (val) {
                                 setState(() {
                                   _permissions[item.key] = val;
@@ -1188,7 +1185,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       const Divider(
                         height: 1.0,
                         thickness: 0.8,
-                        color: Color(0xFFF1F5F9),
+                        color: Color(0xFFE9EDEF),
                         indent: 16.0,
                         endIndent: 16.0,
                       ),
@@ -1207,7 +1204,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 class _DottedLine extends StatelessWidget {
   const _DottedLine();
 
-  static const Color _color = Color(0xFFCBD5E1);
+  static const Color _color = Color(0xFFD1D7DB);
   static const double _height = 1.0;
   static const double _dotWidth = 3.0;
   static const double _spaceWidth = 3.0;

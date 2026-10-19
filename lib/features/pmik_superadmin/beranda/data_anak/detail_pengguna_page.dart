@@ -1,7 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -40,9 +37,9 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // Konstanta Warna (konsisten dengan desain superadmin)
   // ──────────────────────────────────────────────────────────────
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
-  static const Color _colorTableBorder = Color(0xFFE2E8F0);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
+  static const Color _colorTableBorder = Color(0xFFE9EDEF);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
 
   // ──────────────────────────────────────────────────────────────
   // BUILD
@@ -228,7 +225,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           ),
 
           const SizedBox(height: 14),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
           const SizedBox(height: 14),
 
           // Baris-baris Data Key-Value
@@ -394,7 +391,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               ),
 
               const SizedBox(height: 14),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
 
               // List Card Anak
               for (int i = 0; i < children.length; i++) ...[
@@ -402,7 +399,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   const Divider(
                     height: 1,
                     thickness: 1,
-                    color: Color(0xFFF1F5F9),
+                    color: Color(0xFFE9EDEF),
                   ),
                 _buildChildListItem(children[i]),
               ],
@@ -478,7 +475,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               const Icon(
                 Icons.chevron_right_rounded,
                 size: 26,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ],
           ),
@@ -504,7 +501,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           const Icon(
             Icons.child_care_rounded,
             size: 40,
-            color: Color(0xFFCBD5E1),
+            color: Color(0xFFD1D7DB),
           ),
           const SizedBox(height: 10),
           Text(
@@ -546,7 +543,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   width: 30,
                   height: 30,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFE2E8F0),
+                    color: Color(0xFFE9EDEF),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -555,7 +552,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   child: Container(
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -756,7 +753,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

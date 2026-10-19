@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/child_model.dart';
 import 'models/growth_record_model.dart';
@@ -21,19 +21,20 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusColor = ZScoreCalculator.getStatusColor(record.statusGizi);
     final statusBgColor = ZScoreCalculator.getStatusBgColor(record.statusGizi);
     final statusDesc = ZScoreCalculator.getStatusDescription(record.statusGizi);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         top: false,
         bottom: false,
         child: Column(
           children: [
             // 1. Header (56dp dari atas layar)
-            _buildHeader(context),
+            _buildHeader(context, isDark),
 
             // 2. Konten Utama
             Expanded(
@@ -45,22 +46,22 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Card Profil & Waktu Pengukuran
-                    _buildChildInfoCard(),
+                    _buildChildInfoCard(isDark),
 
                     const SizedBox(height: 16),
 
                     // Tiga Kartu Nilai Antropometri
-                    _buildMeasurementValues(),
+                    _buildMeasurementValues(isDark),
 
                     const SizedBox(height: 20),
 
                     // Card Evaluasi Z-Score & Status Gizi
-                    _buildZScoreCard(statusColor, statusBgColor, statusDesc),
+                    _buildZScoreCard(statusColor, statusBgColor, statusDesc, isDark),
 
                     const SizedBox(height: 20),
 
                     // Card Catatan / Sumber Pengukuran
-                    _buildNotesCard(),
+                    _buildNotesCard(isDark),
 
                     const SizedBox(height: 24),
                   ],
@@ -73,10 +74,10 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 12.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -86,11 +87,11 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   size: 24,
                 ),
               ),
@@ -102,7 +103,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -113,19 +114,23 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChildInfoCard() {
+  Widget _buildChildInfoCard(bool isDark) {
     final isGirl = child.gender.toLowerCase().contains('perempuan');
-    final avatarBg =
-        isGirl ? const Color(0xFFFFD8E4) : const Color(0xFFD6EEFF);
+    final avatarBg = isGirl
+        ? (isDark ? const Color(0xFF831843).withValues(alpha: 0.35) : const Color(0xFFFFD8E4))
+        : (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.35) : const Color(0xFFD6EEFF));
     final avatarColor =
-        isGirl ? const Color(0xFFE83D84) : const Color(0xFF2B7AE8);
+        isGirl ? const Color(0xFFF472B6) : const Color(0xFF60A5FA);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -152,7 +157,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -160,7 +165,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
                   'Usia saat pengukuran: ${record.ageFormatted}',
                   style: GoogleFonts.lato(
                     fontSize: 13,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -180,7 +185,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMeasurementValues() {
+  Widget _buildMeasurementValues(bool isDark) {
     return Row(
       children: [
         Expanded(
@@ -189,6 +194,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             value: '${record.weightKg.toStringAsFixed(1)} kg',
             icon: Icons.monitor_weight_outlined,
             color: const Color(0xFF0284C7),
+            isDark: isDark,
           ),
         ),
         const SizedBox(width: 10),
@@ -198,6 +204,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             value: '${record.heightCm.toStringAsFixed(1)} cm',
             icon: Icons.straighten_outlined,
             color: const Color(0xFF16A34A),
+            isDark: isDark,
           ),
         ),
         const SizedBox(width: 10),
@@ -207,6 +214,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             value: '${record.headCircumferenceCm.toStringAsFixed(1)} cm',
             icon: Icons.face_outlined,
             color: const Color(0xFF9333EA),
+            isDark: isDark,
           ),
         ),
       ],
@@ -218,16 +226,19 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
     required String value,
     required IconData icon,
     required Color color,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -241,7 +252,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             title,
             style: GoogleFonts.lato(
               fontSize: 11,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
             ),
             textAlign: TextAlign.center,
           ),
@@ -251,7 +262,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
             ),
           ),
         ],
@@ -260,16 +271,29 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
   }
 
   Widget _buildZScoreCard(
-      Color statusColor, Color statusBgColor, String statusDesc) {
+    Color statusColor,
+    Color statusBgColor,
+    String statusDesc,
+    bool isDark,
+  ) {
+    final effectiveBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final effectiveStatusBg = isDark
+        ? (record.statusGizi == 'Gizi Normal'
+            ? const Color(0xFF064E3B).withValues(alpha: 0.35)
+            : const Color(0xFF7F1D1D).withValues(alpha: 0.35))
+        : statusBgColor;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: effectiveBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -283,7 +307,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
             ),
           ),
           const SizedBox(height: 12),
@@ -292,7 +316,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: statusBgColor,
+              color: effectiveStatusBg,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: statusColor.withValues(alpha: 0.4),
@@ -327,40 +351,47 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 13,
               height: 1.5,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
             ),
           ),
 
           const SizedBox(height: 14),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          ),
           const SizedBox(height: 14),
 
           // Rincian Z-Scores
           _buildZScoreRow(
             'BB menurut TB (BB/TB)',
             record.zScoreWeightForHeight,
+            isDark,
           ),
           const SizedBox(height: 8),
           _buildZScoreRow(
             'BB menurut Umur (BB/U)',
             record.zScoreWeightForAge,
+            isDark,
           ),
           const SizedBox(height: 8),
           _buildZScoreRow(
             'TB menurut Umur (TB/U)',
             record.zScoreHeightForAge,
+            isDark,
           ),
           const SizedBox(height: 8),
           _buildZScoreRow(
             'LK menurut Umur (LK/U)',
             record.zScoreHeadForAge,
+            isDark,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildZScoreRow(String label, double zScore) {
+  Widget _buildZScoreRow(String label, double zScore, bool isDark) {
     final isNormal = zScore >= -2.0 && zScore <= 2.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -369,7 +400,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
           label,
           style: GoogleFonts.lato(
             fontSize: 12,
-            color: const Color(0xFF475569),
+            color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
           ),
         ),
         Text(
@@ -378,36 +409,42 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: isNormal
-                ? const Color(0xFF2E7D32)
-                : const Color(0xFFB13535),
+                ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF2E7D32))
+                : (isDark ? const Color(0xFFF87171) : const Color(0xFFB13535)),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildNotesCard() {
+  Widget _buildNotesCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline, size: 16, color: Color(0xFF64748B)),
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+              ),
               const SizedBox(width: 6),
               Text(
                 'Sumber Pengukuran',
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF334155),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                 ),
               ),
             ],
@@ -420,7 +457,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
                     : 'Pengukuran dicatat melalui fitur Cek Stunting.'),
             style: GoogleFonts.lato(
               fontSize: 12,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
             ),
           ),
         ],

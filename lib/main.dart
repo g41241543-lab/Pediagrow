@@ -63,9 +63,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<AppThemeMode>(
-      valueListenable: ThemeService().themeModeNotifier,
-      builder: (context, mode, child) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        ThemeService().themeModeNotifier,
+        StaffAuthService().currentStaffNotifier,
+      ]),
+      builder: (context, child) {
         return MaterialApp(
           navigatorKey: SessionService.navigatorKey,
           scaffoldMessengerKey: SessionService.scaffoldMessengerKey,

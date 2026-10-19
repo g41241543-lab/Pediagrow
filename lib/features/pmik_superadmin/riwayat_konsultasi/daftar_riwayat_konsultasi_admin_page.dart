@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
@@ -307,24 +307,24 @@ class _DaftarRiwayatKonsultasiAdminPageState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22.0),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.0),
+        border: Border.all(color: const Color(0xFFD1D7DB), width: 1.0),
       ),
       child: TextField(
         controller: _searchController,
         style: GoogleFonts.lato(
           fontSize: 14.0,
-          color: const Color(0xFF1E293B),
+          color: const Color(0xFF1A2228),
         ),
         decoration: InputDecoration(
           hintText: 'Cari nama pasien, dokter, atau keluhan....',
           hintStyle: GoogleFonts.lato(
             fontSize: 13.5,
-            color: const Color(0xFF94A3B8),
+            color: const Color(0xFF8696A0),
           ),
           prefixIcon: const Icon(
             Icons.search,
             size: 22.0,
-            color: Color(0xFF94A3B8),
+            color: Color(0xFF8696A0),
           ),
           suffixIcon: _searchQuery.isNotEmpty
               ? GestureDetector(
@@ -335,7 +335,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   child: const Icon(
                     Icons.close,
                     size: 18.0,
-                    color: Color(0xFF94A3B8),
+                    color: Color(0xFF8696A0),
                   ),
                 )
               : null,
@@ -386,7 +386,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
       decoration: BoxDecoration(
         color: const Color(0xFFF1F3F5),
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.0),
+        border: Border.all(color: const Color(0xFFD1D7DB), width: 1.0),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -399,7 +399,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           ),
           style: GoogleFonts.lato(
             fontSize: 13.0,
-            color: const Color(0xFF1E293B),
+            color: const Color(0xFF1A2228),
             fontWeight: FontWeight.w500,
           ),
           items: items
@@ -414,7 +414,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       fontSize: 13.0,
                       color: item == value
                           ? _colorPrimaryBlue
-                          : const Color(0xFF1E293B),
+                          : const Color(0xFF1A2228),
                     ),
                   ),
                 ),
@@ -503,7 +503,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                           style: GoogleFonts.lato(
                             fontSize: 15.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -541,7 +541,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                           r.doctorName,
                           style: GoogleFonts.lato(
                             fontSize: 12.5,
-                            color: const Color(0xFF64748B),
+                            color: const Color(0xFF667781),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -552,7 +552,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                         r.consultationDate,
                         style: GoogleFonts.lato(
                           fontSize: 11.5,
-                          color: const Color(0xFF94A3B8),
+                          color: const Color(0xFF8696A0),
                         ),
                       ),
                     ],
@@ -565,7 +565,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     text: TextSpan(
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: const Color(0xFF475569),
+                        color: const Color(0xFF2C363D),
                         height: 1.3,
                       ),
                       children: [
@@ -573,7 +573,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                           text: 'Keluhan: ',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF334155),
+                            color: Color(0xFF2C363D),
                           ),
                         ),
                         TextSpan(
@@ -593,7 +593,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       text: TextSpan(
                         style: GoogleFonts.lato(
                           fontSize: 12.0,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF667781),
                           height: 1.3,
                         ),
                         children: [
@@ -601,7 +601,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                             text: 'Ringkasan: ',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF334155),
+                              color: Color(0xFF2C363D),
                             ),
                           ),
                           TextSpan(text: r.summary),
@@ -682,7 +682,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 15.0,
-              color: const Color(0xFF94A3B8),
+              color: const Color(0xFF8696A0),
             ),
           ),
         ],
@@ -822,7 +822,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/theme_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
@@ -125,28 +126,31 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Positioned.fill(child: FullPageSkyBackground()),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSeamlessBlueArea(context),
-                _buildWhiteContentSection(context),
-                const SizedBox(height: 20),
-                _buildFooterIllustration(),
-              ],
-            ),
-          ],
+    return Theme(
+      data: ThemeService.lightTheme,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Positioned.fill(child: FullPageSkyBackground()),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSeamlessBlueArea(context),
+                  _buildWhiteContentSection(context),
+                  const SizedBox(height: 20),
+                  _buildFooterIllustration(),
+                ],
+              ),
+            ],
+          ),
         ),
+        bottomNavigationBar: _buildFixedNavBar(),
       ),
-      bottomNavigationBar: _buildFixedNavBar(),
     );
   }
 
@@ -235,7 +239,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                     alignment: Alignment.center,
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
-                                      color: Color(0xFF1E293B),
+                                      color: Color(0xFF1A2228),
                                       size: 19,
                                     ),
                                   ),
@@ -377,14 +381,14 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
                       'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
                       style: GoogleFonts.lato(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: const Color(0xFF667781),
                         height: 1.3,
                       ),
                     ),
@@ -421,7 +425,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -524,7 +528,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -550,7 +554,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: const Color(0xFFE9EDEF)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x08000000),
@@ -579,7 +583,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               style: GoogleFonts.lato(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF334155),
+                color: const Color(0xFF2C363D),
                 height: 1.3,
               ),
             ),
@@ -599,7 +603,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       return Center(
         child: Text(
           'Belum ada artikel.',
-          style: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
+          style: GoogleFonts.lato(color: const Color(0xFF8696A0)),
         ),
       );
     }
@@ -619,7 +623,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: const Color(0xFFE9EDEF)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x06000000),
@@ -638,7 +642,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
+                      errorBuilder: (_, _, _) =>
                           _buildArticleImagePlaceholder(),
                     )
                   : _buildArticleImagePlaceholder(),
@@ -655,7 +659,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                       height: 1.35,
                     ),
                   ),
@@ -673,7 +677,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              color: Color(0xFFCBD5E1),
+              color: Color(0xFFD1D7DB),
               size: 20,
             ),
           ],
@@ -705,7 +709,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       child: Center(
         child: Text(
           '© PediaGrow — Bersama Cegah Stunting',
-          style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFF94A3B8)),
+          style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFF8696A0)),
         ),
       ),
     );
@@ -716,7 +720,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.0)),
+        border: Border(top: BorderSide(color: Color(0xFFE9EDEF), width: 1.0)),
         boxShadow: [
           BoxShadow(
             color: Color(0x0D000000),
@@ -779,7 +783,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               size: 24,
               color: isSelected
                   ? const Color(0xFF3985E7)
-                  : const Color(0xFF94A3B8),
+                  : const Color(0xFF8696A0),
             ),
             const SizedBox(height: 3),
             Text(
@@ -791,7 +795,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8),
+                    : const Color(0xFF8696A0),
                 height: 1.2,
               ),
             ),

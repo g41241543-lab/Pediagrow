@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/services/artikel_service.dart';
@@ -239,7 +239,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                     alignment: Alignment.center,
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
-                                      color: Color(0xFF1E293B),
+                                      color: Color(0xFF1A2228),
                                       size: 19,
                                     ),
                                   ),
@@ -381,14 +381,14 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
                       'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
                       style: GoogleFonts.lato(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: const Color(0xFF667781),
                         height: 1.3,
                       ),
                     ),
@@ -430,7 +430,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -592,7 +592,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               width: 9,
               height: 9,
               decoration: BoxDecoration(
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
                 borderRadius: BorderRadius.circular(2.5),
               ),
               alignment: Alignment.center,
@@ -731,7 +731,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                           child: Container(
                             padding: const EdgeInsets.all(3.5),
                             decoration: const BoxDecoration(
-                              color: Color(0xFF64748B),
+                              color: Color(0xFF667781),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -755,7 +755,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               fontSize: 14,
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
               color: isLocked
-                  ? const Color(0xFF94A3B8)
+                  ? const Color(0xFF8696A0)
                   : const Color(0xFF000000),
               height: 1.25,
             ),
@@ -808,7 +808,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       return Center(
         child: Text(
           'Belum ada artikel.',
-          style: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
+          style: GoogleFonts.lato(color: const Color(0xFF8696A0)),
         ),
       );
     }
@@ -828,7 +828,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: const Color(0xFFE9EDEF)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x06000000),
@@ -861,7 +861,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                       height: 1.35,
                     ),
                   ),
@@ -879,7 +879,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              color: Color(0xFFCBD5E1),
+              color: Color(0xFFD1D7DB),
               size: 20,
             ),
           ],
@@ -911,7 +911,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       child: Center(
         child: Text(
           '© PediaGrow — Bersama Cegah Stunting',
-          style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFF94A3B8)),
+          style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFF8696A0)),
         ),
       ),
     );
@@ -922,7 +922,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.0)),
+        border: Border(top: BorderSide(color: Color(0xFFE9EDEF), width: 1.0)),
         boxShadow: [
           BoxShadow(
             color: Color(0x0D000000),
@@ -985,7 +985,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               size: 24,
               color: isSelected
                   ? const Color(0xFF3985E7)
-                  : const Color(0xFF94A3B8),
+                  : const Color(0xFF8696A0),
             ),
             const SizedBox(height: 3),
             Text(
@@ -997,7 +997,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8),
+                    : const Color(0xFF8696A0),
                 height: 1.2,
               ),
             ),

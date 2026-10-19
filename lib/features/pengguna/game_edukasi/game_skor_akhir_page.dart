@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -54,22 +54,29 @@ class GameSkorAkhirPage extends StatelessWidget {
   // ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
         body: Stack(
           children: [
-            // ── Background Gradient Biru (Figma) ──────────────────
+            // ── Background Gradient Biru Figma / Night Sky Dark Mode ──
             Positioned.fill(
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF5B9BF5),
-                      Color(0xFF6FA8E8),
-                    ],
+                    colors: isDark
+                        ? [
+                            const Color(0xFF0B1014),
+                            const Color(0xFF1A2228),
+                          ]
+                        : [
+                            const Color(0xFF5B9BF5),
+                            const Color(0xFF6FA8E8),
+                          ],
                   ),
                 ),
               ),
@@ -112,7 +119,7 @@ class GameSkorAkhirPage extends StatelessWidget {
                         // ── Kartu Skor Ringkasan ────────────────────
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: _buildKartuSkorRingkasan(),
+                          child: _buildKartuSkorRingkasan(context),
                         ),
 
                         const SizedBox(height: 24),
@@ -147,7 +154,7 @@ class GameSkorAkhirPage extends StatelessWidget {
                           return Padding(
                             padding: EdgeInsets.only(
                                 bottom: index == hasilList.length - 1 ? 0 : 10),
-                            child: _buildItemSoal(index + 1, hasil),
+                            child: _buildItemSoal(context, index + 1, hasil),
                           );
                         },
                         childCount: hasilList.length,
@@ -247,15 +254,18 @@ class GameSkorAkhirPage extends StatelessWidget {
   }
 
   // ── KARTU SKOR RINGKASAN ────────────────────────────────────────
-  Widget _buildKartuSkorRingkasan() {
+  Widget _buildKartuSkorRingkasan(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(17),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.07),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -266,6 +276,7 @@ class GameSkorAkhirPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildSkorItem(
+            context: context,
             icon: Icons.check_circle_rounded,
             iconColor: const Color(0xFF10B981),
             value: '$_jumlahBenar dari $_totalSoal',
@@ -274,9 +285,10 @@ class GameSkorAkhirPage extends StatelessWidget {
           Container(
             height: 48,
             width: 1,
-            color: const Color(0xFFE2E8F0),
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
           ),
           _buildSkorItem(
+            context: context,
             icon: Icons.stars_rounded,
             iconColor: const Color(0xFFFFB300),
             value: '$_totalPoin poin',
@@ -288,11 +300,14 @@ class GameSkorAkhirPage extends StatelessWidget {
   }
 
   Widget _buildSkorItem({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String value,
     required String label,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -303,7 +318,7 @@ class GameSkorAkhirPage extends StatelessWidget {
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
         ),
         const SizedBox(height: 2),
@@ -311,7 +326,7 @@ class GameSkorAkhirPage extends StatelessWidget {
           label,
           style: GoogleFonts.lato(
             fontSize: 12,
-            color: const Color(0xFF7F7F7F),
+            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
           ),
         ),
       ],
@@ -319,7 +334,8 @@ class GameSkorAkhirPage extends StatelessWidget {
   }
 
   // ── ITEM SOAL DALAM DAFTAR ──────────────────────────────────────
-  Widget _buildItemSoal(int nomorSoal, HasilSoal hasil) {
+  Widget _buildItemSoal(BuildContext context, int nomorSoal, HasilSoal hasil) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isSkip = hasil.diSkip;
     final bool isBenar = hasil.benar;
 
@@ -350,11 +366,12 @@ class GameSkorAkhirPage extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(17),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -385,7 +402,7 @@ class GameSkorAkhirPage extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF7F7F7F),
+                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                       ),
                     ),
                     const Spacer(),
@@ -416,7 +433,7 @@ class GameSkorAkhirPage extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0B1014),
                     height: 1.4,
                   ),
                   maxLines: 3,
@@ -444,18 +461,20 @@ class GameSkorAkhirPage extends StatelessWidget {
 
   // ── DUA TOMBOL BAWAH ───────────────────────────────────────────
   Widget _buildTombolBawah(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
-        // Tombol Ulangi Kuis (outline putih)
+        // Tombol Ulangi Kuis (outline)
         Expanded(
           child: SizedBox(
             height: 48,
             child: OutlinedButton(
               onPressed: () => _ulangiKuis(context),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(
-                  color: Colors.white,
+                foregroundColor: isDark ? const Color(0xFF8696A0) : Colors.white,
+                side: BorderSide(
+                  color: isDark ? const Color(0xFF2C363D) : Colors.white,
                   width: 1.5,
                 ),
                 shape: RoundedRectangleBorder(
@@ -467,7 +486,7 @@ class GameSkorAkhirPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF8696A0) : Colors.white,
                 ),
               ),
             ),
@@ -476,15 +495,15 @@ class GameSkorAkhirPage extends StatelessWidget {
 
         const SizedBox(width: 12),
 
-        // Tombol Selesai (solid putih)
+        // Tombol Selesai
         Expanded(
           child: SizedBox(
             height: 48,
             child: ElevatedButton(
               onPressed: () => _selesai(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF3985E7),
+                backgroundColor: isDark ? const Color(0xFF3985E7) : Colors.white,
+                foregroundColor: isDark ? Colors.white : const Color(0xFF3985E7),
                 elevation: 4,
                 shadowColor: Colors.black.withValues(alpha: 0.2),
                 shape: RoundedRectangleBorder(
@@ -496,7 +515,7 @@ class GameSkorAkhirPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF3985E7),
+                  color: isDark ? Colors.white : const Color(0xFF3985E7),
                 ),
               ),
             ),

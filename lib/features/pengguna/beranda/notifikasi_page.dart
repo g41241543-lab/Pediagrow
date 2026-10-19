@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/notification_service.dart';
@@ -61,15 +61,18 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
             // -----------------------------------------------------------------
             // HEADER (Ukuran 56dp dari atas, tanpa garis/border di bawahnya)
             // -----------------------------------------------------------------
-            _buildHeader(context),
+            _buildHeader(context, isDark, bgColor),
 
             // -----------------------------------------------------------------
             // KONTEN NOTIFIKASI (Non-scrollable)
@@ -80,11 +83,11 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 builder: (context, notifications, _) {
                   if (notifications.isEmpty) {
                     // Tampilan kosong (Gambar 1)
-                    return _buildEmptyState();
+                    return _buildEmptyState(isDark);
                   }
 
                   // Tampilan daftar notifikasi (Gambar 2)
-                  return _buildNotificationList(notifications);
+                  return _buildNotificationList(notifications, isDark);
                 },
               ),
             ),
@@ -95,10 +98,12 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   }
 
   /// Header 56dp tanpa border/divider di bawahnya.
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark, Color bgColor) {
+    final textColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       height: 56.0,
-      color: Colors.white,
+      color: bgColor,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -115,9 +120,9 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 );
               }
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Icon(Icons.arrow_back, color: textColor, size: 24),
             ),
           ),
           // Nama halaman berjarak 12dp setelah tombol back
@@ -127,7 +132,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: textColor,
             ),
           ),
         ],
@@ -137,7 +142,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   /// Tampilan Empty State (Gambar 1):
   /// Ilustrasi lonceng kuning & teks "Belum ada notifikasi" di tengah halaman.
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
@@ -155,7 +160,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 'assets/images/lonceng_notif.png',
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) =>
-                    const CustomPaint(painter: _NotificationBellEmptyPainter()),
+                    CustomPaint(painter: _NotificationBellEmptyPainter(isDark: isDark)),
               ),
             ),
             const SizedBox(height: 24),
@@ -164,7 +169,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: const Color(0xFFC4C4C4),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFFC4C4C4),
               ),
             ),
           ],
@@ -175,22 +180,29 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   /// Tampilan Daftar Notifikasi (Gambar 2):
   /// Scrollable agar semua notifikasi dapat dibaca meski banyak.
-  Widget _buildNotificationList(List<NotificationItem> items) {
+  Widget _buildNotificationList(List<NotificationItem> items, bool isDark) {
     return ListView.separated(
       physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       itemCount: items.length,
-      separatorBuilder: (_, _) =>
-          const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
+      separatorBuilder: (_, _) => Divider(
+        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        height: 1,
+        thickness: 1,
+      ),
       itemBuilder: (context, index) {
         final item = items[index];
-        return _buildNotificationItem(context, item);
+        return _buildNotificationItem(context, item, isDark);
       },
     );
   }
 
-  /// Item notifikasi dengan leading amplop hitam dalam lingkaran abu-abu
-  Widget _buildNotificationItem(BuildContext context, NotificationItem item) {
+  /// Item notifikasi dengan leading amplop dalam lingkaran
+  Widget _buildNotificationItem(
+    BuildContext context,
+    NotificationItem item,
+    bool isDark,
+  ) {
     return InkWell(
       onTap: () => _onNotificationTap(item),
       child: Padding(
@@ -198,18 +210,18 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Lingkaran abu-abu dengan ikon amplop / surat hitam bergaris
+            // Lingkaran dengan ikon amplop / surat
             Container(
               width: 42,
               height: 42,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 Icons.mail_outline_rounded,
-                color: Color(0xFF000000),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 size: 22,
               ),
             ),
@@ -226,7 +238,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -237,7 +249,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13.5,
                       fontWeight: FontWeight.normal,
-                      color: const Color(0xFF374151),
+                      color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF374151),
                       height: 1.35,
                     ),
                   ),
@@ -249,7 +261,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       fontWeight: FontWeight.normal,
-                      color: const Color(0xFF9CA3AF),
+                      color: isDark ? const Color(0xFF667781) : const Color(0xFF9CA3AF),
                     ),
                   ),
                 ],
@@ -270,7 +282,8 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 /// - Pendulum/clapper lonceng di bagian bawah (abu-abu gelap)
 /// - Bayangan oval abu-abu muda di bawah lonceng
 class _NotificationBellEmptyPainter extends CustomPainter {
-  const _NotificationBellEmptyPainter();
+  final bool isDark;
+  const _NotificationBellEmptyPainter({this.isDark = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -279,7 +292,7 @@ class _NotificationBellEmptyPainter extends CustomPainter {
 
     // 1. Bayangan oval abu-abu di bagian bawah
     final shadowPaint = Paint()
-      ..color = const Color(0xFFE5E7EB)
+      ..color = isDark ? const Color(0xFF1A2228) : const Color(0xFFE5E7EB)
       ..style = PaintingStyle.fill;
     canvas.drawOval(
       Rect.fromCenter(center: Offset(cx, cy + 46), width: 104, height: 10),

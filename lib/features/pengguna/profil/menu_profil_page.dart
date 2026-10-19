@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'dart:io';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -125,9 +124,10 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
 
   /// Menampilkan opsi pemilihan sumber gambar (Kamera atau Galeri)
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -142,7 +142,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -152,7 +152,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -160,7 +160,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -174,7 +174,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                     ),
                   ),
                   onTap: () {
@@ -182,12 +182,15 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -201,7 +204,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                     ),
                   ),
                   onTap: () {
@@ -251,8 +254,8 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
-    final dividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -402,9 +405,9 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   // -------------------------------------------------------------------------
   Widget _buildFixedHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerTextColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF000000);
-    final notifCircleBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final notifIconColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final notifCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final notifIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
 
     return SizedBox(
       height: 56,
@@ -518,7 +521,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     height: 68,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       image: hasPhoto
                           ? DecorationImage(
                               image: imageProvider,
@@ -542,7 +545,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                             : const Icon(
                                 Icons.person,
                                 size: 40,
-                                color: Color(0xFF64748B),
+                                color: Color(0xFF667781),
                               ),
                   ),
 
@@ -598,7 +601,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).brightness == Brightness.dark
-                              ? const Color(0xFFF1F5F9)
+                              ? const Color(0xFFE9EDEF)
                               : const Color(0xFF000000),
                         ),
                       ),
@@ -673,8 +676,8 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
     bool showDivider = true,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final itemTextColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF000000);
-    final itemDividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final itemTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final itemDividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
     return Column(
       children: [

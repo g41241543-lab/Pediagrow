@@ -13,6 +13,7 @@ class RiwayatEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Tentukan ukuran ilustrasi secara responsif berdasarkan lebar/tinggi layar
     final screenWidth = MediaQuery.sizeOf(context).width;
     final illustrationSize = (screenWidth * 0.55).clamp(160.0, 240.0);
@@ -39,13 +40,17 @@ class RiwayatEmptyState extends StatelessWidget {
                     height: illustrationSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFEBF5FF).withValues(alpha: 0.6),
+                      color: isDark
+                          ? const Color(0xFF1A2228)
+                          : const Color(0xFFEBF5FF).withValues(alpha: 0.6),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.folder_open_rounded,
                         size: 80,
-                        color: Color(0xFF72A9F4),
+                        color: isDark
+                            ? const Color(0xFF3985E7)
+                            : const Color(0xFF72A9F4),
                       ),
                     ),
                   );
@@ -63,7 +68,9 @@ class RiwayatEmptyState extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.normal,
-                color: const Color(0xFFC5C5C5),
+                color: isDark
+                    ? const Color(0xFF8696A0)
+                    : const Color(0xFFC5C5C5),
               ),
             ),
           ],

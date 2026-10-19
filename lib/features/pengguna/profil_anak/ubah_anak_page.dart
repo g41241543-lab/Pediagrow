@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'dart:io';
+﻿import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -183,6 +182,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     if (_isLockedSheetShowing) return;
     _isLockedSheetShowing = true;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     Timer? autoDismissTimer;
 
     showModalBottomSheet(
@@ -211,10 +211,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           child: Container(
             height: MediaQuery.of(context).size.height * 0.25,
             width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              boxShadow: [
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2228) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black12,
                   blurRadius: 16,
@@ -230,7 +230,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -244,7 +244,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         style: GoogleFonts.lato(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: isDark ? Colors.white : const Color(0xFF0B1014),
                         ),
                       ),
                     ),
@@ -273,6 +273,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   }
 
   void _showExitConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -281,7 +282,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -290,8 +291,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                 Container(
                   width: 56,
                   height: 56,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFEF3C7),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF78350F).withValues(alpha: 0.3)
+                        : const Color(0xFFFEF3C7),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -309,7 +312,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0B1014),
                     height: 1.4,
                   ),
                 ),
@@ -346,7 +349,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(dialogCtx).pop(),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      side: BorderSide(
+                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                      ),
+                      backgroundColor: isDark ? const Color(0xFF2C363D) : Colors.transparent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -356,7 +362,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF475569),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                       ),
                     ),
                   ),
@@ -410,12 +416,13 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   }
 
   void _showImagePickerModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       builder: (_) {
         return SafeArea(
           child: Padding(
@@ -429,7 +436,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -440,7 +447,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   ),
                   title: Text(
                     'Kamera',
-                    style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+                    style: GoogleFonts.lato(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0B1014),
+                    ),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -454,7 +464,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   ),
                   title: Text(
                     'Galeri',
-                    style: GoogleFonts.lato(fontWeight: FontWeight.w600),
+                    style: GoogleFonts.lato(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0B1014),
+                    ),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -493,7 +506,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
         opaque: false,
         barrierColor: Colors.black.withValues(alpha: 0.95),
         pageBuilder: (context, anim, secAnim) {
-          final isLocalFile = File(path).existsSync();
           return Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(
@@ -634,6 +646,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top;
 
     return PopScope(
@@ -643,7 +656,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
         _showExitConfirmationDialog();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         body: Column(
           children: [
             // 1. Header Bar (56dp jarak dari atas, back button 12dp, Hapus di kanan)
@@ -737,8 +750,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // 1. HEADER BAR TETAP
   // ---------------------------------------------------------------------------
   Widget _buildHeader(double topPadding) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1A2228) : Colors.white,
       padding: EdgeInsets.only(top: math.max(topPadding, 56.0), bottom: 12.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -749,11 +763,11 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
             GestureDetector(
               onTap: _handleBackNavigation,
               behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0B1014),
                   size: 24,
                 ),
               ),
@@ -764,7 +778,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0B1014),
               ),
             ),
             const Spacer(),
@@ -797,6 +811,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FOTO PROFIL ANAK (UNGGAH FOTO ANDA) [EDITABLE]
   // ---------------------------------------------------------------------------
   Widget _buildFotoProfilSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final imageProvider = StorageService.buildImageProvider(_fotoProfilPath);
     final hasPhoto = imageProvider != null;
 
@@ -821,9 +836,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     child: Container(
                       width: 96,
                       height: 96,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFFF0F6FE),
+                        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF0F6FE),
                       ),
                       child: const Center(
                         child: Icon(
@@ -865,7 +880,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF3985E7),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                            width: 2,
+                          ),
                         ),
                         child: const Icon(
                           Icons.camera_alt_rounded,
@@ -899,13 +917,19 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // USIA ANAK BADGE (OTOMATIS TAMPIL JIKA TANGGAL LAHIR TERSEDIA)
   // ---------------------------------------------------------------------------
   Widget _buildAgeBadge() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+            : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2563EB) : const Color(0xFFBFDBFE),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -923,7 +947,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   'Usia Saat Ini',
                   style: GoogleFonts.lato(
                     fontSize: 11,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF667781),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -932,7 +956,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E40AF),
+                    color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E40AF),
                   ),
                 ),
               ],
@@ -947,6 +971,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FIELD: NAMA LENGKAP* [EDITABLE]
   // ---------------------------------------------------------------------------
   Widget _buildNamaLengkapField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -964,7 +989,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Nama Lengkap Anak',
@@ -1000,14 +1025,18 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     String? suffix,
     IconData? icon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
       ),
       child: Row(
         children: [
@@ -1017,7 +1046,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF334155),
+                color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
               ),
             ),
           ),
@@ -1027,11 +1056,15 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
               ),
             ),
           if (icon != null)
-            Icon(icon, size: 20, color: const Color(0xFF94A3B8)),
+            Icon(
+              icon,
+              size: 20,
+              color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
+            ),
         ],
       ),
     );
@@ -1060,6 +1093,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FIELD: JENIS KELAMIN* [LOCKED]
   // ---------------------------------------------------------------------------
   Widget _buildLockedJenisKelaminSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLaki = _selectedGender == 'Laki-laki';
     final isPerempuan = _selectedGender == 'Perempuan';
 
@@ -1077,13 +1111,15 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isLaki
-                        ? const Color(0xFFEFF6FF)
-                        : const Color(0xFFF8FAFC),
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isLaki
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFE2E8F0),
+                          : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
                       width: isLaki ? 1.5 : 1.0,
                     ),
                   ),
@@ -1096,7 +1132,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Icons.radio_button_off,
                         color: isLaki
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1108,7 +1146,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                               isLaki ? FontWeight.bold : FontWeight.w500,
                           color: isLaki
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF64748B),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF667781)),
                         ),
                       ),
                     ],
@@ -1122,13 +1162,15 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isPerempuan
-                        ? const Color(0xFFFDF2F8)
-                        : const Color(0xFFF8FAFC),
+                        ? (isDark
+                            ? const Color(0xFF831843).withValues(alpha: 0.3)
+                            : const Color(0xFFFDF2F8))
+                        : (isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isPerempuan
                           ? const Color(0xFFEC4899)
-                          : const Color(0xFFE2E8F0),
+                          : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
                       width: isPerempuan ? 1.5 : 1.0,
                     ),
                   ),
@@ -1141,7 +1183,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Icons.radio_button_off,
                         color: isPerempuan
                             ? const Color(0xFFEC4899)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1153,7 +1197,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                               isPerempuan ? FontWeight.bold : FontWeight.w500,
                           color: isPerempuan
                               ? const Color(0xFFEC4899)
-                              : const Color(0xFF64748B),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF667781)),
                         ),
                       ),
                     ],
@@ -1171,6 +1217,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FIELD: APAKAH ANAK LAHIR PREMATUR?* [LOCKED]
   // ---------------------------------------------------------------------------
   Widget _buildLockedPrematurSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPrematur = _isPremature == true;
     final isNotPrematur = _isPremature == false;
 
@@ -1188,13 +1235,15 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isPrematur
-                        ? const Color(0xFFEFF6FF)
-                        : const Color(0xFFF8FAFC),
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isPrematur
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFE2E8F0),
+                          : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
                       width: isPrematur ? 1.5 : 1.0,
                     ),
                   ),
@@ -1207,7 +1256,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Icons.radio_button_off,
                         color: isPrematur
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1219,7 +1270,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                               isPrematur ? FontWeight.bold : FontWeight.w500,
                           color: isPrematur
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF64748B),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF667781)),
                         ),
                       ),
                     ],
@@ -1233,13 +1286,15 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isNotPrematur
-                        ? const Color(0xFFEFF6FF)
-                        : const Color(0xFFF8FAFC),
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isNotPrematur
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFE2E8F0),
+                          : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
                       width: isNotPrematur ? 1.5 : 1.0,
                     ),
                   ),
@@ -1252,7 +1307,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Icons.radio_button_off,
                         color: isNotPrematur
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1264,7 +1321,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                               isNotPrematur ? FontWeight.bold : FontWeight.w500,
                           color: isNotPrematur
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF64748B),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF667781)),
                         ),
                       ),
                     ],
@@ -1358,6 +1417,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FIELD: ALERGI* [EDITABLE]
   // ---------------------------------------------------------------------------
   Widget _buildAlergiSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasAllergy = _hasAllergies == true;
     final noAllergy = _hasAllergies == false;
 
@@ -1383,12 +1443,16 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: hasAllergy ? const Color(0xFFEFF6FF) : Colors.white,
+                    color: hasAllergy
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: hasAllergy
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5)),
                       width: hasAllergy ? 1.5 : 1.0,
                     ),
                   ),
@@ -1401,7 +1465,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Icons.radio_button_off,
                         color: hasAllergy
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1414,7 +1480,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                               : FontWeight.w500,
                           color: hasAllergy
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1437,12 +1505,16 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: noAllergy ? const Color(0xFFEFF6FF) : Colors.white,
+                    color: noAllergy
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: noAllergy
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5)),
                       width: noAllergy ? 1.5 : 1.0,
                     ),
                   ),
@@ -1455,7 +1527,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                             : Icons.radio_button_off,
                         color: noAllergy
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1467,7 +1541,9 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                               noAllergy ? FontWeight.bold : FontWeight.w500,
                           color: noAllergy
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1486,6 +1562,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // FIELD KONDISIONAL: SEBUTKAN ALERGI* [EDITABLE]
   // ---------------------------------------------------------------------------
   Widget _buildAlergiDetailField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1500,7 +1577,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Contoh: Susu sapi, seafood, kacang-kacangan',
@@ -1560,6 +1637,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // BOTTOM NAVIGATION BAR TETAP DI HALAMAN
   // ---------------------------------------------------------------------------
   Widget _buildBottomNavigationBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const navItems = [
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.favorite_border_rounded, label: 'Cek Stunting'),
@@ -1569,10 +1647,13 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
 
     return Container(
       height: 68,
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         border: Border(
-          top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          top: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1,
+          ),
         ),
       ),
       child: Row(
@@ -1612,7 +1693,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                     size: 24,
                     color: isSelected
                         ? const Color(0xFF3985E7)
-                        : const Color(0xFF94A3B8),
+                        : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -1623,7 +1704,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                           isSelected ? FontWeight.bold : FontWeight.w500,
                       color: isSelected
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFF64748B),
+                          : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
                     ),
                   ),
                 ],
@@ -1639,13 +1720,14 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // HELPER WIDGETS
   // ---------------------------------------------------------------------------
   Widget _buildLabel(String label, {bool isRequired = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text.rich(
       TextSpan(
         text: label,
         style: GoogleFonts.lato(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF0F172A),
+          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
         ),
         children: isRequired
             ? [
@@ -1668,26 +1750,34 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     String? suffixText,
     bool hasError = false,
   }) {
-    final borderColor =
-        hasError ? const Color(0xFFEF4444) : const Color(0xFFC5C5C5);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = hasError
+        ? const Color(0xFFEF4444)
+        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5));
 
     return InputDecoration(
       hintText: hint,
-      hintStyle:
-          GoogleFonts.lato(fontSize: 14, color: const Color(0xFFC5C5C5)),
+      hintStyle: GoogleFonts.lato(
+        fontSize: 14,
+        color: isDark ? const Color(0xFF667781) : const Color(0xFFC5C5C5),
+      ),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       suffixIcon: suffixIcon != null
-          ? Icon(suffixIcon, size: 20, color: const Color(0xFF94A3B8))
+          ? Icon(
+              suffixIcon,
+              size: 20,
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
+            )
           : null,
       suffixText: suffixText,
       suffixStyle: GoogleFonts.lato(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: const Color(0xFF64748B),
+        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
       ),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: borderColor, width: 1.0),

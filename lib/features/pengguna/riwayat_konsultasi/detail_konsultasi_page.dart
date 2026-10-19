@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/riwayat_konsultasi_model.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import 'widgets/riwayat_header.dart';
 
@@ -27,9 +28,9 @@ class DetailKonsultasiPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
-      // Header tetap di paling atas (tidak ikut ter-scroll)
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: RiwayatHeader(
@@ -39,7 +40,6 @@ class DetailKonsultasiPage extends StatelessWidget {
           onBackPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      // Konten utama scrollable untuk kenyamanan di seluruh ukuran layar
       body: SafeArea(
         top: false,
         bottom: false,
@@ -49,61 +49,56 @@ class DetailKonsultasiPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Profil Dokter (Foto di kiri, Nama & Spesialis di kanan)
-              _buildDoctorProfileSection(),
-
+              _buildDoctorProfileSection(isDark),
               const SizedBox(height: 24.0),
-
-              // 2. Baris Informasi Konsultasi (Nama anak, Tanggal, Status)
               _buildInfoRow(
                 icon: Icons.person_outline,
                 iconColor: const Color(0xFF3985E7),
-                iconBgColor: const Color(0xFFEBF5FF),
+                iconBgColor: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEBF5FF),
                 label: 'Nama anak',
+                labelColor: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                 valueWidget: Text(
                   riwayat.childName,
                   textAlign: TextAlign.end,
                   style: GoogleFonts.lato(
                     fontSize: 16.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   ),
                 ),
               ),
-
-              const Divider(
+              Divider(
                 height: 24.0,
                 thickness: 0.8,
-                color: Color(0xFFC5C5C5),
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5),
               ),
-
               _buildInfoRow(
                 icon: Icons.calendar_today_outlined,
                 iconColor: const Color(0xFFF59E0B),
-                iconBgColor: const Color(0xFFFEF3C7),
+                iconBgColor: isDark ? const Color(0xFF3D2B00) : const Color(0xFFFEF3C7),
                 label: 'Tanggal Konsultasi',
+                labelColor: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                 valueWidget: Text(
                   riwayat.formattedDate,
                   textAlign: TextAlign.end,
                   style: GoogleFonts.lato(
                     fontSize: 16.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   ),
                 ),
               ),
-
-              const Divider(
+              Divider(
                 height: 24.0,
                 thickness: 0.8,
-                color: Color(0xFFC5C5C5),
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5),
               ),
-
               _buildInfoRow(
                 icon: Icons.check,
                 iconColor: const Color(0xFF33CCA6),
-                iconBgColor: const Color(0xFFE6F9F5),
+                iconBgColor: isDark ? const Color(0xFF0D3B30) : const Color(0xFFE6F9F5),
                 label: 'Status Konsultasi',
+                labelColor: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                 valueWidget: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 22.0,
@@ -123,16 +118,13 @@ class DetailKonsultasiPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 26.0),
-
-              // 3. Section Keluhan
               Text(
                 'Keluhan',
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
               ),
               const SizedBox(height: 8.0),
@@ -143,27 +135,24 @@ class DetailKonsultasiPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.normal,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF000000),
                   height: 1.45,
                 ),
               ),
-
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Divider(
                   height: 1.0,
                   thickness: 0.8,
-                  color: Color(0xFFC5C5C5),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5),
                 ),
               ),
-
-              // 4. Section Ringkasan Konsultasi
               Text(
                 'Ringkasan Konsultasi',
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
               ),
               const SizedBox(height: 8.0),
@@ -172,18 +161,15 @@ class DetailKonsultasiPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.normal,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF000000),
                   height: 1.45,
                 ),
               ),
-
-              // Spacing ekstra di bawah agar tidak mepet navigation bar
               const SizedBox(height: 36.0),
             ],
           ),
         ),
       ),
-      // Bottom Navigation Bar permanen di bawah layar
       bottomNavigationBar: const PediaBottomNavBar(
         selectedIndex: 2,
       ),
@@ -191,16 +177,12 @@ class DetailKonsultasiPage extends StatelessWidget {
   }
 
   /// Profil dokter bagian atas
-  Widget _buildDoctorProfileSection() {
+  Widget _buildDoctorProfileSection(bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Avatar Dokter
         _buildDoctorAvatar(),
-
         const SizedBox(width: 16.0),
-
-        // Nama dan Spesialisasi Dokter
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +192,7 @@ class DetailKonsultasiPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 17.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -220,7 +202,7 @@ class DetailKonsultasiPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.normal,
-                  color: const Color(0xFF7F7F7F),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                 ),
               ),
             ],
@@ -230,49 +212,14 @@ class DetailKonsultasiPage extends StatelessWidget {
     );
   }
 
-  /// Avatar dokter dengan ukuran responsif (60dp)
+  /// Avatar dokter responsif dan real-time: terhubung langsung dengan koleksi doctors di Firestore.
   Widget _buildDoctorAvatar() {
-    const double size = 60.0;
-
-    if (riwayat.doctorPhoto != null && riwayat.doctorPhoto!.isNotEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-        ),
-        child: ClipOval(
-          child: Image.asset(
-            riwayat.doctorPhoto!,
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) =>
-                _buildFallbackAvatar(size),
-          ),
-        ),
-      );
-    }
-
-    return _buildFallbackAvatar(size);
-  }
-
-  Widget _buildFallbackAvatar(double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.person_rounded,
-          size: 34.0,
-          color: Color(0xFF72A9F4),
-        ),
-      ),
+    return DoctorLiveAvatar(
+      doctorId: riwayat.doctorId,
+      doctorName: riwayat.doctorName,
+      fallbackPhoto: riwayat.doctorPhoto,
+      size: 60.0,
+      shape: BoxShape.circle,
     );
   }
 
@@ -283,11 +230,11 @@ class DetailKonsultasiPage extends StatelessWidget {
     required Color iconBgColor,
     required String label,
     required Widget valueWidget,
+    Color? labelColor,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Container ikon dengan warna tematik dan latar lembut
         Container(
           width: 32.0,
           height: 32.0,
@@ -302,22 +249,16 @@ class DetailKonsultasiPage extends StatelessWidget {
             color: iconColor,
           ),
         ),
-
         const SizedBox(width: 12.0),
-
-        // Label (misal "Nama anak", "Tanggal Konsultasi", "Status Konsultasi")
         Text(
           label,
           style: GoogleFonts.lato(
             fontSize: 16.0,
             fontWeight: FontWeight.normal,
-            color: const Color(0xFF7F7F7F),
+            color: labelColor ?? const Color(0xFF7F7F7F),
           ),
         ),
-
         const SizedBox(width: 8.0),
-
-        // Nilai informasi di sebelah kanan (fleksibel)
         Expanded(
           child: Align(
             alignment: Alignment.centerRight,

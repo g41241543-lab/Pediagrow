@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -283,7 +283,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Divider(
-            color: Color(0xFFE2E8F0),
+            color: Color(0xFFE9EDEF),
             thickness: 1,
           ),
         ),
@@ -298,14 +298,14 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFF1A2228),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: const Color(0xFFE9EDEF),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -313,7 +313,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF64748B),
+                    color: const Color(0xFF667781),
                   ),
                 ),
               ),
@@ -418,7 +418,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
                 letterSpacing: -0.2,
               ),
             ),
@@ -432,7 +432,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.normal,
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
                 height: 1.45,
               ),
             ),
@@ -518,7 +518,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -540,7 +540,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
               const Spacer(),
@@ -572,7 +572,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF1A2228),
               height: 1.45,
             ),
           ),
@@ -619,7 +619,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
             const Icon(
               Icons.wifi_off_rounded,
               size: 48,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
             ),
             const SizedBox(height: 16),
             Text(
@@ -627,7 +627,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14,
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
               ),
             ),
             const SizedBox(height: 20),

@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/riwayat_konsultasi_model.dart';
+import '../../../../shared/widgets/doctor_live_avatar.dart';
 
 /// Widget Kartu Riwayat Konsultasi (Consultation Card).
 ///
@@ -29,19 +28,23 @@ class RiwayatConsultationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(12.0),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 10.0,
-            spreadRadius: 0,
-            offset: Offset(0, 3),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 10.0,
+                  spreadRadius: 0,
+                  offset: Offset(0, 3),
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -55,52 +58,40 @@ class RiwayatConsultationCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 1. Informasi Utama Dokter & Pasien
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Foto Dokter
                     _buildDoctorAvatar(),
-
                     const SizedBox(width: 14.0),
-
-                    // Detail Nama, Anak, dan Keluhan
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Nama Dokter
                           Text(
                             riwayat.doctorName,
                             style: GoogleFonts.lato(
                               fontSize: 16.0,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF000000),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                               letterSpacing: -0.2,
                             ),
                           ),
-
                           const SizedBox(height: 3.0),
-
-                          // Nama Anak
                           Text(
                             'Anak : ${riwayat.childName}',
                             style: GoogleFonts.lato(
                               fontSize: 14.0,
                               fontWeight: FontWeight.normal,
-                              color: const Color(0xFF7F7F7F),
+                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                             ),
                           ),
-
                           const SizedBox(height: 3.0),
-
-                          // Keluhan Pasien (Fleksibel & wrapping otomatis)
                           Text(
                             'Keluhan : ${riwayat.complaint}',
                             style: GoogleFonts.lato(
                               fontSize: 14.0,
                               fontWeight: FontWeight.normal,
-                              color: const Color(0xFF7F7F7F),
+                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                               height: 1.35,
                             ),
                           ),
@@ -109,23 +100,18 @@ class RiwayatConsultationCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
-                // 2. Divider Pemisah Berwarna #C5C5C5
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
                   child: Divider(
                     height: 1.0,
                     thickness: 0.8,
-                    color: Color(0xFFC5C5C5),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5),
                   ),
                 ),
-
-                // 3. Status Badge & Tanggal Konsultasi
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Badge Status (misalnya "Selesai")
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 22.0,
@@ -144,18 +130,15 @@ class RiwayatConsultationCard extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 8.0),
-
-                    // Ikon Kalender & Tanggal Konsultasi
                     Flexible(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.calendar_today_outlined,
                             size: 16.0,
-                            color: Color(0xFF000000),
+                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF000000),
                           ),
                           const SizedBox(width: 6.0),
                           Flexible(
@@ -165,7 +148,7 @@ class RiwayatConsultationCard extends StatelessWidget {
                               style: GoogleFonts.lato(
                                 fontSize: 13.0,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF000000),
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                               ),
                             ),
                           ),
@@ -182,81 +165,14 @@ class RiwayatConsultationCard extends StatelessWidget {
     );
   }
 
-  /// Avatar dokter responsif: mendukung network URL, file lokal, dan asset.
+  /// Avatar dokter responsif dan real-time: terhubung langsung dengan koleksi doctors di Firestore.
   Widget _buildDoctorAvatar() {
-    const double size = 52.0;
-    final photo = riwayat.doctorPhoto;
-
-    if (photo != null && photo.isNotEmpty) {
-      // Network image (URL http/https)
-      if (photo.startsWith('http://') || photo.startsWith('https://')) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8.0),
-          child: Image.network(
-            photo,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(size),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return _buildFallbackAvatar(size);
-            },
-          ),
-        );
-      }
-
-      // File lokal (path absolut)
-      if (photo.startsWith('/') || photo.contains('\\')) {
-        try {
-          final file = File(photo);
-          if (file.existsSync()) {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.file(
-                file,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(size),
-              ),
-            );
-          }
-        } catch (_) {}
-      }
-
-      // Asset lokal (path assets/)
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Image.asset(
-          photo,
-          width: size,
-          height: size,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(size),
-        ),
-      );
-    }
-
-    return _buildFallbackAvatar(size);
-  }
-
-  Widget _buildFallbackAvatar(double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.person_rounded,
-          size: 30.0,
-          color: Color(0xFF72A9F4),
-        ),
-      ),
+    return DoctorLiveAvatar(
+      doctorId: riwayat.doctorId,
+      doctorName: riwayat.doctorName,
+      fallbackPhoto: riwayat.doctorPhoto,
+      size: 52.0,
+      borderRadius: BorderRadius.circular(8.0),
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/doctor_service.dart';
@@ -122,7 +122,7 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 14.0,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
                 height: 1.45,
               ),
             ),
@@ -139,7 +139,7 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
                       onPressed: _isDeleting ? null : _handleDelete,
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(
-                          color: Color(0xFFCBD5E1),
+                          color: Color(0xFFD1D7DB),
                           width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(

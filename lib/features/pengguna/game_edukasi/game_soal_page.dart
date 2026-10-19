@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -208,6 +208,8 @@ class _GameSoalPageState extends State<GameSoalPage> {
   // ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -218,18 +220,23 @@ class _GameSoalPageState extends State<GameSoalPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            // ── Background Gradient Biru Figma (Konsisten Sepanjang Kuis) ──
+            // ── Background Gradient Biru Figma / Night Sky Dark Mode ──
             Positioned.fill(
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF4E92F0),
-                      Color(0xFF5B9BF5),
-                      Color(0xFF6FA8E8),
-                    ],
+                    colors: isDark
+                        ? [
+                            const Color(0xFF0B1014),
+                            const Color(0xFF1A2228),
+                          ]
+                        : [
+                            const Color(0xFF4E92F0),
+                            const Color(0xFF5B9BF5),
+                            const Color(0xFF6FA8E8),
+                          ],
                   ),
                 ),
               ),
@@ -296,6 +303,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
 
   // ── [REVISI 7] HEADER & PROGRESS BAR PERSISTEN ───────────────────────
   Widget _buildPersistentHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -337,12 +345,16 @@ class _GameSoalPageState extends State<GameSoalPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 5),
                           decoration: BoxDecoration(
-                            color: _sisaDetik <= 10
-                                ? const Color(0xFFFEF2F2)
-                                : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF1A2228)
+                                : (_sisaDetik <= 10
+                                    ? const Color(0xFFFEF2F2)
+                                    : Colors.white),
                             borderRadius: BorderRadius.circular(50),
                             border: Border.all(
-                              color: _timerColor.withValues(alpha: 0.35),
+                              color: isDark
+                                  ? const Color(0xFF2C363D)
+                                  : _timerColor.withValues(alpha: 0.35),
                               width: 1.2,
                             ),
                             boxShadow: [
@@ -408,16 +420,19 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── KARTU SOAL (Putih) ─────────────────────────────────────────────
+  // ── KARTU SOAL ───────────────────────────────────────────────────
   Widget _buildKartuSoal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(17),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.07),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -432,7 +447,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF7F7F7F),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
             ),
           ),
           const SizedBox(height: 14),
@@ -441,7 +456,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
             style: GoogleFonts.lato(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0B1014),
               height: 1.55,
             ),
           ),
@@ -449,7 +464,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFECF6FF),
+              color: isDark
+                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                  : const Color(0xFFECF6FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: Text(
@@ -491,8 +508,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
 
   // ── TOMBOL HASIL (Mode Feedback: State Warna) ──────────────────────
   Widget _buildTombolHasil() {
-    final Color warnaBenar = _colorForTombolHasil(pilihan: true);
-    final Color warnaSalah = _colorForTombolHasil(pilihan: false);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color warnaBenar = _colorForTombolHasil(pilihan: true, isDark: isDark);
+    final Color warnaSalah = _colorForTombolHasil(pilihan: false, isDark: isDark);
 
     return Row(
       children: [
@@ -515,13 +533,13 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  Color _colorForTombolHasil({required bool pilihan}) {
+  Color _colorForTombolHasil({required bool pilihan, required bool isDark}) {
     if (_pilihanPengguna == pilihan) {
       return _isBenar
           ? const Color(0xFF10B981) // Hijau, sama dengan pernyataan Jawaban Benar
           : const Color(0xFFEF4444); // Merah, sama dengan pernyataan Jawaban Salah
     }
-    return const Color(0xFFECF6FF); // Netral terang
+    return isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF); // Netral
   }
 
   // ── BAR STATUS (Mode Feedback) ─────────────────────────────────────
@@ -559,14 +577,17 @@ class _GameSoalPageState extends State<GameSoalPage> {
 
   // ── KARTU PENJELASAN (Mode Feedback) ──────────────────────────────
   Widget _buildKartuPenjelasan() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(17),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -600,7 +621,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               height: 1.6,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
             ),
           ),
         ],
@@ -610,14 +631,16 @@ class _GameSoalPageState extends State<GameSoalPage> {
 
   // ── TOMBOL LANJUT / LIHAT SKOR (Mode Feedback) ─────────────────────
   Widget _buildTombolLanjut() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
         onPressed: _onLanjut,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF3985E7),
+          backgroundColor: isDark ? const Color(0xFF3985E7) : Colors.white,
+          foregroundColor: isDark ? Colors.white : const Color(0xFF3985E7),
           elevation: 4,
           shadowColor: Colors.black.withValues(alpha: 0.15),
           shape: RoundedRectangleBorder(
@@ -632,14 +655,14 @@ class _GameSoalPageState extends State<GameSoalPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF3985E7),
+                color: isDark ? Colors.white : const Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 6),
             Icon(
               _isLast ? Icons.emoji_events_rounded : Icons.arrow_forward_rounded,
               size: 18,
-              color: const Color(0xFF3985E7),
+              color: isDark ? Colors.white : const Color(0xFF3985E7),
             ),
           ],
         ),
@@ -671,6 +694,8 @@ class _TombolJawabanState extends State<_TombolJawaban> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -686,8 +711,11 @@ class _TombolJawabanState extends State<_TombolJawaban> {
           decoration: BoxDecoration(
             color: _pressed
                 ? const Color(0xFF3985E7)
-                : const Color(0xFFECF6FF),
+                : (isDark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF)),
             borderRadius: BorderRadius.circular(17),
+            border: isDark && !_pressed
+                ? Border.all(color: const Color(0xFF2C363D))
+                : null,
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF3985E7).withValues(alpha: 0.12),
@@ -702,7 +730,9 @@ class _TombolJawabanState extends State<_TombolJawaban> {
               Icon(
                 widget.icon,
                 size: 20,
-                color: _pressed ? Colors.white : const Color(0xFF3985E7),
+                color: _pressed
+                    ? Colors.white
+                    : (isDark ? const Color(0xFF60A5FA) : const Color(0xFF3985E7)),
               ),
               const SizedBox(width: 6),
               Text(
@@ -710,7 +740,9 @@ class _TombolJawabanState extends State<_TombolJawaban> {
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: _pressed ? Colors.white : const Color(0xFF3985E7),
+                  color: _pressed
+                      ? Colors.white
+                      : (isDark ? const Color(0xFF60A5FA) : const Color(0xFF3985E7)),
                 ),
               ),
             ],
@@ -762,7 +794,7 @@ class _TombolHasilBadge extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: _isHighlighted ? Colors.white : const Color(0xFF94A3B8),
+            color: _isHighlighted ? Colors.white : const Color(0xFF8696A0),
           ),
           const SizedBox(width: 6),
           Text(
@@ -770,7 +802,7 @@ class _TombolHasilBadge extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: _isHighlighted ? Colors.white : const Color(0xFF94A3B8),
+              color: _isHighlighted ? Colors.white : const Color(0xFF8696A0),
             ),
           ),
         ],

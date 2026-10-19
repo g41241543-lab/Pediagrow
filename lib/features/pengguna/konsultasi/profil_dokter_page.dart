@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,8 +49,10 @@ class ProfilDokterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -66,11 +68,11 @@ class ProfilDokterPage extends StatelessWidget {
                     InkWell(
                       onTap: () => Navigator.of(context).pop(),
                       borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.all(6.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6.0),
                         child: Icon(
                           Icons.arrow_back,
-                          color: Color(0xFF000000),
+                          color: isDark ? Colors.white : const Color(0xFF000000),
                           size: 24,
                         ),
                       ),
@@ -84,7 +86,7 @@ class ProfilDokterPage extends StatelessWidget {
                         style: GoogleFonts.lato(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF000000),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                         ),
                       ),
                     ),
@@ -106,7 +108,7 @@ class ProfilDokterPage extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     // Kartu Utama Dokter (Avatar Overlapping di bagian atas)
-                    _buildDoctorProfileCard(),
+                    _buildDoctorProfileCard(isDark),
 
                     const SizedBox(height: 28),
 
@@ -116,19 +118,19 @@ class ProfilDokterPage extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF000000),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                       ),
                     ),
 
                     const SizedBox(height: 14),
 
                     // Kartu Daftar Tempat Praktik
-                    _buildPracticeLocationsCard(),
+                    _buildPracticeLocationsCard(isDark),
 
                     const SizedBox(height: 28),
 
                     // Section Jadwal Praktik Dokter Terintegrasi
-                    _buildJadwalPraktikSection(context),
+                    _buildJadwalPraktikSection(context, isDark),
 
                     const SizedBox(height: 32),
                   ],
@@ -139,7 +141,7 @@ class ProfilDokterPage extends StatelessWidget {
             // -------------------------------------------------------------
             // 3. BOTTOM BAR (Tombol Chat Dokter di Kanan)
             // -------------------------------------------------------------
-            _buildBottomActionBar(context),
+            _buildBottomActionBar(context, isDark),
           ],
         ),
       ),
@@ -147,7 +149,7 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Kartu utama profil dokter dengan foto bundar overlapping di atas
-  Widget _buildDoctorProfileCard() {
+  Widget _buildDoctorProfileCard(bool isDark) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -158,12 +160,15 @@ class ProfilDokterPage extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 52, 16, 20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+                color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -171,33 +176,33 @@ class ProfilDokterPage extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Nama Dokter (Lato Bold 18, #000000, Center)
+              // Nama Dokter (Lato Bold 18, Center)
               Text(
                 doctor.name,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
               ),
 
               const SizedBox(height: 6),
 
-              // Spesialisasi (Lato 14, #64748B, Center)
+              // Spesialisasi (Lato 14, Center)
               Text(
                 doctor.specialization,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                   fontWeight: FontWeight.w500,
                 ),
               ),
 
               const SizedBox(height: 22),
 
-              // Baris Statistik: Pengalaman (digeser ke kiri) & No. STR (di sisi kanan) tanpa garis pemisah
+              // Baris Statistik: Pengalaman & No. STR
               Row(
                 children: [
                   // Sisi kiri: Pengalaman Kerja (rata kiri)
@@ -209,7 +214,7 @@ class ProfilDokterPage extends StatelessWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
+                            color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           alignment: Alignment.center,
@@ -228,7 +233,7 @@ class ProfilDokterPage extends StatelessWidget {
                                 'Pengalaman',
                                 style: GoogleFonts.lato(
                                   fontSize: 12,
-                                  color: const Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -237,7 +242,7 @@ class ProfilDokterPage extends StatelessWidget {
                                 style: GoogleFonts.lato(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF1E293B),
+                                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                                 ),
                               ),
                             ],
@@ -256,7 +261,7 @@ class ProfilDokterPage extends StatelessWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
+                            color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           alignment: Alignment.center,
@@ -275,7 +280,7 @@ class ProfilDokterPage extends StatelessWidget {
                                 'No. STR',
                                 style: GoogleFonts.lato(
                                   fontSize: 12,
-                                  color: const Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -286,7 +291,7 @@ class ProfilDokterPage extends StatelessWidget {
                                 style: GoogleFonts.lato(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF1E293B),
+                                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                                 ),
                               ),
                             ],
@@ -309,11 +314,14 @@ class ProfilDokterPage extends StatelessWidget {
             height: 84,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFBFDBFE), width: 2),
+              color: isDark ? const Color(0xFF1A2228) : Colors.white,
+              border: Border.all(
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3985E7).withValues(alpha: 0.12),
+                  color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.05 : 0.12),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -327,7 +335,7 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Kartu tempat praktik dengan daftar lokasi & divider horizontal
-  Widget _buildPracticeLocationsCard() {
+  Widget _buildPracticeLocationsCard(bool isDark) {
     final places = doctor.daftarTempatPraktik;
 
     if (places.isEmpty) {
@@ -335,12 +343,15 @@ class ProfilDokterPage extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+              color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -352,14 +363,14 @@ class ProfilDokterPage extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 Icons.apartment_rounded,
                 size: 20,
-                color: Color(0xFF94A3B8),
+                color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
               ),
             ),
             const SizedBox(width: 14),
@@ -368,7 +379,7 @@ class ProfilDokterPage extends StatelessWidget {
                 'Belum ada informasi tempat praktik.',
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ),
@@ -380,12 +391,15 @@ class ProfilDokterPage extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -406,12 +420,11 @@ class ProfilDokterPage extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Ikon Fasyankes / Rumah Sakit dengan sentuhan warna PediaGrow
                     Container(
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
@@ -422,14 +435,13 @@ class ProfilDokterPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    // Nama Lokasi Praktik
                     Expanded(
                       child: Text(
                         place,
                         style: GoogleFonts.lato(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF1E293B),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                         ),
                       ),
                     ),
@@ -437,10 +449,10 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ),
               if (!isLast)
-                const Divider(
+                Divider(
                   height: 1,
                   thickness: 1,
-                  color: Color(0xFFBFDBFE),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
                 ),
             ],
           );
@@ -450,19 +462,22 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Bottom Bar dengan Tombol "Chat Dokter" di sisi kanan
-  Widget _buildBottomActionBar(BuildContext context) {
+  Widget _buildBottomActionBar(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(
-          top: BorderSide(color: Color(0xFFBFDBFE), width: 1.2),
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+            width: 1.2,
+          ),
         ),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -555,7 +570,7 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Bagian Jadwal Praktik Dokter Terintegrasi secara Real-Time dengan role dokter
-  Widget _buildJadwalPraktikSection(BuildContext context) {
+  Widget _buildJadwalPraktikSection(BuildContext context, bool isDark) {
     return AnimatedBuilder(
       animation: Listenable.merge([
         JadwalDokterService().jadwalListNotifier,
@@ -583,11 +598,11 @@ class ProfilDokterPage extends StatelessWidget {
                     style: GoogleFonts.lato(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                     ),
                   ),
                 ),
-                _buildAvailabilityBadge(badge),
+                _buildAvailabilityBadge(badge, isDark),
               ],
             ),
             const SizedBox(height: 14),
@@ -599,21 +614,23 @@ class ProfilDokterPage extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
+                    color: isDark ? const Color(0xFF451A03).withValues(alpha: 0.4) : const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF3C7),
+                          color: isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.beach_access_rounded,
-                          color: Color(0xFFD97706),
+                          color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
                           size: 20,
                         ),
                       ),
@@ -627,7 +644,7 @@ class ProfilDokterPage extends StatelessWidget {
                               style: GoogleFonts.lato(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF92400E),
+                                color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -635,7 +652,7 @@ class ProfilDokterPage extends StatelessWidget {
                               '${c.formattedRentangTanggal} • ${c.alasan}',
                               style: GoogleFonts.lato(
                                 fontSize: 12,
-                                color: const Color(0xFFB45309),
+                                color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
                               ),
                             ),
                           ],
@@ -651,12 +668,15 @@ class ProfilDokterPage extends StatelessWidget {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1A2228) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+                  width: 1,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3985E7).withValues(alpha: 0.08),
+                    color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -689,7 +709,7 @@ class ProfilDokterPage extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 color: isPraktik
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFF94A3B8),
+                                    : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -701,8 +721,8 @@ class ProfilDokterPage extends StatelessWidget {
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: isPraktik
-                                      ? const Color(0xFF1E293B)
-                                      : const Color(0xFF94A3B8),
+                                      ? (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228))
+                                      : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
                                 ),
                               ),
                             ),
@@ -719,11 +739,11 @@ class ProfilDokterPage extends StatelessWidget {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFEFF6FF),
+                                            color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
                                             borderRadius:
                                                 BorderRadius.circular(6),
                                             border: Border.all(
-                                              color: const Color(0xFFBFDBFE),
+                                              color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFBFDBFE),
                                               width: 0.8,
                                             ),
                                           ),
@@ -732,7 +752,7 @@ class ProfilDokterPage extends StatelessWidget {
                                             style: GoogleFonts.lato(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
-                                              color: const Color(0xFF1D4ED8),
+                                              color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
                                             ),
                                           ),
                                         );
@@ -743,7 +763,7 @@ class ProfilDokterPage extends StatelessWidget {
                                       style: GoogleFonts.lato(
                                         fontSize: 12.5,
                                         fontStyle: FontStyle.italic,
-                                        color: const Color(0xFF94A3B8),
+                                        color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
                                       ),
                                     ),
                             ),
@@ -751,10 +771,10 @@ class ProfilDokterPage extends StatelessWidget {
                         ),
                       ),
                       if (!isLast)
-                        const Divider(
+                        Divider(
                           height: 1,
                           thickness: 1,
-                          color: Color(0xFFBFDBFE),
+                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
                         ),
                     ],
                   );
@@ -767,31 +787,31 @@ class ProfilDokterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAvailabilityBadge(DoctorBadgeInfo badge) {
+  Widget _buildAvailabilityBadge(DoctorBadgeInfo badge, bool isDark) {
     Color bg;
     Color text;
     Color border;
 
     switch (badge.type) {
       case DoctorBadgeType.tersediaHariIni:
-        bg = const Color(0xFFDCFCE7);
-        text = const Color(0xFF16A34A);
-        border = const Color(0xFF86EFAC);
+        bg = isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFDCFCE7);
+        text = isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A);
+        border = isDark ? const Color(0xFF059669) : const Color(0xFF86EFAC);
         break;
       case DoctorBadgeType.tersediaBesok:
-        bg = const Color(0xFFDBEAFE);
-        text = const Color(0xFF2563EB);
-        border = const Color(0xFF93C5FD);
+        bg = isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.4) : const Color(0xFFDBEAFE);
+        text = isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB);
+        border = isDark ? const Color(0xFF2563EB) : const Color(0xFF93C5FD);
         break;
       case DoctorBadgeType.jadwalTerdekat:
-        bg = const Color(0xFFF0FDF4);
-        text = const Color(0xFF0D9488);
-        border = const Color(0xFF99F6E4);
+        bg = isDark ? const Color(0xFF134E4A).withValues(alpha: 0.4) : const Color(0xFFF0FDF4);
+        text = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0D9488);
+        border = isDark ? const Color(0xFF0D9488) : const Color(0xFF99F6E4);
         break;
       case DoctorBadgeType.belumAdaJadwal:
-        bg = const Color(0xFFF1F5F9);
-        text = const Color(0xFF64748B);
-        border = const Color(0xFFCBD5E1);
+        bg = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+        text = isDark ? const Color(0xFFD1D7DB) : const Color(0xFF667781);
+        border = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
         break;
     }
 

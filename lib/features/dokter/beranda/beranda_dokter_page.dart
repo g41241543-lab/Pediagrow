@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/theme_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
@@ -76,36 +77,39 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // LAYER 0 — Background animasi awan & burung (full-page)
-            const Positioned.fill(child: FullPageSkyBackground()),
+    return Theme(
+      data: ThemeService.lightTheme,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // LAYER 0 — Background animasi awan & burung (full-page)
+              const Positioned.fill(child: FullPageSkyBackground()),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Area Biru Seamless (Header + Card Dokter PeGo)
-                _buildSeamlessBlueArea(context),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Area Biru Seamless (Header + Card Dokter PeGo)
+                  _buildSeamlessBlueArea(context),
 
-                // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
-                _buildWhiteContentSection(context),
+                  // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
+                  _buildWhiteContentSection(context),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // 3. Ilustrasi Footer (Daun)
-                _buildFooterIllustration(),
-              ],
-            ),
-          ],
+                  // 3. Ilustrasi Footer (Daun)
+                  _buildFooterIllustration(),
+                ],
+              ),
+            ],
+          ),
         ),
+        bottomNavigationBar: _buildFixedNavBar(),
       ),
-      bottomNavigationBar: _buildFixedNavBar(),
     );
   }
 
@@ -217,7 +221,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                     alignment: Alignment.center,
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
-                                      color: Color(0xFF1E293B),
+                                      color: Color(0xFF1A2228),
                                       size: 19,
                                     ),
                                   ),
@@ -343,7 +347,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF334155),
+                    color: const Color(0xFF2C363D),
                     height: 1.35,
                   ),
                 ),
@@ -539,7 +543,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               width: 9,
               height: 9,
               decoration: BoxDecoration(
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
                 borderRadius: BorderRadius.circular(2.5),
               ),
               alignment: Alignment.center,
@@ -672,7 +676,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 decoration: BoxDecoration(
                   // Abu-abu seperti gambar jika bukan ranah dokter (#CBD5E1), atau biru muda (#ECF6FF) jika aktif
                   color: isDisabled
-                      ? const Color(0xFFCBD5E1)
+                      ? const Color(0xFFD1D7DB)
                       : const Color(0xFFECF6FF),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
@@ -714,7 +718,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               fontSize: 14,
               fontWeight: isDisabled ? FontWeight.normal : FontWeight.bold,
               color: isDisabled
-                  ? const Color(0xFF94A3B8)
+                  ? const Color(0xFF8696A0)
                   : const Color(0xFF000000),
               height: 1.25,
             ),
@@ -830,7 +834,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF334155),
+                    color: const Color(0xFF2C363D),
                     height: 1.3,
                   ),
                   maxLines: 4,
@@ -945,7 +949,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

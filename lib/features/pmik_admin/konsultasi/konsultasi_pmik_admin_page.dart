@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,8 +14,8 @@ import '../profil_pmik_page.dart';
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
-const Color _colorTextBlack = Color(0xFF1E293B);
-const Color _colorLabelGrey = Color(0xFF64748B);
+const Color _colorTextBlack = Color(0xFF1A2228);
+const Color _colorLabelGrey = Color(0xFF667781);
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk PMIK.
@@ -144,8 +144,8 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, animation, __, child) {
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -187,7 +187,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
+                color: const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -202,7 +202,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               child: const Icon(
                 Icons.lock_rounded,
                 size: 36,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ),
             const SizedBox(height: 16),
@@ -271,7 +271,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -316,7 +316,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -497,7 +497,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -547,7 +547,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
           decoration: BoxDecoration(
             color: isThisTabActive
                 ? _colorPrimaryBlue
-                : const Color(0xFFE2E8F0),
+                : const Color(0xFFE9EDEF),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -606,10 +606,10 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -619,7 +619,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -646,7 +646,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                   'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -750,7 +750,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                   ],
                 ),
               ),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -783,7 +783,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: _colorPrimaryBlue.withOpacity(0.25),
+                              color: _colorPrimaryBlue.withValues(alpha: 0.25),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -878,7 +878,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -923,7 +923,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -1138,7 +1138,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 ),
               ),
               const SizedBox(height: 10),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1173,10 +1173,10 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -1186,7 +1186,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -1213,7 +1213,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                   'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -1333,7 +1333,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                       color: const Color(0xFFF0F7FF),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: _colorPrimaryBlue.withOpacity(0.18),
+                        color: _colorPrimaryBlue.withValues(alpha: 0.18),
                         width: 1,
                       ),
                     ),
@@ -1375,7 +1375,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 ),
                 const SizedBox(height: 10),
               ],
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1445,7 +1445,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
           color: bgColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1491,7 +1491,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -1596,7 +1596,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),
@@ -1665,7 +1665,7 @@ class _BabyFacePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withOpacity(0.4)
+      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final cx = w * 0.5;

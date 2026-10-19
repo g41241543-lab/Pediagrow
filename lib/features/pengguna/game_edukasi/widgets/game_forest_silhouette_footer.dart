@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 /// Widget ilustrasi footer khusus untuk Halaman Permainan (Start Kuis & Skor Akhir).
 ///
@@ -14,6 +14,10 @@ class GameForestSilhouetteFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topFadeColor =
+        isDark ? const Color(0xFF1A2228) : const Color(0xFF6FA8E8);
+
     return SizedBox(
       width: double.infinity,
       height: height,
@@ -39,7 +43,7 @@ class GameForestSilhouetteFooter extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               errorBuilder: (context, error, stackTrace) => Container(
                 height: height,
-                color: const Color(0xFFD1FAE5),
+                color: isDark ? const Color(0xFF0B1014) : const Color(0xFFD1FAE5),
                 alignment: Alignment.center,
                 child: const Icon(
                   Icons.park_outlined,
@@ -50,23 +54,23 @@ class GameForestSilhouetteFooter extends StatelessWidget {
             ),
           ),
 
-          // ── Gradasi overlay multi-stop ultra halus menyatu ke background #6FA8E8 ──
+          // ── Gradasi overlay multi-stop ultra halus menyatu ke background ──
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF6FA8E8), // 100% menyatu dengan background kuis
-                    Color(0xF06FA8E8),
-                    Color(0xCC6FA8E8),
-                    Color(0x996FA8E8),
-                    Color(0x5E6FA8E8),
-                    Color(0x296FA8E8),
-                    Colors.transparent, // Bawah jernih menampilkan pepohonan & bukit
+                    topFadeColor,
+                    topFadeColor.withValues(alpha: 0.94),
+                    topFadeColor.withValues(alpha: 0.80),
+                    topFadeColor.withValues(alpha: 0.60),
+                    topFadeColor.withValues(alpha: 0.37),
+                    topFadeColor.withValues(alpha: 0.16),
+                    Colors.transparent,
                   ],
-                  stops: [0.0, 0.10, 0.22, 0.36, 0.50, 0.65, 0.82],
+                  stops: const [0.0, 0.10, 0.22, 0.36, 0.50, 0.65, 0.82],
                 ),
               ),
             ),

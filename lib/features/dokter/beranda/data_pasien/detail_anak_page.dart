@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -62,9 +62,9 @@ class DetailAnakPage extends StatefulWidget {
 class _DetailAnakPageState extends State<DetailAnakPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorButtonBg = Color(0xFFEBF5FF);
-  static const Color _colorTableBorder = Color(0xFFE2E8F0);
+  static const Color _colorTableBorder = Color(0xFFE9EDEF);
   static const Color _colorTableHeader = Color(0xFFE9F4FF);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
+  static const Color _colorLabelGrey = Color(0xFF667781);
   static const Color _colorTextBlack = Color(0xFF000000);
 
   late int _selectedTabIndex;
@@ -367,7 +367,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             width: 44,
             height: 44,
             decoration: const BoxDecoration(
-              color: Color(0xFFCBD5E1),
+              color: Color(0xFFD1D7DB),
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
@@ -375,7 +375,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               imagePath: _parentUser?.avatarPath,
               size: 44,
               fallback: const Center(
-                child: Icon(Icons.person, color: Color(0xFF64748B), size: 28),
+                child: Icon(Icons.person, color: Color(0xFF667781), size: 28),
               ),
             ),
           ),
@@ -403,7 +403,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+          bottom: BorderSide(color: Color(0xFFE9EDEF), width: 1.0),
         ),
       ),
       child: Row(
@@ -431,7 +431,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             : FontWeight.w500,
                         color: _selectedTabIndex == 0
                             ? _colorTextBlack
-                            : const Color(0xFF64748B),
+                            : const Color(0xFF667781),
                       ),
                     ),
                   ),
@@ -472,7 +472,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             : FontWeight.w500,
                         color: _selectedTabIndex == 1
                             ? _colorTextBlack
-                            : const Color(0xFF64748B),
+                            : const Color(0xFF667781),
                       ),
                     ),
                   ),
@@ -960,7 +960,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive ? const Color(0xFFBFDBFE) : const Color(0xFFE2E8F0),
+          color: isActive ? const Color(0xFFBFDBFE) : const Color(0xFFE9EDEF),
           width: 1.2,
         ),
         boxShadow: [
@@ -1038,7 +1038,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               Icon(
                 Icons.chat_rounded,
                 size: 18,
-                color: isActive ? _colorPrimaryBlue : const Color(0xFF94A3B8),
+                color: isActive ? _colorPrimaryBlue : const Color(0xFF8696A0),
               ),
             ],
           ),
@@ -1088,7 +1088,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             ],
           ),
           const SizedBox(height: 10),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          const Divider(height: 1, color: Color(0xFFE9EDEF)),
           const SizedBox(height: 10),
 
           // Jadwal
@@ -1106,7 +1106,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
               ),
@@ -1165,7 +1165,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: const Color(0xFFE9EDEF)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1181,7 +1181,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     'Ruang obrolan akan terbuka dan aktif secara otomatis saat orang tua pasien melakukan booking jadwal konsultasi dengan Anda dan waktu sesi telah tiba.',
                     style: GoogleFonts.lato(
                       fontSize: 12,
-                      color: const Color(0xFF475569),
+                      color: const Color(0xFF2C363D),
                       height: 1.4,
                     ),
                   ),

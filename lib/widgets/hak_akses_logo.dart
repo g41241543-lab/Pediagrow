@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 /// Widget logo kustom modern "Ponsel dengan Gembok" (Hak Akses).
 ///
@@ -20,23 +20,23 @@ class HakAksesLogo extends StatelessWidget {
     final scale = size / 38.0;
 
     final phoneBorderColor = isDisabled
-        ? const Color(0xFF94A3B8)
+        ? const Color(0xFF8696A0)
         : const Color(0xFF0369A1); // Sky 700
     final phoneScreenColors = isDisabled
-        ? [const Color(0xFFE2E8F0), const Color(0xFFCBD5E1)]
+        ? [const Color(0xFFE9EDEF), const Color(0xFFD1D7DB)]
         : [const Color(0xFFE0F2FE), const Color(0xFFBAE6FD)]; // Sky 100 -> Sky 200
     final phoneDetailColor = isDisabled
-        ? const Color(0xFF94A3B8)
+        ? const Color(0xFF8696A0)
         : const Color(0xFF0284C7);
 
     final shackleColor = isDisabled
-        ? const Color(0xFF64748B)
+        ? const Color(0xFF667781)
         : const Color(0xFFD97706); // Golden Amber 600
     final lockBodyColor = isDisabled
-        ? const Color(0xFF94A3B8)
+        ? const Color(0xFF8696A0)
         : const Color(0xFFF59E0B); // Golden Amber 500
     final lockBorderColor = isDisabled
-        ? const Color(0xFF64748B)
+        ? const Color(0xFF667781)
         : const Color(0xFFB45309); // Amber 700
 
     return SizedBox(

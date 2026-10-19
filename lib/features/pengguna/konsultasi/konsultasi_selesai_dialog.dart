@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/notification_service.dart';
@@ -25,10 +25,12 @@ class KonsultasiSelesaiDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 26, 20, 28),
       child: SafeArea(
@@ -41,16 +43,16 @@ class KonsultasiSelesaiDialog extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEBF5FF),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                    : const Color(0xFFEBF5FF),
                 shape: BoxShape.circle,
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.description_outlined,
-                  color: Color(0xFF2A85FF),
-                  size: 30,
-                ),
+              child: Icon(
+                Icons.description_outlined,
+                color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2A85FF),
+                size: 30,
               ),
             ),
             const SizedBox(height: 20),
@@ -61,7 +63,7 @@ class KonsultasiSelesaiDialog extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 18.5,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A202C),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A202C),
                 letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
@@ -75,7 +77,7 @@ class KonsultasiSelesaiDialog extends StatelessWidget {
                 'Selanjutnya chat ini akan tertutup dan terhapus.',
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF4A5568),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
@@ -84,7 +86,10 @@ class KonsultasiSelesaiDialog extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Garis Pembatas Halus
-            const Divider(color: Color(0xFFE2E8F0), thickness: 1),
+            Divider(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              thickness: 1,
+            ),
             const SizedBox(height: 16),
 
             // Tombol [Kembali ke beranda] dan [Buka Riwayat Konsultasi]

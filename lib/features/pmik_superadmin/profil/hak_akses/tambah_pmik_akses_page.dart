@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -114,7 +114,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -154,7 +154,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -231,7 +231,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF3985E7),
               onPrimary: Colors.white,
-              onSurface: Color(0xFF1E293B),
+              onSurface: Color(0xFF1A2228),
             ),
           ),
           child: child!,
@@ -271,7 +271,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
               decoration: InputDecoration(
                 labelText: 'Judul Informasi',
                 hintText: 'Contoh: Alamat Domisili',
-                labelStyle: GoogleFonts.lato(color: const Color(0xFF64748B)),
+                labelStyle: GoogleFonts.lato(color: const Color(0xFF667781)),
                 focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF3985E7)),
                 ),
@@ -283,7 +283,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
               decoration: InputDecoration(
                 labelText: 'Keterangan',
                 hintText: 'Contoh: Semarang, Jawa Tengah',
-                labelStyle: GoogleFonts.lato(color: const Color(0xFF64748B)),
+                labelStyle: GoogleFonts.lato(color: const Color(0xFF667781)),
                 focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF3985E7)),
                 ),
@@ -509,7 +509,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -534,11 +534,11 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFCBD5E1),
+                        color: const Color(0xFFD1D7DB),
                         width: 1.5,
                         style: BorderStyle.solid,
                       ),
-                      color: const Color(0xFFF1F5F9),
+                      color: const Color(0xFFE9EDEF),
                     ),
                     child: ClipOval(
                       child: StorageService.buildImageWidget(
@@ -549,7 +549,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                         errorWidget: const Icon(
                           Icons.person,
                           size: 54.0,
-                          color: Color(0xFF94A3B8),
+                          color: Color(0xFF8696A0),
                         ),
                       ),
                     ),
@@ -587,7 +587,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
               hintText: 'Nama PMIK',
               hintStyle: GoogleFonts.lato(
                 fontSize: 16.0,
-                color: const Color(0xFF94A3B8),
+                color: const Color(0xFF8696A0),
                 fontWeight: FontWeight.w600,
               ),
               border: InputBorder.none,
@@ -612,7 +612,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
             decoration: BoxDecoration(
               color: isHakAksesActive
                   ? const Color(0xFFE0F2FE)
-                  : const Color(0xFFF1F5F9),
+                  : const Color(0xFFE9EDEF),
               borderRadius: BorderRadius.circular(6.0),
               border: isHakAksesActive
                   ? Border.all(color: const Color(0xFFBAE6FD))
@@ -625,7 +625,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                 fontWeight: FontWeight.bold,
                 color: isHakAksesActive
                     ? const Color(0xFF0369A1)
-                    : const Color(0xFF334155),
+                    : const Color(0xFF2C363D),
                 letterSpacing: 0.5,
               ),
             ),
@@ -641,13 +641,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 14.5,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF334155),
+              color: const Color(0xFF2C363D),
             ),
             decoration: InputDecoration(
               hintText: 'E-mail',
               hintStyle: GoogleFonts.lato(
                 fontSize: 14.5,
-                color: const Color(0xFF94A3B8),
+                color: const Color(0xFF8696A0),
               ),
               border: InputBorder.none,
               isDense: true,
@@ -679,13 +679,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: const Icon(
                         Icons.work_outline_rounded,
                         size: 18.0,
-                        color: Color(0xFF64748B),
+                        color: Color(0xFF667781),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -697,7 +697,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                             'Pengalaman',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF64748B),
+                              color: const Color(0xFF667781),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -714,13 +714,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF1E293B),
+                                    color: const Color(0xFF1A2228),
                                   ),
                                   decoration: InputDecoration(
                                     hintText: 'Isi',
                                     hintStyle: GoogleFonts.lato(
                                       fontSize: 13.0,
-                                      color: const Color(0xFF94A3B8),
+                                      color: const Color(0xFF8696A0),
                                     ),
                                     border: InputBorder.none,
                                     isDense: true,
@@ -734,7 +734,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1E293B),
+                                  color: const Color(0xFF1A2228),
                                 ),
                               ),
                             ],
@@ -749,7 +749,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
               Container(
                 height: 40.0,
                 width: 1.0,
-                color: const Color(0xFFE2E8F0),
+                color: const Color(0xFFE9EDEF),
                 margin: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
 
@@ -762,13 +762,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: const Icon(
                         Icons.badge_outlined,
                         size: 18.0,
-                        color: Color(0xFF64748B),
+                        color: Color(0xFF667781),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -780,7 +780,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                             'No. STR',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF64748B),
+                              color: const Color(0xFF667781),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -794,13 +794,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13.0,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1E293B),
+                              color: const Color(0xFF1A2228),
                             ),
                             decoration: InputDecoration(
                               hintText: 'No. STR',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 13.0,
-                                color: const Color(0xFF94A3B8),
+                                color: const Color(0xFF8696A0),
                               ),
                               border: InputBorder.none,
                               isDense: true,
@@ -828,7 +828,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -851,13 +851,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
                       Icons.calendar_month_outlined,
                       size: 20.0,
-                      color: Color(0xFF64748B),
+                      color: Color(0xFF667781),
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -870,7 +870,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -881,8 +881,8 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13.5,
                             color: _birthDateCtrl.text.isNotEmpty
-                                ? const Color(0xFF475569)
-                                : const Color(0xFF94A3B8),
+                                ? const Color(0xFF2C363D)
+                                : const Color(0xFF8696A0),
                           ),
                         ),
                       ],
@@ -891,14 +891,14 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                   const Icon(
                     Icons.chevron_right_rounded,
                     size: 20.0,
-                    color: Color(0xFF94A3B8),
+                    color: Color(0xFF8696A0),
                   ),
                 ],
               ),
             ),
           ),
 
-          const Divider(height: 1.0, color: Color(0xFFF1F5F9)),
+          const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
 
           // 2. Pendidikan
           Padding(
@@ -909,13 +909,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                   width: 36.0,
                   height: 36.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: const Color(0xFFE9EDEF),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: const Icon(
                     Icons.school_outlined,
                     size: 20.0,
-                    color: Color(0xFF64748B),
+                    color: Color(0xFF667781),
                   ),
                 ),
                 const SizedBox(width: 14.0),
@@ -928,7 +928,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1E293B),
+                          color: const Color(0xFF1A2228),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -936,13 +936,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                         controller: _educationCtrl,
                         style: GoogleFonts.lato(
                           fontSize: 13.5,
-                          color: const Color(0xFF475569),
+                          color: const Color(0xFF2C363D),
                         ),
                         decoration: InputDecoration(
                           hintText: 'Contoh: DIV - Manajemen Informasi Kesehatan',
                           hintStyle: GoogleFonts.lato(
                             fontSize: 13.0,
-                            color: const Color(0xFF94A3B8),
+                            color: const Color(0xFF8696A0),
                           ),
                           border: InputBorder.none,
                           isDense: true,
@@ -958,7 +958,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
 
           // Daftar Info Tambahan Dinamis (jika ada)
           for (int i = 0; i < _extraInfoList.length; i++) ...[
-            const Divider(height: 1.0, color: Color(0xFFF1F5F9)),
+            const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Row(
@@ -967,13 +967,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
                       Icons.info_outline_rounded,
                       size: 20.0,
-                      color: Color(0xFF64748B),
+                      color: Color(0xFF667781),
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -986,7 +986,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -994,7 +994,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                           _extraInfoList[i].value,
                           style: GoogleFonts.lato(
                             fontSize: 13.5,
-                            color: const Color(0xFF475569),
+                            color: const Color(0xFF2C363D),
                           ),
                         ),
                       ],
@@ -1025,7 +1025,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -1039,7 +1039,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
           for (int i = 0; i < DoctorPermissions.allPermissions.length; i++) ...[
             _buildPermissionRow(DoctorPermissions.allPermissions[i]),
             if (i < DoctorPermissions.allPermissions.length - 1)
-              const Divider(height: 1.0, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
           ],
         ],
       ),
@@ -1060,7 +1060,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
           ),
@@ -1069,7 +1069,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
             activeThumbColor: Colors.white,
             activeTrackColor: const Color(0xFF3985E7),
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFF94A3B8),
+            inactiveTrackColor: const Color(0xFF8696A0),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             onChanged: (bool newVal) {
               setState(() {
@@ -1171,7 +1171,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                 width: dashWidth,
                 height: 1.0,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(color: Color(0xFFCBD5E1)),
+                  decoration: BoxDecoration(color: Color(0xFFD1D7DB)),
                 ),
               );
             }),

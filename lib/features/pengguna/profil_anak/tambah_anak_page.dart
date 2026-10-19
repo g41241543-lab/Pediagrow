@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -269,6 +269,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   }
 
   void _showDiscardConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -277,7 +278,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -289,7 +290,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
+                        color: isDark
+                            ? const Color(0xFF7F1D1D).withValues(alpha: 0.3)
+                            : const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -305,7 +308,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: isDark ? Colors.white : const Color(0xFF0B1014),
                         ),
                       ),
                     ),
@@ -316,7 +319,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   'Apakah Anda yakin ingin kembali? Data yang sudah diisi akan hilang.',
                   style: GoogleFonts.lato(
                     fontSize: 14,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                     height: 1.4,
                   ),
                 ),
@@ -328,7 +331,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: BorderSide(
+                            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                          ),
+                          backgroundColor: isDark ? const Color(0xFF2C363D) : Colors.transparent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -339,7 +345,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF334155),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -385,9 +391,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // PEMILIH FOTO (GALERI & KAMERA)
   // ---------------------------------------------------------------------------
   void _showImagePickerModal({required bool isBirthPhoto}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -403,7 +410,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -415,7 +422,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -423,7 +430,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark
+                          ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                          : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -437,7 +446,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? Colors.white : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -448,12 +457,17 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                     );
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark
+                          ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                          : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -467,7 +481,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? Colors.white : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -543,6 +557,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     required ImageSource source,
     required bool isBirthPhoto,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -551,7 +566,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(18.0),
             child: Column(
@@ -562,7 +577,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -587,7 +602,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: BorderSide(
+                            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                          ),
+                          backgroundColor: isDark ? const Color(0xFF2C363D) : Colors.transparent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -599,7 +617,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF334155),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -713,6 +731,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     if (initial.isBefore(firstAllowedDate)) initial = firstAllowedDate;
     if (initial.isAfter(now)) initial = now;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -721,11 +740,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF3985E7),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF0F172A),
-            ),
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: Color(0xFF3985E7),
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF1A2228),
+                    onSurface: Colors.white,
+                  )
+                : const ColorScheme.light(
+                    primary: Color(0xFF3985E7),
+                    onPrimary: Colors.white,
+                    onSurface: Color(0xFF0B1014),
+                  ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF3985E7),
@@ -976,6 +1002,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -983,7 +1011,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         _handleBackAction();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         body: SafeArea(
           child: Column(
             children: [
@@ -1090,12 +1118,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // 1. HEADER BAR TETAP (56dp)
   // ---------------------------------------------------------------------------
   Widget _buildHeaderBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 56,
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1,
+          ),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1106,11 +1140,11 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             child: InkWell(
               onTap: _handleBackAction,
               borderRadius: BorderRadius.circular(10),
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0B1014),
                   size: 24,
                 ),
               ),
@@ -1124,7 +1158,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0B1014),
             ),
           ),
         ],
@@ -1136,6 +1170,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FOTO PROFIL ANAK (UNGGAH FOTO ANDA)
   // ---------------------------------------------------------------------------
   Widget _buildFotoProfilSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasPhoto = _fotoProfilPath != null;
 
     return Center(
@@ -1154,7 +1189,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
               children: [
                 CustomPaint(
                   painter: _DashedCirclePainter(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     strokeWidth: 1.5,
                     dashLength: 5,
                     dashSpace: 3,
@@ -1175,12 +1210,16 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               ),
                             )
                           : Container(
-                              color: const Color(0xFFF1F5F9),
+                              color: isDark
+                                  ? const Color(0xFF1A2228)
+                                  : const Color(0xFFE9EDEF),
                               alignment: Alignment.center,
-                              child: const Icon(
+                              child: Icon(
                                 Icons.person_rounded,
                                 size: 52,
-                                color: Color(0xFF94A3B8),
+                                color: isDark
+                                    ? const Color(0xFF667781)
+                                    : const Color(0xFF8696A0),
                               ),
                             ),
                     ),
@@ -1198,7 +1237,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF3985E7),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                            width: 2,
+                          ),
                         ),
                         child: const Icon(
                           Icons.edit,
@@ -1232,13 +1274,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // USIA ANAK BADGE (OTOMATIS DARI TANGGAL LAHIR)
   // ---------------------------------------------------------------------------
   Widget _buildAgeBadge() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+            : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFBFDBFE)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2563EB) : const Color(0xFFBFDBFE),
+        ),
       ),
       child: Row(
         children: [
@@ -1249,7 +1296,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.normal,
-              color: const Color(0xFF1E40AF),
+              color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
             ),
           ),
           Text(
@@ -1257,7 +1304,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF1D4ED8),
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
             ),
           ),
         ],
@@ -1269,6 +1316,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: NAMA LENGKAP*
   // ---------------------------------------------------------------------------
   Widget _buildNamaLengkapField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1287,7 +1335,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Nama Lengkap',
@@ -1307,6 +1355,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: TANGGAL LAHIR*
   // ---------------------------------------------------------------------------
   Widget _buildTanggalLahirField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1321,7 +1370,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0B1014),
               ),
               decoration: _inputDecoration(
                 hint: 'DD/MM/YYYY',
@@ -1339,6 +1388,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: JENIS KELAMIN* (Laki-laki = Biru #3985E7, Perempuan = Pink)
   // ---------------------------------------------------------------------------
   Widget _buildJenisKelaminSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLaki = _selectedGender == 'Laki-laki';
     final isPerempuan = _selectedGender == 'Perempuan';
 
@@ -1361,12 +1411,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isLaki ? const Color(0xFFEFF6FF) : Colors.white,
+                    color: isLaki
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isLaki
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFC5C5C5)),
                       width: isLaki ? 1.5 : 1.0,
                     ),
                   ),
@@ -1379,7 +1435,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                             : Icons.radio_button_off,
                         color: isLaki
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1392,7 +1450,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               : FontWeight.w500,
                           color: isLaki
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1413,12 +1473,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isPerempuan ? const Color(0xFFFDF2F8) : Colors.white,
+                    color: isPerempuan
+                        ? (isDark
+                            ? const Color(0xFF831843).withValues(alpha: 0.3)
+                            : const Color(0xFFFDF2F8))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isPerempuan
                           ? const Color(0xFFEC4899)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFC5C5C5)),
                       width: isPerempuan ? 1.5 : 1.0,
                     ),
                   ),
@@ -1431,7 +1497,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                             : Icons.radio_button_off,
                         color: isPerempuan
                             ? const Color(0xFFEC4899)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1444,7 +1512,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               : FontWeight.w500,
                           color: isPerempuan
                               ? const Color(0xFFEC4899)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1468,132 +1538,12 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // FOTO SI KECIL (DATA KELAHIRAN)
-  // ---------------------------------------------------------------------------
-  Widget _buildFotoSiKecilSection() {
-    final hasPhoto = _fotoKelahiranPath != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Foto Si Kecil',
-          style: GoogleFonts.lato(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 6),
-        if (!hasPhoto)
-          GestureDetector(
-            onTap: () => _showImagePickerModal(isBirthPhoto: true),
-            child: CustomPaint(
-              painter: _DashedRRectPainter(
-                color: const Color(0xFF3985E7),
-                radius: 10,
-                strokeWidth: 1.5,
-                dashLength: 6,
-                dashSpace: 4,
-              ),
-              child: Container(
-                width: double.infinity,
-                height: 48,
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add, color: Color(0xFF3985E7), size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      '+ Unggah Foto',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3985E7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        else
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => _openFullScreenPhoto(
-                    _fotoKelahiranPath!,
-                    'foto_si_kecil_preview',
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Hero(
-                      tag: 'foto_si_kecil_preview',
-                      child: StorageService.buildImageWidget(
-                        _fotoKelahiranPath,
-                        width: 44,
-                        height: 44,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Foto Kelahiran Terpilih',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      Text(
-                        'Ketuk untuk melihat ukuran penuh',
-                        style: GoogleFonts.lato(
-                          fontSize: 11,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _showImagePickerModal(isBirthPhoto: true),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  child: Text(
-                    'Ubah',
-                    style: GoogleFonts.lato(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3985E7),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
 
   // ---------------------------------------------------------------------------
   // FIELD: APAKAH LAHIR PREMATUR?*
   // ---------------------------------------------------------------------------
   Widget _buildPrematurSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPrematur = _isPremature == true;
     final isNotPrematur = _isPremature == false;
 
@@ -1616,12 +1566,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isPrematur ? const Color(0xFFEFF6FF) : Colors.white,
+                    color: isPrematur
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isPrematur
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFC5C5C5)),
                       width: isPrematur ? 1.5 : 1.0,
                     ),
                   ),
@@ -1634,7 +1590,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                             : Icons.radio_button_off,
                         color: isPrematur
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1647,7 +1605,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               : FontWeight.w500,
                           color: isPrematur
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1672,13 +1632,17 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isNotPrematur
-                        ? const Color(0xFFEFF6FF)
-                        : Colors.white,
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isNotPrematur
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFC5C5C5)),
                       width: isNotPrematur ? 1.5 : 1.0,
                     ),
                   ),
@@ -1691,7 +1655,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                             : Icons.radio_button_off,
                         color: isNotPrematur
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1704,7 +1670,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               : FontWeight.w500,
                           color: isNotPrematur
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1732,6 +1700,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD KONDISIONAL: USIA KEHAMILAN (MINGGU)*
   // ---------------------------------------------------------------------------
   Widget _buildUsiaKehamilanField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1747,7 +1716,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Contoh: 34',
@@ -1768,6 +1737,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: BERAT BADAN SAAT LAHIR (KG)*
   // ---------------------------------------------------------------------------
   Widget _buildBeratBadanField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1785,7 +1755,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Berat Badan Saat Lahir (kg)',
@@ -1806,6 +1776,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: TINGGI BADAN SAAT LAHIR (CM)*
   // ---------------------------------------------------------------------------
   Widget _buildTinggiBadanField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1823,7 +1794,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Tinggi Badan Saat Lahir (cm)',
@@ -1844,6 +1815,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: LINGKAR KEPALA SAAT LAHIR (CM)*
   // ---------------------------------------------------------------------------
   Widget _buildLingkarKepalaField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Tombol keyboard: jika Alergi == Ada, tombolnya Next; jika tidak, tombolnya Done
     final action = (_hasAllergies == true)
         ? TextInputAction.next
@@ -1866,7 +1838,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Lingkar Kepala Saat Lahir (cm)',
@@ -1887,6 +1859,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD: ALERGI*
   // ---------------------------------------------------------------------------
   Widget _buildAlergiSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasAllergy = _hasAllergies == true;
     final noAllergy = _hasAllergies == false;
 
@@ -1909,12 +1882,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: hasAllergy ? const Color(0xFFEFF6FF) : Colors.white,
+                    color: hasAllergy
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: hasAllergy
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFC5C5C5)),
                       width: hasAllergy ? 1.5 : 1.0,
                     ),
                   ),
@@ -1927,7 +1906,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                             : Icons.radio_button_off,
                         color: hasAllergy
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1940,7 +1921,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               : FontWeight.w500,
                           color: hasAllergy
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -1963,12 +1946,18 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: noAllergy ? const Color(0xFFEFF6FF) : Colors.white,
+                    color: noAllergy
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: noAllergy
                           ? const Color(0xFF3985E7)
-                          : const Color(0xFFC5C5C5),
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFC5C5C5)),
                       width: noAllergy ? 1.5 : 1.0,
                     ),
                   ),
@@ -1981,7 +1970,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                             : Icons.radio_button_off,
                         color: noAllergy
                             ? const Color(0xFF3985E7)
-                            : const Color(0xFF94A3B8),
+                            : (isDark
+                                ? const Color(0xFF667781)
+                                : const Color(0xFF8696A0)),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1994,7 +1985,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                               : FontWeight.w500,
                           color: noAllergy
                               ? const Color(0xFF3985E7)
-                              : const Color(0xFF475569),
+                              : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D)),
                         ),
                       ),
                     ],
@@ -2022,6 +2015,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // FIELD KONDISIONAL: SEBUTKAN ALERGI* (FIELD TERAKHIR -> DONE)
   // ---------------------------------------------------------------------------
   Widget _buildAlergiDetailField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2035,7 +2029,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
             hint: 'Contoh: Susu sapi, Telur, Kacang',
@@ -2093,6 +2087,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // 3. FIXED BOTTOM NAVIGATION BAR (68dp)
   // ---------------------------------------------------------------------------
   Widget _buildFixedBottomNavBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final navItems = [
       _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -2103,9 +2098,9 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     return Container(
       width: double.infinity,
       height: 68,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8,
@@ -2154,7 +2149,11 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(item.icon, size: 24, color: const Color(0xFF9E9E9E)),
+                  Icon(
+                    item.icon,
+                    size: 24,
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                  ),
                   const SizedBox(height: 3),
                   Text(
                     item.label,
@@ -2164,7 +2163,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                     style: GoogleFonts.lato(
                       fontSize: 11,
                       fontWeight: FontWeight.normal,
-                      color: const Color(0xFF9E9E9E),
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                     ),
                   ),
                 ],
@@ -2181,13 +2180,14 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   // ---------------------------------------------------------------------------
 
   Widget _buildLabel(String label, {bool isRequired = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text.rich(
       TextSpan(
         text: label,
         style: GoogleFonts.lato(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF334155),
+          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
         ),
         children: isRequired
             ? [
@@ -2210,10 +2210,11 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     String? errorText,
     String? warningText,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasError = errorText != null;
     final hasWarning = warningText != null && !hasError;
 
-    Color borderColor = const Color(0xFFCBD5E1);
+    Color borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
     if (hasError) {
       borderColor = const Color(0xFFEF4444);
     } else if (hasWarning) {
@@ -2222,13 +2223,20 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
+      hintStyle: GoogleFonts.lato(
+        fontSize: 14,
+        color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       suffixIcon: suffixIcon != null
-          ? Icon(suffixIcon, size: 20, color: const Color(0xFF64748B))
+          ? Icon(
+              suffixIcon,
+              size: 20,
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+            )
           : null,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       errorText: errorText,
       helperText: hasWarning ? warningText : null,
       helperMaxLines: 2,
@@ -2335,59 +2343,3 @@ class _DashedCirclePainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
 }
 
-// ---------------------------------------------------------------------------
-// CUSTOM PAINTER: DASHED ROUNDED RECTANGLE BORDER
-// ---------------------------------------------------------------------------
-class _DashedRRectPainter extends CustomPainter {
-  final Color color;
-  final double radius;
-  final double strokeWidth;
-  final double dashLength;
-  final double dashSpace;
-
-  _DashedRRectPainter({
-    required this.color,
-    required this.radius,
-    required this.strokeWidth,
-    required this.dashLength,
-    required this.dashSpace,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        strokeWidth / 2,
-        strokeWidth / 2,
-        size.width - strokeWidth,
-        size.height - strokeWidth,
-      ),
-      Radius.circular(radius),
-    );
-
-    final path = Path()..addRRect(rrect);
-    final pathMetrics = path.computeMetrics();
-
-    for (final metric in pathMetrics) {
-      double distance = 0.0;
-      while (distance < metric.length) {
-        final nextDistance = distance + dashLength;
-        final extractPath = metric.extractPath(
-          distance,
-          nextDistance > metric.length ? metric.length : nextDistance,
-        );
-        canvas.drawPath(extractPath, paint);
-        distance += dashLength + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRRectPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
-}

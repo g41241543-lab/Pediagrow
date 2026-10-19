@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -89,7 +87,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -99,7 +97,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -121,7 +119,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -129,7 +127,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -148,7 +146,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -175,7 +173,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       if (picked != null) {
         setState(() => _avatarPath = picked.path);
         final persistable =
-            await StorageService.uploadIfLocal(picked.path) ?? picked.path;
+            await StorageService.uploadIfLocal(picked.path);
         final prefs = await SharedPreferences.getInstance();
         if (_pmik?.id != null) {
           await prefs.setString('pmik_avatar_${_pmik!.id}', persistable);
@@ -225,7 +223,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -234,7 +232,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -247,7 +245,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: const BorderSide(color: Color(0xFFD1D7DB)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -257,7 +255,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF475569),
+                            color: const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -378,7 +376,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 12.0),
@@ -503,7 +501,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -521,7 +519,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -531,7 +529,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -541,7 +539,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.0,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                 ),
               ],
@@ -656,7 +654,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
               ),
               Text(
@@ -666,7 +664,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
             ],
@@ -699,7 +697,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -738,7 +736,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           item.label,
                           style: GoogleFonts.lato(
                             fontSize: 12,
-                            color: const Color(0xFF94A3B8),
+                            color: const Color(0xFF8696A0),
                           ),
                         ),
                         Text(
@@ -746,7 +744,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                       ],
@@ -755,7 +753,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 ),
               ),
               if (i < items.length - 1)
-                const Divider(height: 1, indent: 66, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, indent: 66, color: Color(0xFFE9EDEF)),
             ],
           );
         }),
@@ -768,7 +766,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.0)),
+        border: Border(top: BorderSide(color: Color(0xFFE9EDEF), width: 1.0)),
         boxShadow: [
           BoxShadow(
             color: Color(0x0D000000),
@@ -814,7 +812,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               size: 24,
               color: isSelected
                   ? const Color(0xFF3985E7)
-                  : const Color(0xFF94A3B8),
+                  : const Color(0xFF8696A0),
             ),
             const SizedBox(height: 3),
             Text(
@@ -826,7 +824,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 color: isSelected
                     ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8),
+                    : const Color(0xFF8696A0),
                 height: 1.2,
               ),
             ),

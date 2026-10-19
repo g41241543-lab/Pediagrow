@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/resume_medis_model.dart';
@@ -275,7 +275,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 16.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
                 if (resume.childAgeAtConsultation.isNotEmpty) ...[
@@ -284,7 +284,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
                     resume.childAgeAtConsultation,
                     style: GoogleFonts.lato(
                       fontSize: 13.5,
-                      color: const Color(0xFF64748B),
+                      color: const Color(0xFF667781),
                     ),
                   ),
                 ],
@@ -409,7 +409,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF1A2228),
             ),
           ),
         ),
@@ -423,7 +423,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
       label,
       style: GoogleFonts.lato(
         fontSize: 14.5,
-        color: const Color(0xFF64748B),
+        color: const Color(0xFF667781),
         fontWeight: FontWeight.normal,
       ),
     );
@@ -436,13 +436,13 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
       ),
       child: Text(
         text,
         style: GoogleFonts.lato(
           fontSize: 14.0,
-          color: const Color(0xFF1E293B),
+          color: const Color(0xFF1A2228),
           height: 1.5,
         ),
       ),
@@ -456,7 +456,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +482,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
                     item,
                     style: GoogleFonts.lato(
                       fontSize: 14.0,
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF1A2228),
                       height: 1.5,
                     ),
                   ),
@@ -627,7 +627,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatelessWidget {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

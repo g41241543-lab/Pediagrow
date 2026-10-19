@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -319,7 +319,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -339,7 +339,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
 
@@ -382,7 +382,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
 
@@ -417,7 +417,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF2B7AE8)
-                : const Color(0xFFCBD5E1),
+                : const Color(0xFFD1D7DB),
             width: isSelected ? 1.8 : 1,
           ),
         ),
@@ -433,7 +433,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                 border: Border.all(
                   color: isSelected
                       ? const Color(0xFF2B7AE8)
-                      : const Color(0xFF94A3B8),
+                      : const Color(0xFF8696A0),
                   width: 1.5,
                 ),
                 color: Colors.white,
@@ -459,7 +459,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected
                     ? const Color(0xFF2B7AE8)
-                    : const Color(0xFF475569),
+                    : const Color(0xFF2C363D),
               ),
             ),
           ],
@@ -476,16 +476,16 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: const Color(0xFFE9EDEF),
           borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: const Color(0xFFE9EDEF)),
         ),
         child: Text(
           'Deskripsi Jawaban Benar / Salah',
           style: GoogleFonts.lato(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF64748B),
+            color: const Color(0xFF667781),
           ),
         ),
       ),
@@ -502,7 +502,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -521,7 +521,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
 
@@ -559,7 +559,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               'Penjelasan ini akan ditampilkan kepada pengguna setelah menjawab soal',
               style: GoogleFonts.lato(
                 fontSize: 11,
-                color: const Color(0xFF94A3B8),
+                color: const Color(0xFF8696A0),
               ),
             ),
           ],
@@ -593,14 +593,14 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
           onChanged: onChanged,
           style: GoogleFonts.lato(
             fontSize: 14,
-            color: const Color(0xFF1E293B),
+            color: const Color(0xFF1A2228),
             height: 1.5,
           ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.lato(
               fontSize: 14,
-              color: const Color(0xFF94A3B8),
+              color: const Color(0xFF8696A0),
             ),
             border: InputBorder.none,
             contentPadding:
@@ -626,8 +626,8 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF475569),
-                side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                foregroundColor: const Color(0xFF2C363D),
+                side: const BorderSide(color: Color(0xFFD1D7DB), width: 1.2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -637,7 +637,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF475569),
+                  color: const Color(0xFF2C363D),
                 ),
               ),
             ),
@@ -724,7 +724,7 @@ class _DashedBorderPainter extends CustomPainter {
     const radius = 8.0;
 
     final paint = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = const Color(0xFFD1D7DB)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 

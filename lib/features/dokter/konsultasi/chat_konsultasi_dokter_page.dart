@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -75,7 +75,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   static const Color colorSoftGrey = Color(0xFFF8FAFC);
   static const Color colorTextPrimary = Color(0xFF1A202C);
   static const Color colorTextSecondary = Color(0xFF718096);
-  static const Color colorBorder = Color(0xFFE2E8F0);
+  static const Color colorBorder = Color(0xFFE9EDEF);
   static const Color colorOnlineGreen = Color(0xFF48BB78);
   static const Color colorEndRed = Color(0xFFE53E3E);
 
@@ -275,7 +275,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -285,7 +285,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -307,7 +307,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -315,7 +315,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     _pickAttachment(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -334,7 +334,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -403,7 +403,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -456,7 +456,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 ],
               ),
               const SizedBox(height: 16),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, color: Color(0xFFE9EDEF)),
               const SizedBox(height: 16),
 
               // Field 1: Nama Anak
@@ -660,7 +660,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(ctx),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFF1F5F9),
+                            backgroundColor: const Color(0xFFE9EDEF),
                             foregroundColor: const Color(0xFF718096),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -775,7 +775,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
-        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+        border: Border(top: BorderSide(color: Color(0xFFE9EDEF))),
       ),
       child: SafeArea(
         top: false,
@@ -785,7 +785,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
             const Icon(
               Icons.lock_clock_rounded,
               size: 16,
-              color: Color(0xFF64748B),
+              color: Color(0xFF667781),
             ),
             const SizedBox(width: 8),
             Flexible(
@@ -794,7 +794,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 style: GoogleFonts.lato(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -838,7 +838,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFF1F5F9),
+                      color: const Color(0xFFE9EDEF),
                       border: Border.all(color: colorWhite, width: 2.0),
                       boxShadow: [
                         BoxShadow(
@@ -1245,8 +1245,8 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         children: [
           CircleAvatar(
             radius: 17,
-            backgroundColor: const Color(0xFFE2E8F0),
-            child: const Icon(Icons.person, size: 20, color: Color(0xFF64748B)),
+            backgroundColor: const Color(0xFFE9EDEF),
+            child: const Icon(Icons.person, size: 20, color: Color(0xFF667781)),
           ),
           const SizedBox(width: 8),
           ConstrainedBox(
@@ -1332,8 +1332,8 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         children: [
           CircleAvatar(
             radius: 17,
-            backgroundColor: const Color(0xFFE2E8F0),
-            child: const Icon(Icons.person, size: 20, color: Color(0xFF64748B)),
+            backgroundColor: const Color(0xFFE9EDEF),
+            child: const Icon(Icons.person, size: 20, color: Color(0xFF667781)),
           ),
           const SizedBox(width: 8),
           Container(
@@ -1440,7 +1440,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         shape: BoxShape.circle,
         color: colorWhite,
         border: Border.all(
-          color: isActive ? colorPrimaryBlue : const Color(0xFFCBD5E1),
+          color: isActive ? colorPrimaryBlue : const Color(0xFFD1D7DB),
           width: 1.8,
         ),
       ),
@@ -1452,7 +1452,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           child: Center(
             child: Icon(
               Icons.add,
-              color: isActive ? colorPrimaryBlue : const Color(0xFF94A3B8),
+              color: isActive ? colorPrimaryBlue : const Color(0xFF8696A0),
               size: 22,
             ),
           ),
@@ -1466,7 +1466,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     return Container(
       height: 42,
       decoration: BoxDecoration(
-        color: isActive ? colorSoftGrey : const Color(0xFFF1F5F9),
+        color: isActive ? colorSoftGrey : const Color(0xFFE9EDEF),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: colorBorder, width: 1.0),
       ),
@@ -1532,7 +1532,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: isActive ? colorPrimaryBlue : const Color(0xFFCBD5E1),
+        color: isActive ? colorPrimaryBlue : const Color(0xFFD1D7DB),
         shape: BoxShape.circle,
       ),
       child: Material(
