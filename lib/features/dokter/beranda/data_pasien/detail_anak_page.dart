@@ -47,12 +47,16 @@ class DetailAnakPage extends StatefulWidget {
   final ChildModel child;
   final UserModel? user;
   final int initialTabIndex;
+  final String? sessionId;
+  final BookingConsultationModel? booking;
 
   const DetailAnakPage({
     super.key,
     required this.child,
     this.user,
     this.initialTabIndex = 0,
+    this.sessionId,
+    this.booking,
   });
 
   @override
@@ -827,46 +831,70 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               docName.contains(sDocName);
           final matchChild = (childId.isNotEmpty && s.childId == childId) ||
               s.childName.toLowerCase() == childName;
-          if (matchDoc && matchChild) {
+          final matchSessionId = widget.sessionId != null &&
+              widget.sessionId!.isNotEmpty &&
+              s.id == widget.sessionId;
+          if ((matchDoc && matchChild) || matchSessionId) {
             matchedSession = s;
             break;
           }
+        }
+
+        // Jika sesi masih berstatus menunggu saat dokter masuk, aktifkan sesi otomatis
+        if (matchedSession != null &&
+            matchedSession.status == KonsultasiStatus.menunggu) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            KonsultasiService.instance.mulaiSesi(matchedSession!.id);
+          });
         }
 
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, bookings, _) {
             // Cari jadwal booking yang cocok untuk anak ini
-            BookingConsultationModel? matchedBooking;
-            for (final b in bookings) {
-              final bChildName = b.child.name.toLowerCase();
-              final bChildId = b.child.id;
-              final bDocName = b.doctor.name.toLowerCase();
+            BookingConsultationModel? matchedBooking = widget.booking;
+            if (matchedBooking == null) {
+              for (final b in bookings) {
+                final bChildName = b.child.name.toLowerCase();
+                final bChildId = b.child.id;
+                final bDocName = b.doctor.name.toLowerCase();
 
-              final matchDoctor = docName.isEmpty ||
-                  bDocName.contains(docName) ||
-                  docName.contains(bDocName);
-              final matchChild = (childId.isNotEmpty && bChildId == childId) ||
-                  bChildName == childName;
+                final matchDoctor = docName.isEmpty ||
+                    bDocName.contains(docName) ||
+                    docName.contains(bDocName);
+                final matchChild = (childId.isNotEmpty && bChildId == childId) ||
+                    bChildName == childName;
 
-              if (matchDoctor && matchChild && b.status != 'Dibatalkan') {
-                matchedBooking = b;
-                break;
+                if (matchDoctor && matchChild && b.status != 'Dibatalkan') {
+                  matchedBooking = b;
+                  break;
+                }
               }
             }
 
-            // 1. Cek apakah ada sesi konsultasi aktif di Firestore
-            final bool isFirestoreActive =
-                matchedSession != null && matchedSession.status == KonsultasiStatus.aktif;
+            // 1. Cek apakah ada sesi konsultasi aktif/menunggu di Firestore
+            final bool isFirestoreActive = matchedSession != null &&
+                (matchedSession.status == KonsultasiStatus.aktif ||
+                    matchedSession.status == KonsultasiStatus.menunggu);
 
             // 2. Cek apakah jadwal booking sedang berlangsung saat ini
             final bool isBookingActive =
                 matchedBooking != null && _isBookingActiveNow(matchedBooking);
 
-            // 3. Status aktif riil (hanya aktif saat jadwal bookingnya tiba atau sesi aktif)
-            final bool isCurrentlyActive = isFirestoreActive || isBookingActive;
+            // 3. Status aktif riil (aktif jika ada sesi di firestore, booking aktif, atau dibuka langsung via tombol konsultasi)
+            final bool isCurrentlyActive = isFirestoreActive ||
+                isBookingActive ||
+                (widget.sessionId != null && widget.sessionId!.isNotEmpty);
 
-            if (matchedSession != null || matchedBooking != null) {
+            final effectiveSessionId = widget.sessionId ??
+                matchedBooking?.sessionId ??
+                (matchedBooking != null ? 'session_${matchedBooking.id}' : null) ??
+                (widget.booking?.sessionId ?? (widget.booking != null ? 'session_${widget.booking!.id}' : null)) ??
+                matchedSession?.id;
+
+            if (matchedSession != null ||
+                matchedBooking != null ||
+                (effectiveSessionId != null && effectiveSessionId.isNotEmpty)) {
               final parentDisplayName = matchedSession?.parentName.isNotEmpty == true
                   ? matchedSession!.parentName
                   : _parentUser?.name.isNotEmpty == true
@@ -874,7 +902,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                       : 'Orang Tua ${_currentChild.name}';
 
               // Ruang Obrolan = Ruang Chat langsung tanpa tombol Masuk Ruang Chat lagi.
-              // Dokter hanya dapat mengirim pesan/lampiran saat jadwal konsultasi tiba.
+              // Dokter dapat langsung mengirim pesan & foto saat konsultasi berlangsung.
               return ChatKonsultasiDokterPage(
                 isEmbedded: true,
                 topCard: _buildJadwalInfoCard(
@@ -887,10 +915,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 parentUser: _parentUser,
                 parentName: parentDisplayName,
                 doctorName: currentStaff?.name ?? 'Dokter',
-                complaint: matchedSession?.keluhanAwal,
-                weightKg: matchedSession?.weightKg ?? _currentChild.weightKg,
-                heightCm: matchedSession?.heightCm ?? _currentChild.heightCm,
-                sessionId: matchedSession?.id,
+                complaint: matchedSession?.keluhanAwal ?? matchedBooking?.complaint,
+                weightKg: matchedSession?.weightKg ?? matchedBooking?.weightKg ?? _currentChild.weightKg,
+                heightCm: matchedSession?.heightCm ?? matchedBooking?.heightCm ?? _currentChild.heightCm,
+                sessionId: effectiveSessionId,
                 hasActiveSession: isCurrentlyActive,
               );
             }
@@ -905,8 +933,14 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
   bool _isBookingActiveNow(BookingConsultationModel booking) {
-    if (booking.status == 'Selesai' || booking.status == 'Dibatalkan') {
+    if (booking.status == 'Selesai' || booking.status == 'Dibatalkan' || booking.isExpired) {
       return false;
+    }
+    if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
+      return true;
+    }
+    if (booking.isInTimeWindow) {
+      return true;
     }
     final now = DateTime.now();
     final isSameDate = now.year == booking.scheduledDate.year &&

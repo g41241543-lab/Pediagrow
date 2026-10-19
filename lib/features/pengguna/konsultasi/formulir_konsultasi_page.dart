@@ -338,9 +338,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         ? currentUser.id
         : 'user-${DateTime.now().millisecondsSinceEpoch}';
 
+    final targetBooking =
+        widget.booking ?? BookingService().activeBookingNotifier.value;
+    final desiredSessionId = targetBooking?.sessionId ?? (targetBooking != null ? 'session_${targetBooking.id}' : null);
+
     String? sessionId;
     try {
       sessionId = await KonsultasiService.instance.buatSesi(
+        customSessionId: desiredSessionId,
         childId: childData.id,
         childName: childData.name,
         userId: userId,
@@ -370,19 +375,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     if (!mounted) return;
 
     // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
-    final targetBooking =
-        widget.booking ?? BookingService().activeBookingNotifier.value;
     if (targetBooking != null) {
       BookingService().updateBookingForm(
         bookingId: targetBooking.id,
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
-        sessionId: sessionId,
+        sessionId: sessionId ?? desiredSessionId,
       );
     }
 
-    final effectiveSessionId = sessionId ?? targetBooking?.sessionId ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
+    final effectiveSessionId = sessionId ?? desiredSessionId ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
 
     // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
     Navigator.pushReplacement(
@@ -1447,78 +1450,3 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   }
 }
 
-/// Custom Painter untuk avatar muka anak imut yang bulat, simetris, dan proporsional (anti-peyang)
-class _CuteBabyFacePainter extends CustomPainter {
-  final bool isGirl;
-
-  _CuteBabyFacePainter({required this.isGirl});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final blushPaint = Paint()
-      ..color = isGirl
-          ? const Color(0xFFFB7185).withValues(alpha: 0.5)
-          : const Color(0xFF60A5FA).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final fillEyePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    // Lingkaran kepala simetris di tengah
-    final headCenter = Offset(w * 0.5, h * 0.52);
-    final headRadius = w * 0.38;
-
-    // Telinga Kiri & Kanan simetris
-    canvas.drawCircle(Offset(w * 0.12, h * 0.52), 3.8, strokePaint);
-    canvas.drawCircle(Offset(w * 0.88, h * 0.52), 3.8, strokePaint);
-
-    // Garis Kepala Bulat Sempurna
-    canvas.drawCircle(headCenter, headRadius, strokePaint);
-
-    // Rambut Bayi
-    final hairPath = Path()
-      ..moveTo(w * 0.38, h * 0.20)
-      ..cubicTo(w * 0.42, h * 0.08, w * 0.58, h * 0.08, w * 0.62, h * 0.20);
-    canvas.drawPath(hairPath, strokePaint);
-
-    // Mata Kiri & Kanan (Lengkungan senyum ramah)
-    final leftEye = Path()
-      ..moveTo(w * 0.33, h * 0.47)
-      ..quadraticBezierTo(w * 0.38, h * 0.42, w * 0.43, h * 0.47);
-    canvas.drawPath(leftEye, strokePaint..strokeWidth = 2.0);
-
-    final rightEye = Path()
-      ..moveTo(w * 0.57, h * 0.47)
-      ..quadraticBezierTo(w * 0.62, h * 0.42, w * 0.67, h * 0.47);
-    canvas.drawPath(rightEye, strokePaint);
-
-    strokePaint.strokeWidth = 1.8;
-
-    // Pipi Merah Merona
-    canvas.drawCircle(Offset(w * 0.29, h * 0.56), 3.2, blushPaint);
-    canvas.drawCircle(Offset(w * 0.71, h * 0.56), 3.2, blushPaint);
-
-    // Hidung mungil
-    canvas.drawCircle(Offset(w * 0.5, h * 0.54), 1.2, fillEyePaint);
-
-    // Senyuman Ceria Melengkung Manis
-    final smilePath = Path()
-      ..moveTo(w * 0.41, h * 0.64)
-      ..quadraticBezierTo(w * 0.50, h * 0.74, w * 0.59, h * 0.64);
-    canvas.drawPath(smilePath, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

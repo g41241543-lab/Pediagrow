@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
+import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/storage_service.dart';
@@ -306,7 +307,69 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 16),
+            // Card info Google Kalender
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_month_rounded,
+                    color: _colorPrimaryBlue,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Tersambung ke Google Kalender dengan alarm pengingat kegiatan.',
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        color: const Color(0xFF1E40AF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Tombol Buka di Google Kalender
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: _colorPrimaryBlue, width: 1.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: const Icon(
+                  Icons.event_note_rounded,
+                  color: _colorPrimaryBlue,
+                  size: 20,
+                ),
+                label: Text(
+                  'Buka di Google Kalender',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
+                    color: _colorPrimaryBlue,
+                  ),
+                ),
+                onPressed: () {
+                  final url = booking.googleCalendarUrl ??
+                      GoogleCalendarService().generateCalendarUrl(booking);
+                  BookingService().launchGoogleCalendar(url);
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

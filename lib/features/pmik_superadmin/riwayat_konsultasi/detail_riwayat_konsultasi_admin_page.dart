@@ -180,11 +180,12 @@ class _DetailRiwayatKonsultasiAdminPageState
     // Teks keluhan dan ringkasan dengan penanganan sopan jika belum ada resume
     final complaintText = _item.complaint.trim().isNotEmpty
         ? _item.complaint
-        : 'Belum ada resume medis';
+        : '-';
 
     final summaryText = _item.summary.trim().isNotEmpty
         ? _item.summary
-        : 'Belum ada resume medis';
+        : '-';
+    final summaryIsEmpty = _item.summary.trim().isEmpty;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -247,7 +248,10 @@ class _DetailRiwayatKonsultasiAdminPageState
                     summaryText,
                     style: GoogleFonts.lato(
                       fontSize: 14.5,
-                      color: _colorTextBlack,
+                      color:
+                          summaryIsEmpty ? const Color(0xFF9E9E9E) : _colorTextBlack,
+                      fontStyle:
+                          summaryIsEmpty ? FontStyle.italic : FontStyle.normal,
                       height: 1.45,
                     ),
                   ),

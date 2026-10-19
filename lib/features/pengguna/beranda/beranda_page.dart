@@ -287,14 +287,19 @@ class _BerandaPageState extends State<BerandaPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      'Silahkan lengkapi profil ibu',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFFFFFFF),
+                    Expanded(
+                      child: Text(
+                        'Silahkan lengkapi profil ibu',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFFFFFF),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       width: 28,
                       height: 28,
@@ -492,7 +497,7 @@ class _BerandaPageState extends State<BerandaPage> {
                 builder: (context, children, _) {
                   if (children.isEmpty) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: _buildMomDadCard(context),
                     );
                   }
@@ -555,7 +560,7 @@ class _BerandaPageState extends State<BerandaPage> {
               children: [
                 // "Mom Dad belum punya profil anak" (Lato Regular 15, #7F7F7F)
                 Text(
-                  'Mom and Dad belum punya profil anak',
+                  'Mom Dad belum punya profil anak',
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
@@ -1070,7 +1075,7 @@ class _BerandaPageState extends State<BerandaPage> {
         children: [
           // 6 Card Menu (lebar penuh sejajar margin 12dp)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: _build6MenuGrid(context),
           ),
 
@@ -1078,7 +1083,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
           // Card PediaGrow (lebar penuh identik dengan Card MomDad & Menu, margin 12dp)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: _buildPediaGrowCard(),
           ),
 
@@ -1174,8 +1179,7 @@ class _BerandaPageState extends State<BerandaPage> {
     required String title,
     required String imageAsset,
     required VoidCallback onTap,
-    double cardInset =
-        6, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
+    double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
     double imageSize = 40, // ukuran logo, dikecilkan mengikuti card
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
@@ -1348,12 +1352,15 @@ class _BerandaPageState extends State<BerandaPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Artikel Terbaru',
-                style: GoogleFonts.lato(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+              Flexible(
+                child: Text(
+                  'Artikel Terbaru',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
                 ),
               ),
               InkWell(
@@ -1688,17 +1695,16 @@ class _BerandaPageState extends State<BerandaPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Video Edukasi Anak',
-                    style: GoogleFonts.lato(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
-                    ),
+              Flexible(
+                child: Text(
+                  'Video Edukasi Anak',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
                   ),
-                ],
+                ),
               ),
               InkWell(
                 onTap: _launchYoutubeApp,

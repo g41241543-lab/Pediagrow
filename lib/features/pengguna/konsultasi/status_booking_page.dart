@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
+import '../../../core/services/google_calendar_service.dart';
 import '../../../models/booking_consultation_model.dart';
-import '../beranda/beranda_page.dart';
 import 'chat_konsultasi_page.dart';
 import 'daftar_dokter_page.dart';
 import 'formulir_konsultasi_page.dart';
@@ -293,7 +293,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       );
     }
 
-    if (_currentBooking.isInTimeWindow) {
+    if (_currentBooking.isInTimeWindow || _currentBooking.status == 'Sedang Berlangsung') {
       final hasForm = _currentBooking.hasFilledForm;
       return Container(
         padding: const EdgeInsets.all(16.0),
@@ -654,75 +654,114 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   // ── Kartu Google Kalender ─────────────────────────────────────────────────
   Widget _buildGoogleCalendarInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14.0),
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(color: _kBorderLight),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-            ),
-            child: const Icon(
-              Icons.calendar_month_rounded,
-              color: Color(0xFF1E88E5),
-              size: 24.0,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: const Icon(
+                  Icons.calendar_month_rounded,
+                  color: Color(0xFF1E88E5),
+                  size: 24.0,
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Terhubung ke Google Kalender',
+                      style: GoogleFonts.lato(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: _kTextDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2.0),
+                    Text(
+                      'Jadwal ${_currentBooking.formattedDate} (${_currentBooking.timeSlot}) telah tersambung sebagai kegiatan kalender.',
+                      style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(20.0),
+                  border: Border.all(color: const Color(0xFF86EFAC)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      size: 14.0,
+                      color: Color(0xFF16A34A),
+                    ),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      'Aktif',
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF166534),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Terhubung ke Google Kalender',
-                  style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: _kTextDark,
-                  ),
+          const SizedBox(height: 12.0),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF1E88E5), width: 1.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
-                Text(
-                  'Pengingat otomatis aktif dan notifikasi kalender akan muncul saat jadwal tiba.',
-                  style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                backgroundColor: Colors.white,
+              ),
+              icon: const Icon(
+                Icons.event_note_rounded,
+                color: Color(0xFF1E88E5),
+                size: 18.0,
+              ),
+              label: Text(
+                'Buka di Google Kalender',
+                style: GoogleFonts.lato(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E88E5),
                 ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10.0,
-              vertical: 5.0,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(color: const Color(0xFF86EFAC)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.check_circle_rounded,
-                  size: 14.0,
-                  color: Color(0xFF16A34A),
-                ),
-                const SizedBox(width: 4.0),
-                Text(
-                  'Aktif',
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF166534),
-                  ),
-                ),
-              ],
+              ),
+              onPressed: () {
+                final url = _currentBooking.googleCalendarUrl ??
+                    GoogleCalendarService().generateCalendarUrl(_currentBooking);
+                BookingService().launchGoogleCalendar(url);
+              },
             ),
           ),
         ],
@@ -732,7 +771,8 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
 
   // ── Informasi Alur Konsultasi ─────────────────────────────────────────────
   Widget _buildFlowGuideCard() {
-    final isInWindow = _currentBooking.isInTimeWindow;
+    final isInWindow =
+        _currentBooking.isInTimeWindow || _currentBooking.status == 'Sedang Berlangsung';
     final hasFilled = _currentBooking.hasFilledForm;
     final isDone = _currentBooking.status.toLowerCase() == 'selesai';
 
@@ -841,7 +881,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   // ── Bottom Action Bar ─────────────────────────────────────────────────────
   Widget _buildBottomBar() {
     final isExpired = _currentBooking.isExpired;
-    final isBefore = _currentBooking.isBeforeStart;
+    final isOngoing = _currentBooking.status == 'Sedang Berlangsung' ||
+        _currentBooking.isInTimeWindow;
+    final isBefore = _currentBooking.isBeforeStart && !isOngoing;
     final hasFilled = _currentBooking.hasFilledForm;
 
     String buttonText;

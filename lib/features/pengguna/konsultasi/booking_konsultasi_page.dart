@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
@@ -556,36 +557,90 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
                 // Badge Pengingat Kalender
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14.0,
-                    vertical: 10.0,
-                  ),
+                  padding: const EdgeInsets.all(14.0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12.0),
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(14.0),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.calendar_month_rounded,
-                        color: _kPrimaryBlue,
-                        size: 20.0,
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(color: const Color(0xFF93C5FD)),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_month_rounded,
+                          color: _kPrimaryBlue,
+                          size: 22.0,
+                        ),
                       ),
-                      const SizedBox(width: 10.0),
+                      const SizedBox(width: 12.0),
                       Expanded(
-                        child: Text(
-                          'Pengingat telah tersambung otomatis ke Google Kalender Anda.',
-                          style: GoogleFonts.lato(
-                            fontSize: 12.0,
-                            color: _kTextDark,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tersambung ke Google Kalender',
+                              style: GoogleFonts.lato(
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.bold,
+                                color: _kTextDark,
+                              ),
+                            ),
+                            const SizedBox(height: 2.0),
+                            Text(
+                              'Kegiatan pada ${booking.formattedDate} (${booking.scheduledTimeSlot}) otomatis didaftarkan ke Google Kalender Anda dengan alarm pengingat.',
+                              style: GoogleFonts.lato(
+                                fontSize: 11.5,
+                                color: const Color(0xFF1E40AF),
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24.0),
+                const SizedBox(height: 20.0),
+
+                // Tombol Buka di Google Kalender
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      side: const BorderSide(color: _kPrimaryBlue, width: 1.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.event_note_rounded,
+                      color: _kPrimaryBlue,
+                      size: 20.0,
+                    ),
+                    label: Text(
+                      'Buka di Google Kalender',
+                      style: GoogleFonts.lato(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: _kPrimaryBlue,
+                      ),
+                    ),
+                    onPressed: () {
+                      final url = booking.googleCalendarUrl ??
+                          GoogleCalendarService().generateCalendarUrl(booking);
+                      BookingService().launchGoogleCalendar(url);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10.0),
 
                 // Tombol Lihat Status Booking
                 SizedBox(
