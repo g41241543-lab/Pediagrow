@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../auth/auth_choice_page.dart';
@@ -229,18 +230,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Berhasil memperbarui foto profil',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-              ),
-              backgroundColor: const Color(0xFF16A34A),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          LocalPushService().show(
+            title: 'PediaGrow',
+            body: 'Berhasil memperbarui foto profil',
+            targetRole: PushRole.superadmin,
           );
         }
       }
@@ -357,32 +350,20 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
     final staff = StaffAuthService().currentStaff;
     if (index == 1 && staff != null && !staff.hasPermission('konsultasi')) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Akses fitur "Konsultasi" dinonaktifkan oleh Superadmin.',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-        ),
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "Konsultasi" dinonaktifkan oleh Superadmin.',
+        targetRole: PushRole.superadmin,
       );
       return;
     }
     if (index == 2 &&
         staff != null &&
         !staff.hasPermission('riwayat_konsultasi')) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Akses fitur "Riwayat Konsultasi" dinonaktifkan oleh Superadmin.',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-        ),
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "Riwayat Konsultasi" dinonaktifkan oleh Superadmin.',
+        targetRole: PushRole.superadmin,
       );
       return;
     }

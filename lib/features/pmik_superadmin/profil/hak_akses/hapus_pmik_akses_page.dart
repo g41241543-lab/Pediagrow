@@ -1,7 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
+import '../../../../core/services/superadmin_notification_service.dart';
 import '../../../../models/staff_account_model.dart';
 
 /// Halaman / Dialog Konfirmasi Hapus PMIK untuk Superadmin PediaGrow.
@@ -52,38 +54,19 @@ class _HapusPmikAksesPageState extends State<HapusPmikAksesPage> {
 
       if (!mounted) return;
 
+      await SuperadminNotificationService().notifyPmikHapus(widget.pmik.name);
+
       widget.onDeleted?.call();
 
+      if (!mounted) return;
       Navigator.of(context).pop(true);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Akun PMIK ${widget.pmik.name} berhasil dihapus.',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFF16A34A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
     } catch (e) {
       if (mounted) {
         setState(() => _isDeleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menghapus PMIK: $e',
-              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal menghapus PMIK: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }

@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
@@ -204,11 +205,10 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih foto: $e'),
-            backgroundColor: Colors.red,
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal memilih foto: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }
@@ -369,29 +369,14 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
         throw Exception('Email sudah terdaftar atau gagal menyimpan ke server.');
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Akun PMIK $name berhasil dibuat.',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFF16A34A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-
       Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menyimpan PMIK: $e'),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal menyimpan PMIK: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }

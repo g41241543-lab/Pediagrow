@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +7,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
@@ -685,13 +686,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   void _showSnackbar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A2228),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: msg,
+      targetRole: PushRole.pengguna,
     );
   }
 

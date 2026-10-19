@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/google_calendar_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../models/booking_consultation_model.dart';
 // TODO: sesuaikan path import BerandaPage dengan lokasi file beranda pengguna di proyekmu.
 import '../beranda/beranda_page.dart';
@@ -101,14 +102,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
 
   void _onMasukRoomKonsultasiPressed() {
     if (_currentBooking.isExpired) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Waktu sesi konsultasi telah berakhir.',
-            style: GoogleFonts.lato(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFFE53E3E),
-        ),
+      LocalPushService().show(
+        title: 'Sesi Konsultasi Berakhir',
+        body: 'Waktu sesi konsultasi telah berakhir.',
+        targetRole: PushRole.pengguna,
       );
       return;
     }

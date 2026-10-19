@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
@@ -134,11 +134,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     if (result == true && mounted) {
       await _loadArticles();
-      if (!mounted) return;
-      PediaBanner.showSuccess(
-        context,
-        message: 'Berhasil Menyimpan Artikel Baru',
-      );
     }
   }
 
@@ -150,8 +145,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
     if (result == true && mounted) {
       await _loadArticles();
-      if (!mounted) return;
-      PediaBanner.showSuccess(context, message: 'Berhasil Menyimpan Perubahan');
     }
   }
 
@@ -287,11 +280,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
       // Perbarui daftar artikel pada halaman Superadmin
       await _loadArticles();
-
-      if (mounted) {
-        // Notifikasi panel biru melayang dengan icon silang hitam di kanan
-        PediaBanner.showSuccess(context, message: 'Berhasil Menghapus Artikel');
-      }
     } catch (e) {
       if (mounted) {
         // Tampilkan pesan error jelas jika gagal dan jangan hapus dari daftar

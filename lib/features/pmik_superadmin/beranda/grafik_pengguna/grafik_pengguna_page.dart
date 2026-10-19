@@ -10,7 +10,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_store_plus/media_store_plus.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
@@ -20,6 +19,7 @@ import '../../../../models/user_model.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/child_service.dart';
 import '../../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/staff_account_model.dart';
 import '../../../dokter/beranda/beranda_dokter_page.dart';
@@ -968,68 +968,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return localFile.path;
   }
 
+  PushRole _currentPushRole() {
+    final staff = StaffAuthService().currentStaff;
+    if (staff?.role == StaffRole.dokter) return PushRole.dokter;
+    if (staff?.role == StaffRole.admin) return PushRole.pmik;
+    return PushRole.superadmin;
+  }
+
   void _showSnackbar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A2228),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: msg,
+      targetRole: _currentPushRole(),
     );
   }
 
   void _showSuccessSnackbar(String? filePath, String fileName,
       {String? mimeType}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 4),
-        backgroundColor: const Color(0xFF1A2228),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        content: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'File berhasil disimpan',
-                style: GoogleFonts.lato(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            if (filePath != null)
-              GestureDetector(
-                onTap: () async {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  final result = await OpenFilex.open(filePath, type: mimeType);
-                  if (result.type != ResultType.done && mounted) {
-                    if (result.type == ResultType.noAppToOpen) {
-                      _showSnackbar('Tidak ada aplikasi untuk membuka file ini');
-                    } else {
-                      _showSnackbar('Gagal membuka file: ${result.message}');
-                    }
-                  }
-                },
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Text(
-                    'Buka',
-                    style: GoogleFonts.lato(
-                      color: const Color(0xFF38BDF8),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: 'File $fileName berhasil disimpan',
+      targetRole: _currentPushRole(),
     );
   }
 

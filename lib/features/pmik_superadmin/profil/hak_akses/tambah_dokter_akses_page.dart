@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/doctor_service.dart';
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
@@ -202,11 +203,10 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih foto: $e'),
-            backgroundColor: const Color(0xFFDC2626),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal memilih foto: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }
@@ -257,51 +257,22 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Dokter baru berhasil ditambahkan.',
-              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: const Color(0xFF16A34A),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
         Navigator.of(context).pop();
       } else {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menambahkan dokter. Pastikan email belum digunakan.',
-              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal menambahkan dokter. Pastikan email belum digunakan.',
+          targetRole: PushRole.superadmin,
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Terjadi kesalahan: $e',
-              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Terjadi kesalahan: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }

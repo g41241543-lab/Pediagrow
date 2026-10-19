@@ -130,7 +130,7 @@ class LocalPushService {
     }
 
     // Filter: jangan tampilkan jika role aktif berbeda dari targetRole
-    if (targetRole != null && _activeRole != targetRole) {
+    if (targetRole != null && _activeRole != null && _activeRole != targetRole) {
       debugPrint(
         '[LocalPushService] Notifikasi difilter: activeRole=$_activeRole, '
         'targetRole=$targetRole — tidak ditampilkan.',

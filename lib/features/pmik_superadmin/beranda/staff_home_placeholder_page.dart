@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_permissions.dart';
 import '../../../models/staff_account_model.dart';
@@ -73,27 +74,10 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
   void _handleFeatureTap(DoctorPermissionItem item) {
     final hasAccess = _account.hasPermission(item.key);
     if (!hasAccess) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Akses fitur "${item.label}" dinonaktifkan oleh Superadmin.',
-                  style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "${item.label}" dinonaktifkan oleh Superadmin.',
+        targetRole: LocalPushService().activeRole,
       );
     } else {
       switch (item.key) {
@@ -172,11 +156,10 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
           );
           break;
         default:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fitur ${item.label} aktif'),
-              backgroundColor: const Color(0xFF16A34A),
-            ),
+          LocalPushService().show(
+            title: 'PediaGrow',
+            body: 'Fitur ${item.label} aktif',
+            targetRole: LocalPushService().activeRole,
           );
       }
     }

@@ -1,9 +1,10 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/superadmin_notification_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../models/artikel_model.dart';
@@ -114,27 +115,10 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     if (_canAccessFeature(permissionKey)) {
       onAllowed();
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
-                  style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
+        targetRole: PushRole.superadmin,
       );
     }
   }

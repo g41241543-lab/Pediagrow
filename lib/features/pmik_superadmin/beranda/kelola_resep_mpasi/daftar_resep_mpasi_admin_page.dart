@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/resep_mpasi_service.dart';
@@ -120,11 +120,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
 
     if (result == true && mounted) {
       await _loadRecipes();
-      if (!mounted) return;
-      PediaBanner.showSuccess(
-        context,
-        message: 'Berhasil Menyimpan Resep Baru',
-      );
     }
   }
 
@@ -135,8 +130,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
 
     if (result == true && mounted) {
       await _loadRecipes();
-      if (!mounted) return;
-      PediaBanner.showSuccess(context, message: 'Berhasil Menyimpan Perubahan');
     }
   }
 
@@ -264,13 +257,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       }
 
       await _loadRecipes();
-
-      if (mounted) {
-        PediaBanner.showSuccess(
-          context,
-          message: 'Berhasil Menghapus Resep MPASI',
-        );
-      }
     } catch (e) {
       if (mounted) {
         PediaBanner.showError(context, message: 'Gagal menghapus resep: $e');
@@ -767,7 +753,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
-            final isSelected = false; // Sub-halaman: animasi lingkaran aktif dihilangkan
             final item = navItems[i];
 
             return Expanded(
@@ -780,67 +765,28 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
+                      Icon(
+                        item.icon,
+                        size: 24.0,
+                        color: const Color(0xFF9E9E9E),
+                      ),
+                      const SizedBox(height: 3.0),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 11.0,
+                              fontWeight: FontWeight.normal,
+                              color: const Color(0xFF9E9E9E),
                             ),
                           ),
                         ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),

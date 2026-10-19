@@ -1,7 +1,8 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../models/soal_model.dart';
 import 'widgets/game_forest_silhouette_footer.dart';
 import 'game_controller.dart';
@@ -49,11 +50,10 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal memuat soal: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
+      LocalPushService().show(
+        title: 'Peringatan',
+        body: 'Gagal memuat soal: $e',
+        targetRole: PushRole.pengguna,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

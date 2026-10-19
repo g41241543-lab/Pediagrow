@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
@@ -622,22 +623,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: GoogleFonts.lato(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: isError
-            ? const Color(0xFFDC2626)
-            : const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
+    LocalPushService().show(
+      title: isError ? 'Peringatan' : 'PediaGrow',
+      body: message,
+      targetRole: PushRole.pengguna,
     );
   }
 

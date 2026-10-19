@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/soal_service.dart';
 import '../../../../models/soal_model.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
@@ -119,19 +120,10 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       );
       Navigator.of(context).pop(soalBaru);
     } else {
-      // Tampilkan snackbar error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Gagal menyimpan soal, coba lagi',
-            style: GoogleFonts.lato(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      LocalPushService().show(
+        title: 'Peringatan',
+        body: 'Gagal menyimpan soal, coba lagi',
+        targetRole: PushRole.superadmin,
       );
     }
   }

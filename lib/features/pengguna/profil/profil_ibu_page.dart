@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
@@ -47,9 +48,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   String _selectedGender = 'Perempuan';
   bool _isSaving = false;
 
-  bool _isSuccessBannerVisible = false;
-  Timer? _bannerTimer;
-  String _successBannerMessage = 'Berhasil Memperbarui Foto Profil';
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
@@ -81,36 +79,15 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     _cityController.dispose();
     _districtController.dispose();
     _subDistrictController.dispose();
-    _bannerTimer?.cancel();
     super.dispose();
   }
 
   void _triggerSuccessBanner(String message) {
-    _bannerTimer?.cancel();
-    setState(() {
-      _successBannerMessage = message;
-    });
-
-    Future.delayed(const Duration(milliseconds: 120), () {
-      if (!mounted) return;
-      setState(() {
-        _isSuccessBannerVisible = true;
-      });
-
-      // Banner otomatis menghilang setelah durasi 1 menit
-      _bannerTimer = Timer(const Duration(minutes: 1), () {
-        _hideSuccessBanner();
-      });
-    });
-  }
-
-  void _hideSuccessBanner() {
-    _bannerTimer?.cancel();
-    if (mounted && _isSuccessBannerVisible) {
-      setState(() {
-        _isSuccessBannerVisible = false;
-      });
-    }
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: message,
+      targetRole: PushRole.pengguna,
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -511,56 +488,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // SUCCESS BANNER OVERLAY
   // ---------------------------------------------------------------------------
   Widget _buildSuccessBanner() {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeInOut,
-      top: _isSuccessBannerVisible ? 62.0 : -70.0,
-      left: 16.0,
-      right: 16.0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 100),
-        opacity: _isSuccessBannerVisible ? 1.0 : 0.0,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF3985E7),
-            borderRadius: BorderRadius.circular(17),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  _successBannerMessage,
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFFFFFFFF),
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: _hideSuccessBanner,
-                borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: Icon(Icons.close, size: 20, color: Color(0xFF000000)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   // ---------------------------------------------------------------------------

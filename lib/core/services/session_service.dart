@@ -343,23 +343,12 @@ class SessionService {
     });
   }
 
-  /// Menampilkan SnackBar merah informatif saat session kadaluarsa
+  /// Menampilkan notifikasi HP saat session kadaluarsa
   static void showExpiredNotice(String message) {
     try {
-      scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-      scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
+      LocalPushService().show(
+        title: 'Sesi Berakhir',
+        body: message,
       );
     } catch (e) {
       debugPrint('[SessionService] showExpiredNotice error: $e');

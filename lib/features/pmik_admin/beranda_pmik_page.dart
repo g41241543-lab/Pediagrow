@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/services/artikel_service.dart';
+import '../../core/services/local_push_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/storage_service.dart';
@@ -101,27 +102,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     if (_canAccessFeature(permissionKey)) {
       onAllowed();
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
-                  style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
+        targetRole: PushRole.pmik,
       );
     }
   }

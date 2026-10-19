@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/services/doctor_service.dart';
 import '../../../../core/services/jadwal_dokter_service.dart';
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
@@ -236,11 +237,10 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih foto: $e'),
-            backgroundColor: const Color(0xFFDC2626),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal memilih foto: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }
@@ -303,36 +303,14 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Data dokter berhasil disimpan.',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFF16A34A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-
       Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menyimpan: $e',
-              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal menyimpan: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }

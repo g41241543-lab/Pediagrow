@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/storage_service.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
@@ -59,10 +60,6 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   final ImagePicker _picker = ImagePicker();
   bool _isUploadingAvatar = false;
 
-  String _successBannerMessage = 'Berhasil Memperbarui Profil';
-  bool _isSuccessBannerVisible = false;
-  Timer? _bannerTimer;
-
   @override
   void initState() {
     super.initState();
@@ -75,39 +72,12 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _bannerTimer?.cancel();
-    super.dispose();
-  }
-
   void _triggerSuccessBanner({String message = 'Berhasil Memperbarui Profil'}) {
-    _bannerTimer?.cancel();
-    setState(() {
-      _successBannerMessage = message;
-    });
-
-    // Animasi after delay / timer otomatis masuk halus
-    Future.delayed(const Duration(milliseconds: 120), () {
-      if (!mounted) return;
-      setState(() {
-        _isSuccessBannerVisible = true;
-      });
-
-      // Banner otomatis menghilang setelah durasi 1 menit (60 detik)
-      _bannerTimer = Timer(const Duration(minutes: 1), () {
-        _hideSuccessBanner();
-      });
-    });
-  }
-
-  void _hideSuccessBanner() {
-    _bannerTimer?.cancel();
-    if (mounted && _isSuccessBannerVisible) {
-      setState(() {
-        _isSuccessBannerVisible = false;
-      });
-    }
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: message,
+      targetRole: PushRole.pengguna,
+    );
   }
 
   void _navigateTo(Widget page) async {
@@ -350,54 +320,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   // SUCCESS BANNER (NOTIFIKASI BERHASIL MEMPERBARUI PROFIL)
   // -------------------------------------------------------------------------
   Widget _buildSuccessBanner() {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeInOut,
-      top: _isSuccessBannerVisible ? 62.0 : -70.0,
-      left: 16.0,
-      right: 16.0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 100),
-        opacity: _isSuccessBannerVisible ? 1.0 : 0.0,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF3985E7),
-            borderRadius: BorderRadius.circular(17),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                _successBannerMessage,
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFFFFFF),
-                ),
-              ),
-              InkWell(
-                onTap: _hideSuccessBanner,
-                borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: Icon(Icons.close, size: 20, color: Color(0xFF000000)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   // -------------------------------------------------------------------------

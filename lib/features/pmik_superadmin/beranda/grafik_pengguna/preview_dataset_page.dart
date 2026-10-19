@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
+import '../../../../core/services/local_push_service.dart';
 import '../../../../models/user_model.dart';
 
 /// Halaman Pratinjau Dokumen Dataset Pengguna sebelum diunduh / dicetak / dibagikan.
@@ -452,58 +453,18 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
   }
 
   void _showSnackbar(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1A2228),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: msg,
+      targetRole: PushRole.superadmin,
     );
   }
 
   void _showSuccessSnackbar(String? filePath, String fileName, {String? mimeType}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 4),
-        backgroundColor: const Color(0xFF1A2228),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        content: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'File berhasil disimpan',
-                style: GoogleFonts.lato(color: Colors.white),
-              ),
-            ),
-            if (filePath != null)
-              GestureDetector(
-                onTap: () async {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  final result = await OpenFilex.open(filePath, type: mimeType);
-                  if (result.type != ResultType.done && mounted) {
-                    _showSnackbar('Gagal membuka file: ${result.message}');
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Text(
-                    'Buka',
-                    style: GoogleFonts.lato(
-                      color: const Color(0xFF38BDF8),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+    LocalPushService().show(
+      title: 'Unduh Dataset Berhasil',
+      body: 'File $fileName berhasil disimpan.',
+      targetRole: PushRole.superadmin,
     );
   }
 
