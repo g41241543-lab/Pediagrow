@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -97,6 +98,11 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   // Stream Firestore – aktif jika sessionId tersedia
   Stream<List<ChatMessageModel>>? _messageStream;
 
+  // Listener status sesi (untuk deteksi pengakhiran dari pihak pengguna)
+  StreamSubscription<dynamic>? _sessionSub;
+  // Flag: true jika kita sendiri yang mengakhiri (hindari reaksi ganda)
+  bool _sessionEndedByUs = false;
+
   @override
   void initState() {
     super.initState();
@@ -108,12 +114,44 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       _messageStream = ChatMessageService.instance.streamPesan(
         widget.sessionId!,
       );
+
+      // Dengarkan perubahan status sesi agar tahu jika PENGGUNA mengakhiri
+      _sessionSub = KonsultasiService.instance
+          .streamSesi(widget.sessionId!)
+          .listen((sesi) {
+        if (!mounted) return;
+        if (_sessionEndedByUs) return; // kita yang mengakhiri, abaikan
+        if (sesi != null && sesi.isSelesai) {
+          // Pengguna mengakhiri konsultasi → dokter langsung ke buat resume
+          _sessionEndedByUs = true;
+          _sessionSub?.cancel();
+          _navigateToBuatResume();
+        }
+      });
     }
 
     _typingAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatKonsultasiDokterPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sessionId != widget.sessionId) {
+      if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+        setState(() {
+          _messageStream = ChatMessageService.instance.streamPesan(
+            widget.sessionId!,
+          );
+        });
+      } else {
+        setState(() {
+          _messageStream = null;
+        });
+      }
+    }
   }
 
   void _resolveData() {
@@ -149,10 +187,31 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
 
   @override
   void dispose() {
+    _sessionSub?.cancel();
     _textController.dispose();
     _scrollController.dispose();
     _typingAnimController.dispose();
     super.dispose();
+  }
+
+  /// Navigasi ke BuatResumeMedisDokterPage (dipanggil baik saat dokter
+  /// mengakhiri sendiri maupun saat terdeteksi pengguna mengakhiri).
+  void _navigateToBuatResume() {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => BuatResumeMedisDokterPage(
+          child: widget.child,
+          parentUser: widget.parentUser,
+          parentName: _effectiveParentName,
+          doctorName: _effectiveDoctorName,
+          complaint: widget.complaint,
+          weightKg: widget.weightKg,
+          heightCm: widget.heightCm,
+          sessionId: widget.sessionId,
+        ),
+      ),
+    );
   }
 
   void _scrollToBottom() {
@@ -360,6 +419,17 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       );
 
       if (file != null) {
+        if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+          final staffId = StaffAuthService().currentStaff?.id ?? '';
+          await ChatMessageService.instance.kirimGambar(
+            sessionId: widget.sessionId!,
+            senderId: staffId,
+            senderRole: MessageSender.dokter,
+            imageFile: File(file.path),
+          );
+          return;
+        }
+
         final now = DateTime.now();
         final timeStr =
             '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -688,26 +758,14 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                             // Jika ada sesi Firestore, tandai sebagai selesai
                             if (widget.sessionId != null &&
                                 widget.sessionId!.isNotEmpty) {
+                              _sessionEndedByUs = true; // kita yang mengakhiri
                               KonsultasiService.instance.akhiriSesi(
                                 widget.sessionId!,
                               );
                             }
 
                             // Navigasi ke halaman Buat Resume Medis Dokter
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => BuatResumeMedisDokterPage(
-                                  child: widget.child,
-                                  parentUser: widget.parentUser,
-                                  parentName: _effectiveParentName,
-                                  doctorName: _effectiveDoctorName,
-                                  complaint: widget.complaint,
-                                  weightKg: widget.weightKg,
-                                  heightCm: widget.heightCm,
-                                  sessionId: widget.sessionId,
-                                ),
-                              ),
-                            );
+                            _navigateToBuatResume();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFE53E3E),
@@ -935,7 +993,15 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           ? 'attachment_image'
           : 'text',
       'message': msg.text ?? '',
+      // imageUrl diteruskan ke map — dipakai oleh _buildImageBubble
       'imageUrl': msg.imageUrl,
+      // filePath diisi hanya jika imageUrl adalah path lokal (bukan base64/URL)
+      'filePath': (msg.imageUrl != null &&
+              !msg.imageUrl!.startsWith('data:image/') &&
+              !msg.imageUrl!.startsWith('http'))
+          ? msg.imageUrl
+          : null,
+      'fileName': msg.imageUrl != null ? msg.imageUrl!.split('/').last : '',
       'title': 'Formulir Keluhan Pasien',
       'timestamp': timeStr,
       'isRead': msg.isRead,
@@ -1303,8 +1369,20 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   }
 
   Widget _buildImageBubble(Map<String, dynamic> item, bool isDoctor) {
+    final imageUrl = item['imageUrl'] as String?;
     final filePath = item['filePath'] as String?;
-    if (filePath == null) return const SizedBox.shrink();
+
+    // Tidak ada sumber gambar sama sekali — jangan render
+    final bool isBase64Image =
+        imageUrl != null && imageUrl.startsWith('data:image/');
+    final bool isNetworkImage = imageUrl != null &&
+        (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+    final bool isLocalImage =
+        filePath != null && File(filePath).existsSync();
+
+    if (!isBase64Image && !isNetworkImage && !isLocalImage) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1312,12 +1390,27 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         alignment: isDoctor ? Alignment.centerRight : Alignment.centerLeft,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
-          child: Image.file(
-            File(filePath),
-            width: 200,
-            height: 150,
-            fit: BoxFit.cover,
-          ),
+          child: isBase64Image
+              ? StorageService.buildImageWidget(
+                  imageUrl,
+                  width: 200,
+                  height: 150,
+                  fit: BoxFit.cover,
+                )
+              : isNetworkImage
+              ? Image.network(
+                  imageUrl,
+                  width: 200,
+                  height: 150,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
+                )
+              : Image.file(
+                  File(filePath!),
+                  width: 200,
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
         ),
       ),
     );

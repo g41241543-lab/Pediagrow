@@ -5,6 +5,7 @@ import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
+import '../../../../../../shared/widgets/pedia_banner.dart';
 import 'detail_resume_medis_page.dart';
 
 /// Halaman Daftar Resume Medis.
@@ -256,8 +257,8 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          final result = await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => DetailResumeMedisPage(
                 resume: resume,
@@ -266,6 +267,12 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               ),
             ),
           );
+          if (result == 'deleted' && mounted) {
+            PediaBanner.showSuccess(
+              context,
+              message: 'Berhasil Menghapus Resume Medis',
+            );
+          }
         },
         borderRadius: BorderRadius.circular(14),
         child: Container(

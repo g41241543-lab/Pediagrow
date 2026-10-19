@@ -293,7 +293,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       );
     }
 
-    if (_currentBooking.isInTimeWindow) {
+    if (_currentBooking.isInTimeWindow || _currentBooking.status == 'Sedang Berlangsung') {
       final hasForm = _currentBooking.hasFilledForm;
       return Container(
         padding: const EdgeInsets.all(16.0),
@@ -771,7 +771,8 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
 
   // ── Informasi Alur Konsultasi ─────────────────────────────────────────────
   Widget _buildFlowGuideCard() {
-    final isInWindow = _currentBooking.isInTimeWindow;
+    final isInWindow =
+        _currentBooking.isInTimeWindow || _currentBooking.status == 'Sedang Berlangsung';
     final hasFilled = _currentBooking.hasFilledForm;
     final isDone = _currentBooking.status.toLowerCase() == 'selesai';
 
@@ -880,7 +881,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   // ── Bottom Action Bar ─────────────────────────────────────────────────────
   Widget _buildBottomBar() {
     final isExpired = _currentBooking.isExpired;
-    final isBefore = _currentBooking.isBeforeStart;
+    final isOngoing = _currentBooking.status == 'Sedang Berlangsung' ||
+        _currentBooking.isInTimeWindow;
+    final isBefore = _currentBooking.isBeforeStart && !isOngoing;
     final hasFilled = _currentBooking.hasFilledForm;
 
     String buttonText;

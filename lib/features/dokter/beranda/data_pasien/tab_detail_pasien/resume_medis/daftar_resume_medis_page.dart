@@ -5,6 +5,7 @@ import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
+import '../../../../../../shared/widgets/pedia_banner.dart';
 import 'detail_resume_medis_page.dart';
 
 /// Halaman Daftar Resume Medis.
@@ -36,6 +37,126 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       userId: widget.user?.id,
     );
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _confirmDeleteResume(ResumeMedisModel resume) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.54),
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 8,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Hapus Data',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Mohon pastikan ulang sebelum menghapus resume medis. Apakah anda yakin ingin menghapus?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    color: const Color(0xFF7F7F7F),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(dialogCtx).pop(true),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFC5C5C5),
+                              width: 1.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Ya',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(dialogCtx).pop(false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3985E7),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Tidak',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ResumeMedisService().deleteResumeMedis(resume.id);
+        if (mounted) {
+          PediaBanner.showSuccess(
+            context,
+            message: 'Berhasil Menghapus Resume Medis',
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          PediaBanner.showError(
+            context,
+            message: 'Gagal menghapus resume medis: $e',
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -256,8 +377,8 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          final result = await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => DetailResumeMedisPage(
                 resume: resume,
@@ -266,6 +387,12 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               ),
             ),
           );
+          if (result == 'deleted' && mounted) {
+            PediaBanner.showSuccess(
+              context,
+              message: 'Berhasil Menghapus Resume Medis',
+            );
+          }
         },
         borderRadius: BorderRadius.circular(14),
         child: Container(
@@ -394,24 +521,55 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                       ],
                     ),
 
-                    // Badge Selesai (Hijau Toska)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF26B89D),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        resume.status,
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    // Badge Selesai (Hijau Toska) + Tombol Hapus
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF26B89D),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            resume.status,
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _confirmDeleteResume(resume),
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Container(
+                              width: 32.0,
+                              height: 32.0,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFEBEE),
+                                borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: const Color(0xFFFFCDD2),
+                                  width: 1.0,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Color(0xFFE53935),
+                                size: 18.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

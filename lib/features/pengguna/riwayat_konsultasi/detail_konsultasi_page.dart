@@ -168,11 +168,18 @@ class DetailKonsultasiPage extends StatelessWidget {
               ),
               const SizedBox(height: 8.0),
               Text(
-                riwayat.summary,
+                riwayat.summary.trim().isNotEmpty
+                    ? riwayat.summary
+                    : '-',
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.normal,
-                  color: const Color(0xFF000000),
+                  color: riwayat.summary.trim().isNotEmpty
+                      ? const Color(0xFF000000)
+                      : const Color(0xFF9E9E9E),
+                  fontStyle: riwayat.summary.trim().isEmpty
+                      ? FontStyle.italic
+                      : FontStyle.normal,
                   height: 1.45,
                 ),
               ),

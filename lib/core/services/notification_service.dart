@@ -42,9 +42,7 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
 
-  NotificationService._internal() {
-    _startReminderCheckTimer();
-  }
+  NotificationService._internal();
 
   /// State daftar notifikasi secara reaktif
   final ValueNotifier<List<NotificationItem>> notificationsNotifier =
@@ -59,6 +57,7 @@ class NotificationService {
   final Set<String> _triggeredReminderIds = {};
 
   void _startReminderCheckTimer() {
+    if (_pendingBookingReminders.isEmpty) return;
     _reminderCheckTimer?.cancel();
     _reminderCheckTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       checkPendingBookingReminders();
@@ -362,5 +361,11 @@ class NotificationService {
   void clearNotifications() {
     notificationsNotifier.value = [];
     unreadCountNotifier.value = 0;
+  }
+
+  /// Menghentikan timer pengingat (berguna saat test atau teardown)
+  void dispose() {
+    _reminderCheckTimer?.cancel();
+    _reminderCheckTimer = null;
   }
 }

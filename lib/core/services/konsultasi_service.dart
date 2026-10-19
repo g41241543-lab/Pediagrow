@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../models/konsultasi_session_model.dart';
 
@@ -24,6 +25,7 @@ class KonsultasiService {
   ///
   /// Mengembalikan ID dokumen yang baru dibuat.
   Future<String> buatSesi({
+    String? customSessionId,
     required String childId,
     required String childName,
     required String userId,
@@ -37,7 +39,9 @@ class KonsultasiService {
     String? childGender,
     String? childAge,
   }) async {
-    final ref = _db.collection(_collection).doc();
+    final ref = (customSessionId != null && customSessionId.isNotEmpty)
+        ? _db.collection(_collection).doc(customSessionId)
+        : _db.collection(_collection).doc();
     final data = KonsultasiSessionModel(
       id: ref.id,
       childId: childId,
@@ -55,7 +59,7 @@ class KonsultasiService {
       childGender: childGender,
       childAge: childAge,
     );
-    await ref.set(data.toMap());
+    await ref.set(data.toMap(), SetOptions(merge: true));
     return ref.id;
   }
 
@@ -162,18 +166,26 @@ class KonsultasiService {
 
   /// Dokter memulai sesi (status: menunggu → aktif).
   Future<void> mulaiSesi(String sessionId) async {
-    await _db.collection(_collection).doc(sessionId).update({
-      'status': KonsultasiStatus.aktif.name,
-      'startedAt': FieldValue.serverTimestamp(),
-    });
+    try {
+      await _db.collection(_collection).doc(sessionId).set({
+        'status': KonsultasiStatus.aktif.name,
+        'startedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[KonsultasiService] Gagal mulaiSesi($sessionId): $e');
+    }
   }
 
   /// Dokter mengakhiri sesi (status: aktif → selesai).
   Future<void> akhiriSesi(String sessionId) async {
-    await _db.collection(_collection).doc(sessionId).update({
-      'status': KonsultasiStatus.selesai.name,
-      'endedAt': FieldValue.serverTimestamp(),
-    });
+    try {
+      await _db.collection(_collection).doc(sessionId).set({
+        'status': KonsultasiStatus.selesai.name,
+        'endedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[KonsultasiService] Gagal akhiriSesi($sessionId): $e');
+    }
   }
 
   /// Ambil data sesi sekali (tanpa stream) berdasarkan sessionId.

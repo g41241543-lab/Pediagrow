@@ -130,6 +130,7 @@ class BookingService {
 
   /// Timer pembersihan berkala untuk menghapus jadwal yang baru saja lewat
   void _startAutoCleanupTimer() {
+    if (bookingsNotifier.value.isEmpty) return;
     _cleanupTimer?.cancel();
     _cleanupTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _cleanupExpiredBookings();
@@ -139,6 +140,11 @@ class BookingService {
   /// Menghapus booking yang telah lewat jadwalnya dari memori dan Firestore
   Future<void> _cleanupExpiredBookings() async {
     final current = bookingsNotifier.value;
+    if (current.isEmpty) {
+      _cleanupTimer?.cancel();
+      _cleanupTimer = null;
+      return;
+    }
     final expired = current.where((b) => b.isExpired).toList();
     if (expired.isEmpty) return;
 
@@ -156,6 +162,7 @@ class BookingService {
       }
     }
   }
+
 
   /// Mengurutkan daftar booking berdasarkan prioritas:
   /// 1. Sedang Berlangsung / Dalam rentang waktu konsultasi aktif (paling atas)
