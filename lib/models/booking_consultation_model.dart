@@ -261,14 +261,28 @@ class BookingConsultationModel {
     };
   }
 
-  /// Cek apakah waktu saat ini masih sebelum jadwal mulai konsultasi
-  bool get isBeforeStart => DateTime.now().isBefore(scheduledStartDateTime);
+  /// Menit toleransi akses lebih awal sebelum jadwal konsultasi dimulai.
+  /// Pengguna dapat mengisi formulir dan masuk room sejak [earlyAccessMinutes]
+  /// menit sebelum waktu jadwal resmi.
+  static const int earlyAccessMinutes = 5;
 
-  /// Cek apakah waktu saat ini berada dalam rentang jadwal konsultasi (mulai sampai selesai)
+  /// Waktu efektif pembukaan sesi = scheduledStartDateTime dikurangi buffer.
+  /// Digunakan secara konsisten oleh [isBeforeStart] dan [isInTimeWindow]
+  /// agar keduanya selalu saling berlawanan (tidak ada celah di antara keduanya).
+  DateTime get _effectiveStart =>
+      scheduledStartDateTime.subtract(const Duration(minutes: earlyAccessMinutes));
+
+  /// Cek apakah waktu saat ini masih sebelum waktu efektif pembukaan sesi.
+  /// Mengembalikan [true] jika sesi belum bisa diakses sama sekali.
+  bool get isBeforeStart => DateTime.now().isBefore(_effectiveStart);
+
+  /// Cek apakah waktu saat ini berada dalam rentang sesi konsultasi aktif.
+  /// Sesi dianggap aktif sejak [earlyAccessMinutes] menit sebelum jadwal mulai
+  /// hingga jadwal selesai, sehingga pengguna punya waktu untuk mengisi formulir.
   bool get isInTimeWindow {
     final now = DateTime.now();
-    return (now.isAfter(scheduledStartDateTime) ||
-            now.isAtSameMomentAs(scheduledStartDateTime)) &&
+    return (now.isAfter(_effectiveStart) ||
+            now.isAtSameMomentAs(_effectiveStart)) &&
         now.isBefore(scheduledEndDateTime);
   }
 
@@ -285,7 +299,6 @@ class BookingConsultationModel {
         status.toLowerCase() == 'sedang berlangsung';
   }
 
-  /// Format tanggal standar Indonesia: "Senin, 13 Okt 2026"
   /// Cek apakah waktu saat ini sudah memasuki atau melewati jadwal konsultasi
   bool get isTimeReady => isInTimeWindow;
 

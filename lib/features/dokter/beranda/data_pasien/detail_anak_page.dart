@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -840,14 +840,6 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           }
         }
 
-        // Jika sesi masih berstatus menunggu saat dokter masuk, aktifkan sesi otomatis
-        if (matchedSession != null &&
-            matchedSession.status == KonsultasiStatus.menunggu) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            KonsultasiService.instance.mulaiSesi(matchedSession!.id);
-          });
-        }
-
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, bookings, _) {
@@ -872,19 +864,33 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               }
             }
 
+            final bool isBookingBeforeStart = matchedBooking?.isBeforeStart ?? false;
+
+            // Jika sesi masih berstatus menunggu saat dokter masuk, aktifkan sesi otomatis
+            // HANYA jika waktu jadwal sudah tiba (jangan aktifkan sebelum waktu konsultasi)
+            if (matchedSession != null &&
+                matchedSession.status == KonsultasiStatus.menunggu &&
+                !isBookingBeforeStart) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                KonsultasiService.instance.mulaiSesi(matchedSession!.id);
+              });
+            }
+
             // 1. Cek apakah ada sesi konsultasi aktif/menunggu di Firestore
             final bool isFirestoreActive = matchedSession != null &&
                 (matchedSession.status == KonsultasiStatus.aktif ||
-                    matchedSession.status == KonsultasiStatus.menunggu);
+                    matchedSession.status == KonsultasiStatus.menunggu) &&
+                !isBookingBeforeStart;
 
             // 2. Cek apakah jadwal booking sedang berlangsung saat ini
             final bool isBookingActive =
                 matchedBooking != null && _isBookingActiveNow(matchedBooking);
 
-            // 3. Status aktif riil (aktif jika ada sesi di firestore, booking aktif, atau dibuka langsung via tombol konsultasi)
-            final bool isCurrentlyActive = isFirestoreActive ||
-                isBookingActive ||
-                (widget.sessionId != null && widget.sessionId!.isNotEmpty);
+            // 3. Status aktif riil (aktif jika ada sesi di firestore atau booking aktif, dan bukan sebelum jadwal)
+            final bool isCurrentlyActive = !isBookingBeforeStart &&
+                (isFirestoreActive ||
+                    isBookingActive ||
+                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null));
 
             final effectiveSessionId = widget.sessionId ??
                 matchedBooking?.sessionId ??
@@ -919,6 +925,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 weightKg: matchedSession?.weightKg ?? matchedBooking?.weightKg ?? _currentChild.weightKg,
                 heightCm: matchedSession?.heightCm ?? matchedBooking?.heightCm ?? _currentChild.heightCm,
                 sessionId: effectiveSessionId,
+                booking: matchedBooking,
                 hasActiveSession: isCurrentlyActive,
               );
             }
@@ -933,47 +940,18 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
   bool _isBookingActiveNow(BookingConsultationModel booking) {
-    if (booking.status == 'Selesai' || booking.status == 'Dibatalkan' || booking.isExpired) {
+    if (booking.status == 'Selesai' ||
+        booking.status == 'Dibatalkan' ||
+        booking.isExpired) {
+      return false;
+    }
+    if (booking.isBeforeStart) {
       return false;
     }
     if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
       return true;
     }
-    if (booking.isInTimeWindow) {
-      return true;
-    }
-    final now = DateTime.now();
-    final isSameDate = now.year == booking.scheduledDate.year &&
-        now.month == booking.scheduledDate.month &&
-        now.day == booking.scheduledDate.day;
-
-    if (!isSameDate) return false;
-
-    try {
-      final slot = booking.scheduledTimeSlot.replaceAll('WIB', '').trim();
-      final parts = slot.split('-');
-      if (parts.isNotEmpty) {
-        final startTokens = parts[0].trim().split(':');
-        final startHour = int.parse(startTokens[0].trim());
-        final startMinute = int.parse(startTokens[1].trim());
-        final startDt =
-            DateTime(now.year, now.month, now.day, startHour, startMinute);
-
-        DateTime endDt = startDt.add(const Duration(minutes: 30));
-        if (parts.length > 1) {
-          final endTokens = parts[1].trim().split(':');
-          final endHour = int.parse(endTokens[0].trim());
-          final endMinute = int.parse(endTokens[1].trim());
-          endDt = DateTime(now.year, now.month, now.day, endHour, endMinute);
-        }
-
-        return (now.isAfter(startDt.subtract(const Duration(minutes: 5))) ||
-                now.isAtSameMomentAs(startDt)) &&
-            now.isBefore(endDt);
-      }
-    } catch (_) {}
-
-    return isSameDate;
+    return booking.isInTimeWindow;
   }
 
   /// Kartu info jadwal konsultasi yang disematkan di atas ruang obrolan (tanpa tombol Masuk Ruang Chat)

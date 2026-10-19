@@ -132,6 +132,9 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         booking.isExpired) {
       return false;
     }
+    if (booking.isBeforeStart) {
+      return false;
+    }
     if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
       return true;
     }

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,6 +9,7 @@ import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../models/booking_consultation_model.dart';
 import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -40,6 +41,9 @@ class ChatKonsultasiDokterPage extends StatefulWidget {
   // ID sesi konsultasi aktif di Firestore
   final String? sessionId;
 
+  /// Data booking konsultasi jika ada
+  final BookingConsultationModel? booking;
+
   /// Apakah halaman ini disematkan di dalam Tab Ruang Obrolan Detail Anak
   final bool isEmbedded;
 
@@ -58,6 +62,7 @@ class ChatKonsultasiDokterPage extends StatefulWidget {
     this.heightCm,
     this.hasActiveSession = true,
     this.sessionId,
+    this.booking,
     this.isEmbedded = false,
     this.topCard,
   });
@@ -93,12 +98,16 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   late String _effectiveParentName;
   late String _effectiveDoctorName;
 
+  double? _liveWeightKg;
+  double? _liveHeightCm;
+  String? _liveComplaint;
+
   late List<Map<String, dynamic>> _messages;
 
   // Stream Firestore – aktif jika sessionId tersedia
   Stream<List<ChatMessageModel>>? _messageStream;
 
-  // Listener status sesi (untuk deteksi pengakhiran dari pihak pengguna)
+  // Listener status sesi (untuk deteksi pengakhiran dari pihak pengguna dan sinkronisasi data)
   StreamSubscription<dynamic>? _sessionSub;
   // Flag: true jika kita sendiri yang mengakhiri (hindari reaksi ganda)
   bool _sessionEndedByUs = false;
@@ -115,11 +124,29 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         widget.sessionId!,
       );
 
-      // Dengarkan perubahan status sesi agar tahu jika PENGGUNA mengakhiri
+      // Dengarkan perubahan status & data sesi dari Firestore
       _sessionSub = KonsultasiService.instance
           .streamSesi(widget.sessionId!)
           .listen((sesi) {
         if (!mounted) return;
+        if (sesi != null) {
+          bool updated = false;
+          if (sesi.weightKg != null && sesi.weightKg! > 0 && _liveWeightKg != sesi.weightKg) {
+            _liveWeightKg = sesi.weightKg;
+            updated = true;
+          }
+          if (sesi.heightCm != null && sesi.heightCm! > 0 && _liveHeightCm != sesi.heightCm) {
+            _liveHeightCm = sesi.heightCm;
+            updated = true;
+          }
+          if (sesi.keluhanAwal != null && sesi.keluhanAwal!.trim().isNotEmpty && _liveComplaint != sesi.keluhanAwal!.trim()) {
+            _liveComplaint = sesi.keluhanAwal!.trim();
+            updated = true;
+          }
+          if (updated) {
+            setState(() {});
+          }
+        }
         if (_sessionEndedByUs) return; // kita yang mengakhiri, abaikan
         if (sesi != null && sesi.isSelesai) {
           // Pengguna mengakhiri konsultasi → dokter langsung ke buat resume
@@ -152,6 +179,15 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         });
       }
     }
+    if (widget.weightKg != null && widget.weightKg != oldWidget.weightKg) {
+      _liveWeightKg = widget.weightKg;
+    }
+    if (widget.heightCm != null && widget.heightCm != oldWidget.heightCm) {
+      _liveHeightCm = widget.heightCm;
+    }
+    if (widget.complaint != null && widget.complaint != oldWidget.complaint) {
+      _liveComplaint = widget.complaint;
+    }
   }
 
   void _resolveData() {
@@ -177,6 +213,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         widget.doctorName ??
         widget.doctor?.name ??
         'dr. Spesialis Anak';
+
+    _liveWeightKg = widget.weightKg ?? widget.booking?.weightKg ?? widget.child?.weightKg;
+    _liveHeightCm = widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
+    _liveComplaint = widget.complaint ?? widget.booking?.complaint;
   }
 
   void _initMessages() {
@@ -205,10 +245,11 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           parentUser: widget.parentUser,
           parentName: _effectiveParentName,
           doctorName: _effectiveDoctorName,
-          complaint: widget.complaint,
-          weightKg: widget.weightKg,
-          heightCm: widget.heightCm,
+          complaint: _liveComplaint ?? widget.complaint ?? widget.booking?.complaint,
+          weightKg: _liveWeightKg ?? widget.weightKg ?? widget.booking?.weightKg,
+          heightCm: _liveHeightCm ?? widget.heightCm ?? widget.booking?.heightCm,
           sessionId: widget.sessionId,
+          booking: widget.booking,
         ),
       ),
     );
@@ -451,7 +492,27 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   }
 
   // Modal Rincian Formulir Keluhan Pasien persis seperti POV Pengguna
-  void _showFormulirDetailDialog() {
+  void _showFormulirDetailDialog([String? customComplaint]) {
+    final effectiveWeight = _liveWeightKg ?? widget.weightKg ?? widget.booking?.weightKg ?? widget.child?.weightKg;
+    final String weightStr = (effectiveWeight != null && effectiveWeight > 0)
+        ? (effectiveWeight % 1 == 0 ? '${effectiveWeight.toInt()} kg' : '$effectiveWeight kg')
+        : '-';
+
+    final effectiveHeight = _liveHeightCm ?? widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
+    final String heightStr = (effectiveHeight != null && effectiveHeight > 0)
+        ? (effectiveHeight % 1 == 0 ? '${effectiveHeight.toInt()} cm' : '$effectiveHeight cm')
+        : '-';
+
+    final effectiveComp = (customComplaint != null && customComplaint.trim().isNotEmpty)
+        ? customComplaint.trim()
+        : ((_liveComplaint != null && _liveComplaint!.trim().isNotEmpty)
+            ? _liveComplaint!.trim()
+            : ((widget.complaint != null && widget.complaint!.trim().isNotEmpty)
+                ? widget.complaint!.trim()
+                : (widget.booking?.complaint?.trim().isNotEmpty == true
+                    ? widget.booking!.complaint!.trim()
+                    : '-')));
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -551,11 +612,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   Expanded(
                     child: _buildDetailItem(
                       label: 'Berat Badan',
-                      value: widget.weightKg != null
-                          ? '${widget.weightKg} kg'
-                          : (widget.child?.birthWeightKg != null
-                                ? '${widget.child!.birthWeightKg} kg'
-                                : '3.2 kg'),
+                      value: weightStr,
                       icon: Icons.scale_rounded,
                     ),
                   ),
@@ -563,11 +620,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   Expanded(
                     child: _buildDetailItem(
                       label: 'Tinggi Badan',
-                      value: widget.heightCm != null
-                          ? '${widget.heightCm} cm'
-                          : (widget.child?.birthHeightCm != null
-                                ? '${widget.child!.birthHeightCm} cm'
-                                : '50 cm'),
+                      value: heightStr,
                       icon: Icons.straighten_rounded,
                     ),
                   ),
@@ -594,9 +647,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   border: Border.all(color: colorBorder),
                 ),
                 child: Text(
-                  widget.complaint?.trim().isNotEmpty == true
-                      ? widget.complaint!.trim()
-                      : 'Si kecil mengalami demam hangat sejak 2 hari terakhir, agak rewel dan nafsu makan berkurang.',
+                  effectiveComp,
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
                     color: colorTextPrimary,
@@ -1179,7 +1230,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: _showFormulirDetailDialog,
+            onTap: () => _showFormulirDetailDialog(item['message'] as String?),
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 10, 12, 8),
               decoration: BoxDecoration(
@@ -1369,8 +1420,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   }
 
   Widget _buildImageBubble(Map<String, dynamic> item, bool isDoctor) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final imageUrl = item['imageUrl'] as String?;
     final filePath = item['filePath'] as String?;
+    final isRead = item['isRead'] as bool? ?? false;
 
     // Tidak ada sumber gambar sama sekali — jangan render
     final bool isBase64Image =
@@ -1384,34 +1437,135 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       return const SizedBox.shrink();
     }
 
+    // Widget gambar yang digunakan di kedua sisi
+    Widget imageWidget = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: isBase64Image
+          ? StorageService.buildImageWidget(
+              imageUrl,
+              width: 220,
+              height: 165,
+              fit: BoxFit.cover,
+            )
+          : isNetworkImage
+          ? Image.network(
+              imageUrl,
+              width: 220,
+              height: 165,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
+            )
+          : Image.file(
+              File(filePath!),
+              width: 220,
+              height: 165,
+              fit: BoxFit.cover,
+            ),
+    );
+
+    // ── Bubble DOKTER: Biru, kanan, centang putih ──────────────────────────────
+    if (isDoctor) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: screenWidth * 0.74),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 7),
+              decoration: BoxDecoration(
+                color: colorPrimaryBlue,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  imageWidget,
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item['timestamp'] ?? '',
+                        style: GoogleFonts.lato(
+                          fontSize: 10.5,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.done_all,
+                        size: 14,
+                        // Biru terang jika sudah dibaca, putih jika belum
+                        color: isRead
+                            ? const Color(0xFF93C5FD)
+                            : Colors.white,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ── Bubble ORANG TUA: Putih, kiri, dengan avatar ───────────────────────────
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Align(
-        alignment: isDoctor ? Alignment.centerRight : Alignment.centerLeft,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: isBase64Image
-              ? StorageService.buildImageWidget(
-                  imageUrl,
-                  width: 200,
-                  height: 150,
-                  fit: BoxFit.cover,
-                )
-              : isNetworkImage
-              ? Image.network(
-                  imageUrl,
-                  width: 200,
-                  height: 150,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox.shrink(),
-                )
-              : Image.file(
-                  File(filePath!),
-                  width: 200,
-                  height: 150,
-                  fit: BoxFit.cover,
-                ),
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 17,
+            backgroundColor: const Color(0xFFE9EDEF),
+            child: const Icon(Icons.person, size: 20, color: Color(0xFF667781)),
+          ),
+          const SizedBox(width: 8),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: screenWidth * 0.72),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 7),
+              decoration: BoxDecoration(
+                color: colorWhite,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colorBorder, width: 1.0),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x06000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  imageWidget,
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item['timestamp'] ?? '',
+                        style: GoogleFonts.lato(
+                          fontSize: 10.5,
+                          color: colorTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

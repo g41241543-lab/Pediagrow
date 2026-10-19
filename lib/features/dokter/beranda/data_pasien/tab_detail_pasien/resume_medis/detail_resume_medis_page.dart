@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../../core/services/resume_medis_service.dart';
@@ -308,13 +308,13 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
 
     final bbVal = _resume.bbSaatIni > 0
         ? _formatNum(_resume.bbSaatIni)
-        : (widget.child?.birthWeightKg != null
-            ? _formatNum(widget.child!.birthWeightKg!)
+        : (widget.child?.weightKg != null
+            ? _formatNum(widget.child!.weightKg!)
             : '-');
     final tbVal = _resume.tbSaatIni > 0
         ? _formatNum(_resume.tbSaatIni)
-        : (widget.child?.birthHeightCm != null
-            ? _formatNum(widget.child!.birthHeightCm!)
+        : (widget.child?.heightCm != null
+            ? _formatNum(widget.child!.heightCm!)
             : '-');
 
     return Scaffold(

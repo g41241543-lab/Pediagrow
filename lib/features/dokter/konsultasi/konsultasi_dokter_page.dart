@@ -143,49 +143,19 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         booking.isExpired) {
       return false;
     }
+    if (booking.isBeforeStart) {
+      return false;
+    }
     if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
       return true;
     }
-    if (booking.isInTimeWindow) {
-      return true;
-    }
-    final now = DateTime.now();
-    final isSameDate = now.year == booking.scheduledDate.year &&
-        now.month == booking.scheduledDate.month &&
-        now.day == booking.scheduledDate.day;
-
-    if (!isSameDate) return false;
-
-    try {
-      final slot = booking.scheduledTimeSlot.replaceAll('WIB', '').trim();
-      final parts = slot.split('-');
-      if (parts.isNotEmpty) {
-        final startTokens = parts[0].trim().split(':');
-        final startHour = int.parse(startTokens[0].trim());
-        final startMinute = int.parse(startTokens[1].trim());
-        final startDt =
-            DateTime(now.year, now.month, now.day, startHour, startMinute);
-
-        DateTime endDt = startDt.add(const Duration(minutes: 30));
-        if (parts.length > 1) {
-          final endTokens = parts[1].trim().split(':');
-          final endHour = int.parse(endTokens[0].trim());
-          final endMinute = int.parse(endTokens[1].trim());
-          endDt = DateTime(now.year, now.month, now.day, endHour, endMinute);
-        }
-
-        return (now.isAfter(startDt.subtract(const Duration(minutes: 5))) ||
-                now.isAtSameMomentAs(startDt)) &&
-            now.isBefore(endDt);
-      }
-    } catch (_) {}
-
-    return isSameDate;
+    return booking.isInTimeWindow;
   }
 
   /// Masuk langsung ke halaman ruang obrolan data pasien anak tersebut
   void _openChatRoom(_KonsultasiItem item) {
-    if (item.sessionId != null && item.sessionId!.isNotEmpty) {
+    final isBefore = item.booking?.isBeforeStart ?? false;
+    if (item.sessionId != null && item.sessionId!.isNotEmpty && !isBefore) {
       KonsultasiService.instance.mulaiSesi(item.sessionId!);
     }
 
@@ -220,7 +190,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
   /// Masuk ke halaman ruang obrolan data pasien dari objek booking
   void _openChatRoomFromBooking(BookingConsultationModel booking) {
     final effSessionId = booking.sessionId ?? 'session_${booking.id}';
-    KonsultasiService.instance.mulaiSesi(effSessionId);
+    if (!booking.isBeforeStart) {
+      KonsultasiService.instance.mulaiSesi(effSessionId);
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => DetailAnakPage(

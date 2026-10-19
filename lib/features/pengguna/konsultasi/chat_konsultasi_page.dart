@@ -994,7 +994,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         createdAt: now,
       );
 
-      await ResumeMedisService().addResumeMedis(resume);
+      await ResumeMedisService().saveOrUpdateResumeMedis(resume);
 
       // Tandai sesi sebagai selesai di Firestore (koleksi konsultasi_sessions)
       final effSession = _effectiveSessionId;
@@ -1576,7 +1576,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           }
 
           if (type == 'user_attachment') {
-            return _buildUserAttachmentBubble(item, isDark);
+            return _buildUserAttachmentBubble(item, isDark, isUserSender: isUser);
           }
 
           if (isUser) {
@@ -1674,8 +1674,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  // Bubble Lampiran Pengguna (Kanan, Soft Blue, Dukungan Foto & Dokumen File Manager)
-  Widget _buildUserAttachmentBubble(Map<String, dynamic> item, bool isDark) {
+  // Bubble Lampiran Gambar (Kanan jika user, Kiri jika dokter)
+  Widget _buildUserAttachmentBubble(
+    Map<String, dynamic> item,
+    bool isDark, {
+    bool isUserSender = true,
+  }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final imageUrl = item['imageUrl'] as String?;
     final filePath = item['filePath'] as String?;
@@ -1694,111 +1698,152 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         File(filePath).existsSync();
     final bool hasImage = isBase64Image || isNetworkImage || isLocalImage;
 
+    // Widget konten bubble gambar (dipakai untuk kedua sisi)
+    Widget bubbleContent = Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      decoration: BoxDecoration(
+        color: isUserSender
+            ? (isDark
+                ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                : colorSoftBlue)
+            : (isDark ? const Color(0xFF1A2228) : colorWhite),
+        borderRadius: BorderRadius.circular(16),
+        border: isUserSender
+            ? (isDark
+                ? Border.all(
+                    color: const Color(0xFF1E40AF).withValues(alpha: 0.5))
+                : null)
+            : Border.all(
+                color: isDark ? const Color(0xFF2C363D) : colorBorder,
+                width: 1.0,
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+            isUserSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasImage) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: isBase64Image
+                  ? StorageService.buildImageWidget(
+                      imageUrl,
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    )
+                  : isNetworkImage
+                  ? Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox.shrink(),
+                    )
+                  : Image.file(
+                      File(filePath!),
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasImage
+                    ? Icons.image_outlined
+                    : Icons.insert_drive_file_outlined,
+                size: 20,
+                color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  fileName.isNotEmpty ? fileName : 'Gambar',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                item['timestamp'] ?? '',
+                style: GoogleFonts.lato(
+                  fontSize: 11,
+                  color: isDark
+                      ? const Color(0xFF8696A0)
+                      : colorTextSecondary,
+                ),
+              ),
+              if (isUserSender) ...[
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.done_all,
+                  size: 15,
+                  color: colorPrimaryBlue,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+
+    // --- Dokter mengirim gambar: tampil di KIRI dengan avatar ---
+    if (!isUserSender) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 17,
+              backgroundColor:
+                  isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
+              child: ClipOval(
+                child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: screenWidth * 0.72),
+              child: bubbleContent,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // --- Pengguna mengirim gambar: tampil di KANAN ---
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Align(
         alignment: Alignment.centerRight,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: screenWidth * 0.76),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
-                  : colorSoftBlue,
-              borderRadius: BorderRadius.circular(16),
-              border: isDark
-                  ? Border.all(color: const Color(0xFF1E40AF).withValues(alpha: 0.5))
-                  : null,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Tampilkan gambar jika tersedia
-                if (hasImage) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: isBase64Image
-                        ? StorageService.buildImageWidget(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                          )
-                        : isNetworkImage
-                        ? Image.network(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) =>
-                                    const SizedBox.shrink(),
-                          )
-                        : Image.file(
-                            File(filePath!),
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      hasImage
-                          ? Icons.image_outlined
-                          : Icons.insert_drive_file_outlined,
-                      size: 20,
-                      color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        fileName.isNotEmpty ? fileName : 'Gambar',
-                        style: GoogleFonts.lato(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item['timestamp'] ?? '',
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.done_all,
-                      size: 15,
-                      color: colorPrimaryBlue,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          child: bubbleContent,
         ),
       ),
     );

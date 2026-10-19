@@ -492,12 +492,15 @@ class BookingService {
     final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
     final idx = list.indexWhere((b) => b.id == bookingId);
     if (idx != -1) {
-      final updated = list[idx].copyWith(
+      final current = list[idx];
+      // Hanya jadikan 'Sedang Berlangsung' jika waktu sesi sudah masuk jendela konsultasi
+      final targetStatus = current.isInTimeWindow ? 'Sedang Berlangsung' : 'Siap Konsultasi';
+      final updated = current.copyWith(
         weightKg: weightKg,
         heightCm: heightCm,
         complaint: complaint,
-        sessionId: sessionId ?? list[idx].sessionId,
-        status: 'Sedang Berlangsung',
+        sessionId: sessionId ?? current.sessionId,
+        status: targetStatus,
       );
       list[idx] = updated;
       bookingsNotifier.value = list;
@@ -508,11 +511,16 @@ class BookingService {
     }
 
     // Update di Cloud Firestore
+    final currentBooking = list.where((b) => b.id == bookingId).firstOrNull;
+    final targetStatus = (currentBooking != null && currentBooking.isInTimeWindow)
+        ? 'Sedang Berlangsung'
+        : 'Siap Konsultasi';
+
     final updateData = <String, dynamic>{
       'weightKg': weightKg,
       'heightCm': heightCm,
       'complaint': complaint,
-      'status': 'Sedang Berlangsung',
+      'status': targetStatus,
     };
     if (sessionId != null && sessionId.isNotEmpty) {
       updateData['sessionId'] = sessionId;
