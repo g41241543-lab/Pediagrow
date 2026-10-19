@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -101,13 +101,13 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
   }
 
   void _refreshSlots() {
-    final slots = JadwalDokterService().hitungSlotKosong(
+    final slots = JadwalDokterService().hitungSemuaSlot(
       dokterId: _doctor.id,
       tanggal: _selectedDate,
     );
     _availableSlots = slots;
 
-    // Sinkronkan slot terpilih
+    // Sinkronkan slot terpilih — prioritaskan slot yang masih tersedia
     if (_selectedTimeSlot != null) {
       final exists = slots.any((s) => s.timeLabel == _selectedTimeSlot && s.isAvailable);
       if (!exists) {
@@ -832,6 +832,12 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   ),
                 );
               } else {
+                final slotsKosong = JadwalDokterService().hitungSlotKosong(
+                  dokterId: _doctor.id,
+                  tanggal: date,
+                );
+                final isPenuh = slotsKosong.isEmpty;
+
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 2),
                   padding: const EdgeInsets.symmetric(
@@ -841,17 +847,21 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFD1FAE5)),
+                        : isPenuh
+                            ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9))
+                            : (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFD1FAE5)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Praktik',
+                    isPenuh ? 'Penuh' : 'Praktik',
                     style: GoogleFonts.lato(
                       fontSize: 8.5,
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? const Color(0xFF34D399) : const Color(0xFF059669)),
+                          : isPenuh
+                              ? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
+                              : (isDark ? const Color(0xFF34D399) : const Color(0xFF059669)),
                     ),
                   ),
                 );

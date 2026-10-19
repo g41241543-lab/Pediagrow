@@ -1,10 +1,11 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import 'booking_konsultasi_page.dart';
@@ -575,31 +576,39 @@ class ProfilDokterPage extends StatelessWidget {
       animation: Listenable.merge([
         JadwalDokterService().jadwalListNotifier,
         JadwalDokterService().cutiListNotifier,
+        BookingService().bookingsNotifier,
       ]),
       builder: (context, _) {
         final badge = JadwalDokterService().getDoctorBadge(doctor.id);
         final cutis = JadwalDokterService().getCutiDokter(doctor.id);
         final jadwalMingguan = JadwalDokterService().getJadwalDokter(doctor.id);
 
-        // Cek cuti yang sedang aktif hari ini atau akan datang
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
         final activeCuti = cutis.where((c) => !c.tanggalSelesai.isBefore(today)).toList();
 
+        // Kelompokkan jadwal per hari
+        final Map<int, List<JadwalPraktikModel>> perHari = {};
+        for (int d = 1; d <= 7; d++) {
+          perHari[d] = jadwalMingguan.where((j) => j.hari == d && j.aktif).toList();
+        }
+
+        // Hari kerja aktif saat ini (weekday 1-7 → Senin-Minggu)
+        final todayWeekday = now.weekday;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ---- Header section ----
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    'Jadwal Praktik Dokter',
-                    style: GoogleFonts.lato(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
-                    ),
+                Text(
+                  'Jadwal Praktik',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   ),
                 ),
                 _buildAvailabilityBadge(badge, isDark),
@@ -607,14 +616,16 @@ class ProfilDokterPage extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Peringatan Cuti jika ada
-            if (activeCuti.isNotEmpty) ...[
-              for (final c in activeCuti) ...[
+            // ---- Banner Cuti aktif ----
+            if (activeCuti.isNotEmpty)
+              for (final c in activeCuti)
                 Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF451A03).withValues(alpha: 0.4) : const Color(0xFFFFFBEB),
+                    color: isDark
+                        ? const Color(0xFF451A03).withValues(alpha: 0.35)
+                        : const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A),
@@ -622,19 +633,12 @@ class ProfilDokterPage extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.beach_access_rounded,
-                          color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-                          size: 20,
-                        ),
+                      Icon(
+                        Icons.beach_access_rounded,
+                        color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                        size: 18,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -642,17 +646,21 @@ class ProfilDokterPage extends StatelessWidget {
                             Text(
                               'Dokter Sedang Cuti / Berhalangan',
                               style: GoogleFonts.lato(
-                                fontSize: 13,
+                                fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                                color: isDark
+                                    ? const Color(0xFFFDE68A)
+                                    : const Color(0xFF92400E),
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               '${c.formattedRentangTanggal} • ${c.alasan}',
                               style: GoogleFonts.lato(
-                                fontSize: 12,
-                                color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
+                                fontSize: 11.5,
+                                color: isDark
+                                    ? const Color(0xFFFCD34D)
+                                    : const Color(0xFFB45309),
                               ),
                             ),
                           ],
@@ -661,129 +669,311 @@ class ProfilDokterPage extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ],
 
-            // Kartu Jadwal Mingguan
+            // ---- Kartu Jadwal Mingguan — 2 kolom grid ----
             Container(
               width: double.infinity,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2228) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+                  color: isDark
+                      ? const Color(0xFF2C363D)
+                      : const Color(0xFFBFDBFE),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
+                    color: const Color(0xFF3985E7)
+                        .withValues(alpha: isDark ? 0.03 : 0.07),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
                 ],
               ),
               child: Column(
-                children: List.generate(7, (idx) {
-                  final day = idx + 1; // 1: Senin .. 7: Minggu
-                  final namaHari = JadwalPraktikModel.getNamaHari(day);
-                  final sessions = jadwalMingguan
-                      .where((j) => j.hari == day && j.aktif)
-                      .toList();
-                  final isLast = idx == 6;
-                  final isPraktik = sessions.isNotEmpty;
-
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 12.0,
+                children: [
+                  // Baris atas: Sen - Rab
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [1, 2, 3].map((day) {
+                      return Expanded(
+                        child: _buildHariCell(
+                          day: day,
+                          sessions: perHari[day] ?? [],
+                          isToday: day == todayWeekday,
+                          isDark: isDark,
+                          isLast: day == 3,
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isPraktik
-                                    ? const Color(0xFF10B981)
-                                    : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 65,
-                              child: Text(
-                                namaHari,
-                                style: GoogleFonts.lato(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: isPraktik
-                                      ? (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228))
-                                      : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: isPraktik
-                                  ? Wrap(
-                                      spacing: 6,
-                                      runSpacing: 4,
-                                      children: sessions.map((s) {
-                                        return Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                            border: Border.all(
-                                              color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFBFDBFE),
-                                              width: 0.8,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${s.jamMulai} - ${s.jamSelesai} WIB',
-                                            style: GoogleFonts.lato(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    )
-                                  : Text(
-                                      'Libur / Tidak Praktik',
-                                      style: GoogleFonts.lato(
-                                        fontSize: 12.5,
-                                        fontStyle: FontStyle.italic,
-                                        color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
-                                      ),
-                                    ),
-                            ),
-                          ],
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 2),
+                  Divider(
+                    height: 16,
+                    thickness: 0.8,
+                    color: isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFE9EDEF),
+                  ),
+                  // Baris bawah: Kam - Sab
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [4, 5, 6].map((day) {
+                      return Expanded(
+                        child: _buildHariCell(
+                          day: day,
+                          sessions: perHari[day] ?? [],
+                          isToday: day == todayWeekday,
+                          isDark: isDark,
+                          isLast: day == 6,
                         ),
-                      ),
-                      if (!isLast)
-                        Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
-                        ),
-                    ],
-                  );
-                }),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 2),
+                  Divider(
+                    height: 16,
+                    thickness: 0.8,
+                    color: isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFE9EDEF),
+                  ),
+                  // Baris Minggu full-width
+                  _buildHariCellFull(
+                    day: 7,
+                    sessions: perHari[7] ?? [],
+                    isToday: 7 == todayWeekday,
+                    isDark: isDark,
+                  ),
+                ],
               ),
             ),
           ],
         );
       },
+    );
+  }
+
+  /// Cell jadwal per hari dalam grid 3-kolom
+  Widget _buildHariCell({
+    required int day,
+    required List<JadwalPraktikModel> sessions,
+    required bool isToday,
+    required bool isDark,
+    required bool isLast,
+  }) {
+    final namaHari = JadwalPraktikModel.getNamaHari(day);
+    final short = namaHari.length > 3 ? namaHari.substring(0, 3) : namaHari;
+    final hasSesi = sessions.isNotEmpty;
+
+    // Warna aksen hari ini
+    final Color dayLabelColor = isToday
+        ? const Color(0xFF3985E7)
+        : hasSesi
+            ? (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228))
+            : (isDark ? const Color(0xFF4B5563) : const Color(0xFFADB5BD));
+
+    return Padding(
+      padding: EdgeInsets.only(right: isLast ? 0 : 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label hari + dot status
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: hasSesi
+                      ? const Color(0xFF10B981)
+                      : (isDark
+                          ? const Color(0xFF374151)
+                          : const Color(0xFFD1D5DB)),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                short,
+                style: GoogleFonts.lato(
+                  fontSize: 12,
+                  fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
+                  color: dayLabelColor,
+                ),
+              ),
+              if (isToday) ...[
+                const SizedBox(width: 3),
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF3985E7),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Pill waktu atau label libur
+          if (!hasSesi)
+            Text(
+              'Libur',
+              style: GoogleFonts.lato(
+                fontSize: 10.5,
+                fontStyle: FontStyle.italic,
+                color: isDark
+                    ? const Color(0xFF4B5563)
+                    : const Color(0xFFADB5BD),
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: sessions.map((s) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0F2744)
+                          : const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF1E3A8A)
+                            : const Color(0xFFBFDBFE),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${s.jamMulai}–${s.jamSelesai}',
+                        style: GoogleFonts.lato(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? const Color(0xFF93C5FD)
+                              : const Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Cell jadwal full-width khusus hari Minggu
+  Widget _buildHariCellFull({
+    required int day,
+    required List<JadwalPraktikModel> sessions,
+    required bool isToday,
+    required bool isDark,
+  }) {
+    final namaHari = JadwalPraktikModel.getNamaHari(day);
+    final hasSesi = sessions.isNotEmpty;
+
+    final Color dayLabelColor = isToday
+        ? const Color(0xFF3985E7)
+        : hasSesi
+            ? (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228))
+            : (isDark ? const Color(0xFF4B5563) : const Color(0xFFADB5BD));
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: hasSesi
+                    ? const Color(0xFF10B981)
+                    : (isDark
+                        ? const Color(0xFF374151)
+                        : const Color(0xFFD1D5DB)),
+              ),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              namaHari,
+              style: GoogleFonts.lato(
+                fontSize: 12,
+                fontWeight: isToday ? FontWeight.w800 : FontWeight.w700,
+                color: dayLabelColor,
+              ),
+            ),
+            if (isToday) ...[
+              const SizedBox(width: 4),
+              Container(
+                width: 5,
+                height: 5,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF3985E7),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(width: 12),
+        if (!hasSesi)
+          Text(
+            'Libur / Tidak Praktik',
+            style: GoogleFonts.lato(
+              fontSize: 10.5,
+              fontStyle: FontStyle.italic,
+              color: isDark ? const Color(0xFF4B5563) : const Color(0xFFADB5BD),
+            ),
+          )
+        else
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: sessions.map((s) {
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF0F2744)
+                        : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF1E3A8A)
+                          : const Color(0xFFBFDBFE),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    '${s.jamMulai}–${s.jamSelesai}',
+                    style: GoogleFonts.lato(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFF93C5FD)
+                          : const Color(0xFF1D4ED8),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
     );
   }
 

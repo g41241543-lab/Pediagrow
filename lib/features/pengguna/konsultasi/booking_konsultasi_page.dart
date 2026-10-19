@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1143,6 +1143,12 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   ),
                 );
               } else {
+                final slotsKosong = JadwalDokterService().hitungSlotKosong(
+                  dokterId: widget.doctor.id,
+                  tanggal: d,
+                );
+                final isPenuh = slotsKosong.isEmpty;
+
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 4.0),
                   padding: const EdgeInsets.symmetric(
@@ -1152,17 +1158,21 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5)),
+                        : isPenuh
+                            ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9))
+                            : (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
-                    'Praktik',
+                    isPenuh ? 'Penuh' : 'Praktik',
                     style: GoogleFonts.lato(
                       fontSize: 9.0,
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669)),
+                          : isPenuh
+                              ? (isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B))
+                              : (isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669)),
                     ),
                   ),
                 );
