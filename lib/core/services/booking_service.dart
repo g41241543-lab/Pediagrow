@@ -26,7 +26,6 @@ class BookingService {
   Timer? _cleanupTimer;
 
   BookingService._internal() {
-    _initDefaultBookings();
     _initFirestoreListener();
     _startAutoCleanupTimer();
   }
@@ -229,7 +228,42 @@ class BookingService {
       } catch (_) {}
     }
 
-    // 1. Simpan ke Firestore koleksi consultation_booking TERLEBIH DAHULU
+    // 1. Validasi jadwal dokter: cuti, hari libur praktik, dan ketersediaan slot
+    final scheduledDate = booking.scheduledDate;
+    final doctorId = booking.doctor.id;
+
+    // Cek cuti dokter
+    final cuti = JadwalDokterService().getCutiPadaTanggal(doctorId, scheduledDate);
+    if (cuti != null && cuti.isSeharian) {
+      throw StateError('Dokter ${booking.doctor.name} sedang cuti pada tanggal ini (${cuti.alasan}).');
+    }
+
+    // Cek apakah dokter berpraktik pada hari tersebut
+    final jadwalDokter = JadwalDokterService().getJadwalDokter(doctorId);
+    if (jadwalDokter.any((j) => j.aktif)) {
+      final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(doctorId, scheduledDate.weekday);
+      if (!isPraktik) {
+        final namaHari = JadwalPraktikModel.getNamaHari(scheduledDate.weekday);
+        throw StateError('Dokter ${booking.doctor.name} tidak berpraktik pada hari $namaHari.');
+      }
+    }
+
+    // Cek ketersediaan slot agar tidak terjadi tabrakan / double booking
+    final currentSlots = JadwalDokterService().hitungSemuaSlot(
+      dokterId: doctorId,
+      tanggal: scheduledDate,
+    );
+    if (currentSlots.isNotEmpty) {
+      final matchingSlot = currentSlots.where(
+        (s) => s.timeLabel.contains(booking.scheduledTimeSlot) ||
+            booking.scheduledTimeSlot.contains(s.timeLabel),
+      ).firstOrNull;
+      if (matchingSlot != null && !matchingSlot.isAvailable) {
+        throw StateError('Slot jadwal ${booking.scheduledTimeSlot} sudah terisi atau tidak tersedia.');
+      }
+    }
+
+    // 2. Simpan ke Firestore koleksi consultation_booking TERLEBIH DAHULU
     try {
       await _db.collection(_collectionName).doc(modelToSave.id).set(modelToSave.toMap());
       debugPrint('[BookingService] ✓ Sukses menulis booking ${modelToSave.id} ke Firestore ($_collectionName)');
@@ -273,12 +307,14 @@ class BookingService {
   }
 
   /// Menghasilkan slot waktu yang tersedia untuk dokter pada tanggal tertentu
-  /// Dihitung dinamis dari JadwalDokterService dikurangi Cuti dan Booking
+  /// Dihitung dinamis dari JadwalDokterService dikurangi Cuti dan Booking.
+  /// Slot yang sudah terisi dikembalikan dengan isAvailable = false agar UI
+  /// dapat menampilkan badge '(Penuh)' dan mencegah pemilihan.
   List<DoctorTimeSlot> getAvailableSlotsForDoctor({
     required DoctorModel doctor,
     required DateTime date,
   }) {
-    final slots = JadwalDokterService().hitungSlotKosong(
+    final slots = JadwalDokterService().hitungSemuaSlot(
       dokterId: doctor.id,
       tanggal: date,
     );
@@ -312,28 +348,48 @@ class BookingService {
     required DoctorTimeSlot slot,
     String? userId,
   }) async {
-    // Validasi race condition: cek ketersediaan slot terkini
-    // Hanya blokir jika jadwal dokter tersedia DAN slot sudah terisi.
-    // Jika tidak ada jadwal sama sekali (currentSlots kosong), izinkan booking tetap berjalan
-    // karena dokter mungkin belum menyiapkan jadwal di Firestore.
-    final currentSlots = JadwalDokterService().hitungSlotKosong(
+    // 1. Cek Cuti dokter (seharian maupun parsial)
+    final cuti = JadwalDokterService().getCutiPadaTanggal(doctor.id, date);
+    if (cuti != null) {
+      if (cuti.isSeharian) {
+        throw StateError(
+          'Dokter ${doctor.name} sedang cuti pada tanggal ini (${cuti.alasan}). Silakan pilih tanggal lain.',
+        );
+      } else if (cuti.jamMulai != null && cuti.jamSelesai != null) {
+        final slotStartMin = (slot.startHour * 60) + slot.startMinute;
+        final slotEndMin = slotStartMin + 30;
+        final cStart = _timeToMinutes(cuti.jamMulai!) ?? 0;
+        final cEnd = _timeToMinutes(cuti.jamSelesai!) ?? (24 * 60);
+        if (slotStartMin < cEnd && slotEndMin > cStart) {
+          throw StateError(
+            'Dokter ${doctor.name} sedang berhalangan pada jam ${cuti.jamMulai} - ${cuti.jamSelesai} (${cuti.alasan}).',
+          );
+        }
+      }
+    }
+
+    // 2. Cek apakah dokter berpraktik pada hari tersebut
+    final jadwalDokter = JadwalDokterService().getJadwalDokter(doctor.id);
+    if (jadwalDokter.any((j) => j.aktif)) {
+      final isPraktik = JadwalDokterService().isDokterPraktikPadaHari(doctor.id, date.weekday);
+      if (!isPraktik) {
+        final namaHari = JadwalPraktikModel.getNamaHari(date.weekday);
+        throw StateError(
+          'Dokter ${doctor.name} tidak memiliki jadwal praktik pada hari $namaHari.',
+        );
+      }
+    }
+
+    // 3. Validasi race condition: cek ketersediaan slot terkini
+    final currentSlots = JadwalDokterService().hitungSemuaSlot(
       dokterId: doctor.id,
       tanggal: date,
     );
     if (currentSlots.isNotEmpty) {
-      // Ada jadwal dokter — cek apakah slot masih tersedia
-      final slotExists = currentSlots.any(
-        (s) => s.timeLabel == slot.time,
-      );
-      if (slotExists) {
-        final isStillAvailable = currentSlots.any(
-          (s) => s.timeLabel == slot.time && s.isAvailable,
-        );
-        if (!isStillAvailable) {
-          throw StateError('Slot sudah dipesan atau tidak tersedia, pilih jam lain');
-        }
+      final matchingSlot = currentSlots.where((s) => s.timeLabel == slot.time).firstOrNull;
+      if (matchingSlot != null && !matchingSlot.isAvailable) {
+        throw StateError('Slot waktu ${slot.time} sudah dipesan atau tidak tersedia, silakan pilih jam lain.');
       }
-      // Jika slot tidak ditemukan di jadwal (timeLabel tidak cocok), tetap izinkan
     }
 
     final startDt = DateTime(
@@ -536,9 +592,16 @@ class BookingService {
     return false;
   }
 
-  void _initDefaultBookings() {
-    bookingsNotifier.value = [];
-    activeBookingNotifier.value = null;
+  static int? _timeToMinutes(String timeStr) {
+    try {
+      final parts = timeStr.trim().split(':');
+      if (parts.length >= 2) {
+        final h = int.parse(parts[0]);
+        final m = int.parse(parts[1]);
+        return (h * 60) + m;
+      }
+    } catch (_) {}
+    return null;
   }
 }
 

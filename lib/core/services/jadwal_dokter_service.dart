@@ -87,6 +87,10 @@ class JadwalDokterService {
     final aliases = <String>{cleanId};
     final lowerClean = cleanId.toLowerCase();
 
+    // Normalisasi pemisah tanda hubung dan garis bawah (misal: doc-reny <-> doc_reny)
+    if (cleanId.contains('-')) aliases.add(cleanId.replaceAll('-', '_'));
+    if (cleanId.contains('_')) aliases.add(cleanId.replaceAll('_', '-'));
+
     // 1. Cek dari daftar dokter yang terdaftar di DoctorService
     try {
       final doctors = DoctorService().currentDoctors;
@@ -97,7 +101,14 @@ class JadwalDokterService {
             doc.name.trim().toLowerCase() == lowerClean;
         if (matches) {
           aliases.add(doc.id);
-          if (doc.staffAccountId.isNotEmpty) aliases.add(doc.staffAccountId);
+          if (doc.id.contains('-')) aliases.add(doc.id.replaceAll('-', '_'));
+          if (doc.id.contains('_')) aliases.add(doc.id.replaceAll('_', '-'));
+
+          if (doc.staffAccountId.isNotEmpty) {
+            aliases.add(doc.staffAccountId);
+            if (doc.staffAccountId.contains('-')) aliases.add(doc.staffAccountId.replaceAll('-', '_'));
+            if (doc.staffAccountId.contains('_')) aliases.add(doc.staffAccountId.replaceAll('_', '-'));
+          }
           if (doc.email != null && doc.email!.isNotEmpty) {
             aliases.add(doc.email!.trim());
             aliases.add(doc.email!.trim().toLowerCase());
@@ -114,6 +125,8 @@ class JadwalDokterService {
             staff.email.trim().toLowerCase() == lowerClean ||
             staff.name.trim().toLowerCase() == lowerClean) {
           aliases.add(staff.id);
+          if (staff.id.contains('-')) aliases.add(staff.id.replaceAll('-', '_'));
+          if (staff.id.contains('_')) aliases.add(staff.id.replaceAll('_', '-'));
           aliases.add(staff.email.trim());
           aliases.add(staff.email.trim().toLowerCase());
         }
@@ -227,8 +240,26 @@ class JadwalDokterService {
     required String rolePelaku, // 'superadmin' atau 'dokter'
   }) async {
     final db = _db;
+    final aliases = getDoctorIdAliases(dokterId);
+    final newIds = jadwalList.map((j) => j.id).toSet();
+
     if (db != null) {
       final batch = db.batch();
+
+      // 1. Bersihkan dokumen jadwal lama milik dokter ini di Firestore yang sudah dihapus
+      try {
+        final existingSnap = await db.collection(_colJadwal).get();
+        for (final doc in existingSnap.docs) {
+          final docDokterId = doc.data()['dokterId']?.toString() ?? '';
+          if (aliases.contains(docDokterId) && !newIds.contains(doc.id)) {
+            batch.delete(doc.reference);
+          }
+        }
+      } catch (e) {
+        debugPrint('[JadwalDokterService] Error cleaning old schedule docs: $e');
+      }
+
+      // 2. Tulis/perbarui semua jadwal terbaru
       for (final j in jadwalList) {
         final ref = db.collection(_colJadwal).doc(j.id);
         batch.set(ref, j.toMap(), SetOptions(merge: true));
@@ -236,12 +267,35 @@ class JadwalDokterService {
       await batch.commit();
     }
 
-    // Update in-memory: hapus semua jadwal dengan dokterId atau aliases-nya
-    final aliases = getDoctorIdAliases(dokterId);
+    // 3. Update in-memory: hapus semua jadwal dengan dokterId atau aliases-nya
     final current = List<JadwalPraktikModel>.from(jadwalListNotifier.value)
       ..removeWhere((j) => aliases.contains(j.dokterId))
       ..addAll(jadwalList);
     jadwalListNotifier.value = current;
+
+    // 4. Deteksi dan batalkan booking pasien di masa depan yang terdampak oleh sesi yang dinonaktifkan/dihapus
+    try {
+      final affectedBookings = cariBookingTerdampakPerubahanJadwal(
+        dokterId: dokterId,
+        jadwalBaru: jadwalList,
+      );
+
+      for (final b in affectedBookings) {
+        BookingService().updateBookingStatus(b.id, 'Dibatalkan');
+        NotificationService().addNotification(
+          NotificationItem(
+            id: 'cancel_sched_${b.id}_${DateTime.now().millisecondsSinceEpoch}',
+            title: 'Penyesuaian Jadwal Praktik Dokter',
+            message:
+                'Jadwal konsultasi bersama ${b.doctor.name} pada ${b.formattedDate} (${b.scheduledTimeSlot}) dibatalkan karena penyesuaian jam kerja dokter. Silakan jadwalkan ulang.',
+            date: DateTime.now(),
+            type: NotificationType.consultation,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[JadwalDokterService] Error updating affected bookings: $e');
+    }
 
     // Jika Superadmin yang mengubah jadwal dokter, kirim notifikasi ke dokter
     if (rolePelaku.toLowerCase() == 'superadmin') {
@@ -256,6 +310,62 @@ class JadwalDokterService {
         ),
       );
     }
+  }
+
+  /// Mencari booking masa depan yang terdampak akibat dokter menghapus sesi atau menonaktifkan hari praktik
+  List<BookingConsultationModel> cariBookingTerdampakPerubahanJadwal({
+    required String dokterId,
+    required List<JadwalPraktikModel> jadwalBaru,
+  }) {
+    final now = DateTime.now();
+    final allBookings = BookingService().bookings;
+    final aliases = getDoctorIdAliases(dokterId);
+    final affected = <BookingConsultationModel>[];
+
+    final upcoming = allBookings.where((b) {
+      if (!aliases.contains(b.doctor.id)) return false;
+      if (b.status.toLowerCase() == 'dibatalkan') return false;
+      return b.scheduledStartDateTime.isAfter(now);
+    });
+
+    for (final b in upcoming) {
+      final weekday = b.bookingDate.weekday;
+      final activeSessionsOnDay = jadwalBaru
+          .where((j) => j.hari == weekday && j.aktif)
+          .toList();
+
+      if (activeSessionsOnDay.isEmpty) {
+        // Hari praktik dinonaktifkan
+        affected.add(b);
+        continue;
+      }
+
+      // Cek apakah jam booking masih berada di dalam salah satu sesi aktif
+      final bStartMin = _timeToMinutes(
+        '${b.scheduledStartDateTime.hour.toString().padLeft(2, '0')}:${b.scheduledStartDateTime.minute.toString().padLeft(2, '0')}',
+      );
+      final bEndMin = _timeToMinutes(
+        '${b.scheduledEndDateTime.hour.toString().padLeft(2, '0')}:${b.scheduledEndDateTime.minute.toString().padLeft(2, '0')}',
+      );
+
+      if (bStartMin == null || bEndMin == null) continue;
+
+      bool stillCovered = false;
+      for (final s in activeSessionsOnDay) {
+        final sStart = _timeToMinutes(s.jamMulai) ?? 0;
+        final sEnd = _timeToMinutes(s.jamSelesai) ?? (24 * 60);
+        if (bStartMin >= sStart && bEndMin <= sEnd) {
+          stillCovered = true;
+          break;
+        }
+      }
+
+      if (!stillCovered) {
+        affected.add(b);
+      }
+    }
+
+    return affected;
   }
 
   // ---------------------------------------------------------------------------
@@ -508,6 +618,117 @@ class JadwalDokterService {
             startDateTime: slotStartDt,
             endDateTime: slotEndDt,
             isAvailable: true,
+          ),
+        );
+      }
+    }
+
+    return allSlots;
+  }
+
+  /// Menghitung SEMUA slot waktu dokter pada tanggal tertentu beserta status ketersediaannya.
+  ///
+  /// Berbeda dengan [hitungSlotKosong], method ini mengembalikan seluruh slot dari jadwal
+  /// termasuk slot yang sudah terbooked (isAvailable = false). Cocok dipakai UI booking
+  /// agar pengguna bisa melihat gambaran penuh slot mana yang masih kosong vs penuh.
+  ///
+  /// Slot yang dibuang (tidak dikembalikan sama sekali):
+  ///   - Slot pada hari cuti seharian
+  ///   - Slot yang bentrok dengan cuti parsial
+  ///   - Slot yang sudah lewat / kurang dari 30 menit pada hari ini
+  List<SlotWaktuDokter> hitungSemuaSlot({
+    required String dokterId,
+    required DateTime tanggal,
+  }) {
+    final targetDate = DateTime(tanggal.year, tanggal.month, tanggal.day);
+    final now = DateTime.now();
+
+    final weekday = targetDate.weekday;
+    final activeSessions = getJadwalDokter(dokterId)
+        .where((j) => j.hari == weekday && j.aktif)
+        .toList();
+
+    if (activeSessions.isEmpty) return [];
+
+    final cutiDokter = getCutiDokter(dokterId);
+    final cutiOnDate = cutiDokter.where((c) => c.berlakuPada(targetDate)).toList();
+
+    final hasAllDayCuti = cutiOnDate.any((c) => c.isSeharian);
+    if (hasAllDayCuti) return [];
+
+    final aliases = getDoctorIdAliases(dokterId);
+    final List<SlotWaktuDokter> allSlots = [];
+
+    for (final session in activeSessions) {
+      final startMin = _timeToMinutes(session.jamMulai) ?? (8 * 60);
+      final endMin = _timeToMinutes(session.jamSelesai) ?? (11 * 60);
+      final slotDuration = session.durasiSlotMenit > 0 ? session.durasiSlotMenit : 30;
+
+      for (int current = startMin; current + slotDuration <= endMin; current += slotDuration) {
+        final slotStartStr = _minutesToTime(current);
+        final slotEndStr = _minutesToTime(current + slotDuration);
+
+        final slotStartDt = DateTime(
+          targetDate.year,
+          targetDate.month,
+          targetDate.day,
+          current ~/ 60,
+          current % 60,
+        );
+        final slotEndDt = slotStartDt.add(Duration(minutes: slotDuration));
+
+        // Buang slot yang bentrok dengan cuti parsial
+        bool isCutiClash = false;
+        for (final c in cutiOnDate) {
+          if (!c.isSeharian && c.jamMulai != null && c.jamSelesai != null) {
+            final cStart = _timeToMinutes(c.jamMulai!) ?? 0;
+            final cEnd = _timeToMinutes(c.jamSelesai!) ?? (24 * 60);
+            if (current < cEnd && (current + slotDuration) > cStart) {
+              isCutiClash = true;
+              break;
+            }
+          }
+        }
+        if (isCutiClash) continue;
+
+        // Buang slot yang sudah lewat / kurang dari 30 menit pada hari ini
+        final isToday = targetDate.year == now.year &&
+            targetDate.month == now.month &&
+            targetDate.day == now.day;
+        if (isToday) {
+          final diffMinutes = slotStartDt.difference(now).inMinutes;
+          if (diffMinutes < 30) continue;
+        }
+
+        // Cek apakah slot sudah dibooking (tandai saja, jangan buang)
+        final isBooked = BookingService().bookings.any((b) {
+          if (!aliases.contains(b.doctor.id)) return false;
+          if (b.status.toLowerCase() == 'dibatalkan') return false;
+
+          final bDate = DateTime(b.bookingDate.year, b.bookingDate.month, b.bookingDate.day);
+          if (bDate != targetDate) return false;
+
+          final bStartMin = _timeToMinutes(
+            '${b.scheduledStartDateTime.hour.toString().padLeft(2, '0')}:${b.scheduledStartDateTime.minute.toString().padLeft(2, '0')}',
+          );
+          final bEndMin = _timeToMinutes(
+            '${b.scheduledEndDateTime.hour.toString().padLeft(2, '0')}:${b.scheduledEndDateTime.minute.toString().padLeft(2, '0')}',
+          );
+
+          if (bStartMin != null && bEndMin != null) {
+            return current < bEndMin && (current + slotDuration) > bStartMin;
+          }
+          return b.timeSlot.contains(slotStartStr);
+        });
+
+        allSlots.add(
+          SlotWaktuDokter(
+            jamMulai: slotStartStr,
+            jamSelesai: slotEndStr,
+            timeLabel: '$slotStartStr - $slotEndStr WIB',
+            startDateTime: slotStartDt,
+            endDateTime: slotEndDt,
+            isAvailable: !isBooked,
           ),
         );
       }

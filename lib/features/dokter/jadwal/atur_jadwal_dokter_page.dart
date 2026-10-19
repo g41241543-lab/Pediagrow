@@ -305,7 +305,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 ),
                 Switch(
                   value: isDayActive,
-                  activeColor: _primaryBlue,
+                  activeThumbColor: _primaryBlue,
                   onChanged: (val) {
                     setState(() {
                       if (val) {
@@ -557,7 +557,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
-                value: selectedDuration,
+                initialValue: selectedDuration,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   isDense: true,
@@ -848,7 +848,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       ),
                       Switch(
                         value: isSeharian,
-                        activeColor: _primaryBlue,
+                        activeThumbColor: _primaryBlue,
                         onChanged: (val) => setDialogState(() => isSeharian = val),
                       ),
                     ],
@@ -947,16 +947,17 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   );
 
                   final affectedCount = await _jadwalService.tambahCuti(cuti: newCuti);
-                  if (mounted) {
+                  if (ctx.mounted) {
                     Navigator.of(ctx).pop();
-                    if (affectedCount > 0) {
-                      PediaBanner.showSuccess(
-                        context,
-                        message: 'Cuti disimpan. $affectedCount pasien terdampak telah dibatalkan & diberitahu.',
-                      );
-                    } else {
-                      PediaBanner.showSuccess(context, message: 'Cuti dokter berhasil ditambahkan!');
-                    }
+                  }
+                  if (!mounted) return;
+                  if (affectedCount > 0) {
+                    PediaBanner.showSuccess(
+                      context,
+                      message: 'Cuti disimpan. $affectedCount pasien terdampak telah dibatalkan & diberitahu.',
+                    );
+                  } else {
+                    PediaBanner.showSuccess(context, message: 'Cuti dokter berhasil ditambahkan!');
                   }
                 },
                 child: const Text('Simpan Cuti'),
@@ -981,8 +982,10 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
             onPressed: () async {
               await _jadwalService.hapusCuti(cuti.id);
-              if (mounted) {
+              if (ctx.mounted) {
                 Navigator.of(ctx).pop();
+              }
+              if (mounted) {
                 PediaBanner.showSuccess(context, message: 'Cuti dokter dihapus.');
               }
             },
