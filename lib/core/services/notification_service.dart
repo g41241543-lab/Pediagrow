@@ -210,21 +210,53 @@ class NotificationService {
     addNotification(newItem);
   }
 
-  /// Menambahkan / menjadwalkan notifikasi pengingat jadwal booking konsultasi.
+  /// Menambahkan notifikasi bahwa booking konsultasi dengan dokter berhasil dilakukan.
+  /// Notifikasi ini langsung muncul di status bar HP dan tercatat di daftar notifikasi.
+  void addBookingSuccessNotification({
+    required String doctorName,
+    required String childName,
+    required String dateFormatted,
+    required String timeSlot,
+    DateTime? scheduledTime,
+    DateTime? bookingDate,
+  }) {
+    final now = DateTime.now();
+    final id =
+        'booking_success_${doctorName.trim()}_${childName.trim()}_${dateFormatted.replaceAll('/', '_')}_${timeSlot.replaceAll(':', '_').replaceAll(' ', '')}_${now.millisecondsSinceEpoch}';
+
+    final newItem = NotificationItem(
+      id: id,
+      title: 'Booking Konsultasi Berhasil',
+      message:
+          'Booking konsultasi anak $childName bersama $doctorName pada $dateFormatted ($timeSlot) berhasil dilakukan dan telah tersambung dengan Google Kalender.',
+      date: now,
+      type: NotificationType.consultation,
+    );
+    addNotification(newItem);
+  }
+
+  /// Menambahkan / menjadwalkan notifikasi saat waktu konsultasi telah tiba.
   ///
   /// JIKA waktu jadwal konsultasi masih di masa depan (belum tiba), notifikasi
-  /// TIDAK AKAN langsung muncul di HP maupun di daftar notifikasi, melainkan
-  /// dijadwalkan dan baru keluar ketika waktu konsultasi tersebut telah tiba.
+  /// dijadwalkan di sistem HP (status bar) via [LocalPushService.schedule] serta
+  /// disimpan dalam antrean [_pendingBookingReminders], dan baru muncul di HP &
+  /// daftar notifikasi aplikasi ketika waktu konsultasi tersebut telah tiba.
   void addBookingReminderNotification({
     required String doctorName,
     required String childName,
     required String dateFormatted,
     required String timeSlot,
     DateTime? scheduledTime,
+    String? bookingId,
   }) {
     final now = DateTime.now();
-    final id =
-        'booking_reminder_${doctorName.trim()}_${childName.trim()}_${dateFormatted.replaceAll('/', '_')}_${timeSlot.replaceAll(':', '_').replaceAll(' ', '')}';
+    final id = bookingId != null && bookingId.isNotEmpty
+        ? 'booking_reminder_$bookingId'
+        : 'booking_reminder_${doctorName.trim()}_${childName.trim()}_${dateFormatted.replaceAll('/', '_')}_${timeSlot.replaceAll(':', '_').replaceAll(' ', '')}';
+
+    const title = 'Waktu Konsultasi Telah Tiba';
+    final message =
+        'Waktu konsultasi telah tiba! Jadwal konsultasi anak $childName bersama $doctorName ($timeSlot) sudah dimulai. Silakan masuk ke ruang konsultasi.';
 
     // Jika waktu konsultasi dijadwalkan di masa depan (belum tiba)
     if (scheduledTime != null && scheduledTime.isAfter(now)) {
@@ -242,6 +274,16 @@ class NotificationService {
             scheduledTime: scheduledTime,
           ),
         );
+
+        // Jadwalkan notifikasi sistem di HP agar muncul saat waktu tiba (bahkan jika aplikasi ditutup)
+        final notifIntId = id.hashCode.abs() % 0x7FFFFFFF;
+        LocalPushService().schedule(
+          id: notifIntId,
+          title: title,
+          body: message,
+          scheduledDate: scheduledTime,
+          targetRole: PushRole.pengguna,
+        );
       }
       return;
     }
@@ -251,13 +293,33 @@ class NotificationService {
       _triggeredReminderIds.add(id);
       final newItem = NotificationItem(
         id: id,
-        title: 'Pengingat Jadwal Konsultasi',
-        message:
-            'Pengingat Kalender: Jadwal konsultasi anak $childName bersama $doctorName pada $dateFormatted ($timeSlot) telah tiba. Silakan masuk ke ruang konsultasi.',
+        title: title,
+        message: message,
         date: scheduledTime ?? now,
         type: NotificationType.consultation,
       );
       addNotification(newItem);
+    }
+  }
+
+  /// Sinkronisasi daftar booking aktif dari Firestore untuk memastikan
+  /// semua jadwal memiliki alarm/pengingat tepat waktu meskipun aplikasi
+  /// baru dibuka kembali setelah ditutup.
+  void syncActiveBookings(List<dynamic> bookings) {
+    for (final b in bookings) {
+      try {
+        if (b.status == 'Dibatalkan' || b.isExpired) continue;
+        addBookingReminderNotification(
+          doctorName: b.doctor.name,
+          childName: b.child.name,
+          dateFormatted: b.formattedDate,
+          timeSlot: b.scheduledTimeSlot,
+          scheduledTime: b.scheduledStartDateTime,
+          bookingId: b.id,
+        );
+      } catch (e) {
+        debugPrint('[NotificationService] syncActiveBookings item error: $e');
+      }
     }
   }
 
@@ -286,9 +348,9 @@ class NotificationService {
       _triggeredReminderIds.add(reminder.id);
       final newItem = NotificationItem(
         id: reminder.id,
-        title: 'Pengingat Jadwal Konsultasi',
+        title: 'Waktu Konsultasi Telah Tiba',
         message:
-            'Pengingat Kalender: Jadwal konsultasi anak ${reminder.childName} bersama ${reminder.doctorName} pada ${reminder.dateFormatted} (${reminder.timeSlot}) telah tiba. Silakan masuk ke ruang konsultasi.',
+            'Waktu konsultasi telah tiba! Jadwal konsultasi anak ${reminder.childName} bersama ${reminder.doctorName} (${reminder.timeSlot}) sudah dimulai. Silakan masuk ke ruang konsultasi.',
         date: reminder.scheduledTime,
         type: NotificationType.consultation,
       );

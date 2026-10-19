@@ -826,6 +826,15 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             }
                           }
 
+                          // Urutkan jadwal: yang sedang berlangsung di paling atas, disusul tanggal & jam terdekat
+                          uniqueBookings.sort((a, b) {
+                            final aActive = (a.isInTimeWindow || a.status == 'Sedang Berlangsung') && !a.isExpired;
+                            final bActive = (b.isInTimeWindow || b.status == 'Sedang Berlangsung') && !b.isExpired;
+                            if (aActive && !bActive) return -1;
+                            if (!aActive && bActive) return 1;
+                            return a.scheduledStartDateTime.compareTo(b.scheduledStartDateTime);
+                          });
+
                           if (uniqueBookings.isEmpty) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 40),

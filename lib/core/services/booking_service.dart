@@ -9,6 +9,7 @@ import '../../models/child_model.dart';
 import '../../models/doctor_model.dart';
 import 'google_calendar_service.dart';
 import 'jadwal_dokter_service.dart';
+import 'notification_service.dart';
 import 'user_service.dart';
 
 /// Service singleton untuk mengelola pemesanan jadwal (Booking) konsultasi dokter anak
@@ -79,14 +80,17 @@ class BookingService {
             }
           }
 
-          // Urutkan jadwal terbaru di paling atas
-          validList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          // Urutkan jadwal: yang sedang berlangsung atau terdekat di masa depan di paling atas
+          _sortBookings(validList);
 
           final distinctList = _deduplicateBookings(validList);
           bookingsNotifier.value = distinctList;
 
           // Perbarui activeBookingNotifier jika ada booking yang sedang aktif
           _updateActiveBooking(distinctList);
+
+          // Sinkronisasi pengingat jadwal booking ke NotificationService
+          NotificationService().syncActiveBookings(distinctList);
         },
         onError: (e) {
           debugPrint('[BookingService] Firestore listener error: $e');
@@ -139,6 +143,7 @@ class BookingService {
     if (expired.isEmpty) return;
 
     final remaining = current.where((b) => !b.isExpired).toList();
+    _sortBookings(remaining);
     bookingsNotifier.value = remaining;
     _updateActiveBooking(remaining);
 
@@ -150,6 +155,23 @@ class BookingService {
         debugPrint('[BookingService] Auto-cleanup: gagal hapus ${b.id}: $e');
       }
     }
+  }
+
+  /// Mengurutkan daftar booking berdasarkan prioritas:
+  /// 1. Sedang Berlangsung / Dalam rentang waktu konsultasi aktif (paling atas)
+  /// 2. Terjadwal di masa depan (kronologis: tanggal & jam mulai terdekat lebih dulu)
+  /// 3. Selesai / Lewat (di bagian akhir)
+  void _sortBookings(List<BookingConsultationModel> list) {
+    list.sort((a, b) {
+      // Prioritaskan yang sedang aktif saat ini
+      final aActive = (a.isInTimeWindow || a.status == 'Sedang Berlangsung') && !a.isExpired;
+      final bActive = (b.isInTimeWindow || b.status == 'Sedang Berlangsung') && !b.isExpired;
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+
+      // Keduanya sama-sama aktif atau sama-sama mendatang: urutkan tanggal & jam mulai terdekat (ascending)
+      return a.scheduledStartDateTime.compareTo(b.scheduledStartDateTime);
+    });
   }
 
   void _updateActiveBooking(List<BookingConsultationModel> list) {
@@ -209,10 +231,11 @@ class BookingService {
       rethrow;
     }
 
-    // 2. Update in-memory dengan deduplikasi aman
+    // 2. Update in-memory dengan pengurutan kronologis dan deduplikasi aman
     final currentList = List<BookingConsultationModel>.from(bookingsNotifier.value);
     currentList.removeWhere((b) => b.id == modelToSave.id);
-    currentList.insert(0, modelToSave);
+    currentList.add(modelToSave);
+    _sortBookings(currentList);
     final distinctList = _deduplicateBookings(currentList);
     bookingsNotifier.value = distinctList;
     if (activeBookingNotifier.value == null || activeBookingNotifier.value!.id == modelToSave.id) {
@@ -221,6 +244,25 @@ class BookingService {
 
     // 3. Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
     GoogleCalendarService().syncBookingToGoogleCalendar(modelToSave);
+
+    // 4. Kirim notifikasi bahwa booking dokter berhasil dilakukan
+    NotificationService().addBookingSuccessNotification(
+      doctorName: modelToSave.doctor.name,
+      childName: modelToSave.child.name,
+      dateFormatted: modelToSave.formattedDate,
+      timeSlot: modelToSave.scheduledTimeSlot,
+      scheduledTime: modelToSave.scheduledStartDateTime,
+    );
+
+    // 5. Jadwalkan pengingat saat waktu konsultasi tiba
+    NotificationService().addBookingReminderNotification(
+      doctorName: modelToSave.doctor.name,
+      childName: modelToSave.child.name,
+      dateFormatted: modelToSave.formattedDate,
+      timeSlot: modelToSave.scheduledTimeSlot,
+      scheduledTime: modelToSave.scheduledStartDateTime,
+      bookingId: modelToSave.id,
+    );
   }
 
   /// Menghasilkan slot waktu yang tersedia untuk dokter pada tanggal tertentu
@@ -335,16 +377,36 @@ class BookingService {
       rethrow; // Lempar ulang agar UI bisa menampilkan pesan error
     }
 
-    // Simpan ke in-memory (setelah Firestore berhasil) dengan deduplikasi aman
+    // Simpan ke in-memory (setelah Firestore berhasil) dengan pengurutan kronologis dan deduplikasi aman
     final currentList = List<BookingConsultationModel>.from(bookingsNotifier.value);
     currentList.removeWhere((b) => b.id == newBooking.id);
-    currentList.insert(0, newBooking);
+    currentList.add(newBooking);
+    _sortBookings(currentList);
     final distinctList = _deduplicateBookings(currentList);
     bookingsNotifier.value = distinctList;
     activeBookingNotifier.value = newBooking;
 
     // Otomatis sinkronisasi event & alarm pengingat ke Google Kalender pengguna
     GoogleCalendarService().syncBookingToGoogleCalendar(newBooking);
+
+    // Kirim notifikasi bahwa booking dokter berhasil dilakukan
+    NotificationService().addBookingSuccessNotification(
+      doctorName: newBooking.doctor.name,
+      childName: newBooking.child.name,
+      dateFormatted: newBooking.formattedDate,
+      timeSlot: newBooking.scheduledTimeSlot,
+      scheduledTime: newBooking.scheduledStartDateTime,
+    );
+
+    // Jadwalkan pengingat saat waktu konsultasi tiba
+    NotificationService().addBookingReminderNotification(
+      doctorName: newBooking.doctor.name,
+      childName: newBooking.child.name,
+      dateFormatted: newBooking.formattedDate,
+      timeSlot: newBooking.scheduledTimeSlot,
+      scheduledTime: newBooking.scheduledStartDateTime,
+      bookingId: newBooking.id,
+    );
 
     return newBooking;
   }
@@ -458,6 +520,8 @@ class BookingService {
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {
         return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        return await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
       debugPrint('[BookingService] Error launchGoogleCalendar: $e');
