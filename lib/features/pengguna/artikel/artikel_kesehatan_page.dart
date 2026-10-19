@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
@@ -179,14 +175,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
-      // Navigation Bar tetap di Scaffold bagian bawah layar
-      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
-=======
     final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
     return PopScope(
@@ -199,10 +188,9 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         // Navigation Bar tetap di Scaffold bagian bawah layar
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnim,

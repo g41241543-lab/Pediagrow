@@ -1392,16 +1392,6 @@ class _BerandaPageState extends State<BerandaPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-<<<<<<< HEAD
-              Text(
-                'Artikel Terbaru',
-                style: GoogleFonts.lato(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? const Color(0xFFE9EDEF)
-                      : const Color(0xFF0B1014),
-=======
               Flexible(
                 child: Text(
                   'Artikel Terbaru',
@@ -1409,9 +1399,10 @@ class _BerandaPageState extends State<BerandaPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0B1014),
                   ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                 ),
               ),
               InkWell(
@@ -1776,19 +1767,6 @@ class _BerandaPageState extends State<BerandaPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-<<<<<<< HEAD
-              Row(
-                children: [
-                  Text(
-                    'Video Edukasi Anak',
-                    style: GoogleFonts.lato(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? const Color(0xFFE9EDEF)
-                          : const Color(0xFF0B1014),
-                    ),
-=======
               Flexible(
                 child: Text(
                   'Video Edukasi Anak',
@@ -1796,8 +1774,9 @@ class _BerandaPageState extends State<BerandaPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0B1014),
                   ),
                 ),
               ),

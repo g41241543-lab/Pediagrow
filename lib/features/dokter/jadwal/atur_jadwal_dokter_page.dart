@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
@@ -115,17 +115,6 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
         ? 'Jadwal Praktik - $docDisplayName'
         : 'Atur Jadwal Praktik';
 
-<<<<<<< HEAD
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1014)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-=======
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
@@ -141,7 +130,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1014)),
             onPressed: () {
               if (Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
@@ -152,7 +141,6 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               }
             },
           ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         title: Text(
           title,
           style: GoogleFonts.lato(

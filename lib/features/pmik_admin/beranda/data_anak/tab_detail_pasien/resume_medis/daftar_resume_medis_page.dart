@@ -403,12 +403,4 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       ),
     );
   }
-
-  Widget _buildDoctorAvatarFallback() {
-    return Container(
-      color: const Color(0xFFEAF5FF),
-      alignment: Alignment.center,
-      child: const Icon(Icons.person, size: 30, color: Color(0xFF2B7AE8)),
-    );
-  }
 }

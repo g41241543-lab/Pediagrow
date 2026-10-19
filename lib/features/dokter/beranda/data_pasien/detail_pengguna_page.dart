@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -795,42 +795,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-<<<<<<< HEAD
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-=======
                       Icon(
                         item.icon,
                         size: 24.0,
@@ -849,7 +813,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                               fontSize: 11.0,
                               fontWeight: FontWeight.normal,
                               color: const Color(0xFF9E9E9E),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                             ),
                           ),
                         ),

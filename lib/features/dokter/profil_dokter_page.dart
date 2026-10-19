@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -503,34 +499,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
                 const SizedBox(height: 24.0),
 
-<<<<<<< HEAD
-              // 2. TEMPAT PRAKTIK
-              Text(
-                'Tempat Praktik',
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
-                ),
-              ),
-              const SizedBox(height: 12.0),
-              _buildPracticeLocationsCard(),
-
-              const SizedBox(height: 20.0),
-
-              // 3. INFO hanya superadmin yang bisa edit
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFED7AA)),
-                ),
-                child: Row(
-=======
                 // 2. TEMPAT PRAKTIK
                 Row(
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                   children: [
                     Container(
                       width: 28,
@@ -552,7 +522,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       style: GoogleFonts.lato(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
@@ -1084,12 +1054,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       width: double.infinity,
       height: 68.0,
       decoration: const BoxDecoration(
-<<<<<<< HEAD
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE9EDEF), width: 1.0)),
-=======
         color: Color(0xFFF2EDED),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         boxShadow: [
           BoxShadow(
             color: Color(0x18000000),
@@ -1107,37 +1072,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             final isSelected = i == _selectedIndex;
             final item = navItems[i];
 
-<<<<<<< HEAD
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = index == _selectedIndex;
-    return GestureDetector(
-      onTap: () => _onBottomNavTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isSelected
-                  ? const Color(0xFF3985E7)
-                  : const Color(0xFF8696A0),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: GoogleFonts.lato(
-                fontSize: 10.5,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFF8696A0),
-                height: 1.2,
-=======
             return Expanded(
               child: GestureDetector(
                 onTap: () => _onBottomNavTap(i),
@@ -1180,7 +1114,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),
@@ -1212,7 +1146,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     ],
                   ),
                 ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
               ),
             );
           }),

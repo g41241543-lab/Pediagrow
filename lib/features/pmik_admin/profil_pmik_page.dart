@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
-
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -179,8 +174,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       );
       if (picked != null) {
         setState(() => _avatarPath = picked.path);
-        final persistable =
-            await StorageService.uploadIfLocal(picked.path);
+        final persistable = await StorageService.uploadIfLocal(picked.path);
         final prefs = await SharedPreferences.getInstance();
         if (_pmik?.id != null) {
           await prefs.setString('pmik_avatar_${_pmik!.id}', persistable);
@@ -322,12 +316,13 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             transitionDuration: const Duration(milliseconds: 280),
             pageBuilder: (_, _, _) => const BerandaPmikPage(),
             transitionsBuilder: (_, anim, _, child) => SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(-0.25, 0.0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-              ),
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(-0.25, 0.0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+                  ),
               child: FadeTransition(
                 opacity: Tween<double>(begin: 0, end: 1).animate(anim),
                 child: child,
@@ -380,102 +375,102 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           preferredSize: const Size.fromHeight(56.0),
           child: _buildCustomHeader(),
         ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16.0),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16.0),
 
-              // 1. KARTU PROFIL
-              _buildProfileCard(),
+                // 1. KARTU PROFIL
+                _buildProfileCard(),
 
-              const SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
 
-              // 2. INFORMASI UMUM
-              Text(
-                'Informasi Umum',
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                // 2. INFORMASI UMUM
+                Text(
+                  'Informasi Umum',
+                  style: GoogleFonts.lato(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0B1014),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12.0),
-              _buildGeneralInfoCard(),
+                const SizedBox(height: 12.0),
+                _buildGeneralInfoCard(),
 
-              const SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
 
-              // 3. INFO hanya superadmin yang bisa edit
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFED7AA)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      color: Color(0xFFF97316),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Informasi profil hanya dapat diubah oleh Superadmin. '
-                        'Hubungi Superadmin jika perlu pembaruan data.',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: const Color(0xFF92400E),
-                          height: 1.4,
+                // 3. INFO hanya superadmin yang bisa edit
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFED7AA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        color: Color(0xFFF97316),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Informasi profil hanya dapat diubah oleh Superadmin. '
+                          'Hubungi Superadmin jika perlu pembaruan data.',
+                          style: GoogleFonts.lato(
+                            fontSize: 13,
+                            color: const Color(0xFF92400E),
+                            height: 1.4,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24.0),
-
-              // 4. TOMBOL LOGOUT
-              SizedBox(
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: _showLogoutConfirmationDialog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3985E7),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: Text(
-                    'LOGOUT',
-                    style: GoogleFonts.lato(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                      color: Colors.white,
-                    ),
+                    ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 24.0),
-            ],
+                const SizedBox(height: 24.0),
+
+                // 4. TOMBOL LOGOUT
+                SizedBox(
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: _showLogoutConfirmationDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3985E7),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    child: Text(
+                      'LOGOUT',
+                      style: GoogleFonts.lato(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24.0),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    ),
-  );
-}
+    );
+  }
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
   Widget _buildCustomHeader() {
@@ -625,7 +620,9 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 CircleAvatar(
                   radius: avatarRadius,
                   backgroundColor: const Color(0xFFE0F2FE),
-                  backgroundImage: StorageService.buildImageProvider(_avatarPath),
+                  backgroundImage: StorageService.buildImageProvider(
+                    _avatarPath,
+                  ),
                   child: StorageService.buildImageProvider(_avatarPath) == null
                       ? Icon(
                           Icons.person_rounded,
@@ -808,7 +805,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     final navItems = [
       const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      const _NavItem(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
       const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
@@ -816,12 +816,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       width: double.infinity,
       height: 68.0,
       decoration: const BoxDecoration(
-<<<<<<< HEAD
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE9EDEF), width: 1.0)),
-=======
         color: Color(0xFFF2EDED),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         boxShadow: [
           BoxShadow(
             color: Color(0x18000000),
@@ -839,37 +834,6 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             final isSelected = i == _selectedIndex;
             final item = navItems[i];
 
-<<<<<<< HEAD
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = index == _selectedIndex;
-    return GestureDetector(
-      onTap: () => _onBottomNavTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isSelected
-                  ? const Color(0xFF3985E7)
-                  : const Color(0xFF8696A0),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: GoogleFonts.lato(
-                fontSize: 10.5,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFF8696A0),
-                height: 1.2,
-=======
             return Expanded(
               child: GestureDetector(
                 onTap: () => _onBottomNavTap(i),
@@ -944,7 +908,6 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     ],
                   ),
                 ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
               ),
             );
           }),

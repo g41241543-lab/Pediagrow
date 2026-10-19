@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-﻿import 'dart:math' as math;
-=======
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

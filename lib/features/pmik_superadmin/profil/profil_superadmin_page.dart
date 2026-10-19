@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,10 +29,7 @@ import '../../../models/staff_account_model.dart';
 class ProfilSuperadminPage extends StatefulWidget {
   final VoidCallback? onBackPressed;
 
-  const ProfilSuperadminPage({
-    super.key,
-    this.onBackPressed,
-  });
+  const ProfilSuperadminPage({super.key, this.onBackPressed});
 
   @override
   State<ProfilSuperadminPage> createState() => _ProfilSuperadminPageState();
@@ -64,7 +61,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     if (!mounted) return;
     setState(() {
       _superadmin = StaffAuthService().currentStaff;
-      if (_superadmin?.avatarPath != null && _superadmin!.avatarPath!.isNotEmpty) {
+      if (_superadmin?.avatarPath != null &&
+          _superadmin!.avatarPath!.isNotEmpty) {
         _superadminAvatarPath = _superadmin!.avatarPath;
       }
     });
@@ -219,8 +217,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         setState(() {
           _superadminAvatarPath = picked.path;
         });
-        final persistable =
-            await StorageService.uploadIfLocal(picked.path);
+        final persistable = await StorageService.uploadIfLocal(picked.path);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('superadmin_avatar_path', persistable);
 
@@ -373,7 +370,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       );
       return;
     }
-    if (index == 2 && staff != null && !staff.hasPermission('riwayat_konsultasi')) {
+    if (index == 2 &&
+        staff != null &&
+        !staff.hasPermission('riwayat_konsultasi')) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -421,7 +420,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             end: Offset.zero,
           ).animate(curvedAnimation),
           child: FadeTransition(
-            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation),
+            opacity: Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(curvedAnimation),
             child: child,
           ),
         );
@@ -597,10 +599,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(
-              color: const Color(0xFFE9EDEF),
-              width: 1.0,
-            ),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -658,98 +657,22 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
               Row(
                 children: [
                   Expanded(
-<<<<<<< HEAD
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.work_outline_rounded,
-                          size: 26.0,
-                          color: Color(0xFF8696A0),
-                        ),
-                        const SizedBox(width: 8.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Pengalaman',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.lato(
-                                  fontSize: 13.0,
-                                  color: const Color(0xFF8696A0),
-                                ),
-                              ),
-                              Text(
-                                _superadmin?.experience ?? '7 tahun',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.lato(
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2C363D),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-=======
                     child: _buildStatChip(
                       icon: Icons.work_rounded,
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
                       value: _superadmin?.experience ?? '7 tahun',
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-<<<<<<< HEAD
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.badge_outlined,
-                          size: 26.0,
-                          color: Color(0xFF8696A0),
-                        ),
-                        const SizedBox(width: 8.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'No. STR',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.lato(
-                                  fontSize: 13.0,
-                                  color: const Color(0xFF8696A0),
-                                ),
-                              ),
-                              Text(
-                                _superadmin?.strNumber ?? '3511201402012222',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.lato(
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2C363D),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-=======
                     child: _buildStatChip(
                       icon: Icons.badge_outlined,
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
                       value: _superadmin?.strNumber ?? '3511201402012222',
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                     ),
                   ),
                 ],
@@ -771,10 +694,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   height: avatarRadius * 2,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 3.5,
-                    ),
+                    border: Border.all(color: Colors.white, width: 3.5),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x1A000000),
@@ -783,9 +703,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                     ],
                   ),
-                  child: ClipOval(
-                    child: _buildSuperadminAvatarImage(),
-                  ),
+                  child: ClipOval(child: _buildSuperadminAvatarImage()),
                 ),
                 Positioned(
                   right: 0,
@@ -901,10 +819,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: const Color(0xFFE9EDEF),
-          width: 1.0,
-        ),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -955,11 +870,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
 
           // Garis pemisah tipis
-          const Divider(
-            height: 1.0,
-            thickness: 1.0,
-            color: Color(0xFFE9EDEF),
-          ),
+          const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFE9EDEF)),
 
           // Item 2: Pendidikan
           Padding(
@@ -1009,8 +920,14 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   Widget _buildBottomNavigationBar() {
     final navItems = [
       _BottomNavItemData(icon: Icons.home_rounded, label: 'Beranda'),
-      _BottomNavItemData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _BottomNavItemData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      _BottomNavItemData(
+        icon: Icons.question_answer_rounded,
+        label: 'Konsultasi',
+      ),
+      _BottomNavItemData(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
       _BottomNavItemData(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
@@ -1125,8 +1042,5 @@ class _BottomNavItemData {
   final IconData icon;
   final String label;
 
-  const _BottomNavItemData({
-    required this.icon,
-    required this.label,
-  });
+  const _BottomNavItemData({required this.icon, required this.label});
 }

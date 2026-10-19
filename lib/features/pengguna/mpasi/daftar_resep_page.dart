@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/resep_mpasi_service.dart';
@@ -166,12 +162,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : _colorWhite,
-=======
     final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
     return PopScope(
@@ -184,8 +175,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         }
       },
       child: Scaffold(
-      backgroundColor: _colorWhite,
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+        backgroundColor: isDark ? const Color(0xFF0B1014) : _colorWhite,
       // Bottom navigation bar FIXED — PediaBottomNavBar terpusat
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(

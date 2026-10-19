@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/resume_medis_model.dart';
@@ -358,20 +354,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                   style: GoogleFonts.lato(
                     fontSize: 16.5,
                     fontWeight: FontWeight.bold,
-<<<<<<< HEAD
                     color: const Color(0xFF1A2228),
-                  ),
-                ),
-                if (resume.childAgeAtConsultation.isNotEmpty) ...[
-                  const SizedBox(height: 3.0),
-                  Text(
-                    resume.childAgeAtConsultation,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.5,
-                      color: const Color(0xFF667781),
-                    ),
-=======
-                    color: _colorTextBlack,
                   ),
                 ),
                 const SizedBox(height: 4.0),
@@ -380,7 +363,6 @@ class _DetailRiwayatKonsultasiAdminPageState
                   style: GoogleFonts.lato(
                     fontSize: 14.0,
                     color: _colorTextBlack,
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                   ),
                 ),
               ],
@@ -480,13 +462,8 @@ class _DetailRiwayatKonsultasiAdminPageState
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.lato(
               fontSize: 14.0,
-<<<<<<< HEAD
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF1A2228),
-=======
               fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+              color: const Color(0xFF1A2228),
             ),
           ),
         ),
@@ -494,35 +471,6 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-<<<<<<< HEAD
-  // ─── SECTION HELPERS ──────────────────────────────────────────────────────
-  Widget _buildSectionLabel(String label) {
-    return Text(
-      label,
-      style: GoogleFonts.lato(
-        fontSize: 14.5,
-        color: const Color(0xFF667781),
-        fontWeight: FontWeight.normal,
-      ),
-    );
-  }
-
-  Widget _buildSectionText(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.lato(
-          fontSize: 14.0,
-          color: const Color(0xFF1A2228),
-          height: 1.5,
-=======
   /// Badge Status Konsultasi
   Widget _buildStatusBadge(bool isSelesai) {
     if (isSelesai) {
@@ -531,7 +479,6 @@ class _DetailRiwayatKonsultasiAdminPageState
         decoration: BoxDecoration(
           color: const Color(0xFF33CCA6),
           borderRadius: BorderRadius.circular(12.0),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         ),
         child: Text(
           'Selesai',
@@ -561,57 +508,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     }
   }
 
-<<<<<<< HEAD
-  Widget _buildRecommendations(List<String> items) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: items.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final item = entry.value;
-          return Padding(
-            padding: EdgeInsets.only(bottom: idx < items.length - 1 ? 8.0 : 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 6.0,
-                  height: 6.0,
-                  margin: const EdgeInsets.only(top: 6.0, right: 10.0),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF3985E7),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: GoogleFonts.lato(
-                      fontSize: 14.0,
-                      color: const Color(0xFF1A2228),
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // ─── READ-ONLY BANNER ─────────────────────────────────────────────────────
-=======
   // ─── READ-ONLY BANNER ───────────────────────────────────────────────────────
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
   Widget _buildReadOnlyBanner() {
     return Container(
       width: double.infinity,

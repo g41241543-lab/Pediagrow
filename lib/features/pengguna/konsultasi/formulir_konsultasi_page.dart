@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
-
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/chat_message_service.dart';

@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-﻿// ignore_for_file: use_build_context_synchronously
-=======
 // ignore_for_file: use_build_context_synchronously
 import 'dart:async';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -39,24 +35,12 @@ import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 const Color _kBluePrimary = Color(0xFF2B7AE8);
 const Color _kTealPrimary = Color(0xFF3CC3A6);
 
-<<<<<<< HEAD
-
-
 // Warna elemen & teks
 const Color _kBorderColor = Color(0xFFD1D7DB);
 const Color _kBorderLight = Color(0xFFE9EDEF);
 const Color _kTextDark = Color(0xFF1A2228);
 const Color _kTextMuted = Color(0xFF667781);
 const Color _kTextSubtitle = Color(0xFF2C363D);
-const Color _kNavBarBg = Color(0xFFF2EDED);
-=======
-// Warna elemen & teks
-const Color _kBorderColor = Color(0xFFCBD5E1);
-const Color _kBorderLight = Color(0xFFE2E8F0);
-const Color _kTextDark = Color(0xFF1E293B);
-const Color _kTextMuted = Color(0xFF64748B);
-const Color _kTextSubtitle = Color(0xFF475569);
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 
 // Warna jenis kelamin anak
 const Color _kBoyBlue = Color(0xFF2B7AE8);
@@ -658,11 +642,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
   Future<void> _downloadUsersCsv() async {
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
@@ -2058,25 +2038,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-<<<<<<< HEAD
-                // Sumbu Y (120, 100, 80, 60, 40, 20, 0)
-                SizedBox(
-                  width: 26.0,
-                  height: chartPlotHeight,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: yTicks.map((val) {
-                      return Text(
-                        '$val',
-                        style: GoogleFonts.lato(
-                          fontSize: 9.5,
-                          color: const Color(0xFF8696A0),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    }).toList(),
-=======
                 // Sumbu Y Dinamis Sesuai Data Riil
                 Padding(
                   padding: const EdgeInsets.only(top: 18.0),
@@ -2091,13 +2052,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                           '$val',
                           style: GoogleFonts.lato(
                             fontSize: 9.5,
-                            color: const Color(0xFF94A3B8),
+                            color: const Color(0xFF8696A0),
                             fontWeight: FontWeight.w500,
                           ),
                         );
                       }).toList(),
                     ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                   ),
                 ),
                 const SizedBox(width: 8.0),
@@ -2106,18 +2066,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 Expanded(
                   child: Stack(
                     children: [
-<<<<<<< HEAD
-                      // Garis grid abu-abu tipis
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(yTicks.length, (_) {
-                          return const Divider(
-                            height: 1,
-                            thickness: 0.8,
-                            color: Color(0xFFE9EDEF),
-                          );
-                        }),
-=======
                       // Garis grid abu-abu tipis sejajar sumbu Y
                       Positioned(
                         top: 18.0,
@@ -2130,11 +2078,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                             return const Divider(
                               height: 1,
                               thickness: 0.8,
-                              color: Color(0xFFE2E8F0),
+                              color: Color(0xFFE9EDEF),
                             );
                           }),
                         ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                       ),
 
                       // Batang Bertumpuk Jan - Des
@@ -2208,14 +2155,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                       ),
                                     ),
                                   ),
-<<<<<<< HEAD
-                                  const SizedBox(height: 6.0),
-                                  Text(
-                                    data.month,
-                                    style: GoogleFonts.lato(
-                                      fontSize: 9.5,
-                                      color: const Color(0xFF667781),
-=======
                                   const SizedBox(height: 4.0),
                                   SizedBox(
                                     height: 16.0,
@@ -2224,10 +2163,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                         data.month,
                                         style: GoogleFonts.lato(
                                           fontSize: 9.5,
-                                          color: const Color(0xFF64748B),
+                                          color: const Color(0xFF667781),
                                         ),
                                       ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                                     ),
                                   ),
                                 ],
@@ -2724,14 +2662,7 @@ class _YAxisScale {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-<<<<<<< HEAD
-=======
-// CUSTOM PAINTER: AVATAR ANAK LAKI-LAKI & PEREMPUAN
-// ══════════════════════════════════════════════════════════════════════════════
 
-
-// ══════════════════════════════════════════════════════════════════════════════
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 // MODAL BOTTOM SHEET PILIHAN UNDUH (PDF, CSV, EXCEL)
 // ══════════════════════════════════════════════════════════════════════════
 class _DownloadBottomSheet extends StatelessWidget {

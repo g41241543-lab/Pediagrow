@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
-=======
-
 import 'package:flutter/material.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
@@ -1019,363 +1014,20 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
       decoration: BoxDecoration(
-<<<<<<< HEAD
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22.0),
-        border: Border.all(color: const Color(0xFFD1D7DB), width: 1.0),
-=======
         color: const Color(0xFFDCFCE7),
         borderRadius: BorderRadius.circular(12.0),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
       ),
       child: Text(
         'Selesai',
         style: GoogleFonts.lato(
-<<<<<<< HEAD
-          fontSize: 14.0,
-          color: const Color(0xFF1A2228),
-        ),
-        decoration: InputDecoration(
-          hintText: 'Cari nama pasien, dokter, atau keluhan....',
-          hintStyle: GoogleFonts.lato(
-            fontSize: 13.5,
-            color: const Color(0xFF8696A0),
-          ),
-          prefixIcon: const Icon(
-            Icons.search,
-            size: 22.0,
-            color: Color(0xFF8696A0),
-          ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? GestureDetector(
-                  onTap: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                  child: const Icon(
-                    Icons.close,
-                    size: 18.0,
-                    color: Color(0xFF8696A0),
-                  ),
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
-=======
           fontSize: 11.5,
           fontWeight: FontWeight.bold,
           color: const Color(0xFF15803D),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         ),
       ),
     );
   }
 
-<<<<<<< HEAD
-  // ─── FILTER ROW ───────────────────────────────────────────────────────────
-  Widget _buildFilterRow(List<String> doctorOptions) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildDropdownPill(
-            value: doctorOptions.contains(_filterDoctor)
-                ? _filterDoctor
-                : 'Semua Dokter',
-            items: doctorOptions,
-            onChanged: (val) {
-              if (val != null) setState(() => _filterDoctor = val);
-            },
-          ),
-        ),
-        const SizedBox(width: 12.0),
-        Expanded(
-          child: _buildDropdownPill(
-            value: _filterStatus,
-            items: _statusOptions,
-            onChanged: (val) {
-              if (val != null) setState(() => _filterStatus = val);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownPill({
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      height: 40.0,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F3F5),
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: const Color(0xFFD1D7DB), width: 1.0),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: items.contains(value) ? value : items.first,
-          isExpanded: true,
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: 20.0,
-            color: Color(0xFF4A4A4A),
-          ),
-          style: GoogleFonts.lato(
-            fontSize: 13.0,
-            color: const Color(0xFF1A2228),
-            fontWeight: FontWeight.w500,
-          ),
-          items: items
-              .map(
-                (item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.0,
-                      color: item == value
-                          ? _colorPrimaryBlue
-                          : const Color(0xFF1A2228),
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  // ─── LOADING STATE ─────────────────────────────────────────────────────────
-  Widget _buildLoadingState() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 48.0),
-      child: Center(
-        child: CircularProgressIndicator(color: Color(0xFF3985E7)),
-      ),
-    );
-  }
-
-  // ─── RIWAYAT LIST ─────────────────────────────────────────────────────────
-  Widget _buildRiwayatList(List<ResumeMedisModel> items) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      itemCount: items.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12.0),
-      itemBuilder: (context, index) => _buildConsultationCard(items[index]),
-    );
-  }
-
-  Widget _buildConsultationCard(ResumeMedisModel r) {
-    final isSelesai = r.status.toLowerCase().contains('selesai');
-
-    return GestureDetector(
-      onTap: () => _navigateToDetail(r),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14.0),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x18000000),
-              blurRadius: 10.0,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Avatar dengan inisial nama
-            Container(
-              width: 50.0,
-              height: 50.0,
-              decoration: BoxDecoration(
-                color: _avatarColor(r.childName),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                _initials(r.childName),
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14.0),
-            // Kolom Informasi
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nama & Status badge
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          r.childName,
-                          style: GoogleFonts.lato(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2228),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8.0),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0,
-                          vertical: 3.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelesai
-                              ? const Color(0xFF33CCA6)
-                              : const Color(0xFFFFCD38),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Text(
-                          r.status,
-                          style: GoogleFonts.lato(
-                            fontSize: 11.0,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3.0),
-                  // Nama Dokter & Tanggal Konsultasi
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          r.doctorName,
-                          style: GoogleFonts.lato(
-                            fontSize: 12.5,
-                            color: const Color(0xFF667781),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 6.0),
-                      Text(
-                        r.consultationDate,
-                        style: GoogleFonts.lato(
-                          fontSize: 11.5,
-                          color: const Color(0xFF8696A0),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5.0),
-                  // Keluhan
-                  RichText(
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    text: TextSpan(
-                      style: GoogleFonts.lato(
-                        fontSize: 12.5,
-                        color: const Color(0xFF2C363D),
-                        height: 1.3,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: 'Keluhan: ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF2C363D),
-                          ),
-                        ),
-                        TextSpan(
-                          text: r.complaintShort.isNotEmpty
-                              ? r.complaintShort
-                              : (r.complaint.isNotEmpty ? r.complaint : '-'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (r.summary.isNotEmpty) ...[
-                    const SizedBox(height: 3.0),
-                    // Ringkasan Konsultasi
-                    RichText(
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      text: TextSpan(
-                        style: GoogleFonts.lato(
-                          fontSize: 12.0,
-                          color: const Color(0xFF667781),
-                          height: 1.3,
-                        ),
-                        children: [
-                          const TextSpan(
-                            text: 'Ringkasan: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2C363D),
-                            ),
-                          ),
-                          TextSpan(text: r.summary),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 6.0),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 24.0,
-              color: Color(0xFF4A4A4A),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Warna avatar berdasarkan huruf pertama nama
-  Color _avatarColor(String name) {
-    const colors = [
-      Color(0xFF72A9F4),
-      Color(0xFFFF8FA3),
-      Color(0xFF34D399),
-      Color(0xFFFBBF24),
-      Color(0xFFA78BFA),
-      Color(0xFFF87171),
-      Color(0xFF60A5FA),
-      Color(0xFF4ADE80),
-    ];
-    final idx = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
-    return colors[idx];
-  }
-
-  /// Inisial 2 huruf dari nama
-  String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-  }
-
-=======
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
   // ─── EMPTY STATE ──────────────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
@@ -1405,18 +1057,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
                 color: _colorTextBlack,
               ),
             ),
-<<<<<<< HEAD
-          ),
-          const SizedBox(height: 14.0),
-          Text(
-            isSearch
-                ? 'Tidak ada riwayat konsultasi yang sesuai.'
-                : 'Belum ada riwayat konsultasi.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 15.0,
-              color: const Color(0xFF8696A0),
-=======
             const SizedBox(height: 6.0),
             Text(
               _filterDoctor != 'Semua Dokter'
@@ -1427,7 +1067,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
                 fontSize: 13.0,
                 color: _colorSecondaryGrey,
               ),
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
             ),
           ],
         ),
@@ -1568,11 +1207,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-<<<<<<< HEAD
-                                color: const Color(0xFF1A2228),
-=======
                                 color: _colorTextBlack,
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
                               ),
                             ),
                           ),

@@ -356,14 +356,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       );
     }
 
-<<<<<<< HEAD
-    if (widget.initialRiwayatList == null && _activeChild == null) {
-      return _buildNoChildView(isDark);
-=======
     final hasChildren = ChildService().children.isNotEmpty;
     if (widget.initialRiwayatList == null && !hasChildren && _activeChild == null) {
-      return _buildNoChildView();
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+      return _buildNoChildView(isDark);
     }
 
     if (_riwayatList.isEmpty) {
@@ -501,32 +496,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     );
   }
 
-<<<<<<< HEAD
-  /// Chip nama anak yang sedang aktif
-  Widget _buildActiveChildChip() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        children: [
-          const Icon(Icons.child_care_rounded, size: 16, color: Color(0xFF72A9F4)),
-          const SizedBox(width: 6),
-          Text(
-            'Anak: ',
-            style: GoogleFonts.lato(
-              fontSize: 13,
-              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-            ),
-          ),
-          Text(
-            _activeChild!.name,
-            style: GoogleFonts.lato(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-=======
   /// Filter interaktif untuk memilih riwayat berdasarkan profil anak
   Widget _buildChildSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final children = ChildService().children;
     if (children.isEmpty) {
       if (_activeChild == null) return const SizedBox.shrink();
@@ -538,14 +510,17 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
             const SizedBox(width: 6),
             Text(
               'Anak: ',
-              style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+              ),
             ),
             Text(
               _activeChild!.name,
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
               ),
             ),
           ],
@@ -567,7 +542,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF475569),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF475569),
                 ),
               ),
             ],
@@ -599,7 +574,6 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                   );
                 }),
               ],
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
             ),
           ),
         ],

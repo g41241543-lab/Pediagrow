@@ -412,7 +412,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   Widget _build6MenuGrid(BuildContext context) {
     return Column(
       children: [
-        // Baris 1: Rekapitulasi (Aktif), Data Pasien (Aktif), Jadwal Praktik (Aktif)
+        // Baris 1: Rekapitulasi, Data Pasien, Jadwal Praktik (semua aktif)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -422,7 +422,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 customIcon: _buildRekapitulasiLogo(),
                 blobColor: const Color(0xFFD97706),
                 isLocked: false,
-                onTap: () => _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
+                onTap: () =>
+                    _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
               ),
             ),
             const SizedBox(width: 16),
@@ -450,7 +451,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
         const SizedBox(height: 20),
 
-        // Baris 2: Resep MPASI (Read-only), Daftar Artikel Kesehatan (Read-only), Permainan (Terkunci)
+        // Baris 2: Resep MPASI, Daftar Artikel Kesehatan, Permainan (terkunci)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -508,14 +509,12 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
         ),
         backgroundColor: const Color(0xFFDC2626),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
-  /// Logo Jadwal Praktik: kalender biru berikon jam/kalender
+  /// Logo Jadwal Praktik: kotak biru dengan ikon kalender
   Widget _buildJadwalPraktikLogo() {
     return Container(
       width: 38,
@@ -539,7 +538,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     );
   }
 
-  /// Logo Rekapitulasi: binder/catatan kuning berklip persis sesuai desain referensi
+  /// Logo Rekapitulasi: binder/catatan kuning berklip
   Widget _buildRekapitulasiLogo() {
     return Container(
       width: 38,
@@ -622,6 +621,37 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     );
   }
 
+  /// Isi ikon/gambar untuk satu tile menu (tanpa efek terkunci).
+  Widget _buildTileContent({
+    required String? imageAsset,
+    required IconData? icon,
+    required Color? iconColor,
+    required Widget? customIcon,
+    required double imageSize,
+    required Color fallbackColor,
+  }) {
+    if (customIcon != null) return customIcon;
+
+    if (imageAsset != null) {
+      return Image.asset(
+        imageAsset,
+        height: imageSize,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Icon(
+          icon ?? Icons.widgets_rounded,
+          size: imageSize,
+          color: iconColor ?? fallbackColor,
+        ),
+      );
+    }
+
+    return Icon(
+      icon ?? Icons.widgets_rounded,
+      size: imageSize,
+      color: iconColor ?? fallbackColor,
+    );
+  }
+
   Widget _buildMenuItem({
     required String title,
     required VoidCallback onTap,
@@ -635,6 +665,17 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
+    final Widget baseContent = _buildTileContent(
+      imageAsset: imageAsset,
+      icon: icon,
+      iconColor: iconColor,
+      customIcon: customIcon,
+      imageSize: imageSize,
+      fallbackColor: isLocked
+          ? const Color(0xFF94A3B8)
+          : const Color(0xFF3985E7),
+    );
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -648,14 +689,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-<<<<<<< HEAD
-                  // Abu-abu seperti gambar jika bukan ranah dokter (#CBD5E1), atau biru muda (#ECF6FF) jika aktif
-                  color: isDisabled
-                      ? const Color(0xFFD1D7DB)
-=======
+                  // Abu-abu jika terkunci, biru muda (#ECF6FF) jika aktif
                   color: isLocked
-                      ? const Color(0xFFF1F5F9)
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+                      ? const Color(0xFFD1D7DB)
                       : const Color(0xFFECF6FF),
                   borderRadius: BorderRadius.circular(10),
                   border: isLocked
@@ -679,54 +715,27 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                       // Dekorasi sudut tematik
                       _buildTileDecoration(blobColor, isLocked: isLocked),
 
-                      // Icon, gambar, atau custom widget (greyscale jika terkunci)
+                      // Icon / gambar / custom widget (greyscale jika terkunci)
                       Center(
                         child: Transform.translate(
                           offset: Offset(logoOffsetX, 0),
                           child: isLocked
                               ? ColorFiltered(
-                                  colorFilter: const ColorFilter.matrix(<double>[
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0,      0,      0,      0.65, 0,
-                                  ]),
-                                  child: customIcon ??
-                                      (imageAsset != null
-                                          ? Image.asset(
-                                              imageAsset,
-                                              height: imageSize,
-                                              fit: BoxFit.contain,
-                                            )
-                                          : Icon(
-                                              icon ?? Icons.widgets_rounded,
-                                              size: imageSize,
-                                              color: const Color(0xFF94A3B8),
-                                            )),
+                                  colorFilter: const ColorFilter.matrix(
+                                    <double>[
+                                      0.2126, 0.7152, 0.0722, 0, 0, //
+                                      0.2126, 0.7152, 0.0722, 0, 0, //
+                                      0.2126, 0.7152, 0.0722, 0, 0, //
+                                      0, 0, 0, 0.65, 0, //
+                                    ],
+                                  ),
+                                  child: baseContent,
                                 )
-                              : (customIcon ??
-                                  (imageAsset != null
-                                      ? Image.asset(
-                                          imageAsset,
-                                          height: imageSize,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (_, _, _) => Icon(
-                                            icon ?? Icons.widgets_rounded,
-                                            size: imageSize,
-                                            color: iconColor ??
-                                                const Color(0xFF3985E7),
-                                          ),
-                                        )
-                                      : Icon(
-                                          icon ?? Icons.widgets_rounded,
-                                          size: imageSize,
-                                          color: iconColor ??
-                                              const Color(0xFF3985E7),
-                                        ))),
+                              : baseContent,
                         ),
                       ),
 
-                      // Badge Gembok jika fitur dinonaktifkan
+                      // Badge gembok jika fitur dinonaktifkan
                       if (isLocked)
                         Positioned(
                           top: 6,
@@ -755,16 +764,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             title,
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
-              fontSize: 14,
-<<<<<<< HEAD
-              fontWeight: isDisabled ? FontWeight.normal : FontWeight.bold,
-              color: isDisabled
-                  ? const Color(0xFF8696A0)
-=======
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
               color: isLocked
-                  ? const Color(0xFF94A3B8)
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
+                  ? const Color(0xFF8696A0)
                   : const Color(0xFF000000),
               height: 1.25,
             ),
@@ -814,7 +816,6 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // =========================================================================
   // CARD SLOGAN PeGo DOKTER
   // Dimensi: height 115, color #ECF6FF, corner radius 10
-  // Teks deskripsi disesuaikan dengan referensi desain
   // =========================================================================
   Widget _buildPeGoSloganCard() {
     return Container(
@@ -925,7 +926,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
   // =========================================================================
   // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
-  // Warna #F2EDED, tinggi 68dp (Persis Superadmin)
+  // Warna #F2EDED, tinggi 68dp
   // =========================================================================
   Widget _buildFixedNavBar() {
     final navItems = [

@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -159,13 +159,8 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-<<<<<<< HEAD
       pageBuilder: (_, _, _) => targetPage,
       transitionsBuilder: (_, animation, _, child) {
-=======
-      pageBuilder: (ctx, anim, secAnim) => targetPage,
-      transitionsBuilder: (ctx, animation, secAnim, child) {
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,

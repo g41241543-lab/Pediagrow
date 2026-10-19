@@ -5,11 +5,8 @@ import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
-<<<<<<< HEAD
 import '../../../../../../shared/widgets/doctor_live_avatar.dart';
-=======
 import '../../../../../../shared/widgets/pedia_banner.dart';
->>>>>>> 289e71df0313336a1855296b39040c36eaa51608
 import 'detail_resume_medis_page.dart';
 
 /// Halaman Daftar Resume Medis.
@@ -562,14 +559,6 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildDoctorAvatarFallback() {
-    return Container(
-      color: const Color(0xFFEAF5FF),
-      alignment: Alignment.center,
-      child: const Icon(Icons.person, size: 30, color: Color(0xFF2B7AE8)),
     );
   }
 }
