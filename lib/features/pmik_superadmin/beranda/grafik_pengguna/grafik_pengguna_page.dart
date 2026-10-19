@@ -610,10 +610,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         subtitle: 'Pilih format file dokumen',
         onSelect: (format) {
           Navigator.of(context).pop();
-          if (format == 'preview') {
+          if (format == 'pdf') {
             _downloadUsersPdf();
-          } else if (format == 'pdf') {
-            _downloadUsersPdfDirectly();
           } else if (format == 'csv') {
             _downloadUsersCsv();
           } else {
@@ -643,42 +641,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  /// Mengunduh langsung file PDF Dataset Pengguna ke penyimpanan lokal
-  Future<void> _downloadUsersPdfDirectly() async {
-    if (_isDownloading) return;
-    setState(() => _isDownloading = true);
-
-    try {
-      if (!await _ensureStoragePermission()) return;
-
-      final now = DateTime.now();
-      final dateStr =
-          '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-      final usersSnapshot = List<UserDemographicRow>.from(_userRows);
-
-      final pdfBytes = await PdfReportService.generateDatasetPenggunaPdf(
-        users: usersSnapshot,
-        totalPengguna: _totalPengguna,
-        totalAnak: _totalAnak,
-      );
-
-      final fileName = 'dataset_pengguna_$dateStr.pdf';
-      final filePath = await _saveToDownloads(
-        fileName: fileName,
-        bytes: pdfBytes,
-        mimeType: 'application/pdf',
-      );
-
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSuccessSnackbar(filePath, fileName, mimeType: 'application/pdf');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSnackbar('Gagal mengunduh PDF dataset pengguna');
-    }
-  }
-
 
   Future<void> _downloadUsersCsv() async {
     if (_isDownloading) return;
@@ -695,13 +657,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       // UTF-8 BOM untuk kompatibilitas Excel
       sb.write('\uFEFF');
       sb.writeln(
-        'No,Nama Depan,Nama Belakang,Jenis Kelamin,Umur,Provinsi,Kota,Kecamatan,Kelurahan/Desa',
+        'No,Nama Lengkap,Jenis Kelamin,Umur,Provinsi,Kota,Kecamatan,Kelurahan/Desa',
       );
 
       for (int i = 0; i < _userRows.length; i++) {
         final u = _userRows[i];
         sb.writeln(
-          '${i + 1},"${u.namaDepan}","${u.namaBelakang}","${u.jenisKelamin}","${u.umur}","${u.provinsi}","${u.kota}","${u.kecamatan}","${u.kelurahanDesa}"',
+          '${i + 1},"${u.namaLengkap}","${u.jenisKelamin}","${u.umur}","${u.provinsi}","${u.kota}","${u.kecamatan}","${u.kelurahanDesa}"',
         );
       }
 
@@ -740,8 +702,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
       const headers = [
         'No',
-        'Nama Depan',
-        'Nama Belakang',
+        'Nama Lengkap',
         'Jenis Kelamin',
         'Umur',
         'Provinsi',
@@ -758,14 +719,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         final u = _userRows[i];
         final row = i + 2;
         sheet.getRangeByIndex(row, 1).setNumber(i + 1.0);
-        sheet.getRangeByIndex(row, 2).setText(u.namaDepan);
-        sheet.getRangeByIndex(row, 3).setText(u.namaBelakang);
-        sheet.getRangeByIndex(row, 4).setText(u.jenisKelamin);
-        sheet.getRangeByIndex(row, 5).setText(u.umur);
-        sheet.getRangeByIndex(row, 6).setText(u.provinsi);
-        sheet.getRangeByIndex(row, 7).setText(u.kota);
-        sheet.getRangeByIndex(row, 8).setText(u.kecamatan);
-        sheet.getRangeByIndex(row, 9).setText(u.kelurahanDesa);
+        sheet.getRangeByIndex(row, 2).setText(u.namaLengkap);
+        sheet.getRangeByIndex(row, 3).setText(u.jenisKelamin);
+        sheet.getRangeByIndex(row, 4).setText(u.umur);
+        sheet.getRangeByIndex(row, 5).setText(u.provinsi);
+        sheet.getRangeByIndex(row, 6).setText(u.kota);
+        sheet.getRangeByIndex(row, 7).setText(u.kecamatan);
+        sheet.getRangeByIndex(row, 8).setText(u.kelurahanDesa);
       }
 
       for (int i = 1; i <= headers.length; i++) {
@@ -811,10 +771,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         subtitle: 'Pilih format laporan statistik',
         onSelect: (format) {
           Navigator.of(context).pop();
-          if (format == 'preview') {
+          if (format == 'pdf') {
             _downloadStuntingPdf();
-          } else if (format == 'pdf') {
-            _downloadStuntingPdfDirectly();
           } else if (format == 'csv') {
             _downloadStuntingCsv();
           } else {
@@ -846,44 +804,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ),
       ),
     );
-  }
-
-  /// Mengunduh langsung file PDF Rekapitulasi Stunting ke penyimpanan lokal
-  Future<void> _downloadStuntingPdfDirectly() async {
-    if (_isDownloading) return;
-    setState(() => _isDownloading = true);
-
-    try {
-      if (!await _ensureStoragePermission()) return;
-
-      final now = DateTime.now();
-      final dateStr =
-          '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-      final stuntingSnapshot = List<StuntingRecordRow>.from(_stuntingRows);
-      final totalStunting = stuntingSnapshot.where((r) => r.isStunting).length;
-      final totalNormal = stuntingSnapshot.length - totalStunting;
-
-      final pdfBytes = await PdfReportService.generateRekapitulasiStuntingPdf(
-        records: stuntingSnapshot,
-        totalStunting: totalStunting,
-        totalNormal: totalNormal,
-      );
-
-      final fileName = 'rekapitulasi_stunting_$dateStr.pdf';
-      final filePath = await _saveToDownloads(
-        fileName: fileName,
-        bytes: pdfBytes,
-        mimeType: 'application/pdf',
-      );
-
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSuccessSnackbar(filePath, fileName, mimeType: 'application/pdf');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isDownloading = false);
-      _showSnackbar('Gagal mengunduh PDF rekapitulasi stunting');
-    }
   }
 
   Future<void> _downloadStuntingCsv() async {
@@ -1923,8 +1843,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   Widget _buildUserTableContent() {
     const colWidths = [
-      130.0, // Nama Depan
-      130.0, // Nama Belakang
+      160.0, // Nama Lengkap
       115.0, // Jenis Kelamin
       90.0,  // Umur
       130.0, // Provinsi
@@ -1934,8 +1853,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     ];
 
     const headers = [
-      'Nama Depan',
-      'Nama Belakang',
+      'Nama Lengkap',
       'Jenis Kelamin',
       'Umur',
       'Provinsi',
@@ -1993,8 +1911,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             final u = _userRows[idx];
             final isLast = idx == _userRows.length - 1;
             final cells = [
-              u.namaDepan,
-              u.namaBelakang,
+              u.namaLengkap,
               u.jenisKelamin,
               u.umur,
               u.provinsi,
@@ -2114,29 +2031,32 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Plot Area
+          // Plot Area — Tinggi terkoordinasi bebas overflow
           SizedBox(
-            height: chartPlotHeight + 28.0,
+            height: chartPlotHeight + 42.0,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Sumbu Y Dinamis Sesuai Data Riil
-                SizedBox(
-                  width: 26.0,
-                  height: chartPlotHeight,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: yTicks.map((val) {
-                      return Text(
-                        '$val',
-                        style: GoogleFonts.lato(
-                          fontSize: 9.5,
-                          color: const Color(0xFF94A3B8),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    }).toList(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 18.0),
+                  child: SizedBox(
+                    width: 26.0,
+                    height: chartPlotHeight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: yTicks.map((val) {
+                        return Text(
+                          '$val',
+                          style: GoogleFonts.lato(
+                            fontSize: 9.5,
+                            color: const Color(0xFF94A3B8),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8.0),
@@ -2145,16 +2065,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 Expanded(
                   child: Stack(
                     children: [
-                      // Garis grid abu-abu tipis
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(yTicks.length, (_) {
-                          return const Divider(
-                            height: 1,
-                            thickness: 0.8,
-                            color: Color(0xFFE2E8F0),
-                          );
-                        }),
+                      // Garis grid abu-abu tipis sejajar sumbu Y
+                      Positioned(
+                        top: 18.0,
+                        left: 0,
+                        right: 0,
+                        height: chartPlotHeight,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(yTicks.length, (_) {
+                            return const Divider(
+                              height: 1,
+                              thickness: 0.8,
+                              color: Color(0xFFE2E8F0),
+                            );
+                          }),
+                        ),
                       ),
 
                       // Batang Bertumpuk Jan - Des
@@ -2177,19 +2103,24 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                             return Expanded(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (total > 0)
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 2.0),
-                                      child: Text(
-                                        '$total',
-                                        style: GoogleFonts.lato(
-                                          fontSize: 8.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: _kTextDark,
-                                        ),
-                                      ),
-                                    ),
+                                  SizedBox(
+                                    height: 16.0,
+                                    child: total > 0
+                                        ? Center(
+                                            child: Text(
+                                              '$total',
+                                              style: GoogleFonts.lato(
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: _kTextDark,
+                                              ),
+                                            ),
+                                          )
+                                        : const SizedBox.shrink(),
+                                  ),
+                                  const SizedBox(height: 2.0),
                                   SizedBox(
                                     height: chartPlotHeight,
                                     child: Align(
@@ -2223,12 +2154,17 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 6.0),
-                                  Text(
-                                    data.month,
-                                    style: GoogleFonts.lato(
-                                      fontSize: 9.5,
-                                      color: const Color(0xFF64748B),
+                                  const SizedBox(height: 4.0),
+                                  SizedBox(
+                                    height: 16.0,
+                                    child: Center(
+                                      child: Text(
+                                        data.month,
+                                        style: GoogleFonts.lato(
+                                          fontSize: 9.5,
+                                          color: const Color(0xFF64748B),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -2803,25 +2739,13 @@ class _DownloadBottomSheet extends StatelessWidget {
           const SizedBox(height: 12.0),
           const Divider(height: 1, color: _kBorderLight),
 
-          // Pilihan Pratinjau PDF
-          _buildOption(
-            context,
-            icon: Icons.visibility_rounded,
-            iconColor: _kBluePrimary,
-            label: 'Pratinjau Dokumen PDF',
-            subtitle: 'Lihat tampilan dan cetak langsung sebelum diunduh',
-            format: 'preview',
-          ),
-
-          const Divider(height: 1, thickness: 0.5, color: _kBorderLight),
-
-          // Pilihan Unduh PDF
+          // Pilihan Unduh PDF (Langsung Pratinjau & Simpan)
           _buildOption(
             context,
             icon: Icons.picture_as_pdf_rounded,
             iconColor: const Color(0xFFEF4444),
             label: 'Unduh Dokumen PDF (.pdf)',
-            subtitle: 'Simpan file PDF langsung ke folder Download',
+            subtitle: 'Otomatis membuka pratinjau dokumen PDF sebelum dicetak/disimpan',
             format: 'pdf',
           ),
 

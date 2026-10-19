@@ -20,18 +20,28 @@ import 'detail_riwayat_konsultasi_admin_page.dart';
 import 'riwayat_konsultasi_admin_model.dart';
 import 'riwayat_konsultasi_admin_service.dart';
 
-/// Halaman Daftar Riwayat Konsultasi untuk PMIK Superadmin.
+/// Halaman Daftar Riwayat Konsultasi untuk PMIK Superadmin dan Dokter.
 ///
 /// Fitur:
 /// - Header 56dp dari atas layar dengan tombol back (12dp dari tepi kiri) dan judul sejajar (jarak 12dp)
-/// - Keterangan "Data menampilkan seluruh konsultasi dari seluruh dokter dan pasien" di bagian ATAS
-/// - Kolom pencarian "Cari nama pasien atau dokter..." berdampingan dengan tombol Filter berdesain elegan
+/// - Keterangan data di bagian ATAS
+/// - Kolom pencarian real-time berdampingan dengan tombol Filter berdesain elegan
 /// - Filter dokter interaktif via Modal Bottom Sheet (default menampilkan semua dokter)
 /// - Seluruh konsultasi yang ditampilkan hanya yang berstatus Selesai
 /// - Kartu riwayat konsultasi dengan avatar profil anak resmi
 /// - Bottom Navigation Bar 4 menu persis seperti di Beranda
+///
+/// Jika [filterByDoctorName] diisi (mode dokter), halaman otomatis memfilter
+/// hanya konsultasi yang ditangani dokter tersebut; tombol filter dokter disembunyikan.
 class DaftarRiwayatKonsultasiAdminPage extends StatefulWidget {
-  const DaftarRiwayatKonsultasiAdminPage({super.key});
+  /// Nama dokter yang sedang login — jika diisi, tampilan hanya menampilkan
+  /// riwayat konsultasi milik dokter tersebut tanpa tombol filter dokter.
+  final String? filterByDoctorName;
+
+  const DaftarRiwayatKonsultasiAdminPage({
+    super.key,
+    this.filterByDoctorName,
+  });
 
   @override
   State<DaftarRiwayatKonsultasiAdminPage> createState() =>
@@ -58,6 +68,25 @@ class _DaftarRiwayatKonsultasiAdminPageState
   String _filterDoctor = 'Semua Dokter';
 
   List<DoctorModel> _doctorList = [];
+
+  /// Nama dokter efektif: jika di-pass via widget dipakai, jika tidak namun yang login adalah role dokter, ambil nama dari StaffAuthService
+  String? get _effectiveDoctorName {
+    if (widget.filterByDoctorName != null &&
+        widget.filterByDoctorName!.trim().isNotEmpty) {
+      return widget.filterByDoctorName!.trim();
+    }
+    final staff = StaffAuthService().currentStaff;
+    if (staff != null &&
+        staff.role == StaffRole.dokter &&
+        staff.name.trim().isNotEmpty) {
+      final doc = DoctorService().findDoctorForStaff(staff);
+      return doc?.name ?? staff.name.trim();
+    }
+    return null;
+  }
+
+  /// true jika halaman ini dipakai untuk role dokter (filter by doctor name)
+  bool get _isDoctorMode => _effectiveDoctorName != null;
 
   @override
   void initState() {
@@ -171,18 +200,28 @@ class _DaftarRiwayatKonsultasiAdminPageState
         return false;
       }
 
-      // Filter Dokter jika dipilih selain 'Semua Dokter'
-      if (_filterDoctor != 'Semua Dokter') {
-        if (item.doctorName.toLowerCase() != _filterDoctor.toLowerCase()) {
+      // Mode Dokter: filter otomatis berdasarkan nama dokter login (fuzzy match)
+      if (_isDoctorMode) {
+        if (!_isDoctorNameMatch(item.doctorName, _effectiveDoctorName!)) {
           return false;
+        }
+      } else {
+        // Mode Admin/Superadmin: Filter Dokter jika dipilih selain 'Semua Dokter'
+        if (_filterDoctor != 'Semua Dokter') {
+          if (item.doctorName.toLowerCase() != _filterDoctor.toLowerCase()) {
+            return false;
+          }
         }
       }
 
-      // Pencarian kata kunci nama pasien atau dokter
+      // Pencarian kata kunci nama pasien
+      // (mode dokter: hanya cari nama pasien; mode admin: cari nama pasien atau dokter)
       if (_searchQuery.trim().isNotEmpty) {
         final query = _searchQuery.toLowerCase().trim();
         final matchChild = item.childName.toLowerCase().contains(query);
-        final matchDoctor = item.doctorName.toLowerCase().contains(query);
+        final matchDoctor = _isDoctorMode
+            ? false
+            : item.doctorName.toLowerCase().contains(query);
         final matchComplaint = item.complaint.toLowerCase().contains(query);
         if (!matchChild && !matchDoctor && !matchComplaint) {
           return false;
@@ -191,6 +230,43 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
       return true;
     }).toList();
+  }
+
+  /// Fuzzy match nama dokter — mencocokkan kata kunci utama nama (strip gelar)
+  bool _isDoctorNameMatch(String doctorName, String loggedInName) {
+    if (loggedInName.isEmpty) return true;
+
+    String extractKey(String name) {
+      return name
+          .toLowerCase()
+          .replaceAll('dr.', '')
+          .replaceAll('dr', '')
+          .replaceAll('sp.a', '')
+          .replaceAll('spa', '')
+          .replaceAll('m.kes', '')
+          .replaceAll('mkes', '')
+          .replaceAll(',', '')
+          .replaceAll('.', '')
+          .trim();
+    }
+
+    final targetKey = extractKey(doctorName);
+    final loggedInKey = extractKey(loggedInName);
+
+    if (targetKey.isEmpty || loggedInKey.isEmpty) return true;
+
+    final targetWords =
+        targetKey.split(' ').where((w) => w.length >= 3).toList();
+    final loggedInWords =
+        loggedInKey.split(' ').where((w) => w.length >= 3).toList();
+
+    for (final tw in targetWords) {
+      for (final lw in loggedInWords) {
+        if (tw.contains(lw) || lw.contains(tw)) return true;
+      }
+    }
+
+    return targetKey.contains(loggedInKey) || loggedInKey.contains(targetKey);
   }
 
   @override
@@ -240,18 +316,17 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       children: [
                         const SizedBox(height: 12.0),
 
-                        // 1. Banner Keterangan di BAGIAN ATAS
-                        _buildInfoBanner(),
-                        const SizedBox(height: 14.0),
+                        // 1. Baris Search Bar berdampingan dengan Tombol Filter Estetik
+                        // (mode dokter: hanya search bar, tanpa tombol filter)
+                        _isDoctorMode
+                            ? _buildSearchBarOnly()
+                            : _buildSearchAndFilterRow(doctorOptions.toList()),
 
-                        // 2. Baris Search Bar berdampingan dengan Tombol Filter Estetik
-                        _buildSearchAndFilterRow(doctorOptions.toList()),
-
-                        // 3. Chip status dokter aktif (bisa di-cancel jika bukan 'Semua Dokter')
-                        _buildActiveDoctorFilterChip(),
+                        // 2. Chip status dokter aktif (mode admin saja)
+                        if (!_isDoctorMode) _buildActiveDoctorFilterChip(),
                         const SizedBox(height: 16.0),
 
-                        // 4. Status State: Loading, Error, Empty, atau Daftar Kartu
+                        // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
                         if (isLoading)
                           _buildLoadingState()
                         else if (hasError)
@@ -260,6 +335,13 @@ class _DaftarRiwayatKonsultasiAdminPageState
                           _buildEmptyState()
                         else
                           _buildConsultationList(filtered),
+
+                        const SizedBox(height: 18.0),
+
+                        // 4. Banner Keterangan di BAGIAN BAWAH (persis sesuai referensi desain slide 1)
+                        _isDoctorMode
+                            ? _buildDoctorInfoBanner()
+                            : _buildInfoBanner(),
 
                         const SizedBox(height: 24.0),
                         _buildFooterIllustration(),
@@ -321,7 +403,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── BANNER INFORMASI DI BAGIAN ATAS ────────────────────────────────────────
+  // ─── BANNER INFORMASI DI BAGIAN ATAS (MODE ADMIN/SUPERADMIN) ─────────────────
   Widget _buildInfoBanner() {
     return Container(
       width: double.infinity,
@@ -349,6 +431,47 @@ class _DaftarRiwayatKonsultasiAdminPageState
           Expanded(
             child: Text(
               'Data menampilkan seluruh konsultasi dari seluruh dokter dan pasien.',
+              style: GoogleFonts.lato(
+                fontSize: 13.0,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF1E40AF),
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── BANNER INFORMASI DI BAGIAN ATAS (MODE DOKTER) ────────────────────────────
+  Widget _buildDoctorInfoBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(
+          color: const Color(0xFFBFDBFE),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 2.0),
+            child: Icon(
+              Icons.assignment_ind_outlined,
+              size: 20.0,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: Text(
+              'Menampilkan riwayat konsultasi yang telah Anda tangani.',
               style: GoogleFonts.lato(
                 fontSize: 13.0,
                 fontWeight: FontWeight.w500,
@@ -487,8 +610,15 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── SEARCH BAR ───────────────────────────────────────────────────────────
-  Widget _buildSearchBar() {
+  // ─── SEARCH BAR KHUSUS DOKTER (HINT: CARI NAMA PASIEN...) ─────────────────
+  Widget _buildSearchBarOnly() {
+    return _buildSearchBar(hintText: 'Cari nama pasien...');
+  }
+
+  // ─── SEARCH BAR (mode admin: cari pasien atau dokter) ────────────────────
+  Widget _buildSearchBar({String? hintText}) {
+    final hint = hintText ??
+        (_isDoctorMode ? 'Cari nama pasien...' : 'Cari nama pasien atau dokter...');
     return Container(
       height: 48.0,
       decoration: BoxDecoration(
@@ -510,7 +640,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           color: _colorTextBlack,
         ),
         decoration: InputDecoration(
-          hintText: 'Cari nama pasien atau dokter...',
+          hintText: hint,
           hintStyle: GoogleFonts.lato(
             fontSize: 13.5,
             color: _colorSecondaryGrey,

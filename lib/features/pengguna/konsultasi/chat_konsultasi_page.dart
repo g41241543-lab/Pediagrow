@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -1535,15 +1536,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   Widget _buildUserAttachmentBubble(Map<String, dynamic> item) {
     final screenWidth = MediaQuery.of(context).size.width;
     final filePath = item['filePath'] as String?;
-    final fileName = item['fileName'] as String? ?? 'Lampiran Dokumen';
-    final isImage =
-        filePath != null &&
-        (filePath.toLowerCase().endsWith('.jpg') ||
-            filePath.toLowerCase().endsWith('.jpeg') ||
-            filePath.toLowerCase().endsWith('.png') ||
-            filePath.toLowerCase().endsWith('.webp'));
+    final imageBytes = item['imageBytes'] as Uint8List?;
+    final fileName = item['fileName'] as String? ?? 'Lampiran Foto';
+    final isImage = imageBytes != null ||
+        (filePath != null &&
+            (filePath.toLowerCase().endsWith('.jpg') ||
+                filePath.toLowerCase().endsWith('.jpeg') ||
+                filePath.toLowerCase().endsWith('.png') ||
+                filePath.toLowerCase().endsWith('.webp')));
 
-    final fileExists = filePath != null && File(filePath).existsSync();
+    final hasValidImage =
+        imageBytes != null || (filePath != null && File(filePath).existsSync());
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1568,14 +1571,47 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isImage && fileExists) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(filePath),
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
+                if (isImage && hasValidImage) ...[
+                  GestureDetector(
+                    onTap: () => _showFullScreenImage(
+                      imageBytes: imageBytes,
+                      filePath: filePath,
+                      title: fileName,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          if (imageBytes != null)
+                            Image.memory(
+                              imageBytes,
+                              width: double.infinity,
+                              height: 180,
+                              fit: BoxFit.cover,
+                            )
+                          else
+                            Image.file(
+                              File(filePath!),
+                              width: double.infinity,
+                              height: 180,
+                              fit: BoxFit.cover,
+                            ),
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            margin: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.fullscreen_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1627,6 +1663,62 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Tampilan gambar layar penuh (full-screen viewer)
+  void _showFullScreenImage({
+    Uint8List? imageBytes,
+    String? filePath,
+    required String title,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.8,
+                maxScale: 4.0,
+                child: imageBytes != null
+                    ? Image.memory(imageBytes, fit: BoxFit.contain)
+                    : (filePath != null
+                        ? Image.file(File(filePath), fit: BoxFit.contain)
+                        : const SizedBox.shrink()),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.lato(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded,
+                          color: Colors.white, size: 28),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1855,8 +1947,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 1. Tombol [+] Media / Lampiran di sisi paling kiri
+            // 1. Tombol [+] Media / Lampiran (Galeri)
             _buildAddMediaButton(),
+            const SizedBox(width: 6),
+
+            // 1b. Tombol Kamera Langsung
+            _buildCameraButton(),
             const SizedBox(width: 8),
 
             // 2. TextField "Ketik pesan..."
@@ -1891,6 +1987,32 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           onTap: _showAttachmentPickerOptions,
           child: const Center(
             child: Icon(Icons.add, color: colorPrimaryBlue, size: 22),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCameraButton() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFFEFF6FF),
+        border: Border.all(
+          color: colorPrimaryBlue.withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(19),
+          onTap: () => _pickAttachment(ImageSource.camera),
+          child: const Center(
+            child: Icon(Icons.camera_alt_rounded,
+                color: colorPrimaryBlue, size: 20),
           ),
         ),
       ),
@@ -1991,6 +2113,129 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
+  /// Dialog pratinjau sebelum foto dikirim
+  Future<bool?> _showImagePreviewDialog(XFile file, Uint8List bytes) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.photo_camera_rounded,
+                        color: colorPrimaryBlue, size: 22),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Pratinjau Foto',
+                        style: GoogleFonts.lato(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close,
+                          size: 20, color: Color(0xFF64748B)),
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    height: 240,
+                    width: double.infinity,
+                    color: const Color(0xFFF8FAFC),
+                    child: Image.memory(
+                      bytes,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.file(File(file.path), fit: BoxFit.contain),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  file.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        icon: const Icon(Icons.send_rounded,
+                            size: 18, color: Colors.white),
+                        label: Text(
+                          'Kirim Foto',
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorPrimaryBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _pickAttachment(ImageSource source) async {
     try {
       final XFile? file = await _picker.pickImage(
@@ -2001,6 +2246,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       );
 
       if (file != null) {
+        final bytes = await file.readAsBytes();
+        if (!mounted) return;
+
+        // Tampilkan dialog pratinjau sebelum dikirim
+        final confirmed = await _showImagePreviewDialog(file, bytes);
+        if (confirmed != true) return;
+
         final now = DateTime.now();
         final timeStr =
             '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
@@ -2011,10 +2263,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             'type': 'user_attachment',
             'fileName': file.name,
             'filePath': file.path,
+            'imageBytes': bytes,
             'timestamp': timeStr,
             'isRead': true,
           });
         });
+
+        // Simpan ke ChatMessageService cache agar tetap tersimpan
+        ChatMessageService.instance.saveCachedMessages(
+          _effectiveSessionId,
+          _messages,
+        );
 
         _scrollToBottom();
 
@@ -2036,11 +2295,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 'sender': 'doctor',
                 'type': 'text',
                 'message':
-                    'Terima kasih Mom’s sudah melampirkan berkas (${file.name}). Saya sudah mencermati lampiran tersebut. Boleh ceritakan lebih lanjut bagaimana gejala atau kondisi yang tampak pada lampiran ini Mom’s?',
+                    'Terima kasih Mom’s sudah melampirkan foto (${file.name}). Saya sudah mencermati lampiran tersebut. Boleh ceritakan lebih lanjut bagaimana gejala atau kondisi yang tampak pada lampiran ini Mom’s?',
                 'timestamp': replyTimeStr,
                 'isRead': true,
               });
             });
+
+            ChatMessageService.instance.saveCachedMessages(
+              _effectiveSessionId,
+              _messages,
+            );
+
             _scrollToBottom();
           });
         });
