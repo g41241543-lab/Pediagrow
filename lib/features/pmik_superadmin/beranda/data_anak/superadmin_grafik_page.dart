@@ -2,7 +2,6 @@
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
-import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../Grafik_Pertumbuhan/models/growth_record_model.dart';
 import '../../../Grafik_Pertumbuhan/services/growth_service.dart';
 import '../../../Grafik_Pertumbuhan/services/zscore_calculator.dart';
@@ -71,128 +70,109 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                 _buildHeader(context, currentAgeFormatted),
 
                 // ─────────────────────────────────────────────────────────────
-                // 2. KONTEN SCROLLABLE + ILUSTRASI FIXED DI DASAR
+                // 2. KONTEN SCROLLABLE
+                // (Ilustrasi dekoratif tidak ditampilkan untuk role staff)
                 // ─────────────────────────────────────────────────────────────
                 Expanded(
-                  child: Stack(
-                    children: [
-                      // Ilustrasi landscape fixed di bagian dasar
-                      const Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          child: IllustrationForestFooter(
-                            fit: BoxFit.fitWidth,
-                          ),
-                        ),
-                      ),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
 
-                      // Konten scrollable di atasnya
-                      Positioned.fill(
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // Keterangan "Terakhir diupdate: [tanggal]"
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0),
+                          child: Row(
                             children: [
-                              const SizedBox(height: 8),
-
-                              // Keterangan "Terakhir diupdate: [tanggal]"
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.access_time_rounded,
-                                      size: 15,
-                                      color: Color(0xFF7F7F7F),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Terakhir diupdate: $lastUpdatedText',
-                                      style: GoogleFonts.lato(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: const Color(0xFF7F7F7F),
-                                      ),
-                                    ),
-                                  ],
+                              const Icon(
+                                Icons.access_time_rounded,
+                                size: 15,
+                                color: Color(0xFF7F7F7F),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Terakhir diupdate: $lastUpdatedText',
+                                style: GoogleFonts.lato(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF7F7F7F),
                                 ),
                               ),
-
-                              const SizedBox(height: 14),
-
-                              // Tiga Kartu Statistik Ringkas Berdampingan
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: GrowthStatCardsRow(
-                                  weightKg: latestRecord?.weightKg ??
-                                      widget.child.weightKg,
-                                  heightCm: latestRecord?.heightCm ??
-                                      widget.child.heightCm,
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              // Judul "Grafik Pertumbuhan Anak"
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: Text(
-                                  'Grafik Pertumbuhan Anak',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF0B1014),
-                                    letterSpacing: -0.2,
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              // Widget Grafik KMS WHO Interaktif
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: KmsGrowthChart(
-                                  records: recordsOldestFirst,
-                                  isGirl: isGirl,
-                                  activeIndicator: _activeIndicator,
-                                  onIndicatorChanged: (newInd) {
-                                    setState(
-                                        () => _activeIndicator = newInd);
-                                  },
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // ─────────────────────────────────────────────
-                              // 3. BAR STATUS GIZI & DESKRIPSI
-                              //    (tanpa link "Konsultasikan dengan dokter")
-                              // ─────────────────────────────────────────────
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: _buildStatusGiziSection(
-                                  statusGizi: statusGizi,
-                                  statusColor: statusColor,
-                                  statusBgColor: statusBgColor,
-                                  statusDesc: statusDesc,
-                                ),
-                              ),
-
-                              // Ruang dasar agar konten tidak tertutup ilustrasi
-                              const SizedBox(height: 36),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+
+                        const SizedBox(height: 14),
+
+                        // Tiga Kartu Statistik Ringkas Berdampingan
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0),
+                          child: GrowthStatCardsRow(
+                            weightKg: latestRecord?.weightKg ??
+                                widget.child.weightKg,
+                            heightCm: latestRecord?.heightCm ??
+                                widget.child.heightCm,
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Judul "Grafik Pertumbuhan Anak"
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0),
+                          child: Text(
+                            'Grafik Pertumbuhan Anak',
+                            style: GoogleFonts.lato(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0F172A),
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // Widget Grafik KMS WHO Interaktif
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0),
+                          child: KmsGrowthChart(
+                            records: recordsOldestFirst,
+                            isGirl: isGirl,
+                            activeIndicator: _activeIndicator,
+                            onIndicatorChanged: (newInd) {
+                              setState(
+                                  () => _activeIndicator = newInd);
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // ─────────────────────────────────────────────
+                        // 3. BAR STATUS GIZI & DESKRIPSI
+                        //    (tanpa link "Konsultasikan dengan dokter")
+                        // ─────────────────────────────────────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0),
+                          child: _buildStatusGiziSection(
+                            statusGizi: statusGizi,
+                            statusColor: statusColor,
+                            statusBgColor: statusBgColor,
+                            statusDesc: statusDesc,
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
                 ),
               ],

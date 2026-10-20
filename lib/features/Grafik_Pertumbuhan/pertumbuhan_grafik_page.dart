@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/stunting_limit_service.dart';
 import '../../models/child_model.dart';
@@ -74,169 +74,162 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                 _buildHeader(context, currentAgeFormatted, isDark),
 
                 // -------------------------------------------------------------
-                // 2. KONTEN UTAMA SCROLLABLE DENGAN ILUSTRASI PINNED DI DASAR
-                // Pola: LayoutBuilder → ConstrainedBox(minHeight) → IntrinsicHeight
-                // → Column + Spacer + Ilustrasi
-                // Ilustrasi menempel di dasar layar saat konten pendek, dan
-                // ikut scroll ke bawah jika konten melebihi tinggi layar.
-                // (Pola sama dengan menu_profil_page.dart)
+                // 2. KONTEN SCROLLABLE + ILUSTRASI TRULY FIXED DI DASAR
+                // Pola: Expanded → Stack
+                //   ├─ Positioned(bottom:0) → IllustrationForestFooter  [fixed]
+                //   └─ Positioned.fill → SingleChildScrollView           [scroll]
+                // Ilustrasi TIDAK PERNAH ikut scroll karena berada di layer
+                // Stack yang terpisah dari SingleChildScrollView.
                 // -------------------------------------------------------------
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
-                          ),
-                          child: IntrinsicHeight(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-
-                                // Keterangan "Terakhir diupdate: [tanggal]"
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.access_time_rounded,
-                                        size: 15,
-                                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        'Terakhir diupdate: $lastUpdatedText',
-                                        style: GoogleFonts.lato(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                const SizedBox(height: 14),
-
-                                // Dua Kartu Statistik Ringkas Berdampingan
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: GrowthStatCardsRow(
-                                    weightKg: latestRecord?.weightKg ?? widget.child.weightKg,
-                                    heightCm: latestRecord?.heightCm ?? widget.child.heightCm,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                // Judul "Grafik Pertumbuhan Anak"
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Text(
-                                    'Grafik Pertumbuhan Anak',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-                                      letterSpacing: -0.2,
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 10),
-
-                                // Widget Grafik Pertumbuhan Interaktif (KMS Balita WHO)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: KmsGrowthChart(
-                                    records: recordsOldestFirst,
-                                    isGirl: isGirl,
-                                    activeIndicator: _activeIndicator,
-                                    onIndicatorChanged: (newInd) {
-                                      setState(() => _activeIndicator = newInd);
-                                    },
-                                  ),
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // ---------------------------------------------
-                                // 3. BAR STATUS GIZI & DESKRIPSI
-                                // ---------------------------------------------
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: _buildStatusGiziSection(
-                                    statusGizi: statusGizi,
-                                    statusColor: statusColor,
-                                    statusBgColor: statusBgColor,
-                                    statusDesc: statusDesc,
-                                    isDark: isDark,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 20),
-
-                                // ---------------------------------------------
-                                // 4. TOMBOL "+ Data Pertumbuhan Baru"
-                                // Solid Blue #3985E7, lebar 350, tinggi 48, radius 17
-                                // ---------------------------------------------
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Center(
-                                    child: SizedBox(
-                                      width: 350,
-                                      height: 48,
-                                      child: ElevatedButton.icon(
-                                        onPressed: () => _openAddMeasurement(context),
-                                        icon: const Icon(Icons.add,
-                                            color: Colors.white, size: 20),
-                                        label: Text(
-                                          'Data Pertumbuhan Baru',
-                                          style: GoogleFonts.lato(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF3985E7),
-                                          foregroundColor: Colors.white,
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(17),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                // ---------------------------------------------
-                                // 5. SPACER FLEKSIBEL
-                                // Mendorong ilustrasi ke dasar layar saat konten
-                                // belum memenuhi tinggi layar.
-                                // ---------------------------------------------
-                                const Spacer(),
-
-                                // ---------------------------------------------
-                                // 6. ILUSTRASI HUTAN — PINNED DI DASAR
-                                // Tidak ikut naik saat di-scroll karena Spacer
-                                // mendorongnya ke posisi paling bawah.
-                                // ---------------------------------------------
-                                const IgnorePointer(
-                                  child: IllustrationForestFooter(
-                                    fit: BoxFit.fitWidth,
-                                  ),
-                                ),
-                              ],
-                            ),
+                  child: Stack(
+                    children: [
+                      // ── LAYER BAWAH: Ilustrasi hutan FIXED di dasar layar ──
+                      const Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: IgnorePointer(
+                          child: IllustrationForestFooter(
+                            fit: BoxFit.fitWidth,
                           ),
                         ),
-                      );
-                    },
+                      ),
+
+                      // ── LAYER ATAS: Konten scrollable ──
+                      Positioned.fill(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+
+                              // Keterangan "Terakhir diupdate: [tanggal]"
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time_rounded,
+                                      size: 15,
+                                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Terakhir diupdate: $lastUpdatedText',
+                                      style: GoogleFonts.lato(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 14),
+
+                              // Dua Kartu Statistik Ringkas Berdampingan
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: GrowthStatCardsRow(
+                                  weightKg: latestRecord?.weightKg ?? widget.child.weightKg,
+                                  heightCm: latestRecord?.heightCm ?? widget.child.heightCm,
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Judul "Grafik Pertumbuhan Anak"
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Text(
+                                  'Grafik Pertumbuhan Anak',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              // Widget Grafik Pertumbuhan Interaktif (KMS Balita WHO)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: KmsGrowthChart(
+                                  records: recordsOldestFirst,
+                                  isGirl: isGirl,
+                                  activeIndicator: _activeIndicator,
+                                  onIndicatorChanged: (newInd) {
+                                    setState(() => _activeIndicator = newInd);
+                                  },
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // ---------------------------------------------
+                              // 3. BAR STATUS GIZI & DESKRIPSI
+                              // ---------------------------------------------
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: _buildStatusGiziSection(
+                                  statusGizi: statusGizi,
+                                  statusColor: statusColor,
+                                  statusBgColor: statusBgColor,
+                                  statusDesc: statusDesc,
+                                  isDark: isDark,
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // ---------------------------------------------
+                              // 4. TOMBOL "+ Data Pertumbuhan Baru"
+                              // Solid Blue #3985E7, lebar 350, tinggi 48, radius 17
+                              // ---------------------------------------------
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 350,
+                                    height: 48,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _openAddMeasurement(context),
+                                      icon: const Icon(Icons.add,
+                                          color: Colors.white, size: 20),
+                                      label: Text(
+                                        'Data Pertumbuhan Baru',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF3985E7),
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(17),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Ruang agar konten bawah tidak tertutup ilustrasi
+                              const SizedBox(height: 160),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
