@@ -598,86 +598,124 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // -------------------------------------------------------------------------
 
   Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _searchQuery.isNotEmpty
-                  ? Icons.search_off_rounded
-                  : Icons.restaurant_menu_outlined,
-              size: 56,
-              color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'Resep tidak ditemukan'
-                  : 'Belum ada resep MPASI',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF4A4A4A),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _searchQuery.isNotEmpty
+                                  ? Icons.search_off_rounded
+                                  : Icons.restaurant_menu_outlined,
+                              size: 56,
+                              color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'Resep tidak ditemukan'
+                                  : 'Belum ada resep MPASI',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF4A4A4A),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'Tidak ada resep yang cocok dengan kata kunci "$_searchQuery". Silakan coba kata kunci lain.'
+                                  : 'Resep MPASI akan ditampilkan di sini setelah administrator PMIK menambahkan data resep.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                ],
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'Tidak ada resep yang cocok dengan kata kunci "$_searchQuery". Silakan coba kata kunci lain.'
-                  : 'Resep MPASI akan ditampilkan di sini setelah administrator PMIK menambahkan data resep.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildErrorState(bool isDark) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              size: 48,
-              color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _errorMessage ?? 'Terjadi kesalahan.',
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.cloud_off_rounded,
+                              size: 48,
+                              color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _errorMessage ?? 'Terjadi kesalahan.',
+                              style: GoogleFonts.lato(
+                                fontSize: 14,
+                                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: _loadRecipes,
+                              child: Text(
+                                'Coba Lagi',
+                                style: GoogleFonts.lato(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: _colorPrimaryBlue,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: _loadRecipes,
-              child: Text(
-                'Coba Lagi',
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: _colorPrimaryBlue,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

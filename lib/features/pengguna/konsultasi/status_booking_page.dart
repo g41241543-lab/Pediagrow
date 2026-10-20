@@ -8,6 +8,7 @@ import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
+import '../../../shared/widgets/hover_lift.dart';
 import 'chat_konsultasi_page.dart';
 import 'daftar_dokter_page.dart';
 import 'formulir_konsultasi_page.dart';
@@ -200,6 +201,16 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ).copyWith(
+                    backgroundColor: WidgetStateProperty.resolveWith((s) {
+                      if (s.contains(WidgetState.hovered)) return const Color(0xFFF1F5F9);
+                      return null;
+                    }),
+                    side: WidgetStateProperty.resolveWith((s) {
+                      if (s.contains(WidgetState.hovered)) return const BorderSide(color: Color(0xFF94A3B8), width: 1.3);
+                      return const BorderSide(color: Color(0xFFCBD5E1));
+                    }),
+                    mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
                   ),
                   child: Text(
                     'Kembali',
@@ -234,6 +245,16 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     elevation: 0,
+                  ).copyWith(
+                    overlayColor: WidgetStateProperty.resolveWith((s) {
+                      if (s.contains(WidgetState.pressed)) return Colors.black.withValues(alpha: 0.12);
+                      if (s.contains(WidgetState.hovered)) return Colors.black.withValues(alpha: 0.10);
+                      return null;
+                    }),
+                    mouseCursor: WidgetStateProperty.resolveWith((s) =>
+                        s.contains(WidgetState.disabled)
+                            ? SystemMouseCursors.forbidden
+                            : SystemMouseCursors.click),
                   ),
                   child: Text(
                     'Ya, Batalkan',
@@ -360,7 +381,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   // ── Banner Status Waktu — Alami, Tenang, Nyaman Dilihat ────────────────────
   Widget _buildTimeStatusBanner(bool isDark) {
     if (_currentBooking.isExpired) {
-      return Container(
+      return HoverLift(
+        borderRadius: BorderRadius.circular(16.0),
+        child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -412,13 +435,15 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             ),
           ],
         ),
-      );
+      ));
     }
 
     if (_currentBooking.isInTimeWindow ||
         _currentBooking.status == 'Sedang Berlangsung') {
       final hasForm = _currentBooking.hasFilledForm;
-      return Container(
+      return HoverLift(
+        borderRadius: BorderRadius.circular(16.0),
+        child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.25) : const Color(0xFFF0FDF4),
@@ -474,11 +499,13 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             ),
           ],
         ),
-      );
+      ));
     }
 
     // Default: Jadwal Menunggu Waktu
-    return Container(
+    return HoverLift(
+      borderRadius: BorderRadius.circular(16.0),
+      child: Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -572,7 +599,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   // ── Kartu Tiket Booking — Bersih, Elegan, Humanis ─────────────────────────
@@ -580,7 +607,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     final doc = _currentBooking.doctor;
     final child = _currentBooking.child;
 
-    return Container(
+    return HoverLift(
+      borderRadius: BorderRadius.circular(18.0),
+      child: Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18.0),
@@ -794,12 +823,14 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   // ── Kartu Google Kalender — Ringan, Modern, Fungsional ───────────────────
   Widget _buildGoogleCalendarInfoCard(bool isDark) {
-    return Container(
+    return HoverLift(
+      borderRadius: BorderRadius.circular(18.0),
+      child: Container(
       padding: const EdgeInsets.all(18.0),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -937,7 +968,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   // ── Informasi Alur Konsultasi — Rapi & Menjelaskan ─────────────────────────
@@ -948,7 +979,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     final hasFilled = _currentBooking.hasFilledForm;
     final isDone = _currentBooking.status.toLowerCase() == 'selesai';
 
-    return Container(
+    return HoverLift(
+      borderRadius: BorderRadius.circular(18.0),
+      child: Container(
       padding: const EdgeInsets.all(18.0),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -1000,7 +1033,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildFlowStep({

@@ -353,6 +353,20 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                ).copyWith(
+                  overlayColor: WidgetStateProperty.resolveWith((s) {
+                    if (s.contains(WidgetState.pressed)) {
+                      return Colors.black.withValues(alpha: 0.12);
+                    }
+                    if (s.contains(WidgetState.hovered)) {
+                      return Colors.black.withValues(alpha: 0.10);
+                    }
+                    return null;
+                  }),
+                  mouseCursor: WidgetStateProperty.resolveWith((s) =>
+                      s.contains(WidgetState.disabled)
+                          ? SystemMouseCursors.forbidden
+                          : SystemMouseCursors.click),
                 ),
                 child: Text(
                   'Coba Lagi',
@@ -612,12 +626,15 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                       _searchFocusNode.unfocus();
                       setState(() => _searchQuery = '');
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                        ),
                       ),
                     ),
                   ),
@@ -626,34 +643,46 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
           ),
         ),
 
-        // 2. Filter Kategori Anak (mirip Kategori Usia MPASI: pil rounded, 'Semua' lalu nama anak)
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _buildMpasiStyleChip(
-                label: 'Semua',
-                isSelected: _showAllChildren,
-                onTap: () => _selectChild(null),
-                isDark: isDark,
-              ),
-              const SizedBox(width: 8),
-              ...ChildService().children.map((child) {
-                final isSelected = !_showAllChildren && _activeChild?.id == child.id;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _buildMpasiStyleChip(
-                    label: child.name,
-                    isSelected: isSelected,
-                    onTap: () => _selectChild(child),
+        // 2. Filter Kategori Anak (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : MediaQuery.of(context).size.width;
+            // Padding horizontal 16 kiri & kanan (total 32), 2 jarak celah antar 3 filter @ 8dp (total 16)
+            final chipWidth = (screenWidth - 32 - 16) / 3;
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildMpasiStyleChip(
+                    label: 'Semua',
+                    isSelected: _showAllChildren,
+                    onTap: () => _selectChild(null),
                     isDark: isDark,
+                    width: chipWidth,
                   ),
-                );
-              }),
-            ],
-          ),
+                  const SizedBox(width: 8),
+                  ...ChildService().children.map((child) {
+                    final isSelected = !_showAllChildren && _activeChild?.id == child.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildMpasiStyleChip(
+                        label: child.name,
+                        isSelected: isSelected,
+                        onTap: () => _selectChild(child),
+                        isDark: isDark,
+                        width: chipWidth,
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );
@@ -664,48 +693,107 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
+    required double width,
   }) {
-    return GestureDetector(
+    return _HoverChip(
+      label: label,
+      isSelected: isSelected,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 7,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark
-                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
-                  : const Color(0xFFEFF6FF))
-              : (isDark ? const Color(0xFF1A2228) : Colors.white),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF3985E7)
-                : (isDark
-                    ? const Color(0xFF2C363D)
-                    : const Color(0xFFE9EDEF)),
-            width: 1.2,
-          ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.lato(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected
-                ? const Color(0xFF3985E7)
-                : (isDark
-                    ? const Color(0xFF8696A0)
-                    : const Color(0xFF7F7F7F)),
-          ),
-        ),
-      ),
+      isDark: isDark,
+      width: width,
     );
   }
 
   /// Ilustrasi Footer Landscape Full-Bleed
   Widget _buildFooterIllustration() {
     return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+  }
+}
+
+class _HoverChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final bool isDark;
+  final double width;
+
+  const _HoverChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.isDark,
+    required this.width,
+  });
+
+  @override
+  State<_HoverChip> createState() => _HoverChipState();
+}
+
+class _HoverChipState extends State<_HoverChip> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    Color bgColor;
+    Color borderColor;
+
+    if (widget.isSelected) {
+      bgColor = widget.isDark
+          ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+          : const Color(0xFFEFF6FF);
+      borderColor = const Color(0xFF3985E7);
+    } else {
+      if (_hovered) {
+        bgColor = widget.isDark
+            ? const Color(0xFF243038)
+            : const Color(0xFFF1F5F9);
+        borderColor = widget.isDark
+            ? const Color(0xFF475569)
+            : const Color(0xFFCBD5E1);
+      } else {
+        bgColor = widget.isDark ? const Color(0xFF1A2228) : Colors.white;
+        borderColor = widget.isDark
+            ? const Color(0xFF2C363D)
+            : const Color(0xFFE9EDEF);
+      }
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: widget.width,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: borderColor,
+              width: 1.2,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: widget.isSelected
+                  ? const Color(0xFF3985E7)
+                  : (widget.isDark
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF7F7F7F)),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

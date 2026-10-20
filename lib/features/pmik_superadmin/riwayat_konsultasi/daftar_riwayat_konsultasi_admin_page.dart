@@ -720,30 +720,42 @@ class _DaftarRiwayatKonsultasiAdminPageState
         ),
         const SizedBox(height: 10.0),
 
-        // 2. Filter Kapsul Anak yang Ditangani Dokter (mirip Filter Kategori Resep MPASI)
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _buildDoctorChildChip(
-                label: 'Semua',
-                isSelected: _selectedDoctorChild == 'Semua',
-                onTap: () => setState(() => _selectedDoctorChild = 'Semua'),
-              ),
-              ...children.map((childName) {
-                final isSelected = _selectedDoctorChild == childName;
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: _buildDoctorChildChip(
-                    label: childName,
-                    isSelected: isSelected,
-                    onTap: () => setState(() => _selectedDoctorChild = childName),
+        // 2. Filter Kapsul Anak yang Ditangani Dokter (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : (MediaQuery.of(context).size.width - 32.0);
+            // 2 jarak celah antar 3 filter @ 8dp (total 16)
+            final chipWidth = (availableWidth - 16.0) / 3;
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildDoctorChildChip(
+                    label: 'Semua',
+                    isSelected: _selectedDoctorChild == 'Semua',
+                    onTap: () => setState(() => _selectedDoctorChild = 'Semua'),
+                    width: chipWidth,
                   ),
-                );
-              }),
-            ],
-          ),
+                  ...children.map((childName) {
+                    final isSelected = _selectedDoctorChild == childName;
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: _buildDoctorChildChip(
+                        label: childName,
+                        isSelected: isSelected,
+                        onTap: () => setState(() => _selectedDoctorChild = childName),
+                        width: chipWidth,
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );
@@ -753,14 +765,17 @@ class _DaftarRiwayatKonsultasiAdminPageState
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required double width,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        width: width,
         padding: const EdgeInsets.symmetric(
-          horizontal: 18.0,
+          horizontal: 8.0,
           vertical: 7.0,
         ),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
           borderRadius: BorderRadius.circular(20.0),
@@ -773,6 +788,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
         ),
         child: Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: GoogleFonts.lato(
             fontSize: 13.0,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
