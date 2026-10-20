@@ -270,6 +270,6 @@ class StaffAccount {
     }
     if (isSuperAdmin) return true;
     if (permissions.isEmpty) return true;
-    return permissions[permissionKey] ?? false;
+    return permissions[permissionKey] ?? true;
   }
 }

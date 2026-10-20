@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +7,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../models/booking_consultation_model.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import 'chat_konsultasi_page.dart';
 import 'daftar_dokter_page.dart';
 import 'formulir_konsultasi_page.dart';
@@ -614,7 +614,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      'Tiket Janji Temu',
+                      'Detail Booking',
                       style: GoogleFonts.lato(
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
@@ -661,30 +661,12 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ClipRRect(
+                    DoctorLiveAvatar(
+                      doctorId: doc.id,
+                      doctorName: doc.name,
+                      fallbackPhoto: doc.avatarUrl,
+                      size: 52.0,
                       borderRadius: BorderRadius.circular(14.0),
-                      child: Container(
-                        width: 52.0,
-                        height: 52.0,
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF1F5F9),
-                        child: doc.avatarUrl != null && doc.avatarUrl!.isNotEmpty
-                            ? (doc.avatarUrl!.startsWith('http')
-                                  ? Image.network(
-                                      doc.avatarUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(Icons.person, color: _kTextMuted),
-                                    )
-                                  : Image.file(
-                                      File(doc.avatarUrl!),
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(Icons.person, color: _kTextMuted),
-                                    ))
-                            : const Icon(Icons.person, color: _kTextMuted),
-                      ),
                     ),
                     const SizedBox(width: 14.0),
                     Expanded(
@@ -920,6 +902,16 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 11.0),
                 backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                foregroundColor: const Color(0xFF1E88E5),
+              ).copyWith(
+                overlayColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.hovered)) {
+                    return isDark
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                        : const Color(0xFFEFF6FF);
+                  }
+                  return null;
+                }),
               ),
               icon: const Icon(
                 Icons.event_note_rounded,
@@ -1142,6 +1134,13 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                 borderRadius: BorderRadius.circular(12.0),
               ),
               elevation: 0,
+            ).copyWith(
+              overlayColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.hovered)) {
+                  return Colors.white.withValues(alpha: 0.15);
+                }
+                return null;
+              }),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1160,30 +1159,56 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           ),
         ),
 
-        // Tombol Batalkan Konsultasi
+        // Tombol Batalkan Konsultasi (Card Button Berkarakter dengan Hover)
         if (canCancel) ...[
           const SizedBox(height: 12.0),
-          SizedBox(
+          Container(
             width: double.infinity,
-            height: 44.0,
-            child: TextButton.icon(
-              onPressed: _showBatalkanDialog,
-              icon: const Icon(
-                Icons.cancel_outlined,
-                color: Color(0xFFEF4444),
-                size: 18.0,
+            height: 48.0,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(
+                color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5),
+                width: 1.2,
               ),
-              label: Text(
-                'Batalkan Konsultasi',
-                style: GoogleFonts.lato(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFEF4444),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x08000000),
+                  blurRadius: 6.0,
+                  offset: Offset(0, 2),
                 ),
-              ),
-              style: TextButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(12.0),
+              child: InkWell(
+                onTap: _showBatalkanDialog,
+                hoverColor: isDark
+                    ? const Color(0xFF7F1D1D).withValues(alpha: 0.25)
+                    : const Color(0xFFFEF2F2),
+                splashColor: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                highlightColor: const Color(0xFFEF4444).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.cancel_outlined,
+                      color: Color(0xFFEF4444),
+                      size: 18.0,
+                    ),
+                    const SizedBox(width: 8.0),
+                    Text(
+                      'Batalkan Konsultasi',
+                      style: GoogleFonts.lato(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

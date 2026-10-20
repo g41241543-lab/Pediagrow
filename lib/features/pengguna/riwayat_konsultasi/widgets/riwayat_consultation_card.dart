@@ -52,6 +52,11 @@ class RiwayatConsultationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.0),
         child: InkWell(
           onTap: onTap,
+          hoverColor: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : const Color(0xFFF1F5F9),
+          splashColor: const Color(0xFF72A9F4).withValues(alpha: 0.12),
+          highlightColor: const Color(0xFF72A9F4).withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16.0),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
