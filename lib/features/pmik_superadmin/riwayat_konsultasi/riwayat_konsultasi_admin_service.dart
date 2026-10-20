@@ -346,6 +346,10 @@ class RiwayatKonsultasiAdminService {
       controller.add(RiwayatKonsultasiAdminItem.getMockData());
     }
 
+    controller.onListen = () {
+      emitCombined();
+    };
+
     controller.onCancel = () {
       subChildren?.cancel();
       subResumes?.cancel();
