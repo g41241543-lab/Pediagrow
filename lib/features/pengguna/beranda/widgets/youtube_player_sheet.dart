@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+﻿import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -91,10 +91,12 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
@@ -110,7 +112,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
               width: 44,
               height: 4.5,
               decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -140,7 +142,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -179,7 +181,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                 ),
                 const SizedBox(width: 2),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  icon: const Icon(Icons.close_rounded, color: Color(0xFF667781)),
                   onPressed: () => Navigator.of(context).pop(),
                   tooltip: 'Tutup',
                   padding: EdgeInsets.zero,
@@ -197,7 +199,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
               height: 210,
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
                 borderRadius: BorderRadius.circular(16),
               ),
               alignment: Alignment.center,
@@ -208,7 +210,10 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                   const SizedBox(height: 8),
                   Text(
                     'Tidak dapat memuat player in-app',
-                    style: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF64748B)),
+                    style: GoogleFonts.lato(
+                      fontSize: 14,
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
@@ -250,7 +255,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                     height: 1.3,
                   ),
                   maxLines: 2,
@@ -263,7 +268,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                       widget.video.channelTitle,
                       style: GoogleFonts.lato(
                         fontSize: 13,
-                        color: const Color(0xFF64748B),
+                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -271,9 +276,9 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                     Container(
                       width: 4,
                       height: 4,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF94A3B8),
+                        color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -281,7 +286,7 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                       widget.video.duration,
                       style: GoogleFonts.lato(
                         fontSize: 13,
-                        color: const Color(0xFF64748B),
+                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                       ),
                     ),
                   ],
@@ -290,15 +295,21 @@ class _YoutubePlayerSheetState extends State<YoutubePlayerSheet> {
                 OutlinedButton.icon(
                   onPressed: _launchExternalYoutube,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF1E293B),
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    foregroundColor: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                    ),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
                   ),
                   icon: const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFFFF0000)),
                   label: Text(
                     'Tonton di Aplikasi YouTube',
-                    style: GoogleFonts.lato(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.lato(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                    ),
                   ),
                 ),
               ],
@@ -331,7 +342,10 @@ class _DesktopFallbackDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AlertDialog(
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: Row(
         children: [
@@ -340,7 +354,11 @@ class _DesktopFallbackDialog extends StatelessWidget {
           Expanded(
             child: Text(
               'Video Edukasi Anak',
-              style: GoogleFonts.lato(fontSize: 17, fontWeight: FontWeight.bold),
+              style: GoogleFonts.lato(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -390,29 +408,41 @@ class _DesktopFallbackDialog extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 height: 160,
-                color: const Color(0xFFF1F5F9),
-                child: const Icon(Icons.videocam_rounded, size: 48, color: Color(0xFF94A3B8)),
+                color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
+                child: const Icon(Icons.videocam_rounded, size: 48, color: Color(0xFF8696A0)),
               ),
             ),
           ),
           const SizedBox(height: 12),
           Text(
             video.title,
-            style: GoogleFonts.lato(fontSize: 14.5, fontWeight: FontWeight.bold),
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 6),
           Text(
             'Durasi: ${video.duration} • ${video.channelTitle}',
-            style: GoogleFonts.lato(fontSize: 12.5, color: const Color(0xFF64748B)),
+            style: GoogleFonts.lato(
+              fontSize: 12.5,
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+            ),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Tutup', style: GoogleFonts.lato(color: const Color(0xFF64748B))),
+          child: Text(
+            'Tutup',
+            style: GoogleFonts.lato(
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+            ),
+          ),
         ),
         ElevatedButton.icon(
           onPressed: () {

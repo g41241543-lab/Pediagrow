@@ -6,6 +6,7 @@ import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
@@ -32,9 +33,9 @@ class BookingDokterPage extends StatefulWidget {
 class _BookingDokterPageState extends State<BookingDokterPage> {
   // Palet Warna Resmi PediaGrow
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
-  static const Color _colorBorder = Color(0xFFE2E8F0);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorBorder = Color(0xFFE9EDEF);
 
   late DoctorModel _doctor;
   late ChildModel _child;
@@ -101,13 +102,13 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
   }
 
   void _refreshSlots() {
-    final slots = JadwalDokterService().hitungSlotKosong(
+    final slots = JadwalDokterService().hitungSemuaSlot(
       dokterId: _doctor.id,
       tanggal: _selectedDate,
     );
     _availableSlots = slots;
 
-    // Sinkronkan slot terpilih
+    // Sinkronkan slot terpilih — prioritaskan slot yang masih tersedia
     if (_selectedTimeSlot != null) {
       final exists = slots.any((s) => s.timeLabel == _selectedTimeSlot && s.isAvailable);
       if (!exists) {
@@ -173,13 +174,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     if (_isSubmitting) return;
 
     if (_selectedTimeSlot == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Silakan pilih tanggal dan sesi waktu yang tersedia terlebih dahulu',
-          ),
-          backgroundColor: Color(0xFFEF4444),
-        ),
+      LocalPushService().show(
+        title: 'Peringatan',
+        body: 'Silakan pilih tanggal dan sesi waktu yang tersedia terlebih dahulu',
+        targetRole: PushRole.pengguna,
       );
       return;
     }
@@ -231,11 +229,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menyimpan booking: $e'),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal menyimpan booking: $e',
+          targetRole: PushRole.pengguna,
         );
       }
       return;
@@ -267,7 +264,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     BuildContext ctx,
     BookingConsultationModel booking,
   ) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+
     return Dialog(
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
@@ -294,7 +294,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
             const SizedBox(height: 10),
@@ -303,7 +303,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: _colorLabelGrey,
+                color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                 height: 1.5,
               ),
             ),
@@ -410,13 +410,14 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isFemale = _child.gender.toLowerCase() == 'perempuan';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(),
+        child: _buildHeader(isDark),
       ),
       body: SafeArea(
         top: false,
@@ -426,23 +427,23 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Ringkasan Pasien Anak
-              _buildChildSummaryCard(isFemale),
+              _buildChildSummaryCard(isFemale, isDark),
               const SizedBox(height: 14),
 
               // Ringkasan Dokter
-              _buildDoctorSummaryCard(),
+              _buildDoctorSummaryCard(isDark),
               const SizedBox(height: 18),
 
               // Bagian Pilihan Tanggal
-              _buildDateSection(),
+              _buildDateSection(isDark),
               const SizedBox(height: 18),
 
               // Bagian Pilihan Jam
-              _buildTimeSlotSection(),
+              _buildTimeSlotSection(isDark),
               const SizedBox(height: 18),
 
               // Info Banner Form Keluhan
-              _buildInfoBanner(),
+              _buildInfoBanner(isDark),
               const SizedBox(height: 24),
 
               // Tombol Konfirmasi
@@ -455,9 +456,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDark) {
     return Container(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -467,9 +468,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_back_rounded,
-                    color: _colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
@@ -479,7 +480,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   ),
                 ),
               ],
@@ -490,16 +491,19 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildChildSummaryCard(bool isFemale) {
+  Widget _buildChildSummaryCard(bool isFemale, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.04 : 0.08),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 3),
@@ -520,10 +524,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.child_care_rounded,
                     size: 16,
-                    color: _colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -531,7 +535,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
-                      color: _colorPrimaryBlue,
+                      color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                     ),
                   ),
                 ],
@@ -551,14 +555,14 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: _colorPrimaryBlue,
+                          color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                         ),
                       ),
                       const SizedBox(width: 2),
-                      const Icon(
+                      Icon(
                         Icons.swap_horiz_rounded,
                         size: 14,
-                        color: _colorPrimaryBlue,
+                        color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                       ),
                     ],
                   ),
@@ -584,7 +588,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                       style: GoogleFonts.lato(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: _colorTextBlack,
+                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -602,7 +606,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                           _child.ageDescription,
                           style: GoogleFonts.lato(
                             fontSize: 12.5,
-                            color: _colorLabelGrey,
+                            color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                           ),
                         ),
                       ],
@@ -617,16 +621,19 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildDoctorSummaryCard() {
+  Widget _buildDoctorSummaryCard(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.04 : 0.08),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 3),
@@ -645,12 +652,12 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: const Color(0xFFECF6FF),
+              color: isDark ? const Color(0xFF0B1014) : const Color(0xFFECF6FF),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.person_rounded,
-              color: _colorPrimaryBlue,
+              color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
               size: 28,
             ),
           ),
@@ -664,7 +671,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
                     fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -673,7 +680,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: _colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -681,7 +688,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   '${_doctor.experienceYears} tahun pengalaman praktik',
                   style: GoogleFonts.lato(
                     fontSize: 11.5,
-                    color: _colorLabelGrey,
+                    color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                   ),
                 ),
               ],
@@ -692,7 +699,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildDateSection() {
+  Widget _buildDateSection(bool isDark) {
     const daysName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     const monthsName = [
       'Jan',
@@ -720,7 +727,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
             InkWell(
@@ -730,10 +737,10 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_month_rounded,
                       size: 15,
-                      color: _colorPrimaryBlue,
+                      color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -741,7 +748,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                       style: GoogleFonts.lato(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: _colorPrimaryBlue,
+                        color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
                       ),
                     ),
                   ],
@@ -783,7 +790,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : const Color(0xFFFEF3C7),
+                        : (isDark ? const Color(0xFF451A03).withValues(alpha: 0.4) : const Color(0xFFFEF3C7)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -793,7 +800,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : const Color(0xFFD97706),
+                          : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
                     ),
                   ),
                 );
@@ -807,7 +814,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : const Color(0xFFE2E8F0),
+                        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -815,11 +822,19 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 8.5,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white70 : _colorLabelGrey,
+                      color: isSelected
+                          ? Colors.white70
+                          : (isDark ? const Color(0xFF8696A0) : _colorLabelGrey),
                     ),
                   ),
                 );
               } else {
+                final slotsKosong = JadwalDokterService().hitungSlotKosong(
+                  dokterId: _doctor.id,
+                  tanggal: date,
+                );
+                final isPenuh = slotsKosong.isEmpty;
+
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 2),
                   padding: const EdgeInsets.symmetric(
@@ -829,17 +844,21 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : const Color(0xFFD1FAE5),
+                        : isPenuh
+                            ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9))
+                            : (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.4) : const Color(0xFFD1FAE5)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Praktik',
+                    isPenuh ? 'Penuh' : 'Praktik',
                     style: GoogleFonts.lato(
                       fontSize: 8.5,
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : const Color(0xFF059669),
+                          : isPenuh
+                              ? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
+                              : (isDark ? const Color(0xFF34D399) : const Color(0xFF059669)),
                     ),
                   ),
                 );
@@ -855,10 +874,14 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                 child: Container(
                   width: 60,
                   decoration: BoxDecoration(
-                    color: isSelected ? _colorPrimaryBlue : Colors.white,
+                    color: isSelected
+                        ? _colorPrimaryBlue
+                        : (isDark ? const Color(0xFF1A2228) : Colors.white),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? _colorPrimaryBlue : _colorBorder,
+                      color: isSelected
+                          ? _colorPrimaryBlue
+                          : (isDark ? const Color(0xFF2C363D) : _colorBorder),
                       width: 1,
                     ),
                     boxShadow: [
@@ -878,7 +901,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white70 : _colorLabelGrey,
+                          color: isSelected
+                              ? Colors.white70
+                              : (isDark ? const Color(0xFF8696A0) : _colorLabelGrey),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -887,7 +912,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : _colorTextBlack,
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? const Color(0xFFE9EDEF) : _colorTextBlack),
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -895,7 +922,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                         month,
                         style: GoogleFonts.lato(
                           fontSize: 9.5,
-                          color: isSelected ? Colors.white70 : _colorLabelGrey,
+                          color: isSelected
+                              ? Colors.white70
+                              : (isDark ? const Color(0xFF8696A0) : _colorLabelGrey),
                         ),
                       ),
                       statusBadge,
@@ -910,7 +939,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildTimeSlotSection() {
+  Widget _buildTimeSlotSection(bool isDark) {
     final cuti = JadwalDokterService().getCutiPadaTanggal(
       _doctor.id,
       _selectedDate,
@@ -931,7 +960,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
             Text(
@@ -939,7 +968,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               style: GoogleFonts.lato(
                 fontSize: 11.5,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0284C7),
+                color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
               ),
             ),
           ],
@@ -951,9 +980,13 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
+                color: isDark
+                    ? const Color(0xFF451A03).withValues(alpha: 0.4)
+                    : const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFFCD34D)),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF78350F) : const Color(0xFFFCD34D),
+                ),
               ),
               child: Row(
                 children: [
@@ -964,7 +997,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                       '${_doctor.name} sedang cuti (${cuti.alasan}). Silakan pilih tanggal lain yang tersedia.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: const Color(0xFF92400E),
+                        color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                       ),
                     ),
                   ),
@@ -976,20 +1009,26 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _colorBorder),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2C363D) : _colorBorder,
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.hotel_rounded, color: _colorLabelGrey, size: 22),
+                  Icon(
+                    Icons.hotel_rounded,
+                    color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                    size: 22,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Dokter tidak memiliki jadwal praktik reguler pada hari ini. Silakan pilih tanggal praktik lainnya.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: _colorLabelGrey,
+                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                       ),
                     ),
                   ),
@@ -1001,20 +1040,26 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _colorBorder),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2C363D) : _colorBorder,
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.schedule_rounded, color: _colorLabelGrey, size: 22),
+                  Icon(
+                    Icons.schedule_rounded,
+                    color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                    size: 22,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Semua slot konsultasi pada tanggal ini telah penuh atau jam praktik telah selesai. Silakan pilih tanggal berikutnya.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: _colorLabelGrey,
+                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                       ),
                     ),
                   ),
@@ -1041,10 +1086,16 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+                      color: isSelected
+                          ? (isDark
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                              : const Color(0xFFEFF6FF))
+                          : (isDark ? const Color(0xFF1A2228) : Colors.white),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: isSelected ? _colorPrimaryBlue : _colorBorder,
+                        color: isSelected
+                            ? _colorPrimaryBlue
+                            : (isDark ? const Color(0xFF2C363D) : _colorBorder),
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
@@ -1054,7 +1105,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                         Icon(
                           Icons.access_time_rounded,
                           size: 14,
-                          color: isSelected ? _colorPrimaryBlue : _colorLabelGrey,
+                          color: isSelected
+                              ? (isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue)
+                              : (isDark ? const Color(0xFF8696A0) : _colorLabelGrey),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -1062,7 +1115,9 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                           style: GoogleFonts.lato(
                             fontSize: 12.5,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected ? _colorPrimaryBlue : _colorTextBlack,
+                            color: isSelected
+                                ? (isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue)
+                                : (isDark ? const Color(0xFFE9EDEF) : _colorTextBlack),
                             decoration: isAvail ? null : TextDecoration.lineThrough,
                           ),
                         ),
@@ -1088,25 +1143,29 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     );
   }
 
-  Widget _buildInfoBanner() {
+  Widget _buildInfoBanner(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withValues(alpha: 0.08),
+        color: isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
+            : _colorPrimaryBlue.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: _colorPrimaryBlue.withValues(alpha: 0.2),
+          color: isDark
+              ? const Color(0xFF1E40AF).withValues(alpha: 0.4)
+              : _colorPrimaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline_rounded,
             size: 18,
-            color: _colorPrimaryBlue,
+            color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -1114,7 +1173,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
               'Form keluhan lengkap dan riwayat pengukuran anak akan diisi oleh orang tua ketika waktu sesi konsultasi telah tiba.',
               style: GoogleFonts.lato(
                 fontSize: 12,
-                color: _colorPrimaryBlue,
+                color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
                 height: 1.4,
               ),
             ),
@@ -1133,19 +1192,16 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
         onPressed: canBook
             ? _confirmBooking
             : () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Silakan pilih tanggal dan sesi waktu yang tersedia terlebih dahulu',
-                    ),
-                    backgroundColor: Color(0xFFEF4444),
-                  ),
+                LocalPushService().show(
+                  title: 'Peringatan',
+                  body: 'Silakan pilih tanggal dan sesi waktu yang tersedia terlebih dahulu',
+                  targetRole: PushRole.pengguna,
                 );
               },
         style: ElevatedButton.styleFrom(
           backgroundColor: canBook
               ? _colorPrimaryBlue
-              : const Color(0xFF94A3B8),
+              : const Color(0xFF8696A0),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

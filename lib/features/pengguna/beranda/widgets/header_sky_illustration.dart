@@ -80,6 +80,49 @@ class HeaderSkyIllustration extends StatefulWidget {
     1.0,
   ];
 
+  /// Warna gradasi latar langit siang hari saat MODE GELAP aktif:
+  /// Tetap biru langit cerah di atas (matahari tetap terlihat cerah di langit siang),
+  /// lalu bertransisi mulus ke hitam pekat (#0B1014) tanpa ada putih tersisa.
+  static const List<Color> dayGradientColorsDark = [
+    Color(0xFF5BA4F5), // 0.0:  Biru langit cerah di atas
+    Color(0xFF3B82F6), // 0.30: Biru cerah
+    Color(0xFF1D4ED8), // 0.55: Biru transisi medium
+    Color(0xFF1E3A8A), // 0.75: Biru tua pekat
+    Color(0xFF0D1520), // 0.88: Biru malam sangat gelap menuju hitam
+    Color(0xFF0B1014), // 1.0:  Hitam pekat menyatu sempurna ke background gelap
+  ];
+
+  /// Warna gradasi latar langit malam hari saat MODE GELAP aktif:
+  /// Midnight blue elegan di atas meluruh mulus secara konsisten ke latar #0B1014,
+  /// tanpa ada bagian yang lebih gelap atau melompat lebih terang.
+  static const List<Color> nightGradientColorsDark = [
+    Color(0xFF15222E), // 0.0:  Midnight navy lembut di atas
+    Color(0xFF111B24), // 0.35: Slate malam gelap
+    Color(0xFF0E151C), // 0.60: Transisi halus meluruh
+    Color(0xFF0C1217), // 0.80: Mendekati latar gelap
+    Color(0xFF0B1014), // 0.92: Latar gelap WhatsApp
+    Color(0xFF0B1014), // 1.0:  Berakhir tepat di #0B1014
+  ];
+
+  /// Helper untuk mengambil list warna gradasi langit sesuai waktu dan tema
+  static List<Color> getGradientColors({
+    required bool isNight,
+    required bool isDark,
+  }) {
+    if (isDark) {
+      return isNight ? nightGradientColorsDark : dayGradientColorsDark;
+    } else {
+      return isNight ? nightGradientColors : dayGradientColors;
+    }
+  }
+
+  static List<double> getGradientStops({
+    required bool isNight,
+    required bool isDark,
+  }) {
+    return isNight ? nightGradientStops : dayGradientStops;
+  }
+
   @override
   State<HeaderSkyIllustration> createState() => _HeaderSkyIllustrationState();
 }
@@ -166,6 +209,7 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
   @override
   Widget build(BuildContext context) {
     final isNight = HeaderSkyIllustration.checkIsNight(widget.mode);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return IgnorePointer(
       child: Stack(
@@ -179,12 +223,14 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: isNight
-                        ? HeaderSkyIllustration.nightGradientColors
-                        : HeaderSkyIllustration.dayGradientColors,
-                    stops: isNight
-                        ? HeaderSkyIllustration.nightGradientStops
-                        : HeaderSkyIllustration.dayGradientStops,
+                    colors: HeaderSkyIllustration.getGradientColors(
+                      isNight: isNight,
+                      isDark: isDark,
+                    ),
+                    stops: HeaderSkyIllustration.getGradientStops(
+                      isNight: isNight,
+                      isDark: isDark,
+                    ),
                   ),
                 ),
               ),
@@ -735,9 +781,9 @@ class _CumulusCloudPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    final baseColor = isNight ? const Color(0xFFCBD5E1) : Colors.white;
+    final baseColor = isNight ? const Color(0xFFD1D7DB) : Colors.white;
     final shadowColor = isNight
-        ? const Color(0xFF94A3B8)
+        ? const Color(0xFF8696A0)
         : const Color(0xFFCFE0F5);
 
     final silhouette = _buildCloudSilhouette(w, h);

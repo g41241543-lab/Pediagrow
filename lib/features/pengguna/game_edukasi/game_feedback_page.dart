@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -86,23 +86,30 @@ class GameFeedbackPage extends StatelessWidget {
   // ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false, // nonaktifkan back selama kuis
       child: Scaffold(
         body: Stack(
           children: [
-            // ── Background Gradient Biru (Figma) ──────────────────
+            // ── Background Gradient Biru Figma / Night Sky Dark Mode ──
             Positioned.fill(
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF4E92F0),
-                      Color(0xFF5B9BF5),
-                      Color(0xFF6FA8E8),
-                    ],
+                    colors: isDark
+                        ? [
+                            const Color(0xFF0B1014),
+                            const Color(0xFF1A2228),
+                          ]
+                        : [
+                            const Color(0xFF4E92F0),
+                            const Color(0xFF5B9BF5),
+                            const Color(0xFF6FA8E8),
+                          ],
                   ),
                 ),
               ),
@@ -130,13 +137,13 @@ class GameFeedbackPage extends StatelessWidget {
                           16.0, 24.0, 16.0, 32.0),
                       child: Column(
                         children: [
-                          // Kartu soal (putih)
-                          _buildKartuSoal(),
+                          // Kartu soal
+                          _buildKartuSoal(context),
 
                           const SizedBox(height: 16),
 
                           // Tombol jawaban dengan state hasil warna
-                          _buildTombolHasil(),
+                          _buildTombolHasil(context),
 
                           const SizedBox(height: 16),
 
@@ -145,8 +152,8 @@ class GameFeedbackPage extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          // Kartu penjelasan (putih)
-                          _buildKartuPenjelasan(),
+                          // Kartu penjelasan
+                          _buildKartuPenjelasan(context),
 
                           const SizedBox(height: 24),
 
@@ -227,16 +234,19 @@ class GameFeedbackPage extends StatelessWidget {
     );
   }
 
-  // ── KARTU SOAL (read-only, kartu putih di atas background biru) ──
-  Widget _buildKartuSoal() {
+  // ── KARTU SOAL ───────────────────────────────────────────────────
+  Widget _buildKartuSoal(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(17),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.07),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -251,7 +261,7 @@ class GameFeedbackPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF7F7F7F),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
             ),
           ),
           const SizedBox(height: 14),
@@ -260,7 +270,7 @@ class GameFeedbackPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0B1014),
               height: 1.55,
             ),
           ),
@@ -269,7 +279,9 @@ class GameFeedbackPage extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFECF6FF),
+              color: isDark
+                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                  : const Color(0xFFECF6FF),
               borderRadius: BorderRadius.circular(50),
             ),
             child: Text(
@@ -287,9 +299,10 @@ class GameFeedbackPage extends StatelessWidget {
   }
 
   // ── TOMBOL JAWABAN (state warna hasil) ─────────────────────────
-  Widget _buildTombolHasil() {
-    final Color warnaTombolBenar = _colorForTombol(pilihan: true);
-    final Color warnaTombolSalah = _colorForTombol(pilihan: false);
+  Widget _buildTombolHasil(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color warnaTombolBenar = _colorForTombol(pilihan: true, isDark: isDark);
+    final Color warnaTombolSalah = _colorForTombol(pilihan: false, isDark: isDark);
 
     return Row(
       children: [
@@ -313,13 +326,13 @@ class GameFeedbackPage extends StatelessWidget {
   }
 
   /// Mengembalikan warna background tombol berdasarkan pilihan pengguna.
-  Color _colorForTombol({required bool pilihan}) {
+  Color _colorForTombol({required bool pilihan, required bool isDark}) {
     if (pilihanPengguna == pilihan) {
       return isBenar
           ? const Color(0xFF10B981) // hijau → sama dengan pernyataan Jawaban Benar
           : const Color(0xFFEF4444); // merah → salah
     }
-    return const Color(0xFFECF6FF); // netral terang
+    return isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF); // netral
   }
 
   // ── BAR STATUS (Jawaban Benar / Jawaban Salah) ──────────────────
@@ -356,16 +369,19 @@ class GameFeedbackPage extends StatelessWidget {
     );
   }
 
-  // ── KARTU PENJELASAN (kartu putih di atas background biru) ─────
-  Widget _buildKartuPenjelasan() {
+  // ── KARTU PENJELASAN ───────────────────────────────────────────
+  Widget _buildKartuPenjelasan(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(17),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -399,7 +415,7 @@ class GameFeedbackPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 14,
               height: 1.6,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
             ),
           ),
         ],
@@ -407,16 +423,18 @@ class GameFeedbackPage extends StatelessWidget {
     );
   }
 
-  // ── TOMBOL LANJUT / LIHAT SKOR (Putih kontras) ─────────────────
+  // ── TOMBOL LANJUT / LIHAT SKOR ─────────────────────────────────
   Widget _buildTombolLanjut(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
         onPressed: () => _lanjut(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF3985E7),
+          backgroundColor: isDark ? const Color(0xFF3985E7) : Colors.white,
+          foregroundColor: isDark ? Colors.white : const Color(0xFF3985E7),
           elevation: 4,
           shadowColor: Colors.black.withValues(alpha: 0.15),
           shape: RoundedRectangleBorder(
@@ -431,14 +449,14 @@ class GameFeedbackPage extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF3985E7),
+                color: isDark ? Colors.white : const Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 6),
             Icon(
               _isLast ? Icons.emoji_events_rounded : Icons.arrow_forward_rounded,
               size: 18,
-              color: const Color(0xFF3985E7),
+              color: isDark ? Colors.white : const Color(0xFF3985E7),
             ),
           ],
         ),
@@ -488,7 +506,7 @@ class _TombolHasilWidget extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: _isHighlighted ? Colors.white : const Color(0xFF94A3B8),
+            color: _isHighlighted ? Colors.white : const Color(0xFF8696A0),
           ),
           const SizedBox(width: 6),
           Text(
@@ -496,7 +514,7 @@ class _TombolHasilWidget extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: _isHighlighted ? Colors.white : const Color(0xFF94A3B8),
+              color: _isHighlighted ? Colors.white : const Color(0xFF8696A0),
             ),
           ),
         ],

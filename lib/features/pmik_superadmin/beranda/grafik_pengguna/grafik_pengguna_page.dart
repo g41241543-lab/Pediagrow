@@ -10,7 +10,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_store_plus/media_store_plus.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
@@ -20,6 +19,7 @@ import '../../../../models/user_model.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/child_service.dart';
 import '../../../Grafik_Pertumbuhan/services/growth_service.dart';
+import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/staff_account_model.dart';
 import '../../../dokter/beranda/beranda_dokter_page.dart';
@@ -36,11 +36,11 @@ const Color _kBluePrimary = Color(0xFF2B7AE8);
 const Color _kTealPrimary = Color(0xFF3CC3A6);
 
 // Warna elemen & teks
-const Color _kBorderColor = Color(0xFFCBD5E1);
-const Color _kBorderLight = Color(0xFFE2E8F0);
-const Color _kTextDark = Color(0xFF1E293B);
-const Color _kTextMuted = Color(0xFF64748B);
-const Color _kTextSubtitle = Color(0xFF475569);
+const Color _kBorderColor = Color(0xFFD1D7DB);
+const Color _kBorderLight = Color(0xFFE9EDEF);
+const Color _kTextDark = Color(0xFF1A2228);
+const Color _kTextMuted = Color(0xFF667781);
+const Color _kTextSubtitle = Color(0xFF2C363D);
 
 // Warna jenis kelamin anak
 const Color _kBoyBlue = Color(0xFF2B7AE8);
@@ -642,6 +642,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
 
+
   Future<void> _downloadUsersCsv() async {
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
@@ -967,68 +968,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return localFile.path;
   }
 
+  PushRole _currentPushRole() {
+    final staff = StaffAuthService().currentStaff;
+    if (staff?.role == StaffRole.dokter) return PushRole.dokter;
+    if (staff?.role == StaffRole.admin) return PushRole.pmik;
+    return PushRole.superadmin;
+  }
+
   void _showSnackbar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1E293B),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: msg,
+      targetRole: _currentPushRole(),
     );
   }
 
   void _showSuccessSnackbar(String? filePath, String fileName,
       {String? mimeType}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 4),
-        backgroundColor: const Color(0xFF1E293B),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        content: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'File berhasil disimpan',
-                style: GoogleFonts.lato(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            if (filePath != null)
-              GestureDetector(
-                onTap: () async {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  final result = await OpenFilex.open(filePath, type: mimeType);
-                  if (result.type != ResultType.done && mounted) {
-                    if (result.type == ResultType.noAppToOpen) {
-                      _showSnackbar('Tidak ada aplikasi untuk membuka file ini');
-                    } else {
-                      _showSnackbar('Gagal membuka file: ${result.message}');
-                    }
-                  }
-                },
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Text(
-                    'Buka',
-                    style: GoogleFonts.lato(
-                      color: const Color(0xFF38BDF8),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: 'File $fileName berhasil disimpan',
+      targetRole: _currentPushRole(),
     );
   }
 
@@ -1167,7 +1127,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _kBluePrimary, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -1297,7 +1257,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                     'Selamat datang,',
                     style: GoogleFonts.lato(
                       fontSize: 13.5,
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF1A2228),
                     ),
                   ),
                   const SizedBox(height: 2.0),
@@ -1306,7 +1266,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                     style: GoogleFonts.lato(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   const SizedBox(height: 6.0),
@@ -1315,7 +1275,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                     style: GoogleFonts.lato(
                       fontSize: 12.0,
                       height: 1.3,
-                      color: const Color(0xFF334155),
+                      color: const Color(0xFF2C363D),
                     ),
                   ),
                 ],
@@ -1368,7 +1328,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1376,7 +1336,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 24.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1384,7 +1344,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
@@ -1412,7 +1372,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1420,7 +1380,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 24.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -1428,7 +1388,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
@@ -1443,7 +1403,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           style: GoogleFonts.lato(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: const Color(0xFF0B1014),
           ),
         ),
       ],
@@ -1936,7 +1896,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
                           fontSize: 12.0,
-                          color: const Color(0xFF334155),
+                          color: const Color(0xFF2C363D),
                         ),
                       ),
                     );
@@ -2051,7 +2011,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                           '$val',
                           style: GoogleFonts.lato(
                             fontSize: 9.5,
-                            color: const Color(0xFF94A3B8),
+                            color: const Color(0xFF8696A0),
                             fontWeight: FontWeight.w500,
                           ),
                         );
@@ -2077,7 +2037,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                             return const Divider(
                               height: 1,
                               thickness: 0.8,
-                              color: Color(0xFFE2E8F0),
+                              color: Color(0xFFE9EDEF),
                             );
                           }),
                         ),
@@ -2162,7 +2122,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                         data.month,
                                         style: GoogleFonts.lato(
                                           fontSize: 9.5,
-                                          color: const Color(0xFF64748B),
+                                          color: const Color(0xFF667781),
                                         ),
                                       ),
                                     ),
@@ -2214,7 +2174,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           text,
           style: GoogleFonts.lato(
             fontSize: 11.5,
-            color: const Color(0xFF475569),
+            color: const Color(0xFF2C363D),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -2501,7 +2461,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           Container(
             height: 120.0,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFE9EDEF),
               borderRadius: BorderRadius.circular(16.0),
             ),
           ),
@@ -2512,7 +2472,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 child: Container(
                   height: 100.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: const Color(0xFFE9EDEF),
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                 ),
@@ -2522,7 +2482,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 child: Container(
                   height: 100.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: const Color(0xFFE9EDEF),
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                 ),
@@ -2533,7 +2493,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           Container(
             height: 240.0,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFE9EDEF),
               borderRadius: BorderRadius.circular(16.0),
             ),
             child: const Center(
@@ -2559,11 +2519,11 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFE2E8F0)
+      ..color = const Color(0xFFE9EDEF)
       ..strokeWidth = 0.8;
 
     final axisPaint = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = const Color(0xFFD1D7DB)
       ..strokeWidth = 1.0;
 
     for (int i = 0; i <= lineCount; i++) {
@@ -2661,11 +2621,7 @@ class _YAxisScale {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CUSTOM PAINTER: AVATAR ANAK LAKI-LAKI & PEREMPUAN
-// ══════════════════════════════════════════════════════════════════════════════
 
-
-// ══════════════════════════════════════════════════════════════════════════════
 // MODAL BOTTOM SHEET PILIHAN UNDUH (PDF, CSV, EXCEL)
 // ══════════════════════════════════════════════════════════════════════════
 class _DownloadBottomSheet extends StatelessWidget {
@@ -2695,7 +2651,7 @@ class _DownloadBottomSheet extends StatelessWidget {
               width: 40.0,
               height: 4.0,
               decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
+                color: const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(2.0),
               ),
             ),

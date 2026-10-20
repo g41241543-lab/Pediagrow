@@ -159,6 +159,78 @@ class ResumeMedisService {
     return ref.id;
   }
 
+  /// Simpan atau perbarui resume medis berdasarkan sessionId.
+  /// Jika sudah ada dokumen dengan sessionId yang sama, lakukan update agar tidak terjadi duplikasi.
+  /// Jika belum ada, buat dokumen baru.
+  Future<String> saveOrUpdateResumeMedis(ResumeMedisModel resume) async {
+    final sessId = resume.sessionId;
+    if (sessId != null && sessId.isNotEmpty) {
+      try {
+        final querySnap = await _firestore
+            .collection(_collectionName)
+            .where('session_id', isEqualTo: sessId)
+            .limit(1)
+            .get();
+
+        if (querySnap.docs.isNotEmpty) {
+          final docId = querySnap.docs.first.id;
+          final updateData = resume.toMap();
+          updateData['updated_at'] = FieldValue.serverTimestamp();
+          await _firestore.collection(_collectionName).doc(docId).set(
+                updateData,
+                SetOptions(merge: true),
+              );
+
+          final updatedModel = ResumeMedisModel(
+            id: docId,
+            childId: resume.childId,
+            userId: resume.userId,
+            doctorId: resume.doctorId,
+            doctorName: resume.doctorName,
+            doctorSpecialization: resume.doctorSpecialization,
+            doctorPhoto: resume.doctorPhoto,
+            childName: resume.childName,
+            childAgeAtConsultation: resume.childAgeAtConsultation,
+            consultationDate: resume.consultationDate,
+            consultationTime: resume.consultationTime,
+            bbLahir: resume.bbLahir,
+            bbSaatIni: resume.bbSaatIni,
+            tbLahir: resume.tbLahir,
+            tbSaatIni: resume.tbSaatIni,
+            complaint: resume.complaint,
+            complaintShort: resume.complaintShort,
+            doctorAssessment: resume.doctorAssessment,
+            summary: resume.summary,
+            recommendations: resume.recommendations,
+            prescription: resume.prescription,
+            status: resume.status,
+            sessionId: resume.sessionId,
+            createdAt: resume.createdAt ?? DateTime.now(),
+          );
+
+          // Update cache
+          for (final key in _cache.keys) {
+            final list = _cache[key];
+            if (list != null) {
+              final idx = list.indexWhere((r) => r.id == docId || r.sessionId == sessId);
+              if (idx != -1) {
+                list[idx] = updatedModel;
+              } else {
+                list.insert(0, updatedModel);
+              }
+            }
+          }
+
+          return docId;
+        }
+      } catch (e) {
+        debugPrint('[ResumeMedisService] Error checking existing session_id: $e');
+      }
+    }
+
+    return addResumeMedis(resume);
+  }
+
   /// Update dokumen resume medis yang sudah ada (untuk fitur Edit oleh Dokter)
   Future<void> updateResumeMedis(String resumeId, Map<String, dynamic> data) async {
     await _firestore.collection(_collectionName).doc(resumeId).update({

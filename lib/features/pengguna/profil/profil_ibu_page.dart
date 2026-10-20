@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
@@ -47,9 +48,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   String _selectedGender = 'Perempuan';
   bool _isSaving = false;
 
-  bool _isSuccessBannerVisible = false;
-  Timer? _bannerTimer;
-  String _successBannerMessage = 'Berhasil Memperbarui Foto Profil';
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
@@ -81,45 +79,25 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     _cityController.dispose();
     _districtController.dispose();
     _subDistrictController.dispose();
-    _bannerTimer?.cancel();
     super.dispose();
   }
 
   void _triggerSuccessBanner(String message) {
-    _bannerTimer?.cancel();
-    setState(() {
-      _successBannerMessage = message;
-    });
-
-    Future.delayed(const Duration(milliseconds: 120), () {
-      if (!mounted) return;
-      setState(() {
-        _isSuccessBannerVisible = true;
-      });
-
-      // Banner otomatis menghilang setelah durasi 1 menit
-      _bannerTimer = Timer(const Duration(minutes: 1), () {
-        _hideSuccessBanner();
-      });
-    });
-  }
-
-  void _hideSuccessBanner() {
-    _bannerTimer?.cancel();
-    if (mounted && _isSuccessBannerVisible) {
-      setState(() {
-        _isSuccessBannerVisible = false;
-      });
-    }
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: message,
+      targetRole: PushRole.pengguna,
+    );
   }
 
   // ---------------------------------------------------------------------------
   // PEMILIH FOTO PROFIL (KAMERA / GALERI)
   // ---------------------------------------------------------------------------
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -134,7 +112,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -144,7 +122,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -152,7 +130,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -166,7 +144,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -174,12 +152,15 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -193,7 +174,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -264,7 +245,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF3985E7),
               onPrimary: Colors.white,
-              onSurface: Color(0xFF0F172A),
+              onSurface: Color(0xFF0B1014),
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
@@ -336,8 +317,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         child: Stack(
           clipBehavior: Clip.none,
@@ -345,7 +327,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             Column(
               children: [
                 // Header bar tetap (56dp)
-                _buildAppBar(),
+                _buildAppBar(isDark),
 
                 // Konten form scrollable dan adaptif terhadap keyboard Android
                 Expanded(
@@ -364,11 +346,12 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 1. Avatar foto profil & Ubah Foto Profil
-                          _buildAvatarSection(),
+                          _buildAvatarSection(isDark),
                           const SizedBox(height: 18),
 
                           // 2. Nama Pengguna*
                           _buildTextField(
+                            isDark: isDark,
                             controller: _nameController,
                             label: 'Nama Pengguna',
                             hint: 'Masukkan nama pengguna',
@@ -385,6 +368,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
 
                           // 3. Email*
                           _buildTextField(
+                            isDark: isDark,
                             controller: _emailController,
                             label: 'Email',
                             hint: 'contoh@gmail.com',
@@ -407,11 +391,12 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                           const SizedBox(height: 14),
 
                           // 4. Jenis Kelamin*
-                          _buildGenderRadioSection(),
+                          _buildGenderRadioSection(isDark),
                           const SizedBox(height: 14),
 
                           // 5. Tanggal Lahir Anda*
                           _buildDateField(
+                            isDark: isDark,
                             controller: _birthDateController,
                             label: 'Tanggal Lahir Anda',
                             hint: 'DD/MM/YYYY',
@@ -427,6 +412,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
 
                           // 6. Provinsi*
                           _buildTextField(
+                            isDark: isDark,
                             controller: _provinceController,
                             label: 'Provinsi',
                             hint: 'Masukkan provinsi',
@@ -443,6 +429,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
 
                           // 7. Kota/ Kabupaten*
                           _buildTextField(
+                            isDark: isDark,
                             controller: _cityController,
                             label: 'Kota/ Kabupaten',
                             hint: 'Masukkan kota/ kabupaten',
@@ -459,6 +446,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
 
                           // 8. Kecamatan
                           _buildTextField(
+                            isDark: isDark,
                             controller: _districtController,
                             label: 'Kecamatan',
                             hint: 'Masukkan kecamatan',
@@ -469,6 +457,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
 
                           // 9. Kelurahan/ Desa
                           _buildTextField(
+                            isDark: isDark,
                             controller: _subDistrictController,
                             label: 'Kelurahan/ Desa',
                             hint: 'Masukkan kelurahan/ desa',
@@ -499,77 +488,37 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // SUCCESS BANNER OVERLAY
   // ---------------------------------------------------------------------------
   Widget _buildSuccessBanner() {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeInOut,
-      top: _isSuccessBannerVisible ? 62.0 : -70.0,
-      left: 16.0,
-      right: 16.0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 100),
-        opacity: _isSuccessBannerVisible ? 1.0 : 0.0,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF3985E7),
-            borderRadius: BorderRadius.circular(17),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  _successBannerMessage,
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFFFFFFFF),
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: _hideSuccessBanner,
-                borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: Icon(Icons.close, size: 20, color: Color(0xFF000000)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   // ---------------------------------------------------------------------------
   // APPBAR DENGAN TOMBOL KEMBALI
   // ---------------------------------------------------------------------------
-  Widget _buildAppBar() {
+  Widget _buildAppBar(bool isDark) {
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0B1014) : Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1,
+          ),
+        ),
       ),
       child: Row(
         children: [
           InkWell(
             onTap: () => Navigator.of(context).pop(),
             borderRadius: BorderRadius.circular(10),
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF0F172A), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -578,7 +527,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
             ),
           ),
         ],
@@ -589,7 +538,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // ---------------------------------------------------------------------------
   // AVATAR SECTION DENGAN CAMERA BADGE
   // ---------------------------------------------------------------------------
-  Widget _buildAvatarSection() {
+  Widget _buildAvatarSection(bool isDark) {
     return Center(
       child: Column(
         children: [
@@ -609,9 +558,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                       height: 96,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFFF1F5F9),
+                        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
                         border: Border.all(
-                           color: const Color(0xFFE2E8F0),
+                           color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                            width: 2,
                         ),
                         image: hasCustom
@@ -623,10 +572,10 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                       ),
                       child: hasCustom
                           ? null
-                          : const Icon(
+                          : Icon(
                               Icons.person_rounded,
                               size: 54,
-                              color: Color(0xFF94A3B8),
+                              color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
                             ),
                     ),
                     Positioned(
@@ -638,7 +587,10 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF3985E7),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2.5),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF0B1014) : Colors.white,
+                            width: 2.5,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: const Color(0xFF3985E7).withValues(alpha: 0.3),
@@ -683,25 +635,25 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // ---------------------------------------------------------------------------
   // RADIO BUTTON HORIZONTAL JENIS KELAMIN
   // ---------------------------------------------------------------------------
-  Widget _buildGenderRadioSection() {
+  Widget _buildGenderRadioSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel('Jenis Kelamin', isRequired: true),
+        _buildLabel('Jenis Kelamin', isRequired: true, isDark: isDark),
         const SizedBox(height: 6),
         Wrap(
           spacing: 24,
           runSpacing: 8,
           children: [
-            _buildGenderOption('Laki-laki', const Color(0xFF3985E7)),
-            _buildGenderOption('Perempuan', const Color(0xFFEC4899)),
+            _buildGenderOption('Laki-laki', const Color(0xFF3985E7), isDark),
+            _buildGenderOption('Perempuan', const Color(0xFFEC4899), isDark),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildGenderOption(String value, Color activeColor) {
+  Widget _buildGenderOption(String value, Color activeColor, bool isDark) {
     final isSelected = _selectedGender == value;
 
     return InkWell(
@@ -722,10 +674,10 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? activeColor : const Color(0xFFCBD5E1),
+                  color: isSelected ? activeColor : (isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB)),
                   width: isSelected ? 6.5 : 1.5,
                 ),
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1A2228) : Colors.white,
               ),
             ),
             const SizedBox(width: 10),
@@ -735,8 +687,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                 fontSize: 15,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 color: isSelected
-                    ? const Color(0xFF0F172A)
-                    : const Color(0xFF475569),
+                    ? (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014))
+                    : (isDark ? const Color(0xFF8696A0) : const Color(0xFF2C363D)),
               ),
             ),
           ],
@@ -749,6 +701,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // INPUT TANGGAL LAHIR (WITH DATE PICKER)
   // ---------------------------------------------------------------------------
   Widget _buildDateField({
+    required bool isDark,
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -758,7 +711,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel(label, isRequired: isRequired),
+        _buildLabel(label, isRequired: isRequired, isDark: isDark),
         const SizedBox(height: 6),
         GestureDetector(
           onTap: _pickBirthDate,
@@ -769,9 +722,10 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF0F172A),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
               ),
               decoration: _inputDecoration(
+                isDark: isDark,
                 hint: hint,
                 prefixIcon: Icons.calendar_month_outlined,
                 suffixIcon: Icons.arrow_drop_down,
@@ -788,6 +742,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // INPUT TEXT FORM FIELD UMUM
   // ---------------------------------------------------------------------------
   Widget _buildTextField({
+    required bool isDark,
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -799,7 +754,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel(label, isRequired: isRequired),
+        _buildLabel(label, isRequired: isRequired, isDark: isDark),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
@@ -807,9 +762,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF0F172A),
+            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
           ),
-          decoration: _inputDecoration(hint: hint, prefixIcon: prefixIcon),
+          decoration: _inputDecoration(isDark: isDark, hint: hint, prefixIcon: prefixIcon),
           validator: validator,
         ),
       ],
@@ -819,14 +774,14 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // ---------------------------------------------------------------------------
   // LABEL DENGAN ASTERISK MERAH
   // ---------------------------------------------------------------------------
-  Widget _buildLabel(String label, {bool isRequired = false}) {
+  Widget _buildLabel(String label, {bool isRequired = false, bool isDark = false}) {
     return RichText(
       text: TextSpan(
         text: label,
         style: GoogleFonts.lato(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF334155),
+          color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
         ),
         children: isRequired
             ? [
@@ -847,27 +802,32 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   // DEKORASI INPUT FORM BORDERED ROUNDED
   // ---------------------------------------------------------------------------
   InputDecoration _inputDecoration({
+    required bool isDark,
     required String hint,
     required IconData prefixIcon,
     IconData? suffixIcon,
   }) {
+    final fieldBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final iconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final hintColor = isDark ? const Color(0xFF667781) : const Color(0xFF8696A0);
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.lato(fontSize: 14, color: const Color(0xFF94A3B8)),
+      hintStyle: GoogleFonts.lato(fontSize: 14, color: hintColor),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      prefixIcon: Icon(prefixIcon, size: 20, color: const Color(0xFF64748B)),
+      prefixIcon: Icon(prefixIcon, size: 20, color: iconColor),
       suffixIcon: suffixIcon != null
-          ? Icon(suffixIcon, size: 20, color: const Color(0xFF64748B))
+          ? Icon(suffixIcon, size: 20, color: iconColor)
           : null,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: fieldBg,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        borderSide: BorderSide(color: borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

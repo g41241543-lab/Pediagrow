@@ -34,12 +34,12 @@ class DetailResumeMedisPage extends StatefulWidget {
 
 class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
-  static const Color _colorBorder = Color(0xFFE2E8F0);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorBorder = Color(0xFFE9EDEF);
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
   static const Color _colorReadOnlyBg = Color(0xFFF8FAFC);
-  static const Color _colorReadOnlyBorder = Color(0xFFE2E8F0);
+  static const Color _colorReadOnlyBorder = Color(0xFFE9EDEF);
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -308,13 +308,13 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
 
     final bbVal = _resume.bbSaatIni > 0
         ? _formatNum(_resume.bbSaatIni)
-        : (widget.child?.birthWeightKg != null
-            ? _formatNum(widget.child!.birthWeightKg!)
+        : (widget.child?.weightKg != null
+            ? _formatNum(widget.child!.weightKg!)
             : '-');
     final tbVal = _resume.tbSaatIni > 0
         ? _formatNum(_resume.tbSaatIni)
-        : (widget.child?.birthHeightCm != null
-            ? _formatNum(widget.child!.birthHeightCm!)
+        : (widget.child?.heightCm != null
+            ? _formatNum(widget.child!.heightCm!)
             : '-');
 
     return Scaffold(
@@ -651,7 +651,7 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             if (isLocked) ...[
               const SizedBox(width: 4),
               const Icon(Icons.lock_outline_rounded,
-                  size: 13, color: Color(0xFF94A3B8)),
+                  size: 13, color: Color(0xFF8696A0)),
             ],
           ],
         ),
@@ -952,8 +952,8 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             child: ElevatedButton(
               onPressed: _isSaving ? null : _cancelEdit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF1F5F9),
-                foregroundColor: const Color(0xFF64748B),
+                backgroundColor: const Color(0xFFE9EDEF),
+                foregroundColor: const Color(0xFF667781),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

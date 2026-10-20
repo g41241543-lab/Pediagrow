@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/child_model.dart';
 import 'detail_riwayat_pertumbuhan_page.dart';
@@ -18,8 +18,10 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         top: false,
         bottom: false,
@@ -28,7 +30,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
             // -----------------------------------------------------------------
             // 1. HEADER TETAP (56dp dari atas layar)
             // -----------------------------------------------------------------
-            _buildHeader(context),
+            _buildHeader(context, isDark),
 
             // -----------------------------------------------------------------
             // 2. DAFTAR KARTU RIWAYAT PENGUKURAN
@@ -41,7 +43,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                       GrowthService().getRecordsForChildNewestFirst(child.id);
 
                   if (records.isEmpty) {
-                    return _buildEmptyState();
+                    return _buildEmptyState(isDark);
                   }
 
                   return ListView.builder(
@@ -50,7 +52,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                     itemCount: records.length,
                     itemBuilder: (context, index) {
                       final record = records[index];
-                      return _buildMeasurementCard(context, record);
+                      return _buildMeasurementCard(context, record, isDark);
                     },
                   );
                 },
@@ -65,10 +67,10 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
   // ===========================================================================
   // 1. HEADER (Spacing 56dp, Tombol Back 12dp dari kiri, Judul 12dp setelahnya)
   // ===========================================================================
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 12.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -79,11 +81,11 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   size: 24,
                 ),
               ),
@@ -99,7 +101,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -113,7 +115,11 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
   // ===========================================================================
   // 2. KARTU PENGUKURAN (Tampilan Sama dengan Card Lokasi Fasyankes)
   // ===========================================================================
-  Widget _buildMeasurementCard(BuildContext context, GrowthRecordModel record) {
+  Widget _buildMeasurementCard(
+    BuildContext context,
+    GrowthRecordModel record,
+    bool isDark,
+  ) {
     final statusColor = ZScoreCalculator.getStatusColor(record.statusGizi);
     final statusBgColor = ZScoreCalculator.getStatusBgColor(record.statusGizi);
 
@@ -123,15 +129,15 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 4),
@@ -164,10 +170,10 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_today_outlined,
                       size: 14,
-                      color: Color(0xFF64748B),
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -176,7 +182,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475569),
+                          color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -214,7 +220,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   height: 1,
-                  color: const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                 ),
 
                 const SizedBox(height: 12),
@@ -229,6 +235,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                         value: '${record.weightKg.toStringAsFixed(1)} kg',
                         icon: Icons.monitor_weight_outlined,
                         iconColor: const Color(0xFF0284C7),
+                        isDark: isDark,
                       ),
                     ),
 
@@ -236,7 +243,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                     Container(
                       width: 1,
                       height: 36,
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                     ),
 
                     // Kolom 2: Tinggi
@@ -246,6 +253,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                         value: '${record.heightCm.toStringAsFixed(1)} cm',
                         icon: Icons.straighten_outlined,
                         iconColor: const Color(0xFF16A34A),
+                        isDark: isDark,
                       ),
                     ),
 
@@ -253,7 +261,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                     Container(
                       width: 1,
                       height: 36,
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                     ),
 
                     // Kolom 3: L. Kepala
@@ -264,6 +272,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
                             '${record.headCircumferenceCm.toStringAsFixed(1)} cm',
                         icon: Icons.face_outlined,
                         iconColor: const Color(0xFF9333EA),
+                        isDark: isDark,
                       ),
                     ),
                   ],
@@ -303,6 +312,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
     required String value,
     required IconData icon,
     required Color iconColor,
+    required bool isDark,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -316,7 +326,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
               label,
               style: GoogleFonts.lato(
                 fontSize: 11,
-                color: const Color(0xFF64748B),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -328,24 +338,24 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
           style: GoogleFonts.lato(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.history_toggle_off_rounded,
               size: 56,
-              color: Color(0xFF94A3B8),
+              color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
             ),
             const SizedBox(height: 12),
             Text(
@@ -353,7 +363,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
               ),
             ),
             const SizedBox(height: 6),
@@ -362,7 +372,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF64748B),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
               ),
             ),
           ],

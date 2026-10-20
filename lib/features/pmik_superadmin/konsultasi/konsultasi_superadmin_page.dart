@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -15,8 +14,8 @@ import '../../../shared/widgets/child_avatar.dart';
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
-const Color _colorTextBlack = Color(0xFF1E293B);
-const Color _colorLabelGrey = Color(0xFF64748B);
+const Color _colorTextBlack = Color(0xFF1A2228);
+const Color _colorLabelGrey = Color(0xFF667781);
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk PMIK Superadmin.
@@ -133,6 +132,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         booking.isExpired) {
       return false;
     }
+    if (booking.isBeforeStart) {
+      return false;
+    }
     if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
       return true;
     }
@@ -203,7 +205,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
+                color: const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -218,7 +220,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               child: const Icon(
                 Icons.lock_rounded,
                 size: 36,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ),
             const SizedBox(height: 16),
@@ -287,7 +289,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -332,7 +334,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -554,7 +556,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -602,7 +604,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE2E8F0),
+            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE9EDEF),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -808,7 +810,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               ],
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Row(
@@ -936,7 +938,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -981,7 +983,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -1196,7 +1198,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 ),
               ),
               const SizedBox(height: 10),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1434,7 +1436,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             ),
             const SizedBox(height: 10),
           ],
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Row(
@@ -1619,7 +1621,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

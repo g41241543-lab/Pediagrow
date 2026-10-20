@@ -175,6 +175,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
     return PopScope(
@@ -187,7 +188,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         // Navigation Bar tetap di Scaffold bagian bawah layar
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
@@ -199,10 +200,10 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. HEADER TETAP (56dp)
-                _buildHeader(context),
+                _buildHeader(context, isDark),
 
                 // 2. SEARCH BAR DINAMIS
-                _buildSearchBar(),
+                _buildSearchBar(isDark),
 
                 const SizedBox(height: 12),
 
@@ -210,7 +211,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                 // Ilustrasi ikut ter-scroll bersama daftar artikel dan selalu
                 // berada di paling bawah setelah artikel terakhir.
                 Expanded(
-                  child: _buildBodyContent(),
+                  child: _buildBodyContent(isDark),
                 ),
               ],
             ),
@@ -222,11 +223,11 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 }
 
   /// Header tetap 56dp: tombol back 12dp dari kiri dan judul "Artikel Kesehatan"
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       height: 56,
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -237,12 +238,12 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
             child: InkWell(
               onTap: _onBackPressed,
               borderRadius: BorderRadius.circular(24),
-              child: const Padding(
-                padding: EdgeInsets.all(8.0),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Icon(
                   Icons.arrow_back,
                   size: 24,
-                  color: Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
               ),
             ),
@@ -258,7 +259,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
               ),
             ),
           ),
@@ -268,23 +269,24 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
   }
 
   /// Search Bar dinamis dengan rounded corners dan latar abu-abu muda
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F2F6),
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6),
           borderRadius: BorderRadius.circular(20),
+          border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.search_rounded,
               size: 22,
-              color: Color(0xFF9E9E9E),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -293,13 +295,13 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                 focusNode: _searchFocusNode,
                 style: GoogleFonts.lato(
                   fontSize: 15,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Artikel',
                   hintStyle: GoogleFonts.lato(
                     fontSize: 15,
-                    color: const Color(0xFFA0A0A0),
+                    color: isDark ? const Color(0xFF667781) : const Color(0xFFA0A0A0),
                     fontWeight: FontWeight.w400,
                   ),
                   border: InputBorder.none,
@@ -312,12 +314,12 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
             if (_searchQuery.isNotEmpty)
               GestureDetector(
                 onTap: _clearSearch,
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
                   child: Icon(
                     Icons.close_rounded,
                     size: 18,
-                    color: Color(0xFF9E9E9E),
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                   ),
                 ),
               ),
@@ -331,7 +333,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
   /// Menggunakan [CustomScrollView] agar ilustrasi footer ikut ter-scroll
   /// bersama daftar artikel dan selalu berada di paling bawah konten,
   /// bukan fixed/terpaku di lapisan belakang.
-  Widget _buildBodyContent() {
+  Widget _buildBodyContent(bool isDark) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -343,7 +345,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
     // EMPTY STATE: Database kosong dari PMIK atau pencarian tidak menghasilkan artikel
     if (_displayedArticles.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(isDark);
     }
 
     // POPULATED STATE: CustomScrollView agar ilustrasi ikut scroll di paling bawah
@@ -358,18 +360,18 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
               (context, index) {
                 if (index.isOdd) {
                   // Divider antar artikel
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Divider(
                       height: 32,
                       thickness: 1,
-                      color: Color(0xFFE5E5E5),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E5E5),
                     ),
                   );
                 }
                 final artikelIndex = index ~/ 2;
                 final artikel = _displayedArticles[artikelIndex];
-                return _buildArticleCardItem(artikel);
+                return _buildArticleCardItem(artikel, isDark);
               },
               childCount: _displayedArticles.length * 2 - 1,
             ),
@@ -392,7 +394,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
   }
 
   /// Empty State: Tidak menampilkan card artikel apa pun, ilustrasi tetap di dasar
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -404,7 +406,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                   ? Icons.search_off_rounded
                   : Icons.article_outlined,
               size: 56,
-              color: const Color(0xFFBDBDBD),
+              color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
             ),
             const SizedBox(height: 16),
             Text(
@@ -415,7 +417,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF4A4A4A),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF4A4A4A),
               ),
             ),
             const SizedBox(height: 6),
@@ -426,7 +428,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF9E9E9E),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                 height: 1.4,
               ),
             ),
@@ -438,11 +440,11 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
   }
 
   /// Card/Item artikel kesehatan sesuai proporsi dan struktur desain referensi
-  Widget _buildArticleCardItem(ArtikelModel artikel) {
+  Widget _buildArticleCardItem(ArtikelModel artikel, bool isDark) {
     return InkWell(
       onTap: () => _navigateToDetail(artikel),
-      splashColor: const Color(0x10000000),
-      highlightColor: const Color(0x08000000),
+      splashColor: isDark ? const Color(0x20FFFFFF) : const Color(0x10000000),
+      highlightColor: isDark ? const Color(0x10FFFFFF) : const Color(0x08000000),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Row(
@@ -453,7 +455,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Judul Artikel (Lato 16sp hitam, max 3 baris dengan ellipsis)
+                  // Judul Artikel (Lato 16sp, max 3 baris dengan ellipsis)
                   Text(
                     artikel.judul,
                     maxLines: 3,
@@ -461,7 +463,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                       height: 1.25,
                     ),
                   ),
@@ -470,10 +472,10 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                   // Metadata: Ikon Jam + "Artikel" + Topik/Subkategori
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.access_time_rounded,
                         size: 14,
-                        color: Color(0xFFA0A0A0),
+                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFFA0A0A0),
                       ),
                       const SizedBox(width: 5),
                       Flexible(
@@ -484,7 +486,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                           style: GoogleFonts.lato(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
-                            color: const Color(0xFFA0A0A0),
+                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFFA0A0A0),
                           ),
                         ),
                       ),
@@ -498,7 +500,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFFA0A0A0),
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFFA0A0A0),
                     ),
                   ),
                 ],
@@ -508,7 +510,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
             const SizedBox(width: 16),
 
             // Bagian Kanan: Thumbnail gambar artikel (rounded 18dp, BoxFit.cover)
-            _buildThumbnail(artikel),
+            _buildThumbnail(artikel, isDark),
           ],
         ),
       ),
@@ -527,7 +529,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
   }
 
   /// Thumbnail artikel dengan sudut membulat modern dan placeholder fallback
-  Widget _buildThumbnail(ArtikelModel artikel) {
+  Widget _buildThumbnail(ArtikelModel artikel, bool isDark) {
     const double thumbWidth = 124;
     const double thumbHeight = 84;
     const double borderRadius = 18;
@@ -538,7 +540,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
       width: thumbWidth,
       height: thumbHeight,
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F2F6),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6),
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: const [
           BoxShadow(
@@ -555,24 +557,24 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
           width: thumbWidth,
           height: thumbHeight,
           fit: BoxFit.cover,
-          placeholder: _buildThumbnailPlaceholder(),
-          errorWidget: _buildThumbnailPlaceholder(),
+          placeholder: _buildThumbnailPlaceholder(isDark),
+          errorWidget: _buildThumbnailPlaceholder(isDark),
         ),
       ),
     );
   }
 
   /// Placeholder jika gambar artikel belum tersedia / gagal dimuat
-  Widget _buildThumbnailPlaceholder() {
+  Widget _buildThumbnailPlaceholder(bool isDark) {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: const Color(0xFFEEEEEE),
-      child: const Center(
+      color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEEEEEE),
+      child: Center(
         child: Icon(
           Icons.image_outlined,
           size: 32,
-          color: Color(0xFFBDBDBD),
+          color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
         ),
       ),
     );

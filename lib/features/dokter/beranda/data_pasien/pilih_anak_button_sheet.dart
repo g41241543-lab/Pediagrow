@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -320,7 +320,7 @@ class _SheetContent extends StatelessWidget {
   // ── Warna Referensi Desain ────────────────────────────────────────────────
   static const Color _black = Color(0xFF000000);
   static const Color _divider = Color(0xFFC5C5C5);
-  static const Color _subtitleColor = Color(0xFF64748B);
+  static const Color _subtitleColor = Color(0xFF667781);
   static const Color _blue = Color(0xFF2B7AE8);
 
   @override
@@ -426,7 +426,7 @@ class _SheetContent extends StatelessWidget {
       separatorBuilder: (_, _) => const Divider(
         height: 1,
         thickness: 1,
-        color: Color(0xFFE2E8F0),
+        color: Color(0xFFE9EDEF),
       ),
       itemBuilder: (_, index) => _buildRow(children[index]),
     );
@@ -503,13 +503,13 @@ class _SheetContent extends StatelessWidget {
                 width: 28,
                 height: 28,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9),
+                  color: Color(0xFFE9EDEF),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.chevron_right_rounded,
                   size: 18,
-                  color: Color(0xFF334155),
+                  color: Color(0xFF2C363D),
                 ),
               ),
             ],
@@ -605,14 +605,14 @@ class _SheetContent extends StatelessWidget {
             width: 68,
             height: 68,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFE9EDEF),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+              border: Border.all(color: const Color(0xFFE9EDEF), width: 1.5),
             ),
             child: const Icon(
               Icons.child_care_rounded,
               size: 34,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
             ),
           ),
 

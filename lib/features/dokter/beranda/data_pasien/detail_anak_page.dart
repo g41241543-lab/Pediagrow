@@ -66,9 +66,9 @@ class DetailAnakPage extends StatefulWidget {
 class _DetailAnakPageState extends State<DetailAnakPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorButtonBg = Color(0xFFEBF5FF);
-  static const Color _colorTableBorder = Color(0xFFE2E8F0);
+  static const Color _colorTableBorder = Color(0xFFE9EDEF);
   static const Color _colorTableHeader = Color(0xFFE9F4FF);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
+  static const Color _colorLabelGrey = Color(0xFF667781);
   static const Color _colorTextBlack = Color(0xFF000000);
 
   late int _selectedTabIndex;
@@ -371,7 +371,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             width: 44,
             height: 44,
             decoration: const BoxDecoration(
-              color: Color(0xFFCBD5E1),
+              color: Color(0xFFD1D7DB),
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
@@ -379,7 +379,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               imagePath: _parentUser?.avatarPath,
               size: 44,
               fallback: const Center(
-                child: Icon(Icons.person, color: Color(0xFF64748B), size: 28),
+                child: Icon(Icons.person, color: Color(0xFF667781), size: 28),
               ),
             ),
           ),
@@ -407,7 +407,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+          bottom: BorderSide(color: Color(0xFFE9EDEF), width: 1.0),
         ),
       ),
       child: Row(
@@ -435,7 +435,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             : FontWeight.w500,
                         color: _selectedTabIndex == 0
                             ? _colorTextBlack
-                            : const Color(0xFF64748B),
+                            : const Color(0xFF667781),
                       ),
                     ),
                   ),
@@ -476,7 +476,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             : FontWeight.w500,
                         color: _selectedTabIndex == 1
                             ? _colorTextBlack
-                            : const Color(0xFF64748B),
+                            : const Color(0xFF667781),
                       ),
                     ),
                   ),
@@ -840,14 +840,6 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           }
         }
 
-        // Jika sesi masih berstatus menunggu saat dokter masuk, aktifkan sesi otomatis
-        if (matchedSession != null &&
-            matchedSession.status == KonsultasiStatus.menunggu) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            KonsultasiService.instance.mulaiSesi(matchedSession!.id);
-          });
-        }
-
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, bookings, _) {
@@ -872,19 +864,33 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               }
             }
 
+            final bool isBookingBeforeStart = matchedBooking?.isBeforeStart ?? false;
+
+            // Jika sesi masih berstatus menunggu saat dokter masuk, aktifkan sesi otomatis
+            // HANYA jika waktu jadwal sudah tiba (jangan aktifkan sebelum waktu konsultasi)
+            if (matchedSession != null &&
+                matchedSession.status == KonsultasiStatus.menunggu &&
+                !isBookingBeforeStart) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                KonsultasiService.instance.mulaiSesi(matchedSession!.id);
+              });
+            }
+
             // 1. Cek apakah ada sesi konsultasi aktif/menunggu di Firestore
             final bool isFirestoreActive = matchedSession != null &&
                 (matchedSession.status == KonsultasiStatus.aktif ||
-                    matchedSession.status == KonsultasiStatus.menunggu);
+                    matchedSession.status == KonsultasiStatus.menunggu) &&
+                !isBookingBeforeStart;
 
             // 2. Cek apakah jadwal booking sedang berlangsung saat ini
             final bool isBookingActive =
                 matchedBooking != null && _isBookingActiveNow(matchedBooking);
 
-            // 3. Status aktif riil (aktif jika ada sesi di firestore, booking aktif, atau dibuka langsung via tombol konsultasi)
-            final bool isCurrentlyActive = isFirestoreActive ||
-                isBookingActive ||
-                (widget.sessionId != null && widget.sessionId!.isNotEmpty);
+            // 3. Status aktif riil (aktif jika ada sesi di firestore atau booking aktif, dan bukan sebelum jadwal)
+            final bool isCurrentlyActive = !isBookingBeforeStart &&
+                (isFirestoreActive ||
+                    isBookingActive ||
+                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null));
 
             final effectiveSessionId = widget.sessionId ??
                 matchedBooking?.sessionId ??
@@ -919,6 +925,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 weightKg: matchedSession?.weightKg ?? matchedBooking?.weightKg ?? _currentChild.weightKg,
                 heightCm: matchedSession?.heightCm ?? matchedBooking?.heightCm ?? _currentChild.heightCm,
                 sessionId: effectiveSessionId,
+                booking: matchedBooking,
                 hasActiveSession: isCurrentlyActive,
               );
             }
@@ -933,47 +940,18 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
   bool _isBookingActiveNow(BookingConsultationModel booking) {
-    if (booking.status == 'Selesai' || booking.status == 'Dibatalkan' || booking.isExpired) {
+    if (booking.status == 'Selesai' ||
+        booking.status == 'Dibatalkan' ||
+        booking.isExpired) {
+      return false;
+    }
+    if (booking.isBeforeStart) {
       return false;
     }
     if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
       return true;
     }
-    if (booking.isInTimeWindow) {
-      return true;
-    }
-    final now = DateTime.now();
-    final isSameDate = now.year == booking.scheduledDate.year &&
-        now.month == booking.scheduledDate.month &&
-        now.day == booking.scheduledDate.day;
-
-    if (!isSameDate) return false;
-
-    try {
-      final slot = booking.scheduledTimeSlot.replaceAll('WIB', '').trim();
-      final parts = slot.split('-');
-      if (parts.isNotEmpty) {
-        final startTokens = parts[0].trim().split(':');
-        final startHour = int.parse(startTokens[0].trim());
-        final startMinute = int.parse(startTokens[1].trim());
-        final startDt =
-            DateTime(now.year, now.month, now.day, startHour, startMinute);
-
-        DateTime endDt = startDt.add(const Duration(minutes: 30));
-        if (parts.length > 1) {
-          final endTokens = parts[1].trim().split(':');
-          final endHour = int.parse(endTokens[0].trim());
-          final endMinute = int.parse(endTokens[1].trim());
-          endDt = DateTime(now.year, now.month, now.day, endHour, endMinute);
-        }
-
-        return (now.isAfter(startDt.subtract(const Duration(minutes: 5))) ||
-                now.isAtSameMomentAs(startDt)) &&
-            now.isBefore(endDt);
-      }
-    } catch (_) {}
-
-    return isSameDate;
+    return booking.isInTimeWindow;
   }
 
   /// Kartu info jadwal konsultasi yang disematkan di atas ruang obrolan (tanpa tombol Masuk Ruang Chat)
@@ -994,7 +972,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive ? const Color(0xFFBFDBFE) : const Color(0xFFE2E8F0),
+          color: isActive ? const Color(0xFFBFDBFE) : const Color(0xFFE9EDEF),
           width: 1.2,
         ),
         boxShadow: [
@@ -1072,7 +1050,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               Icon(
                 Icons.chat_rounded,
                 size: 18,
-                color: isActive ? _colorPrimaryBlue : const Color(0xFF94A3B8),
+                color: isActive ? _colorPrimaryBlue : const Color(0xFF8696A0),
               ),
             ],
           ),
@@ -1122,7 +1100,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             ],
           ),
           const SizedBox(height: 10),
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          const Divider(height: 1, color: Color(0xFFE9EDEF)),
           const SizedBox(height: 10),
 
           // Jadwal
@@ -1140,7 +1118,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
               ),
@@ -1199,7 +1177,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: const Color(0xFFE9EDEF)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1215,7 +1193,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     'Ruang obrolan akan terbuka dan aktif secara otomatis saat orang tua pasien melakukan booking jadwal konsultasi dengan Anda dan waktu sesi telah tiba.',
                     style: GoogleFonts.lato(
                       fontSize: 12,
-                      color: const Color(0xFF475569),
+                      color: const Color(0xFF2C363D),
                       height: 1.4,
                     ),
                   ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/services/staff_auth_service.dart';
@@ -179,10 +179,10 @@ class PediaBottomNavBar extends StatelessWidget {
     ];
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final navBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF2EDED);
-    final activeCircleBg = isDark ? const Color(0xFF334155) : Colors.white;
-    final activeLabelColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
-    final inactiveColor = isDark ? const Color(0xFF64748B) : const Color(0xFF9E9E9E);
+    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
+    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
 
     return Container(
       width: double.infinity,

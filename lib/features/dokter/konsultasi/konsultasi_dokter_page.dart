@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,8 +19,8 @@ import '../../../shared/widgets/child_avatar.dart';
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
-const Color _colorTextBlack = Color(0xFF1E293B);
-const Color _colorLabelGrey = Color(0xFF64748B);
+const Color _colorTextBlack = Color(0xFF1A2228);
+const Color _colorLabelGrey = Color(0xFF667781);
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk dokter.
@@ -144,49 +143,19 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         booking.isExpired) {
       return false;
     }
+    if (booking.isBeforeStart) {
+      return false;
+    }
     if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
       return true;
     }
-    if (booking.isInTimeWindow) {
-      return true;
-    }
-    final now = DateTime.now();
-    final isSameDate = now.year == booking.scheduledDate.year &&
-        now.month == booking.scheduledDate.month &&
-        now.day == booking.scheduledDate.day;
-
-    if (!isSameDate) return false;
-
-    try {
-      final slot = booking.scheduledTimeSlot.replaceAll('WIB', '').trim();
-      final parts = slot.split('-');
-      if (parts.isNotEmpty) {
-        final startTokens = parts[0].trim().split(':');
-        final startHour = int.parse(startTokens[0].trim());
-        final startMinute = int.parse(startTokens[1].trim());
-        final startDt =
-            DateTime(now.year, now.month, now.day, startHour, startMinute);
-
-        DateTime endDt = startDt.add(const Duration(minutes: 30));
-        if (parts.length > 1) {
-          final endTokens = parts[1].trim().split(':');
-          final endHour = int.parse(endTokens[0].trim());
-          final endMinute = int.parse(endTokens[1].trim());
-          endDt = DateTime(now.year, now.month, now.day, endHour, endMinute);
-        }
-
-        return (now.isAfter(startDt.subtract(const Duration(minutes: 5))) ||
-                now.isAtSameMomentAs(startDt)) &&
-            now.isBefore(endDt);
-      }
-    } catch (_) {}
-
-    return isSameDate;
+    return booking.isInTimeWindow;
   }
 
   /// Masuk langsung ke halaman ruang obrolan data pasien anak tersebut
   void _openChatRoom(_KonsultasiItem item) {
-    if (item.sessionId != null && item.sessionId!.isNotEmpty) {
+    final isBefore = item.booking?.isBeforeStart ?? false;
+    if (item.sessionId != null && item.sessionId!.isNotEmpty && !isBefore) {
       KonsultasiService.instance.mulaiSesi(item.sessionId!);
     }
 
@@ -221,7 +190,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
   /// Masuk ke halaman ruang obrolan data pasien dari objek booking
   void _openChatRoomFromBooking(BookingConsultationModel booking) {
     final effSessionId = booking.sessionId ?? 'session_${booking.id}';
-    KonsultasiService.instance.mulaiSesi(effSessionId);
+    if (!booking.isBeforeStart) {
+      KonsultasiService.instance.mulaiSesi(effSessionId);
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => DetailAnakPage(
@@ -300,7 +271,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -345,7 +316,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -457,7 +428,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -502,7 +473,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -820,7 +791,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -868,7 +839,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE2E8F0),
+            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE9EDEF),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -1092,7 +1063,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                   ],
                 ),
               ),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1299,7 +1270,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
           child: Icon(
             icon,
             size: 36,
-            color: const Color(0xFF94A3B8),
+            color: const Color(0xFF8696A0),
           ),
         ),
         const SizedBox(height: 16),
@@ -1477,7 +1448,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 ),
                 const SizedBox(height: 10),
               ],
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1656,7 +1627,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 ),
               ),
               const SizedBox(height: 10),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1856,7 +1827,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                               style: GoogleFonts.lato(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

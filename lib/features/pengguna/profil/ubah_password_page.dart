@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'menu_profil_page.dart';
@@ -61,8 +61,19 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final labelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final fieldBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final fieldBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final fieldTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final hintColor = isDark ? const Color(0xFF667781) : const Color(0xFF8696A0);
+    final iconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -76,11 +87,11 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                     InkWell(
                       onTap: () => Navigator.of(context).pop(),
                       borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: Icon(
                           Icons.arrow_back,
-                          color: Color(0xFF000000),
+                          color: titleColor,
                           size: 24,
                         ),
                       ),
@@ -91,7 +102,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                       style: GoogleFonts.lato(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF000000),
+                        color: titleColor,
                       ),
                     ),
                   ],
@@ -114,7 +125,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                         'Buat kata sandi baru yang kuat untuk menjaga keamanan akun Anda.',
                         style: GoogleFonts.lato(
                           fontSize: 14,
-                          color: const Color(0xFF64748B),
+                          color: subtitleColor,
                           height: 1.4,
                         ),
                       ),
@@ -122,9 +133,9 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
 
                       // Kata Sandi Saat Ini
                       _buildPasswordField(
-                        controller: _oldPasswordController,
                         label: 'Kata Sandi Saat Ini',
                         hint: 'Masukkan kata sandi saat ini',
+                        controller: _oldPasswordController,
                         obscureText: _obscureOld,
                         onToggleVisibility: () {
                           setState(() => _obscureOld = !_obscureOld);
@@ -135,14 +146,20 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                           }
                           return null;
                         },
+                        labelColor: labelColor,
+                        fieldBg: fieldBg,
+                        fieldBorder: fieldBorder,
+                        fieldTextColor: fieldTextColor,
+                        hintColor: hintColor,
+                        iconColor: iconColor,
                       ),
                       const SizedBox(height: 18),
 
                       // Kata Sandi Baru
                       _buildPasswordField(
-                        controller: _newPasswordController,
                         label: 'Kata Sandi Baru',
                         hint: 'Minimal 6 karakter',
+                        controller: _newPasswordController,
                         obscureText: _obscureNew,
                         onToggleVisibility: () {
                           setState(() => _obscureNew = !_obscureNew);
@@ -156,14 +173,20 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                           }
                           return null;
                         },
+                        labelColor: labelColor,
+                        fieldBg: fieldBg,
+                        fieldBorder: fieldBorder,
+                        fieldTextColor: fieldTextColor,
+                        hintColor: hintColor,
+                        iconColor: iconColor,
                       ),
                       const SizedBox(height: 18),
 
                       // Konfirmasi Kata Sandi Baru
                       _buildPasswordField(
-                        controller: _confirmPasswordController,
                         label: 'Konfirmasi Kata Sandi Baru',
                         hint: 'Ulangi kata sandi baru',
+                        controller: _confirmPasswordController,
                         obscureText: _obscureConfirm,
                         onToggleVisibility: () {
                           setState(() => _obscureConfirm = !_obscureConfirm);
@@ -177,6 +200,12 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                           }
                           return null;
                         },
+                        labelColor: labelColor,
+                        fieldBg: fieldBg,
+                        fieldBorder: fieldBorder,
+                        fieldTextColor: fieldTextColor,
+                        hintColor: hintColor,
+                        iconColor: iconColor,
                       ),
                       const SizedBox(height: 32),
 
@@ -229,6 +258,12 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     required bool obscureText,
     required VoidCallback onToggleVisibility,
     required String? Function(String?) validator,
+    required Color labelColor,
+    required Color fieldBg,
+    required Color fieldBorder,
+    required Color fieldTextColor,
+    required Color hintColor,
+    required Color iconColor,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,28 +273,28 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
           style: GoogleFonts.lato(
             fontSize: 16,
             fontWeight: FontWeight.normal,
-            color: const Color(0xFF000000),
+            color: labelColor,
           ),
         ),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           obscureText: obscureText,
-          style: GoogleFonts.lato(fontSize: 15, color: const Color(0xFF1E293B)),
+          style: GoogleFonts.lato(fontSize: 15, color: fieldTextColor),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.lato(
               fontSize: 14,
-              color: const Color(0xFF94A3B8),
+              color: hintColor,
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 14,
             ),
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.lock_outline_rounded,
               size: 20,
-              color: Color(0xFF64748B),
+              color: iconColor,
             ),
             suffixIcon: IconButton(
               icon: Icon(
@@ -267,19 +302,19 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
                 size: 20,
-                color: const Color(0xFF64748B),
+                color: iconColor,
               ),
               onPressed: onToggleVisibility,
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: fieldBg,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              borderSide: BorderSide(color: fieldBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              borderSide: BorderSide(color: fieldBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

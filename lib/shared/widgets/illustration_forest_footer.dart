@@ -21,6 +21,8 @@ class IllustrationForestFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
       height: height,
@@ -29,14 +31,16 @@ class IllustrationForestFooter extends StatelessWidget {
         width: double.infinity,
         fit: fit,
         alignment: Alignment.bottomCenter,
+        color: isDark ? const Color(0xFF0B1014).withValues(alpha: 0.35) : null,
+        colorBlendMode: isDark ? BlendMode.srcATop : null,
         errorBuilder: (context, error, stackTrace) => Container(
           height: height ?? 100,
-          color: const Color(0xFFD1FAE5),
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFD1FAE5),
           alignment: Alignment.center,
-          child: const Icon(
+          child: Icon(
             Icons.park_outlined,
             size: 44,
-            color: Color(0xFF34D399),
+            color: isDark ? const Color(0xFF10B981) : const Color(0xFF34D399),
           ),
         ),
       ),

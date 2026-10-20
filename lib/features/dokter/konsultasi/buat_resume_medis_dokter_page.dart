@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/doctor_service.dart';
+import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/resume_medis_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/booking_consultation_model.dart';
@@ -42,9 +44,9 @@ class BuatResumeMedisDokterPage extends StatefulWidget {
 
 class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
-  static const Color _colorBorder = Color(0xFFE2E8F0);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorBorder = Color(0xFFE9EDEF);
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
   static const Color _colorReadOnlyBg = Color(0xFFF0F7FF);
   static const Color _colorReadOnlyBorder = Color(0xFFD6E8FA);
@@ -71,6 +73,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
   void initState() {
     super.initState();
     _initReadOnlyData();
+    _fetchSessionDataIfNeeded();
     _assessmentController = TextEditingController();
     _summaryController = TextEditingController();
     _recommendationsController = TextEditingController();
@@ -102,14 +105,23 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
           '${now.hour.toString().padLeft(2,'0')}.${now.minute.toString().padLeft(2,'0')} WIB';
     }
 
-    final bb = widget.weightKg ?? widget.child?.birthWeightKg;
-    _bbSaatIni = bb != null && bb > 0 ? bb.toString() : '-';
+    // Ambil berat badan saat ini (prioritas: formulir konsultasi > booking > child.weightKg)
+    // JANGAN fallback ke birthWeightKg karena itu berat lahir!
+    final bb = widget.weightKg ?? widget.booking?.weightKg ?? widget.child?.weightKg;
+    _bbSaatIni = (bb != null && bb > 0)
+        ? (bb % 1 == 0 ? bb.toInt().toString() : bb.toString())
+        : '-';
 
-    final tb = widget.heightCm ?? widget.child?.birthHeightCm;
-    _tbSaatIni = tb != null && tb > 0 ? tb.toString() : '-';
+    // Ambil tinggi badan saat ini (prioritas: formulir konsultasi > booking > child.heightCm)
+    // JANGAN fallback ke birthHeightCm karena itu panjang lahir!
+    final tb = widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
+    _tbSaatIni = (tb != null && tb > 0)
+        ? (tb % 1 == 0 ? tb.toInt().toString() : tb.toString())
+        : '-';
 
-    _complaint = widget.complaint?.trim().isNotEmpty == true
-        ? widget.complaint!.trim()
+    final comp = widget.complaint ?? widget.booking?.complaint;
+    _complaint = comp != null && comp.trim().isNotEmpty
+        ? comp.trim()
         : '-';
 
     _childName = widget.child?.name.isNotEmpty == true
@@ -119,6 +131,34 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
     _parentName = widget.parentUser?.name.isNotEmpty == true
         ? widget.parentUser!.name
         : widget.parentName ?? 'Orang Tua Pasien';
+  }
+
+  Future<void> _fetchSessionDataIfNeeded() async {
+    final sessId = widget.sessionId;
+    if (sessId == null || sessId.isEmpty) return;
+
+    if (_bbSaatIni == '-' || _tbSaatIni == '-' || _complaint == '-') {
+      try {
+        final session = await KonsultasiService.instance.getSesi(sessId);
+        if (session != null && mounted) {
+          setState(() {
+            if (_bbSaatIni == '-' && session.weightKg != null && session.weightKg! > 0) {
+              final bb = session.weightKg!;
+              _bbSaatIni = bb % 1 == 0 ? bb.toInt().toString() : bb.toString();
+            }
+            if (_tbSaatIni == '-' && session.heightCm != null && session.heightCm! > 0) {
+              final tb = session.heightCm!;
+              _tbSaatIni = tb % 1 == 0 ? tb.toInt().toString() : tb.toString();
+            }
+            if (_complaint == '-' && session.keluhanAwal != null && session.keluhanAwal!.trim().isNotEmpty) {
+              _complaint = session.keluhanAwal!.trim();
+            }
+          });
+        }
+      } catch (e) {
+        debugPrint('[BuatResumeMedis] Error fetching session: $e');
+      }
+    }
   }
 
   @override
@@ -150,15 +190,22 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
           ? '${complaintText.substring(0, 57)}...'
           : complaintText;
 
+      final matchedDoc = staff != null ? DoctorService().findDoctorForStaff(staff) : null;
+      final docId = matchedDoc?.id ?? staff?.id ?? '';
+      final docPhoto = (matchedDoc?.avatarUrl != null && matchedDoc!.avatarUrl!.isNotEmpty)
+          ? matchedDoc.avatarUrl
+          : staff?.avatarPath;
+
       final resume = ResumeMedisModel(
         id: '',
         childId: childId,
         userId: userId,
+        doctorId: docId,
         doctorName: _doctorName,
         doctorSpecialization: staff?.role == StaffRole.dokter
             ? 'Spesialis Anak'
             : 'Dokter Spesialis Anak',
-        doctorPhoto: staff?.avatarPath,
+        doctorPhoto: docPhoto,
         childName: _childName,
         childAgeAtConsultation: widget.child?.ageDescription.isNotEmpty == true
             ? widget.child!.ageDescription
@@ -182,12 +229,13 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
         createdAt: DateTime.now(),
       );
 
-      final newId = await ResumeMedisService().addResumeMedis(resume);
+      final newId = await ResumeMedisService().saveOrUpdateResumeMedis(resume);
 
       final savedResume = ResumeMedisModel(
         id: newId,
         childId: resume.childId,
         userId: resume.userId,
+        doctorId: resume.doctorId,
         doctorName: resume.doctorName,
         doctorSpecialization: resume.doctorSpecialization,
         doctorPhoto: resume.doctorPhoto,

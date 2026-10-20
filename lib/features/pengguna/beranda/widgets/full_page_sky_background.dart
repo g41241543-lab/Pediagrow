@@ -109,11 +109,12 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
 
   @override
   Widget build(BuildContext context) {
-    // Ambil ukuran dari constraints milik parent (LayoutBuilder), bukan dari
-    // MediaQuery — supaya background ini otomatis mengikuti TINGGI TOTAL
-    // konten (saat dipasang di dalam Stack yang tingginya ditentukan oleh
-    // Column konten di dalam SingleChildScrollView), bukan cuma setinggi
-    // satu layar HP.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (isDark) {
+      return const ColoredBox(color: Color(0xFF0B1014));
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final fallback = MediaQuery.of(context).size;
@@ -123,12 +124,12 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
         final h = constraints.hasBoundedHeight
             ? constraints.maxHeight
             : fallback.height;
-        return _buildSky(w, h);
+        return _buildSky(w, h, isDark);
       },
     );
   }
 
-  Widget _buildSky(double w, double h) {
+  Widget _buildSky(double w, double h, bool isDark) {
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: Listenable.merge([
@@ -144,16 +145,20 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
           final floatY = _cloudSlowY.value;
           final wing = _wingFlap.value;
 
+          final birdColor1 = isDark
+              ? const Color(0xFF93C5FD).withValues(alpha: 0.45)
+              : const Color(0xFF1E3A8A).withValues(alpha: 0.52);
+          final birdColor2 = isDark
+              ? const Color(0xFF93C5FD).withValues(alpha: 0.35)
+              : const Color(0xFF1E3A8A).withValues(alpha: 0.40);
+          final birdColorMid = isDark
+              ? const Color(0xFF93C5FD).withValues(alpha: 0.30)
+              : const Color(0xFF3B5BA0).withValues(alpha: 0.34);
+
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              // ─────────────────────────────────────────────────────────────
-              // AWAN — 10 awan tersebar merata dari header sampai mendekati
-              // ilustrasi footer (persentase dihitung dari TINGGI TOTAL
-              // konten yang bisa di-scroll, otomatis menyesuaikan)
-              // ─────────────────────────────────────────────────────────────
-
-              // Awan A — kiri atas (area biru header)
+              // Awan A
               _cloud(
                 left: -28 + driftSlow,
                 top: 38 + floatY,
@@ -161,9 +166,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 40,
                 opacity: 0.65,
                 flipX: false,
+                isDark: isDark,
               ),
 
-              // Awan B — kanan atas (area biru, belakang matahari)
+              // Awan B
               _cloud(
                 right: -20 + (-driftSlow * 0.6),
                 top: 14 + (floatY * 0.7),
@@ -171,9 +177,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 44,
                 opacity: 0.60,
                 flipX: true,
+                isDark: isDark,
               ),
 
-              // Awan C — kiri, area transisi biru→putih
+              // Awan C
               _cloud(
                 left: -24 + (driftMed * 0.8),
                 top: h * 0.20 + (floatY * 0.5),
@@ -181,9 +188,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 36,
                 opacity: 0.42,
                 flipX: false,
+                isDark: isDark,
               ),
 
-              // Awan D — kanan, sejajar menu card
+              // Awan D
               _cloud(
                 right: -18 + (-driftMed),
                 top: h * 0.29 + floatY,
@@ -191,9 +199,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 40,
                 opacity: 0.38,
                 flipX: true,
+                isDark: isDark,
               ),
 
-              // Awan E — kiri, sejajar card PediaGrow
+              // Awan E
               _cloud(
                 left: -30 + (driftSlow * 0.5),
                 top: h * 0.38 + (floatY * 0.6),
@@ -201,9 +210,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 34,
                 opacity: 0.36,
                 flipX: true,
+                isDark: isDark,
               ),
 
-              // Awan F — kanan, sejajar Artikel Terbaru
+              // Awan F
               _cloud(
                 right: -22 + (-driftMed * 0.7),
                 top: h * 0.47 + floatY,
@@ -211,9 +221,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 38,
                 opacity: 0.34,
                 flipX: false,
+                isDark: isDark,
               ),
 
-              // Awan G — kiri, di antara artikel & video edukasi
+              // Awan G
               _cloud(
                 left: -26 + (driftMed * 0.6),
                 top: h * 0.56 + (floatY * 0.5),
@@ -221,9 +232,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 37,
                 opacity: 0.32,
                 flipX: false,
+                isDark: isDark,
               ),
 
-              // Awan H — kanan, sejajar Video Edukasi Anak
+              // Awan H
               _cloud(
                 right: -20 + (-driftSlow * 0.4),
                 top: h * 0.65 + floatY,
@@ -231,9 +243,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 41,
                 opacity: 0.30,
                 flipX: true,
+                isDark: isDark,
               ),
 
-              // Awan I — kiri, bawah section video
+              // Awan I
               _cloud(
                 left: -28 + (driftSlow * 0.5),
                 top: h * 0.74 + (floatY * 0.6),
@@ -241,9 +254,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 35,
                 opacity: 0.28,
                 flipX: true,
+                isDark: isDark,
               ),
 
-              // Awan J — kanan, paling bawah sebelum ilustrasi footer
+              // Awan J
               _cloud(
                 right: -24 + (-driftMed * 0.6),
                 top: h * 0.83 + floatY,
@@ -251,14 +265,10 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 h: 38,
                 opacity: 0.26,
                 flipX: false,
+                isDark: isDark,
               ),
 
-              // ─────────────────────────────────────────────────────────────
-              // BURUNG — 7 burung siluet terbang melintasi layar dari header
-              // sampai mendekati ilustrasi footer
-              // ─────────────────────────────────────────────────────────────
-
-              // Burung 1 — pemimpin formasi (kiri ke kanan, area atas biru)
+              // Burung 1
               Positioned(
                 left: _bird1X.value * w,
                 top: h * 0.08 + _bird1Y.value,
@@ -266,11 +276,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 20,
                   height: 10,
                   wingState: wing,
-                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.52),
+                  color: birdColor1,
                 ),
               ),
 
-              // Burung 2 — ekor formasi, sedikit di belakang burung 1
+              // Burung 2
               Positioned(
                 left: _bird1X.value * w - 24,
                 top: h * 0.06 + _bird1Y.value * 0.8,
@@ -278,11 +288,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 14,
                   height: 7,
                   wingState: -wing * 0.85,
-                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.40),
+                  color: birdColor2,
                 ),
               ),
 
-              // Burung 3 — terbang dari kanan ke kiri (area menu card)
+              // Burung 3
               Positioned(
                 left: _bird2X.value * w,
                 top: h * 0.17 + _bird2Y.value,
@@ -290,11 +300,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 15,
                   height: 7.5,
                   wingState: wing * 0.9,
-                  color: const Color(0xFF3B5BA0).withValues(alpha: 0.34),
+                  color: birdColorMid,
                 ),
               ),
 
-              // Burung 4 — kecil di kejauhan (sejajar PediaGrow)
+              // Burung 4
               Positioned(
                 left: _bird2X.value * w + 32,
                 top: h * 0.33 + (_bird2Y.value * 0.5),
@@ -302,11 +312,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 11,
                   height: 5.5,
                   wingState: -wing * 0.75,
-                  color: const Color(0xFF3B5BA0).withValues(alpha: 0.26),
+                  color: birdColorMid.withValues(alpha: 0.26),
                 ),
               ),
 
-              // Burung 5 — terbang kiri ke kanan (sejajar Artikel Terbaru)
+              // Burung 5
               Positioned(
                 left: _bird1X.value * w - 40,
                 top: h * 0.50 + (_bird1Y.value * 0.7),
@@ -314,11 +324,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 16,
                   height: 8,
                   wingState: wing * 0.8,
-                  color: const Color(0xFF3B5BA0).withValues(alpha: 0.30),
+                  color: birdColorMid.withValues(alpha: 0.30),
                 ),
               ),
 
-              // Burung 6 — terbang kanan ke kiri (sejajar Video Edukasi Anak)
+              // Burung 6
               Positioned(
                 left: _bird2X.value * w - 20,
                 top: h * 0.68 + (_bird2Y.value * 0.8),
@@ -326,11 +336,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 13,
                   height: 6.5,
                   wingState: -wing * 0.7,
-                  color: const Color(0xFF3B5BA0).withValues(alpha: 0.26),
+                  color: birdColorMid.withValues(alpha: 0.26),
                 ),
               ),
 
-              // Burung 7 — paling bawah, sebelum ilustrasi footer
+              // Burung 7
               Positioned(
                 left: _bird1X.value * w + 20,
                 top: h * 0.86 + (_bird1Y.value * 0.6),
@@ -338,7 +348,7 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   width: 12,
                   height: 6,
                   wingState: wing * 0.7,
-                  color: const Color(0xFF3B5BA0).withValues(alpha: 0.22),
+                  color: birdColorMid.withValues(alpha: 0.22),
                 ),
               ),
             ],
@@ -357,10 +367,11 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
     required double h,
     required double opacity,
     required bool flipX,
+    required bool isDark,
   }) {
     Widget cloud = CustomPaint(
       size: Size(w, h),
-      painter: _SubtleCloudPainter(opacity: opacity),
+      painter: _SubtleCloudPainter(opacity: opacity, isDark: isDark),
     );
     if (flipX) cloud = Transform.flip(flipX: true, child: cloud);
     return Positioned(
@@ -440,7 +451,8 @@ class _PageBirdPainter extends CustomPainter {
 
 class _SubtleCloudPainter extends CustomPainter {
   final double opacity;
-  const _SubtleCloudPainter({required this.opacity});
+  final bool isDark;
+  const _SubtleCloudPainter({required this.opacity, this.isDark = false});
 
   Path _silhouette(double w, double h) {
     Path union(List<Path> parts) {
@@ -480,35 +492,29 @@ class _SubtleCloudPainter extends CustomPainter {
     final sil = _silhouette(w, h);
     final a = opacity.clamp(0.0, 1.0);
 
-    // Warna dasar awan — biru-putih lembut (bukan putih murni) supaya tetap
-    // terlihat di atas background putih tanpa "nabrak"/menyatu, sekaligus
-    // senada dengan tone biru header & card di beranda.
-    const cloudTint = Color(
-      0xFFD3E6FA,
-    ); // biru-putih pastel, cukup kontras di atas putih
+    final cloudTint = isDark
+        ? const Color(0xFF2C363D)
+        : const Color(0xFFD3E6FA);
     final fillPaint = Paint()
-      ..color = cloudTint.withValues(alpha: a)
+      ..color = cloudTint.withValues(alpha: isDark ? a * 0.35 : a)
       ..style = PaintingStyle.fill
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, h * 0.012);
 
     canvas.drawPath(sil, fillPaint);
 
-    // Highlight tipis HANYA di bagian atas awan (efek tersinari matahari),
-    // supaya tint dasar di bagian tengah/bawah tetap terasa & tidak "hilang".
     canvas.save();
     canvas.clipPath(sil);
     canvas.clipRect(Rect.fromLTWH(0, 0, w, h * 0.42));
     canvas.drawPath(
       sil,
       Paint()
-        ..color = Colors.white.withValues(alpha: (a * 0.6).clamp(0.0, 1.0))
+        ..color = (isDark ? const Color(0xFF2C363D) : Colors.white)
+            .withValues(alpha: (isDark ? a * 0.25 : a * 0.6).clamp(0.0, 1.0))
         ..style = PaintingStyle.fill
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, h * 0.02),
     );
     canvas.restore();
 
-    // Shading bawah awan — biru keabu-abuan lembut, senada dengan tint dasar,
-    // memberi kesan volume tanpa membuat awan jadi mencolok di atas card.
     canvas.save();
     canvas.clipPath(sil);
     final sr = Rect.fromLTWH(0, h * 0.40, w, h * 0.60);
@@ -519,8 +525,9 @@ class _SubtleCloudPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFF9FC0E8).withValues(alpha: 0.0),
-            const Color(0xFF9FC0E8)
+            (isDark ? const Color(0xFF0B1014) : const Color(0xFF9FC0E8))
+                .withValues(alpha: 0.0),
+            (isDark ? const Color(0xFF0B1014) : const Color(0xFF9FC0E8))
                 .withValues(alpha: (0.30 * a + 0.10).clamp(0.0, 1.0)),
           ],
         ).createShader(sr),
@@ -530,5 +537,5 @@ class _SubtleCloudPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SubtleCloudPainter old) =>
-      old.opacity != opacity;
+      old.opacity != opacity || old.isDark != isDark;
 }

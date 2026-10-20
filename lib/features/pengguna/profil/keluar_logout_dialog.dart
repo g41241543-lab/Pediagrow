@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/user_service.dart';
@@ -21,9 +21,11 @@ class KeluarLogoutDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       elevation: 8,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
@@ -39,7 +41,7 @@ class KeluarLogoutDialog extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: isDark ? Colors.white : const Color(0xFF000000),
               ),
             ),
             const SizedBox(height: 8),
@@ -50,7 +52,7 @@ class KeluarLogoutDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14,
-                color: const Color(0xFF64748B),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 height: 1.4,
               ),
             ),
@@ -66,7 +68,9 @@ class KeluarLogoutDialog extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -77,7 +81,7 @@ class KeluarLogoutDialog extends StatelessWidget {
                         style: GoogleFonts.lato(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475569),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF2C363D),
                         ),
                       ),
                     ),

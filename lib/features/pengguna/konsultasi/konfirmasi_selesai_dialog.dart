@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'konsultasi_selesai_dialog.dart';
@@ -39,10 +39,12 @@ class KonfirmasiSelesaiDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(24),
         ),
       ),
@@ -57,8 +59,10 @@ class KonfirmasiSelesaiDialog extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFECEC),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF450A0A)
+                    : const Color(0xFFFFECEC),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -77,7 +81,7 @@ class KonfirmasiSelesaiDialog extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 18.5,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A202C),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A202C),
                 letterSpacing: -0.2,
               ),
               textAlign: TextAlign.center,
@@ -91,7 +95,7 @@ class KonfirmasiSelesaiDialog extends StatelessWidget {
                 'Setelah konsultasi diakhiri, Anda tidak akan bisa mengirimkan pesan lagi dan obrolan akan tertutup otomatis.',
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF4A5568),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
@@ -109,8 +113,12 @@ class KonfirmasiSelesaiDialog extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: onCancel ?? () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF1F5F9),
-                        foregroundColor: const Color(0xFF718096),
+                        backgroundColor: isDark
+                            ? const Color(0xFF2C363D)
+                            : const Color(0xFFE9EDEF),
+                        foregroundColor: isDark
+                            ? const Color(0xFFD1D7DB)
+                            : const Color(0xFF718096),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

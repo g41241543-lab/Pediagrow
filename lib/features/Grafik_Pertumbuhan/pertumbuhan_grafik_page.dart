@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/stunting_limit_service.dart';
 import '../../models/child_model.dart';
@@ -32,13 +32,14 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isGirl = widget.child.gender.toLowerCase().contains('perempuan');
 
     // Menghitung usia saat ini dalam format ringkas "X Tahun Y Bulan"
     final String currentAgeFormatted = _getShortAgeFormatted(widget.child);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         top: false,
         bottom: false,
@@ -70,7 +71,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                 // -------------------------------------------------------------
                 // 1. HEADER HALAMAN TETAP (Padding 56dp dari atas)
                 // -------------------------------------------------------------
-                _buildHeader(context, currentAgeFormatted),
+                _buildHeader(context, currentAgeFormatted, isDark),
 
                 // -------------------------------------------------------------
                 // 2. KONTEN UTAMA SCROLLABLE DENGAN ILUSTRASI PINNED DI DASAR
@@ -100,10 +101,10 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                   child: Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.access_time_rounded,
                                         size: 15,
-                                        color: Color(0xFF7F7F7F),
+                                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                                       ),
                                       const SizedBox(width: 5),
                                       Text(
@@ -111,7 +112,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                                         style: GoogleFonts.lato(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w500,
-                                          color: const Color(0xFF7F7F7F),
+                                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                                         ),
                                       ),
                                     ],
@@ -139,7 +140,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                                     style: GoogleFonts.lato(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF0F172A),
+                                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                                       letterSpacing: -0.2,
                                     ),
                                   ),
@@ -172,6 +173,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                                     statusColor: statusColor,
                                     statusBgColor: statusBgColor,
                                     statusDesc: statusDesc,
+                                    isDark: isDark,
                                   ),
                                 ),
 
@@ -249,10 +251,14 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
   // 1. HEADER HALAMAN
   // Jarak 56dp dari atas layar, tombol back 12dp dari kiri, judul 12dp setelahnya.
   // ===========================================================================
-  Widget _buildHeader(BuildContext context, String ageFormatted) {
+  // ===========================================================================
+  // 1. HEADER HALAMAN
+  // Jarak 56dp dari atas layar, tombol back 12dp dari kiri, judul 12dp setelahnya.
+  // ===========================================================================
+  Widget _buildHeader(BuildContext context, String ageFormatted, bool isDark) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 12.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -263,11 +269,11 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
             GestureDetector(
               onTap: () => Navigator.of(context).maybePop(),
               behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   size: 24,
                 ),
               ),
@@ -287,7 +293,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -299,7 +305,7 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.normal,
-                      color: const Color(0xFF7F7F7F),
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                     ),
                   ),
                 ],
@@ -321,12 +327,12 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.history_rounded,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                   size: 24,
                 ),
               ),
@@ -345,22 +351,30 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
     required Color statusColor,
     required Color statusBgColor,
     required String statusDesc,
+    required bool isDark,
   }) {
     final bool isNormal = statusGizi == 'Gizi Normal';
-    final Color cardBorderColor =
-        isNormal ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2);
-    final Color descColor =
-        isNormal ? const Color(0xFF1B4332) : const Color(0xFF7F1D1D);
+    final Color cardBorderColor = isDark
+        ? (isNormal ? const Color(0xFF047857) : const Color(0xFFB91C1C))
+        : (isNormal ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2));
+    final Color descColor = isDark
+        ? (isNormal ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA))
+        : (isNormal ? const Color(0xFF1B4332) : const Color(0xFF7F1D1D));
+    final Color effectiveBgColor = isDark
+        ? (isNormal
+            ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+            : const Color(0xFF7F1D1D).withValues(alpha: 0.3))
+        : statusBgColor;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: statusBgColor,
+        color: effectiveBgColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: cardBorderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.08),
+            color: statusColor.withValues(alpha: isDark ? 0.04 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),

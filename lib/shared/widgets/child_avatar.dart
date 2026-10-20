@@ -68,13 +68,18 @@ class ChildAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final female = isFemaleGender(gender: gender, child: child, isGirl: isGirl);
     final assetPath = female
         ? 'assets/images/baby_avatar_girl.png'
         : 'assets/images/baby_avatar_boy.png';
 
     final effectiveBgColor = backgroundColor ??
-        (female ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF));
+        (isDark
+            ? (female
+                ? const Color(0xFF831843).withValues(alpha: 0.35)
+                : const Color(0xFF1E3A8A).withValues(alpha: 0.35))
+            : (female ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF)));
 
     final effectivePadding = padding ?? EdgeInsets.all(size * 0.12);
 
@@ -103,7 +108,7 @@ class ChildAvatar extends StatelessWidget {
               width: size,
               height: size,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(
+              errorBuilder: (_, _, _) => Icon(
                 female ? Icons.face_3_rounded : Icons.face_rounded,
                 size: size * 0.65,
                 color: female

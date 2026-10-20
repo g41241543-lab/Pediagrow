@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_permissions.dart';
 import '../../../models/staff_account_model.dart';
@@ -73,27 +74,10 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
   void _handleFeatureTap(DoctorPermissionItem item) {
     final hasAccess = _account.hasPermission(item.key);
     if (!hasAccess) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Akses fitur "${item.label}" dinonaktifkan oleh Superadmin.',
-                  style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "${item.label}" dinonaktifkan oleh Superadmin.',
+        targetRole: LocalPushService().activeRole,
       );
     } else {
       switch (item.key) {
@@ -172,11 +156,10 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
           );
           break;
         default:
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Fitur ${item.label} aktif'),
-              backgroundColor: const Color(0xFF16A34A),
-            ),
+          LocalPushService().show(
+            title: 'PediaGrow',
+            body: 'Fitur ${item.label} aktif',
+            targetRole: LocalPushService().activeRole,
           );
       }
     }
@@ -220,7 +203,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                           IconButton(
                             icon: const Icon(
                               Icons.arrow_back_rounded,
-                              color: Color(0xFF0F172A),
+                              color: Color(0xFF0B1014),
                             ),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -233,7 +216,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                           style: GoogleFonts.lato(
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFF0B1014),
                           ),
                         ),
                       ],
@@ -291,7 +274,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const Color(0xFFE9EDEF)),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x0A000000),
@@ -325,7 +308,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 16.0,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF0F172A),
+                                color: const Color(0xFF0B1014),
                               ),
                             ),
                             const SizedBox(height: 2.0),
@@ -333,7 +316,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                               _account.email,
                               style: GoogleFonts.lato(
                                 fontSize: 13.0,
-                                color: const Color(0xFF64748B),
+                                color: const Color(0xFF667781),
                               ),
                             ),
                             const SizedBox(height: 6.0),
@@ -375,7 +358,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                       style: GoogleFonts.lato(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -395,7 +378,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: const Color(0xFFE9EDEF)),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x0A000000),
@@ -431,7 +414,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                                       size: 20.0,
                                       color: isAllowed
                                           ? const Color(0xFF16A34A)
-                                          : const Color(0xFF94A3B8),
+                                          : const Color(0xFF8696A0),
                                     ),
                                     const SizedBox(width: 12.0),
                                     Expanded(
@@ -441,8 +424,8 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                                           fontSize: 14.0,
                                           fontWeight: FontWeight.w600,
                                           color: isAllowed
-                                              ? const Color(0xFF1E293B)
-                                              : const Color(0xFF94A3B8),
+                                              ? const Color(0xFF1A2228)
+                                              : const Color(0xFF8696A0),
                                         ),
                                       ),
                                     ),
@@ -454,7 +437,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                                       decoration: BoxDecoration(
                                         color: isAllowed
                                             ? const Color(0xFFEFF6FF)
-                                            : const Color(0xFFF1F5F9),
+                                            : const Color(0xFFE9EDEF),
                                         borderRadius:
                                             BorderRadius.circular(6.0),
                                       ),
@@ -465,7 +448,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                                           fontWeight: FontWeight.bold,
                                           color: isAllowed
                                               ? const Color(0xFF3985E7)
-                                              : const Color(0xFF94A3B8),
+                                              : const Color(0xFF8696A0),
                                         ),
                                       ),
                                     ),
@@ -477,7 +460,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                               const Divider(
                                 height: 1.0,
                                 thickness: 0.8,
-                                color: Color(0xFFF1F5F9),
+                                color: Color(0xFFE9EDEF),
                                 indent: 16.0,
                                 endIndent: 16.0,
                               ),

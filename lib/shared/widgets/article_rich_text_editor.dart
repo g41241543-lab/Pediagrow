@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -89,11 +89,13 @@ TextSpan parseRichTextDocument(
     TextStyle lineStyle = baseStyle;
     String content = line;
 
+    final isDarkText = (baseStyle.color?.computeLuminance() ?? 0) > 0.5;
+
     if (line.startsWith('# ')) {
       lineStyle = baseStyle.copyWith(
         fontSize: (baseStyle.fontSize ?? 14.0) + 5.0,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF0F172A),
+        color: isDarkText ? const Color(0xFFF8FAFC) : const Color(0xFF0B1014),
       );
       if (!isEditor) {
         content = line.substring(2);
@@ -102,7 +104,7 @@ TextSpan parseRichTextDocument(
       lineStyle = baseStyle.copyWith(
         fontSize: (baseStyle.fontSize ?? 14.0) + 3.0,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF1E293B),
+        color: isDarkText ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
       );
       if (!isEditor) {
         content = line.substring(3);
@@ -111,7 +113,7 @@ TextSpan parseRichTextDocument(
       lineStyle = baseStyle.copyWith(
         fontSize: (baseStyle.fontSize ?? 14.0) + 1.5,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF334155),
+        color: isDarkText ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
       );
       if (!isEditor) {
         content = line.substring(4);
@@ -547,7 +549,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                         fontWeight: FontWeight.bold,
                         color: _isBoldActive
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFF1E293B),
+                            : const Color(0xFF1A2228),
                       ),
                     ),
                   ),
@@ -571,7 +573,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                         fontStyle: FontStyle.italic,
                         color: _isItalicActive
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFF1E293B),
+                            : const Color(0xFF1A2228),
                       ),
                     ),
                   ),
@@ -595,7 +597,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                         decoration: TextDecoration.underline,
                         color: _isUnderlineActive
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFF1E293B),
+                            : const Color(0xFF1A2228),
                       ),
                     ),
                   ),
@@ -768,12 +770,14 @@ class FormattedArticleText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF262626);
     final baseStyle = style ??
         GoogleFonts.lato(
           fontSize: 15.0,
           fontWeight: FontWeight.w400,
           height: 1.6,
-          color: const Color(0xFF262626),
+          color: defaultColor,
         );
 
     return Text.rich(

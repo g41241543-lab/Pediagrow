@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
@@ -146,7 +146,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF0F172A),
+                                    color: const Color(0xFF0B1014),
                                     letterSpacing: -0.2,
                                   ),
                                 ),

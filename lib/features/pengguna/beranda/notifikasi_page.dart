@@ -3,8 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/notification_service.dart';
 import '../../../models/notification_model.dart';
+import '../artikel/artikel_kesehatan_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
+import '../mpasi/daftar_resep_page.dart';
+import '../profil/menu_profil_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
+import '../../../shared/widgets/konfirmasi_hapus_notifikasi_dialog.dart';
+import '../../../shared/widgets/swipeable_notification_tile.dart';
 import 'beranda_page.dart';
 
 /// Halaman Notifikasi Pengguna PediaGrow.
@@ -49,27 +54,75 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   }
 
   void _onNotificationTap(NotificationItem item) {
-    if (item.type == NotificationType.stunting) {
-      // Terhubung langsung ke halaman Pilih Anak untuk cek stunting
-      PilihAnakPage.show(context);
-    } else if (item.type == NotificationType.consultation) {
-      // Terhubung langsung ke halaman Riwayat Konsultasi
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()));
+    switch (item.type) {
+      case NotificationType.stunting:
+        // Terhubung langsung ke halaman Pilih Anak untuk cek stunting
+        PilihAnakPage.show(context);
+        break;
+      case NotificationType.consultation:
+        // Terhubung langsung ke halaman Riwayat Konsultasi
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+        );
+        break;
+      case NotificationType.profile:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MenuProfilPage()),
+        );
+        break;
+      case NotificationType.article:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ArtikelKesehatanPage()),
+        );
+        break;
+      case NotificationType.recipe:
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const DaftarResepPage()),
+        );
+        break;
+      case NotificationType.system:
+        final lower = '${item.title} ${item.message}'.toLowerCase();
+        if (lower.contains('profil') ||
+            lower.contains('ibu') ||
+            lower.contains('anak')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const MenuProfilPage()),
+          );
+        } else if (lower.contains('artikel')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ArtikelKesehatanPage()),
+          );
+        } else if (lower.contains('resep') || lower.contains('mpasi')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const DaftarResepPage()),
+          );
+        } else if (lower.contains('stunting') || lower.contains('cek')) {
+          PilihAnakPage.show(context);
+        } else if (lower.contains('konsultasi') ||
+            lower.contains('booking') ||
+            lower.contains('chat')) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+          );
+        }
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
             // -----------------------------------------------------------------
             // HEADER (Ukuran 56dp dari atas, tanpa garis/border di bawahnya)
             // -----------------------------------------------------------------
-            _buildHeader(context),
+            _buildHeader(context, isDark, bgColor),
 
             // -----------------------------------------------------------------
             // KONTEN NOTIFIKASI (Non-scrollable)
@@ -80,11 +133,11 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 builder: (context, notifications, _) {
                   if (notifications.isEmpty) {
                     // Tampilan kosong (Gambar 1)
-                    return _buildEmptyState();
+                    return _buildEmptyState(isDark);
                   }
 
                   // Tampilan daftar notifikasi (Gambar 2)
-                  return _buildNotificationList(notifications);
+                  return _buildNotificationList(notifications, isDark);
                 },
               ),
             ),
@@ -95,10 +148,12 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   }
 
   /// Header 56dp tanpa border/divider di bawahnya.
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark, Color bgColor) {
+    final textColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       height: 56.0,
-      color: Colors.white,
+      color: bgColor,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -115,20 +170,45 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 );
               }
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Icon(Icons.arrow_back, color: textColor, size: 24),
             ),
           ),
           // Nama halaman berjarak 12dp setelah tombol back
           const SizedBox(width: 12.0),
-          Text(
-            'Notifikasi',
-            style: GoogleFonts.lato(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+          Expanded(
+            child: Text(
+              'Notifikasi',
+              style: GoogleFonts.lato(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
             ),
+          ),
+          // Tombol sampah di kanan atas untuk menghapus seluruh notifikasi dari aplikasi
+          ValueListenableBuilder<List<NotificationItem>>(
+            valueListenable: NotificationService().notificationsNotifier,
+            builder: (context, notifications, _) {
+              if (notifications.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: Color(0xFFE53E3E),
+                  size: 24,
+                ),
+                tooltip: 'Hapus Semua Notifikasi',
+                onPressed: () {
+                  KonfirmasiHapusNotifikasiDialog.showAll(
+                    context,
+                    onConfirm: () async {
+                      await NotificationService().clearNotifications();
+                    },
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -137,7 +217,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   /// Tampilan Empty State (Gambar 1):
   /// Ilustrasi lonceng kuning & teks "Belum ada notifikasi" di tengah halaman.
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
@@ -155,7 +235,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
                 'assets/images/lonceng_notif.png',
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) =>
-                    const CustomPaint(painter: _NotificationBellEmptyPainter()),
+                    CustomPaint(painter: _NotificationBellEmptyPainter(isDark: isDark)),
               ),
             ),
             const SizedBox(height: 24),
@@ -164,7 +244,7 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: const Color(0xFFC4C4C4),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFFC4C4C4),
               ),
             ),
           ],
@@ -175,88 +255,104 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 
   /// Tampilan Daftar Notifikasi (Gambar 2):
   /// Scrollable agar semua notifikasi dapat dibaca meski banyak.
-  Widget _buildNotificationList(List<NotificationItem> items) {
+  Widget _buildNotificationList(List<NotificationItem> items, bool isDark) {
     return ListView.separated(
       physics: const ClampingScrollPhysics(),
       padding: EdgeInsets.zero,
       itemCount: items.length,
-      separatorBuilder: (_, _) =>
-          const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
+      separatorBuilder: (_, _) => Divider(
+        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        height: 1,
+        thickness: 1,
+      ),
       itemBuilder: (context, index) {
         final item = items[index];
-        return _buildNotificationItem(context, item);
+        return SwipeableNotificationTile(
+          key: ValueKey(item.id),
+          onTap: () => _onNotificationTap(item),
+          onDelete: () {
+            KonfirmasiHapusNotifikasiDialog.showSingle(
+              context,
+              onConfirm: () async {
+                await NotificationService().deleteNotification(item.id);
+              },
+            );
+          },
+          child: _buildNotificationItem(context, item, isDark),
+        );
       },
     );
   }
 
-  /// Item notifikasi dengan leading amplop hitam dalam lingkaran abu-abu
-  Widget _buildNotificationItem(BuildContext context, NotificationItem item) {
-    return InkWell(
-      onTap: () => _onNotificationTap(item),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Lingkaran abu-abu dengan ikon amplop / surat hitam bergaris
-            Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.mail_outline_rounded,
-                color: Color(0xFF000000),
-                size: 22,
-              ),
+  /// Item notifikasi dengan leading amplop dalam lingkaran
+  Widget _buildNotificationItem(
+    BuildContext context,
+    NotificationItem item,
+    bool isDark,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Lingkaran dengan ikon amplop / surat
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 14),
-
-            // Teks Notifikasi (Judul, Isi Pesan, Tanggal)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Judul Notifikasi
-                  Text(
-                    item.title,
-                    style: GoogleFonts.lato(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-
-                  // Isi Pesan Notifikasi
-                  Text(
-                    item.message,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.normal,
-                      color: const Color(0xFF374151),
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Tanggal Notifikasi (misal: "13 Juli 2026", "09 Mei 2026")
-                  Text(
-                    item.formattedDate,
-                    style: GoogleFonts.lato(
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: const Color(0xFF9CA3AF),
-                    ),
-                  ),
-                ],
-              ),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.mail_outline_rounded,
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+              size: 22,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 14),
+
+          // Teks Notifikasi (Judul, Isi Pesan, Tanggal)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Judul Notifikasi
+                Text(
+                  item.title,
+                  style: GoogleFonts.lato(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                  ),
+                ),
+                const SizedBox(height: 3),
+
+                // Isi Pesan Notifikasi
+                Text(
+                  item.message,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.normal,
+                    color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF374151),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Tanggal Notifikasi (misal: "13 Juli 2026", "09 Mei 2026")
+                Text(
+                  item.formattedDate,
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: isDark ? const Color(0xFF667781) : const Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -270,7 +366,8 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
 /// - Pendulum/clapper lonceng di bagian bawah (abu-abu gelap)
 /// - Bayangan oval abu-abu muda di bawah lonceng
 class _NotificationBellEmptyPainter extends CustomPainter {
-  const _NotificationBellEmptyPainter();
+  final bool isDark;
+  const _NotificationBellEmptyPainter({this.isDark = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -279,7 +376,7 @@ class _NotificationBellEmptyPainter extends CustomPainter {
 
     // 1. Bayangan oval abu-abu di bagian bawah
     final shadowPaint = Paint()
-      ..color = const Color(0xFFE5E7EB)
+      ..color = isDark ? const Color(0xFF1A2228) : const Color(0xFFE5E7EB)
       ..style = PaintingStyle.fill;
     canvas.drawOval(
       Rect.fromCenter(center: Offset(cx, cy + 46), width: 104, height: 10),

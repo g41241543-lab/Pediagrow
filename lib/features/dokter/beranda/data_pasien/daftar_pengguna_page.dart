@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -46,9 +46,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // Warna Konsisten Sesuai Desain & lokasi_fasyankes_page.dart
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorTextBlack = Color(0xFF000000);
-  static const Color _colorSubtitleGrey = Color(0xFF94A3B8);
+  static const Color _colorSubtitleGrey = Color(0xFF8696A0);
   static const Color _colorCardBorder = Color(0xFF2B7AE8);
-  static const Color _colorSearchBarBg = Color(0xFFF1F5F9);
+  static const Color _colorSearchBarBg = Color(0xFFE9EDEF);
 
   @override
   void initState() {
@@ -259,7 +259,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),
@@ -369,7 +369,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         decoration: BoxDecoration(
           color: _colorSearchBarBg,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+          border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -378,7 +378,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             // Ikon Pencarian
             const Icon(
               Icons.search_rounded,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
               size: 22,
             ),
             const SizedBox(width: 8),
@@ -398,7 +398,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   hintStyle: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                   border: InputBorder.none,
                   isDense: true,
@@ -415,7 +415,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   padding: EdgeInsets.symmetric(horizontal: 10),
                   child: Icon(
                     Icons.cancel_rounded,
-                    color: Color(0xFF94A3B8),
+                    color: Color(0xFF8696A0),
                     size: 18,
                   ),
                 ),
@@ -688,17 +688,17 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: const Color(0xFFE9EDEF),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFFE2E8F0),
+                              color: const Color(0xFFE9EDEF),
                               width: 1.2,
                             ),
                           ),
                           child: const Icon(
                             Icons.person_off_outlined,
                             size: 36,
-                            color: Color(0xFF94A3B8),
+                            color: Color(0xFF8696A0),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -708,7 +708,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -718,7 +718,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF64748B),
+                            color: const Color(0xFF667781),
                             height: 1.4,
                           ),
                         ),
@@ -759,7 +759,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         const Icon(
                           Icons.search_off_rounded,
                           size: 48,
-                          color: Color(0xFF94A3B8),
+                          color: Color(0xFF8696A0),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -768,7 +768,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           style: GoogleFonts.lato(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -777,7 +777,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 13,
-                            color: const Color(0xFF64748B),
+                            color: const Color(0xFF667781),
                           ),
                         ),
                       ],
@@ -807,7 +807,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1),
           ),
           child: Row(
             children: [
@@ -819,7 +819,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                       width: 160,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
+                        color: const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -828,7 +828,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                       width: 100,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -839,7 +839,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                 width: 20,
                 height: 20,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFE2E8F0),
+                  color: Color(0xFFE9EDEF),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -871,7 +871,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
               ),
             ),
             const SizedBox(height: 6),
@@ -880,7 +880,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 12,
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
               ),
             ),
             const SizedBox(height: 16),

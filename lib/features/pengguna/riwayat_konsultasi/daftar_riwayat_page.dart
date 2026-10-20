@@ -12,6 +12,7 @@ import '../../../models/child_model.dart';
 import '../../../models/resume_medis_model.dart';
 import '../../../models/riwayat_konsultasi_model.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import 'detail_konsultasi_page.dart';
 import 'widgets/riwayat_consultation_card.dart';
 import 'widgets/riwayat_empty_state.dart';
@@ -251,6 +252,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   RiwayatKonsultasiModel _toRiwayat(ResumeMedisModel r) {
     return RiwayatKonsultasiModel(
       id: r.id,
+      doctorId: r.doctorId,
       doctorName: r.doctorName,
       doctorSpecialization: r.doctorSpecialization,
       doctorPhoto: r.doctorPhoto,
@@ -292,8 +294,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: RiwayatHeader(
@@ -304,13 +307,13 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: _buildBody(),
+        child: _buildBody(isDark),
       ),
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 2),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(bool isDark) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -333,7 +336,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 15,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
               const SizedBox(height: 16),
@@ -361,7 +364,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
     final hasChildren = ChildService().children.isNotEmpty;
     if (widget.initialRiwayatList == null && !hasChildren && _activeChild == null) {
-      return _buildNoChildView();
+      return _buildNoChildView(isDark);
     }
 
     if (_riwayatList.isEmpty) {
@@ -372,7 +375,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   }
 
   /// Tampilan ketika belum ada profil anak terdaftar
-  Widget _buildNoChildView() {
+  Widget _buildNoChildView(bool isDark) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -393,7 +396,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                               width: 72,
                               height: 72,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
+                                color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEFF6FF),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Icon(
@@ -409,7 +412,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF0F172A),
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -418,7 +421,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                               textAlign: TextAlign.center,
                               style: GoogleFonts.lato(
                                 fontSize: 14,
-                                color: const Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                                 height: 1.4,
                               ),
                             ),
@@ -501,6 +504,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
   /// Filter interaktif untuk memilih riwayat berdasarkan profil anak
   Widget _buildChildSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final children = ChildService().children;
     if (children.isEmpty) {
       if (_activeChild == null) return const SizedBox.shrink();
@@ -512,14 +516,17 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
             const SizedBox(width: 6),
             Text(
               'Anak: ',
-              style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+              ),
             ),
             Text(
               _activeChild!.name,
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
               ),
             ),
           ],
@@ -541,7 +548,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF475569),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF475569),
                 ),
               ),
             ],
@@ -637,24 +644,6 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
   /// Ilustrasi Footer Landscape Full-Bleed
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 }

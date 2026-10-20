@@ -7,6 +7,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
@@ -39,9 +40,9 @@ class BookingKonsultasiPage extends StatefulWidget {
 class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   static const Color _kPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _kTealAccent = Color(0xFF3CC3A6);
-  static const Color _kTextDark = Color(0xFF1E293B);
-  static const Color _kTextMuted = Color(0xFF64748B);
-  static const Color _kBorderLight = Color(0xFFE2E8F0);
+  static const Color _kTextDark = Color(0xFF1A2228);
+  static const Color _kTextMuted = Color(0xFF667781);
+  static const Color _kBorderLight = Color(0xFFE9EDEF);
 
   late ChildModel? _selectedChild;
   late DateTime _selectedDate;
@@ -685,26 +686,25 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   void _showSnackbar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.lato(color: Colors.white)),
-        backgroundColor: const Color(0xFF1E293B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: msg,
+      targetRole: PushRole.pengguna,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomConfirmBar(),
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+      bottomNavigationBar: _buildBottomConfirmBar(isDark),
       body: SafeArea(
         child: Column(
           children: [
             // Header (56dp)
-            _buildHeader(),
+            _buildHeader(isDark),
 
             // Konten Form Booking Scrollable
             Expanded(
@@ -717,19 +717,19 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     const SizedBox(height: 8),
 
                     // Ringkasan Kartu Dokter
-                    _buildDoctorSummaryCard(),
+                    _buildDoctorSummaryCard(isDark),
                     const SizedBox(height: 20),
 
                     // Step 1: Pilih Anak
-                    _buildChildSelectionSection(),
+                    _buildChildSelectionSection(isDark),
                     const SizedBox(height: 24),
 
                     // Step 2: Pilih Tanggal
-                    _buildDateSelectionSection(),
+                    _buildDateSelectionSection(isDark),
                     const SizedBox(height: 24),
 
                     // Step 3: Pilih Jam / Slot Waktu Praktik
-                    _buildTimeSlotSection(),
+                    _buildTimeSlotSection(isDark),
                     const SizedBox(height: 28),
                   ],
                 ),
@@ -742,20 +742,24 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   // ── Header (56dp) ──────────────────────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDark) {
     return Container(
       height: 56.0,
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: _kTextDark, size: 24.0),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? Colors.white : _kTextDark,
+                size: 24.0,
+              ),
             ),
           ),
           const SizedBox(width: 12.0),
@@ -767,7 +771,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 19.0,
                 fontWeight: FontWeight.bold,
-                color: _kTextDark,
+                color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
               ),
             ),
           ),
@@ -777,13 +781,15 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   // ── Kartu Ringkasan Dokter ────────────────────────────────────────────────
-  Widget _buildDoctorSummaryCard() {
+  Widget _buildDoctorSummaryCard(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(14.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: _kBorderLight),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
+        ),
       ),
       child: Row(
         children: [
@@ -793,7 +799,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             child: Container(
               width: 54.0,
               height: 54.0,
-              color: const Color(0xFFE2E8F0),
+              color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
               child:
                   widget.doctor.avatarUrl != null &&
                       widget.doctor.avatarUrl!.isNotEmpty
@@ -832,7 +838,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   style: GoogleFonts.lato(
                     fontSize: 15.0,
                     fontWeight: FontWeight.bold,
-                    color: _kTextDark,
+                    color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                   ),
                 ),
                 const SizedBox(height: 2.0),
@@ -840,7 +846,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   widget.doctor.specialization,
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
-                    color: _kPrimaryBlue,
+                    color: isDark ? const Color(0xFF60A5FA) : _kPrimaryBlue,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -851,7 +857,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       : 'Praktik Konsultasi Online',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(fontSize: 11.5, color: _kTextMuted),
+                  style: GoogleFonts.lato(
+                    fontSize: 11.5,
+                    color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                  ),
                 ),
               ],
             ),
@@ -862,7 +871,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   // ── Step 1: Pilih Anak ────────────────────────────────────────────────────
-  Widget _buildChildSelectionSection() {
+  Widget _buildChildSelectionSection(bool isDark) {
     final children = ChildService().children;
 
     return Column(
@@ -876,7 +885,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 15.5,
                 fontWeight: FontWeight.bold,
-                color: _kTextDark,
+                color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
               ),
             ),
             InkWell(
@@ -898,7 +907,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
-                      color: _kPrimaryBlue,
+                      color: isDark ? const Color(0xFF60A5FA) : _kPrimaryBlue,
                     ),
                   ),
                 ],
@@ -912,9 +921,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(color: _kBorderLight),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
+              ),
             ),
             child: Row(
               children: [
@@ -923,7 +934,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 Expanded(
                   child: Text(
                     'Belum ada profil anak terdaftar. Klik "Tambah Anak" untuk mendaftarkan anak Anda.',
-                    style: GoogleFonts.lato(fontSize: 12.5, color: _kTextMuted),
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                    ),
                   ),
                 ),
               ],
@@ -950,11 +964,17 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     width: 175.0,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFEFF6FF)
-                          : Colors.white,
+                          ? (isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                                : const Color(0xFFEFF6FF))
+                          : (isDark
+                                ? const Color(0xFF1A2228)
+                                : Colors.white),
                       borderRadius: BorderRadius.circular(12.0),
                       border: Border.all(
-                        color: isSelected ? _kPrimaryBlue : _kBorderLight,
+                        color: isSelected
+                            ? _kPrimaryBlue
+                            : (isDark ? const Color(0xFF2C363D) : _kBorderLight),
                         width: isSelected ? 1.8 : 1.0,
                       ),
                     ),
@@ -963,14 +983,14 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         CircleAvatar(
                           radius: 18.0,
                           backgroundColor: isBoy
-                              ? const Color(0xFFD6E8FE)
-                              : const Color(0xFFFFDFD9),
+                              ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFD6E8FE))
+                              : (isDark ? const Color(0xFF831843) : const Color(0xFFFFDFD9)),
                           child: Icon(
                             Icons.child_care_rounded,
                             size: 20.0,
                             color: isBoy
-                                ? const Color(0xFF2B7AE8)
-                                : const Color(0xFFF87171),
+                                ? (isDark ? const Color(0xFF93C5FD) : const Color(0xFF2B7AE8))
+                                : (isDark ? const Color(0xFFF472B6) : const Color(0xFFF87171)),
                           ),
                         ),
                         const SizedBox(width: 10.0),
@@ -985,7 +1005,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.bold,
-                                  color: _kTextDark,
+                                  color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                                 ),
                               ),
                               Text(
@@ -996,7 +1016,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
                                   fontSize: 11.0,
-                                  color: _kTextMuted,
+                                  color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                                 ),
                               ),
                             ],
@@ -1020,7 +1040,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   // ── Step 2: Pilih Tanggal ─────────────────────────────────────────────────
-  Widget _buildDateSelectionSection() {
+  Widget _buildDateSelectionSection(bool isDark) {
     const daysAbbr = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
     const monthsAbbr = [
       'Jan',
@@ -1045,7 +1065,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           style: GoogleFonts.lato(
             fontSize: 15.5,
             fontWeight: FontWeight.bold,
-            color: _kTextDark,
+            color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
           ),
         ),
         const SizedBox(height: 12.0),
@@ -1082,7 +1102,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : const Color(0xFFFEF3C7),
+                        : (isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -1092,7 +1112,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : const Color(0xFFD97706),
+                          : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
                     ),
                   ),
                 );
@@ -1106,7 +1126,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : const Color(0xFFE2E8F0),
+                        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -1114,11 +1134,19 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 9.0,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white70 : _kTextMuted,
+                      color: isSelected
+                          ? Colors.white70
+                          : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
                     ),
                   ),
                 );
               } else {
+                final slotsKosong = JadwalDokterService().hitungSlotKosong(
+                  dokterId: widget.doctor.id,
+                  tanggal: d,
+                );
+                final isPenuh = slotsKosong.isEmpty;
+
                 statusBadge = Container(
                   margin: const EdgeInsets.only(top: 4.0),
                   padding: const EdgeInsets.symmetric(
@@ -1128,17 +1156,21 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : const Color(0xFFD1FAE5),
+                        : isPenuh
+                            ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9))
+                            : (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
-                    'Praktik',
+                    isPenuh ? 'Penuh' : 'Praktik',
                     style: GoogleFonts.lato(
                       fontSize: 9.0,
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : const Color(0xFF059669),
+                          : isPenuh
+                              ? (isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B))
+                              : (isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669)),
                     ),
                   ),
                 );
@@ -1153,10 +1185,14 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     vertical: 12.0,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? _kPrimaryBlue : const Color(0xFFF8FAFC),
+                    color: isSelected
+                        ? _kPrimaryBlue
+                        : (isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(12.0),
                     border: Border.all(
-                      color: isSelected ? _kPrimaryBlue : _kBorderLight,
+                      color: isSelected
+                          ? _kPrimaryBlue
+                          : (isDark ? const Color(0xFF2C363D) : _kBorderLight),
                       width: 1.2,
                     ),
                   ),
@@ -1167,7 +1203,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         style: GoogleFonts.lato(
                           fontSize: 12.0,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white70 : _kTextMuted,
+                          color: isSelected
+                              ? Colors.white70
+                              : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
                         ),
                       ),
                       const SizedBox(height: 4.0),
@@ -1176,7 +1214,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         style: GoogleFonts.lato(
                           fontSize: 18.0,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : _kTextDark,
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? const Color(0xFFE9EDEF) : _kTextDark),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -1184,7 +1224,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         monthName,
                         style: GoogleFonts.lato(
                           fontSize: 11.0,
-                          color: isSelected ? Colors.white70 : _kTextMuted,
+                          color: isSelected
+                              ? Colors.white70
+                              : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
                         ),
                       ),
                       statusBadge,
@@ -1200,7 +1242,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   // ── Step 3: Pilih Jam / Slot Waktu Praktik ─────────────────────────────────
-  Widget _buildTimeSlotSection() {
+  Widget _buildTimeSlotSection(bool isDark) {
     final periods = ['Semua', 'Pagi', 'Siang', 'Sore', 'Malam'];
 
     final filteredSlots = _selectedPeriodFilter == 'Semua'
@@ -1220,7 +1262,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 15.5,
                 fontWeight: FontWeight.bold,
-                color: _kTextDark,
+                color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
               ),
             ),
             Text(
@@ -1255,14 +1297,18 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     fontWeight: isFilterSelected
                         ? FontWeight.bold
                         : FontWeight.normal,
-                    color: isFilterSelected ? Colors.white : _kTextMuted,
+                    color: isFilterSelected
+                        ? Colors.white
+                        : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
                   ),
                   selectedColor: _kPrimaryBlue,
-                  backgroundColor: const Color(0xFFF1F5F9),
+                  backgroundColor: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
-                  side: BorderSide.none,
+                  side: isDark
+                      ? BorderSide(color: isFilterSelected ? _kPrimaryBlue : const Color(0xFF2C363D))
+                      : BorderSide.none,
                 ),
               );
             }).toList(),
@@ -1287,15 +1333,19 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: isDark
+                      ? const Color(0xFF451A03).withValues(alpha: 0.4)
+                      : const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: const Color(0xFFFCD34D)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF92400E) : const Color(0xFFFCD34D),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.event_busy_rounded,
-                      color: Color(0xFFD97706),
+                      color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
                       size: 26,
                     ),
                     const SizedBox(width: 10),
@@ -1308,7 +1358,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13.0,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF92400E),
+                              color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -1316,7 +1366,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             '${widget.doctor.name} sedang cuti: ${cuti.alasan} (${cuti.rentangTanggalStr}). Silakan pilih tanggal lain yang tersedia.',
                             style: GoogleFonts.lato(
                               fontSize: 11.5,
-                              color: const Color(0xFFB45309),
+                              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
                             ),
                           ),
                         ],
@@ -1342,15 +1392,17 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: _kBorderLight),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.hotel_rounded,
-                      color: _kTextMuted,
+                      color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                       size: 24,
                     ),
                     const SizedBox(width: 10),
@@ -1363,7 +1415,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13.0,
                               fontWeight: FontWeight.bold,
-                              color: _kTextDark,
+                              color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -1371,7 +1423,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             'Dokter tidak memiliki jadwal praktik reguler pada hari $dayName. Silakan lihat jadwal praktik dokter pada profil atau pilih tanggal lain.',
                             style: GoogleFonts.lato(
                               fontSize: 11.5,
-                              color: _kTextMuted,
+                              color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                             ),
                           ),
                         ],
@@ -1389,7 +1441,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 alignment: Alignment.center,
                 child: Text(
                   'Tidak ada slot waktu pada kategori "$_selectedPeriodFilter". Coba pilih kategori lain atau "Semua".',
-                  style: GoogleFonts.lato(fontSize: 12.5, color: _kTextMuted),
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                  ),
                 ),
               );
             }
@@ -1398,15 +1453,17 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(14.0),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(color: _kBorderLight),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.schedule_rounded,
-                    color: _kTextMuted,
+                    color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                     size: 24,
                   ),
                   const SizedBox(width: 10),
@@ -1419,7 +1476,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13.0,
                             fontWeight: FontWeight.bold,
-                            color: _kTextDark,
+                            color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1427,7 +1484,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           'Semua slot jadwal konsultasi dokter pada tanggal ini telah terisi atau jam praktik telah selesai. Silakan pilih tanggal berikutnya.',
                           style: GoogleFonts.lato(
                             fontSize: 11.5,
-                            color: _kTextMuted,
+                            color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                           ),
                         ),
                       ],
@@ -1455,14 +1512,16 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? _kPrimaryBlue
-                        : (isAvail ? Colors.white : const Color(0xFFF1F5F9)),
+                        : (isAvail
+                              ? (isDark ? const Color(0xFF1A2228) : Colors.white)
+                              : (isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF))),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
                       color: isSelected
                           ? _kPrimaryBlue
                           : (isAvail
-                                ? const Color(0xFFCBD5E1)
-                                : const Color(0xFFE2E8F0)),
+                                ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB))
+                                : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF))),
                       width: 1.0,
                     ),
                   ),
@@ -1476,7 +1535,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             ? Colors.white
                             : (isAvail
                                   ? _kPrimaryBlue
-                                  : const Color(0xFF94A3B8)),
+                                  : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0))),
                       ),
                       const SizedBox(width: 6.0),
                       Text(
@@ -1487,8 +1546,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           color: isSelected
                               ? Colors.white
                               : (isAvail
-                                    ? _kTextDark
-                                    : const Color(0xFF94A3B8)),
+                                    ? (isDark ? const Color(0xFFE9EDEF) : _kTextDark)
+                                    : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0))),
                         ),
                       ),
                       if (!isAvail) ...[
@@ -1497,7 +1556,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           '(Penuh)',
                           style: GoogleFonts.lato(
                             fontSize: 10.0,
-                            color: const Color(0xFF94A3B8),
+                            color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
                           ),
                         ),
                       ],
@@ -1512,16 +1571,22 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   // ── Bottom Confirm Bar ───────────────────────────────────────────────────
-  Widget _buildBottomConfirmBar() {
+  Widget _buildBottomConfirmBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1.0,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x10000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 8.0,
-            offset: Offset(0, -3),
+            offset: const Offset(0, -3),
           ),
         ],
       ),
@@ -1536,7 +1601,10 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 children: [
                   Text(
                     'Jadwal Terpilih',
-                    style: GoogleFonts.lato(fontSize: 11.0, color: _kTextMuted),
+                    style: GoogleFonts.lato(
+                      fontSize: 11.0,
+                      color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                    ),
                   ),
                   Text(
                     _selectedSlot != null
@@ -1545,7 +1613,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,
-                      color: _kTextDark,
+                      color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                     ),
                   ),
                 ],

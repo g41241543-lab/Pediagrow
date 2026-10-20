@@ -84,7 +84,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   static const Color colorTextPrimary = Color(0xFF1A202C);
   static const Color colorTextSecondary = Color(0xFF718096);
   static const Color colorGreyDark = Color(0xFF7F7F7F);
-  static const Color colorBorder = Color(0xFFE2E8F0);
+  static const Color colorBorder = Color(0xFFE9EDEF);
   static const Color colorEndRed = Color(0xFFE53E3E);
   static const Color colorOnlineGreen = Color(0xFF48BB78);
 
@@ -697,10 +697,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   /// dan harus tetap di ruang konsultasi sampai sesi diakhiri secara resmi.
   void _showStayInChatDialog() {
     FocusScope.of(context).unfocus();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => Dialog(
+        backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
@@ -710,14 +713,16 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               Container(
                 width: 56,
                 height: 56,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEBF5FF),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                      : const Color(0xFFEBF5FF),
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.chat_bubble_outline_rounded,
-                    color: Color(0xFF2A85FF),
+                    color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2A85FF),
                     size: 28,
                   ),
                 ),
@@ -729,7 +734,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 style: GoogleFonts.lato(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: colorTextPrimary,
+                  color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                 ),
               ),
               const SizedBox(height: 10),
@@ -738,7 +743,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: colorTextSecondary,
+                  color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                   height: 1.4,
                 ),
               ),
@@ -753,7 +758,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorEndRed,
-                        side: const BorderSide(color: Color(0xFFFEB2B2)),
+                        side: BorderSide(
+                          color: isDark
+                              ? const Color(0xFF7F1D1D)
+                              : const Color(0xFFFEB2B2),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -821,18 +830,29 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     if (booking != null) {
       BookingService().updateBookingStatus(booking.id, 'Selesai');
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Waktu Konsultasi Berakhir',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+          ),
         ),
-        content: const Text(
+        content: Text(
           'Waktu sesi konsultasi telah habis. Ruang chat ini ditutup secara otomatis.',
-          style: TextStyle(fontSize: 13.5, height: 1.4),
+          style: TextStyle(
+            fontSize: 13.5,
+            height: 1.4,
+            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+          ),
         ),
         actions: [
           ElevatedButton(
@@ -858,25 +878,38 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   void _handleAlreadyExpired() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
+          title: Text(
             'Sesi Tidak Tersedia',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+            ),
           ),
-          content: const Text(
+          content: Text(
             'Waktu sesi konsultasi ini telah berakhir. Ruang chat tidak dapat dibuka lagi.',
-            style: TextStyle(fontSize: 13.5, height: 1.4),
+            style: TextStyle(
+              fontSize: 13.5,
+              height: 1.4,
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+            ),
           ),
           actions: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF64748B),
+                backgroundColor: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFF667781),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -936,6 +969,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         id: '',
         childId: effectiveChild?.id ?? '',
         userId: effectiveUserId,
+        doctorId: widget.doctor?.id ?? '',
         doctorName: _effectiveDoctorName,
         doctorSpecialization: _effectiveDoctorSpecialist,
         doctorPhoto: _effectiveDoctorPhoto,
@@ -960,7 +994,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         createdAt: now,
       );
 
-      await ResumeMedisService().addResumeMedis(resume);
+      await ResumeMedisService().saveOrUpdateResumeMedis(resume);
 
       // Tandai sesi sebagai selesai di Firestore (koleksi konsultasi_sessions)
       final effSession = _effectiveSessionId;
@@ -985,15 +1019,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // ===========================================================================
 
   void _showFormulirDetailDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
           child: Column(
@@ -1006,7 +1042,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1020,12 +1056,14 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: colorSoftBlue,
+                      color: isDark
+                          ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                          : colorSoftBlue,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.description_outlined,
-                      color: colorPrimaryBlue,
+                      color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                       size: 22,
                     ),
                   ),
@@ -1039,27 +1077,34 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           style: GoogleFonts.lato(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: colorTextPrimary,
+                            color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                           ),
                         ),
                         Text(
                           'Data yang dikirimkan sebelum konsultasi',
                           style: GoogleFonts.lato(
                             fontSize: 12,
-                            color: colorTextSecondary,
+                            color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: Icon(
+                      Icons.close,
+                      size: 20,
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                    ),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
+              Divider(
+                height: 1,
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              ),
               const SizedBox(height: 16),
 
               // Field 1: Nama & Data Anak
@@ -1067,6 +1112,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 label: 'Nama Anak',
                 value: '$_effectiveChildName ($_effectiveChildGender)',
                 icon: Icons.child_care_rounded,
+                isDark: isDark,
               ),
               const SizedBox(height: 12),
 
@@ -1075,6 +1121,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 label: 'Usia Anak',
                 value: _effectiveChildAge,
                 icon: Icons.calendar_today_rounded,
+                isDark: isDark,
               ),
               const SizedBox(height: 12),
 
@@ -1088,6 +1135,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           ? '${widget.weightKg} kg'
                           : '-',
                       icon: Icons.scale_rounded,
+                      isDark: isDark,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1098,6 +1146,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           ? '${widget.heightCm} cm'
                           : '-',
                       icon: Icons.straighten_rounded,
+                      isDark: isDark,
                     ),
                   ),
                 ],
@@ -1110,7 +1159,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: colorTextSecondary,
+                  color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                 ),
               ),
               const SizedBox(height: 6),
@@ -1118,9 +1167,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorBorder),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF2C363D) : colorBorder,
+                  ),
                 ),
                 child: Text(
                   widget.complaint != null &&
@@ -1129,7 +1180,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                       : 'Tidak ada keluhan spesifik yang dicatat.',
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
-                    color: colorTextPrimary,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                     height: 1.4,
                   ),
                 ),
@@ -1145,17 +1196,24 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     required String label,
     required String value,
     required IconData icon,
+    bool isDark = false,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorBorder),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : colorBorder,
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: colorPrimaryBlue),
+          Icon(
+            icon,
+            size: 18,
+            color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1165,7 +1223,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   label,
                   style: GoogleFonts.lato(
                     fontSize: 11,
-                    color: colorTextSecondary,
+                    color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                   ),
                 ),
                 Text(
@@ -1173,7 +1231,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: colorTextPrimary,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1192,6 +1250,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -1199,21 +1259,21 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         _showStayInChatDialog();
       },
       child: Scaffold(
-        backgroundColor: colorWhite,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : colorWhite,
         resizeToAvoidBottomInset: true,
         body: Column(
           children: [
             // 1. Header Dokter Fixed (Biru #2A85FF, meluas menutupi status bar)
             _buildHeader(),
 
-            // 2. Disclaimer Medis Fixed (Stay, sudut kotak tidak melengkung, tanpa tombol X)
-            _buildDisclaimer(),
+            // 2. Disclaimer Medis Fixed
+            _buildDisclaimer(isDark),
 
             // 3. Area Chat List (Scrollable)
-            Expanded(child: _buildChatList()),
+            Expanded(child: _buildChatList(isDark)),
 
             // 4. Input Pesan Fixed di Bagian Bawah
-            _buildInputArea(),
+            _buildInputArea(isDark),
           ],
         ),
       ),
@@ -1310,7 +1370,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           height: avatarSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFFF1F5F9),
+            color: const Color(0xFFE9EDEF),
             border: Border.all(color: colorWhite, width: 2.0),
             boxShadow: [
               BoxShadow(
@@ -1392,25 +1452,34 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // 2. DISCLAIMER MEDIS (Soft Blue #EBF5FF, Tepi Datar Tidak Lengkung, Stay Tanpa Button X)
   // ===========================================================================
 
-  Widget _buildDisclaimer() {
+  // ===========================================================================
+  // 2. DISCLAIMER MEDIS (Soft Blue #EBF5FF, Tepi Datar Tidak Lengkung, Stay Tanpa Button X)
+  // ===========================================================================
+
+  Widget _buildDisclaimer(bool isDark) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: colorSoftBlue,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : colorSoftBlue,
         borderRadius: BorderRadius.zero,
+        border: isDark ? const Border(bottom: BorderSide(color: Color(0xFF2C363D))) : null,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.info_outline, size: 20, color: Color(0xFF4A5568)),
+          Icon(
+            Icons.info_outline,
+            size: 20,
+            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               'Chat ini bersifat konsultasi umum dan bukan pengganti pemeriksaan langsung.',
               style: GoogleFonts.lato(
                 fontSize: 12,
-                color: const Color(0xFF4A5568),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
                 height: 1.35,
               ),
             ),
@@ -1452,7 +1521,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     };
   }
 
-  Widget _buildChatList() {
+  Widget _buildChatList(bool isDark) {
     // Mode real-time Firestore
     if (_messageStream != null) {
       return StreamBuilder<List<ChatMessageModel>>(
@@ -1464,16 +1533,16 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             _scrollToBottom();
           }
           final items = firestoreMsgs.map(_firestoreToLocal).toList();
-          return _buildMessageListView(items);
+          return _buildMessageListView(items, isDark);
         },
       );
     }
 
     // Mode offline / fallback
-    return _buildMessageListView(_messages);
+    return _buildMessageListView(_messages, isDark);
   }
 
-  Widget _buildMessageListView(List<Map<String, dynamic>> items) {
+  Widget _buildMessageListView(List<Map<String, dynamic>> items, bool isDark) {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -1488,7 +1557,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 'Hari ini',
                 style: GoogleFonts.lato(
                   fontSize: 12,
-                  color: colorTextSecondary,
+                  color: isDark ? const Color(0xFF667781) : colorTextSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1503,23 +1572,23 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           final type = item['type'] ?? 'text';
 
           if (type == 'attachment') {
-            return _buildAttachmentMessage(item);
+            return _buildAttachmentMessage(item, isDark);
           }
 
           if (type == 'user_attachment') {
-            return _buildUserAttachmentBubble(item);
+            return _buildUserAttachmentBubble(item, isDark, isUserSender: isUser);
           }
 
           if (isUser) {
-            return _buildUserBubble(item);
+            return _buildUserBubble(item, isDark);
           } else {
-            return _buildDoctorBubble(item);
+            return _buildDoctorBubble(item, isDark);
           }
         }
 
         // Typing indicator dokter tiga titik (...) bergerak saat dokter berpikir
         if (_isDoctorTyping) {
-          return _buildTypingIndicator();
+          return _buildTypingIndicator(isDark);
         }
 
         return const SizedBox.shrink();
@@ -1528,7 +1597,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   // Attachment "Formulir Keluhan Pasien" di sisi kanan
-  Widget _buildAttachmentMessage(Map<String, dynamic> item) {
+  Widget _buildAttachmentMessage(Map<String, dynamic> item, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Align(
@@ -1541,8 +1610,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 10, 12, 8),
               decoration: BoxDecoration(
-                color: colorSoftBlue,
+                color: isDark ? const Color(0xFF1A2228) : colorSoftBlue,
                 borderRadius: BorderRadius.circular(16),
+                border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -1558,10 +1628,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.description_outlined,
                         size: 22,
-                        color: Color(0xFF2D3748),
+                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2D3748),
                       ),
                       const SizedBox(width: 8),
                       Flexible(
@@ -1570,7 +1640,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: colorTextPrimary,
+                            color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                           ),
                         ),
                       ),
@@ -1584,7 +1654,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                         item['timestamp'] ?? '15.59',
                         style: GoogleFonts.lato(
                           fontSize: 11,
-                          color: colorTextSecondary,
+                          color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -1604,8 +1674,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  // Bubble Lampiran Pengguna (Kanan, Soft Blue, Dukungan Foto & Dokumen File Manager)
-  Widget _buildUserAttachmentBubble(Map<String, dynamic> item) {
+  // Bubble Lampiran Gambar (Kanan jika user, Kiri jika dokter)
+  Widget _buildUserAttachmentBubble(
+    Map<String, dynamic> item,
+    bool isDark, {
+    bool isUserSender = true,
+  }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final imageUrl = item['imageUrl'] as String?;
     final filePath = item['filePath'] as String?;
@@ -1624,113 +1698,159 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         File(filePath).existsSync();
     final bool hasImage = isBase64Image || isNetworkImage || isLocalImage;
 
+    // Widget konten bubble gambar (dipakai untuk kedua sisi)
+    Widget bubbleContent = Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      decoration: BoxDecoration(
+        color: isUserSender
+            ? (isDark
+                ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                : colorSoftBlue)
+            : (isDark ? const Color(0xFF1A2228) : colorWhite),
+        borderRadius: BorderRadius.circular(16),
+        border: isUserSender
+            ? (isDark
+                ? Border.all(
+                    color: const Color(0xFF1E40AF).withValues(alpha: 0.5))
+                : null)
+            : Border.all(
+                color: isDark ? const Color(0xFF2C363D) : colorBorder,
+                width: 1.0,
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+            isUserSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasImage) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: isBase64Image
+                  ? StorageService.buildImageWidget(
+                      imageUrl,
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    )
+                  : isNetworkImage
+                  ? Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox.shrink(),
+                    )
+                  : Image.file(
+                      File(filePath!),
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasImage
+                    ? Icons.image_outlined
+                    : Icons.insert_drive_file_outlined,
+                size: 20,
+                color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  fileName.isNotEmpty ? fileName : 'Gambar',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                item['timestamp'] ?? '',
+                style: GoogleFonts.lato(
+                  fontSize: 11,
+                  color: isDark
+                      ? const Color(0xFF8696A0)
+                      : colorTextSecondary,
+                ),
+              ),
+              if (isUserSender) ...[
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.done_all,
+                  size: 15,
+                  color: colorPrimaryBlue,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+
+    // --- Dokter mengirim gambar: tampil di KIRI dengan avatar ---
+    if (!isUserSender) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 17,
+              backgroundColor:
+                  isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
+              child: ClipOval(
+                child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: screenWidth * 0.72),
+              child: bubbleContent,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // --- Pengguna mengirim gambar: tampil di KANAN ---
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Align(
         alignment: Alignment.centerRight,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: screenWidth * 0.76),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-            decoration: BoxDecoration(
-              color: colorSoftBlue,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Tampilkan gambar jika tersedia
-                if (hasImage) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: isBase64Image
-                        ? StorageService.buildImageWidget(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                          )
-                        : isNetworkImage
-                        ? Image.network(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) =>
-                                    const SizedBox.shrink(),
-                          )
-                        : Image.file(
-                            File(filePath!),
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      hasImage
-                          ? Icons.image_outlined
-                          : Icons.insert_drive_file_outlined,
-                      size: 20,
-                      color: colorPrimaryBlue,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        fileName.isNotEmpty ? fileName : 'Gambar',
-                        style: GoogleFonts.lato(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: colorTextPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item['timestamp'] ?? '',
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        color: colorTextSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.done_all,
-                      size: 15,
-                      color: colorPrimaryBlue,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          child: bubbleContent,
         ),
       ),
     );
   }
 
   // Bubble Chat User (Kanan, Soft Blue) - Dynamic Width Sesuai Isi Chat
-  Widget _buildUserBubble(Map<String, dynamic> item) {
+  Widget _buildUserBubble(Map<String, dynamic> item, bool isDark) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
@@ -1743,8 +1863,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 7),
               decoration: BoxDecoration(
-                color: colorSoftBlue,
+                color: isDark
+                    ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                    : colorSoftBlue,
                 borderRadius: BorderRadius.circular(16),
+                border: isDark
+                    ? Border.all(color: const Color(0xFF1E40AF).withValues(alpha: 0.5))
+                    : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1754,7 +1879,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     item['message'] ?? '',
                     style: GoogleFonts.lato(
                       fontSize: 14,
-                      color: colorTextPrimary,
+                      color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                       height: 1.35,
                     ),
                   ),
@@ -1767,7 +1892,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                         item['timestamp'] ?? '',
                         style: GoogleFonts.lato(
                           fontSize: 10.5,
-                          color: colorTextSecondary,
+                          color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -1787,8 +1912,8 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  // Bubble Chat Dokter (Kiri, Putih, Border Halus, Avatar Dokter) - Dynamic Width
-  Widget _buildDoctorBubble(Map<String, dynamic> item) {
+  // Bubble Chat Dokter (Kiri, Putih/Gelap, Border Halus, Avatar Dokter) - Dynamic Width
+  Widget _buildDoctorBubble(Map<String, dynamic> item, bool isDark) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
@@ -1799,23 +1924,26 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           // Avatar dokter di sisi kiri bubble
           CircleAvatar(
             radius: 17,
-            backgroundColor: const Color(0xFFF1F5F9),
+            backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
             child: ClipOval(
               child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
             ),
           ),
           const SizedBox(width: 8),
 
-          // Bubble Putih Dokter
+          // Bubble Dokter
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: screenWidth * 0.72),
             child: IntrinsicWidth(
               child: Container(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 7),
                 decoration: BoxDecoration(
-                  color: colorWhite,
+                  color: isDark ? const Color(0xFF1A2228) : colorWhite,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colorBorder, width: 1.0),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF2C363D) : colorBorder,
+                    width: 1.0,
+                  ),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x06000000),
@@ -1832,7 +1960,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                       item['message'] ?? '',
                       style: GoogleFonts.lato(
                         fontSize: 14,
-                        color: colorTextPrimary,
+                        color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                         height: 1.38,
                       ),
                     ),
@@ -1845,7 +1973,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           item['timestamp'] ?? '',
                           style: GoogleFonts.lato(
                             fontSize: 10.5,
-                            color: colorTextSecondary,
+                            color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                           ),
                         ),
                       ],
@@ -1861,7 +1989,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   // Typing Indicator Dokter di Kiri dengan Animasi 3 Titik (...) Bergerak
-  Widget _buildTypingIndicator() {
+  Widget _buildTypingIndicator(bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -1869,7 +1997,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         children: [
           CircleAvatar(
             radius: 17,
-            backgroundColor: const Color(0xFFF1F5F9),
+            backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
             child: ClipOval(
               child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
             ),
@@ -1878,9 +2006,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: colorWhite,
+              color: isDark ? const Color(0xFF1A2228) : colorWhite,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colorBorder),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2C363D) : colorBorder,
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x06000000),
@@ -1934,12 +2064,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // 4. INPUT AREA (Fixed di Bagian Bawah)
   // ===========================================================================
 
-  Widget _buildInputArea() {
+  Widget _buildInputArea(bool isDark) {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-      decoration: const BoxDecoration(
-        color: colorWhite,
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0B1014) : colorWhite,
+        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x08000000),
             blurRadius: 8,
@@ -1953,15 +2084,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 1. Tombol [+] Media / Lampiran di sisi paling kiri
-            _buildAddMediaButton(),
+            _buildAddMediaButton(isDark),
             const SizedBox(width: 8),
 
             // 2. TextField "Ketik pesan..."
-            Expanded(child: _buildTextField()),
+            Expanded(child: _buildTextField(isDark)),
             const SizedBox(width: 8),
 
             // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
-            _buildEndConsultationButton(),
+            _buildEndConsultationButton(isDark),
             const SizedBox(width: 8),
 
             // 4. Tombol Send (Lingkaran Biru #2A85FF)
@@ -1972,20 +2103,20 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  Widget _buildAddMediaButton() {
+  Widget _buildAddMediaButton(bool isDark) {
     return Container(
       width: 38,
       height: 38,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: colorWhite,
+        color: isDark ? const Color(0xFF1A2228) : colorWhite,
         border: Border.all(color: colorPrimaryBlue, width: 1.8),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(19),
-          onTap: _showAttachmentPickerOptions,
+          onTap: () => _showAttachmentPickerOptions(isDark),
           child: const Center(
             child: Icon(Icons.add, color: colorPrimaryBlue, size: 22),
           ),
@@ -1995,10 +2126,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   /// Menampilkan menu pemilihan sumber lampiran (Kamera / Galeri)
-  void _showAttachmentPickerOptions() {
+  void _showAttachmentPickerOptions(bool isDark) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -2013,7 +2144,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2023,7 +2154,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -2031,7 +2162,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark
+                          ? const Color(0xFF0B1014)
+                          : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -2045,7 +2178,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -2053,12 +2186,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     _pickAttachment(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark
+                          ? const Color(0xFF0B1014)
+                          : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -2072,7 +2210,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -2161,19 +2299,25 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
   }
 
-  Widget _buildTextField() {
+  Widget _buildTextField(bool isDark) {
     return Container(
       height: 42,
       decoration: BoxDecoration(
-        color: colorSoftGrey,
+        color: isDark ? const Color(0xFF1A2228) : colorSoftGrey,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: colorBorder, width: 1.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : colorBorder,
+          width: 1.0,
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       alignment: Alignment.center,
       child: TextField(
         controller: _textController,
-        style: GoogleFonts.lato(fontSize: 14, color: colorTextPrimary),
+        style: GoogleFonts.lato(
+          fontSize: 14,
+          color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+        ),
         textInputAction: TextInputAction.send,
         onSubmitted: (_) => _sendMessage(),
         decoration: InputDecoration(
@@ -2182,7 +2326,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           hintText: 'Ketik pesan...',
           hintStyle: GoogleFonts.lato(
             fontSize: 13.5,
-            color: const Color(0xFFA0AEC0),
+            color: isDark ? const Color(0xFF667781) : const Color(0xFFA0AEC0),
           ),
           border: InputBorder.none,
         ),
@@ -2190,16 +2334,19 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  Widget _buildEndConsultationButton() {
+  Widget _buildEndConsultationButton(bool isDark) {
     return Tooltip(
       message: 'Akhiri Konsultasi',
       child: Container(
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: const Color(0xFFFFECEC),
+          color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFFECEC),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFED7D7), width: 1.0),
+          border: Border.all(
+            color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFED7D7),
+            width: 1.0,
+          ),
         ),
         child: Material(
           color: Colors.transparent,

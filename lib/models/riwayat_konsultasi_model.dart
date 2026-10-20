@@ -4,6 +4,7 @@
 /// keluhan, status penyelesaian, serta ringkasan konsultasi dokter.
 class RiwayatKonsultasiModel {
   final String id;
+  final String doctorId;
   final String doctorName;
   final String doctorSpecialization;
   final String? doctorPhoto;
@@ -20,6 +21,7 @@ class RiwayatKonsultasiModel {
 
   const RiwayatKonsultasiModel({
     required this.id,
+    this.doctorId = '',
     required this.doctorName,
     this.doctorSpecialization = 'Dokter Spesialis Anak',
     this.doctorPhoto,
@@ -37,6 +39,7 @@ class RiwayatKonsultasiModel {
   /// Salin objek dengan nilai atribut baru jika diperlukan
   RiwayatKonsultasiModel copyWith({
     String? id,
+    String? doctorId,
     String? doctorName,
     String? doctorSpecialization,
     String? doctorPhoto,
@@ -52,6 +55,7 @@ class RiwayatKonsultasiModel {
   }) {
     return RiwayatKonsultasiModel(
       id: id ?? this.id,
+      doctorId: doctorId ?? this.doctorId,
       doctorName: doctorName ?? this.doctorName,
       doctorSpecialization: doctorSpecialization ?? this.doctorSpecialization,
       doctorPhoto: doctorPhoto ?? this.doctorPhoto,
@@ -71,6 +75,7 @@ class RiwayatKonsultasiModel {
   factory RiwayatKonsultasiModel.fromMap(Map<String, dynamic> map) {
     return RiwayatKonsultasiModel(
       id: map['id']?.toString() ?? '',
+      doctorId: map['doctor_id']?.toString() ?? map['doctorId']?.toString() ?? '',
       doctorName: map['doctor_name'] ?? 'dr. Ririn Esterina, Sp. A',
       doctorSpecialization:
           map['doctor_specialization'] ?? 'Dokter Spesialis Anak',
@@ -97,6 +102,7 @@ class RiwayatKonsultasiModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'doctor_id': doctorId,
       'doctor_name': doctorName,
       'doctor_specialization': doctorSpecialization,
       'doctor_photo': doctorPhoto,

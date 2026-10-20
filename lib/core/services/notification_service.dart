@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/notification_model.dart';
 import 'local_push_service.dart';
+import 'user_service.dart';
 
 /// Item pengingat jadwal booking yang masih menunggu waktu tiba
 class _PendingBookingReminder {
@@ -24,25 +27,26 @@ class _PendingBookingReminder {
 }
 
 /// Service singleton untuk mengelola sistem notifikasi PediaGrow.
-///
-/// Fitur sistem notifikasi otomatis:
-/// 1. Notifikasi bulanan Pengingat Cek Stunting:
-///    - Dibuat otomatis oleh sistem pada rentang tanggal 1 - 10 setiap bulan (1 kali per hari).
-///    - Jika pengguna telah melakukan cek stunting di rentang tanggal 1-10, notifikasi otomatis
-///      hilang/dihapus dari daftar dan tidak muncul lagi hari ini maupun besok.
-///    - Jika hingga tanggal 10 pengguna belum melakukan cek stunting, notifikasi tetap berhenti di tanggal 10.
-/// 2. Notifikasi Konsultasi Berakhir:
-///    - Dibuat otomatis setiap kali pengguna melakukan/mengakhiri sesi konsultasi dengan dokter.
-///    - Setiap konsultasi selalu menghasilkan 1 notifikasi baru di daftar dan menambah badge lonceng.
-/// 3. Notifikasi Pengingat Jadwal Booking Konsultasi:
-///    - HANYA muncul di HP dan daftar notifikasi ketika waktu jadwal konsultasi yang dipilih telah tiba.
-/// 4. Badge angka unread tersedia via [unreadCountNotifier] untuk ditampilkan di ikon lonceng.
-/// 5. Default awal: daftar notifikasi kosong (menampilkan empty state lonceng).
+/// Notifikasi pengguna disimpan secara persisten per akun (`user_notifications_{userId}`),
+/// sehingga notifikasi tidak hilang saat logout dan tidak bercampur ke akun lain.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
 
   NotificationService._internal();
+
+  /// Menghasilkan kunci penyimpanan terisolasi khusus untuk akun pengguna yang sedang login
+  String _getStorageKeyForUser([String? customUid]) {
+    final uid = customUid ?? UserService().currentUser.id;
+    if (uid.isNotEmpty) {
+      return 'user_notifications_$uid';
+    }
+    final email = UserService().currentUser.email;
+    if (email.isNotEmpty) {
+      return 'user_notifications_${email.replaceAll('@', '_').replaceAll('.', '_')}';
+    }
+    return 'user_notifications_guest';
+  }
 
   /// State daftar notifikasi secara reaktif
   final ValueNotifier<List<NotificationItem>> notificationsNotifier =
@@ -50,6 +54,112 @@ class NotificationService {
 
   /// Jumlah notifikasi yang belum dibaca (untuk badge di ikon lonceng)
   final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
+
+  bool _isInitialized = false;
+  String _lastKnownUserId = '';
+
+  /// Inisialisasi service: memuat data yang tersimpan dari SharedPreferences
+  Future<void> init() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _lastKnownUserId = UserService().currentUser.id;
+    _attachUserListener();
+    await _loadFromPrefs();
+  }
+
+  /// Memuat notifikasi untuk akun tertentu secara eksplisit (misal saat login/restore)
+  Future<void> loadForUser(String userId) async {
+    _lastKnownUserId = userId;
+    await _loadFromPrefs();
+  }
+
+  void _attachUserListener() {
+    UserService().currentUserNotifier.addListener(() async {
+      final newUid = UserService().currentUser.id;
+      if (newUid != _lastKnownUserId) {
+        _lastKnownUserId = newUid;
+        await _loadFromPrefs();
+      }
+    });
+  }
+
+  Future<void> _loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = _getStorageKeyForUser();
+      var jsonList = prefs.getStringList(key);
+
+      // Migrasi data legacy (jika kunci user baru belum ada tapi ada data v2)
+      if (jsonList == null || jsonList.isEmpty) {
+        final legacyList = prefs.getStringList('user_notifications_v2');
+        if (legacyList != null &&
+            legacyList.isNotEmpty &&
+            UserService().currentUser.id.isNotEmpty) {
+          jsonList = legacyList;
+          await prefs.setStringList(key, legacyList);
+        }
+      }
+
+      if (jsonList != null && jsonList.isNotEmpty) {
+        final List<NotificationItem> loaded = [];
+        for (final str in jsonList) {
+          try {
+            final Map<String, dynamic> map =
+                json.decode(str) as Map<String, dynamic>;
+            loaded.add(NotificationItem.fromMap(map));
+          } catch (e) {
+            debugPrint('[NotificationService] Parse error: $e');
+          }
+        }
+        notificationsNotifier.value = loaded;
+        unreadCountNotifier.value =
+            loaded.where((item) => !item.isRead).length;
+      } else {
+        notificationsNotifier.value = [];
+        unreadCountNotifier.value = 0;
+      }
+    } catch (e) {
+      debugPrint('[NotificationService] _loadFromPrefs error: $e');
+    }
+  }
+
+  Future<void> _saveToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String> jsonList = notificationsNotifier.value
+          .map((item) => json.encode(item.toMap()))
+          .toList();
+      await prefs.setStringList(_getStorageKeyForUser(), jsonList);
+    } catch (e) {
+      debugPrint('[NotificationService] _saveToPrefs error: $e');
+    }
+  }
+
+  /// Menghapus satu notifikasi berdasarkan ID dan menyimpannya ke local storage
+  Future<void> deleteNotification(String id) async {
+    final currentList = List<NotificationItem>.from(notificationsNotifier.value);
+    final removed = currentList.where((item) => item.id == id).toList();
+    currentList.removeWhere((item) => item.id == id);
+    notificationsNotifier.value = currentList;
+    final unreadRemoved = removed.where((item) => !item.isRead).length;
+    if (unreadRemoved > 0) {
+      unreadCountNotifier.value =
+          (unreadCountNotifier.value - unreadRemoved).clamp(0, 999);
+    }
+    await _saveToPrefs();
+  }
+
+  /// Menghapus seluruh notifikasi milik akun aktif dari memori dan local storage
+  Future<void> clearNotifications() async {
+    notificationsNotifier.value = [];
+    unreadCountNotifier.value = 0;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_getStorageKeyForUser());
+    } catch (e) {
+      debugPrint('[NotificationService] clearNotifications error: $e');
+    }
+  }
 
   /// Timer pengecekan waktu tiba pengingat jadwal konsultasi
   Timer? _reminderCheckTimer;
@@ -125,7 +235,7 @@ class NotificationService {
   /// Menambahkan notifikasi baru ke dalam daftar (duplikasi ID dicegah).
   /// Notifikasi baru muncul di posisi paling atas.
   /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
-  void addNotification(NotificationItem item) {
+  void addNotification(NotificationItem item, {bool showPush = true}) {
     final currentList = List<NotificationItem>.from(notificationsNotifier.value);
     // Hindari duplikasi ID
     currentList.removeWhere((element) => element.id == item.id);
@@ -135,13 +245,52 @@ class NotificationService {
     if (!item.isRead) {
       unreadCountNotifier.value = unreadCountNotifier.value + 1;
     }
+    _saveToPrefs();
 
-    // Tampilkan notifikasi sistem (push lokal) — mengikuti role aktif yang sedang login
-    LocalPushService().show(
-      title: item.title,
-      body: item.message,
-      targetRole: LocalPushService().activeRole,
+    // Tampilkan notifikasi sistem (push lokal) jika diminta
+    if (showPush) {
+      LocalPushService().show(
+        title: item.title,
+        body: item.message,
+        targetRole: PushRole.pengguna,
+        targetUserId: UserService().currentUser.id,
+        recordInApp: false,
+      );
+    }
+  }
+
+  /// Menambahkan notifikasi yang dipicu dari LocalPushService.show ke menu aplikasi
+  void addNotificationFromPush({
+    required String title,
+    required String message,
+    NotificationType? type,
+  }) {
+    final now = DateTime.now();
+    final detectedType = type ?? _detectType(title, message);
+    final newItem = NotificationItem(
+      id: 'user_push_${now.millisecondsSinceEpoch}',
+      title: title,
+      message: message,
+      date: now,
+      type: detectedType,
     );
+    addNotification(newItem, showPush: false);
+  }
+
+  NotificationType _detectType(String title, String message) {
+    final lower = '${title.toLowerCase()} ${message.toLowerCase()}';
+    if (lower.contains('stunting')) return NotificationType.stunting;
+    if (lower.contains('booking') || lower.contains('konsultasi')) {
+      return NotificationType.consultation;
+    }
+    if (lower.contains('profil') || lower.contains('anak') || lower.contains('ibu')) {
+      return NotificationType.profile;
+    }
+    if (lower.contains('artikel')) return NotificationType.article;
+    if (lower.contains('resep') || lower.contains('mpasi')) {
+      return NotificationType.recipe;
+    }
+    return NotificationType.system;
   }
 
   /// Tandai semua notifikasi sebagai sudah dibaca (dipanggil saat buka halaman notifikasi)
@@ -154,6 +303,7 @@ class NotificationService {
         .toList();
     notificationsNotifier.value = updatedList;
     unreadCountNotifier.value = 0;
+    _saveToPrefs();
   }
 
   // ---------------------------------------------------------------------------
@@ -273,6 +423,7 @@ class NotificationService {
             scheduledTime: scheduledTime,
           ),
         );
+        _startReminderCheckTimer();
 
         // Jadwalkan notifikasi sistem di HP agar muncul saat waktu tiba (bahkan jika aplikasi ditutup)
         final notifIntId = id.hashCode.abs() % 0x7FFFFFFF;
@@ -282,6 +433,7 @@ class NotificationService {
           body: message,
           scheduledDate: scheduledTime,
           targetRole: PushRole.pengguna,
+          targetUserId: UserService().currentUser.id,
         );
       }
       return;
@@ -304,10 +456,19 @@ class NotificationService {
   /// Sinkronisasi daftar booking aktif dari Firestore untuk memastikan
   /// semua jadwal memiliki alarm/pengingat tepat waktu meskipun aplikasi
   /// baru dibuka kembali setelah ditutup.
+  /// HANYA menyinkronkan booking yang benar-benar milik akun pengguna yang aktif.
   void syncActiveBookings(List<dynamic> bookings) {
+    final currentUid = UserService().currentUser.id;
+    if (currentUid.isEmpty) return;
+
     for (final b in bookings) {
       try {
         if (b.status == 'Dibatalkan' || b.isExpired) continue;
+        // Validasi kepemilikan booking: HANYA untuk anak atau akun milik pengguna yang sedang login
+        final isOwner = (b.userId != null && b.userId == currentUid) ||
+            (b.child != null && b.child.ownerId == currentUid);
+        if (!isOwner) continue;
+
         addBookingReminderNotification(
           doctorName: b.doctor.name,
           childName: b.child.name,
@@ -355,12 +516,6 @@ class NotificationService {
       );
       addNotification(newItem);
     }
-  }
-
-  /// Menghapus seluruh notifikasi (untuk testing atau reset ke empty state)
-  void clearNotifications() {
-    notificationsNotifier.value = [];
-    unreadCountNotifier.value = 0;
   }
 
   /// Menghentikan timer pengingat (berguna saat test atau teardown)

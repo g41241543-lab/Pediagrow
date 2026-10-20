@@ -1,4 +1,4 @@
-import 'dart:ui' as ui;
+﻿import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -59,6 +59,8 @@ class HasilCekStuntingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // Pengguna telah melakukan cek stunting, tandai agar notifikasi pengingat otomatis terjadwal
     NotificationService().markStuntingCheckedThisMonth();
 
@@ -67,13 +69,13 @@ class HasilCekStuntingPage extends StatelessWidget {
     final Color predictionBgColor = isNormal ? colorTealGreen : colorDangerRed;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
             // 1. Header Fixed 56 dp di bagian paling atas
-            _buildFixedHeader(context),
+            _buildFixedHeader(context, isDark),
 
             // 2. Konten Utama Scrollable agar bebas overflow pada layar kecil
             Expanded(
@@ -91,19 +93,19 @@ class HasilCekStuntingPage extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: colorTextBlack,
+                        color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                       ),
                     ),
 
                     const SizedBox(height: 12),
 
                     // Card Informasi Hasil Pemeriksaan (Struktur form_cek_stunting_page.dart)
-                    _buildExaminationInfoCard(),
+                    _buildExaminationInfoCard(isDark),
 
                     const SizedBox(height: 16),
 
                     // Warning / Information Box dengan Border Dashed #B2CC08
-                    _buildWarningInformationBox(),
+                    _buildWarningInformationBox(isDark),
 
                     const SizedBox(height: 16),
 
@@ -116,12 +118,12 @@ class HasilCekStuntingPage extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Card Rekomendasi Pencegahan Stunting
-                    _buildRecommendationCard(),
+                    _buildRecommendationCard(isDark),
 
                     const SizedBox(height: 20),
 
                     // Dua Tombol Action Horizontal: Cetak Hasil & Selesai
-                    _buildActionButtons(context),
+                    _buildActionButtons(context, isDark),
 
                     const SizedBox(height: 24),
                   ],
@@ -132,18 +134,18 @@ class HasilCekStuntingPage extends StatelessWidget {
         ),
       ),
       // Navigation Bar tetap di Scaffold.bottomNavigationBar
-      bottomNavigationBar: _buildBottomNavigationBar(context),
+      bottomNavigationBar: _buildBottomNavigationBar(context, isDark),
     );
   }
 
   // ===========================================================================
   // 1. HEADER FIXED (56 DP)
   // ===========================================================================
-  Widget _buildFixedHeader(BuildContext context) {
+  Widget _buildFixedHeader(BuildContext context, bool isDark) {
     return Container(
       height: 56,
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -154,13 +156,13 @@ class HasilCekStuntingPage extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () => Navigator.of(context).maybePop(),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 32,
                 height: 32,
                 child: Center(
                   child: Icon(
                     Icons.arrow_back,
-                    color: colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                     size: 24,
                   ),
                 ),
@@ -174,7 +176,7 @@ class HasilCekStuntingPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: colorTextBlack,
+              color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
             ),
           ),
         ],
@@ -185,7 +187,7 @@ class HasilCekStuntingPage extends StatelessWidget {
   // ===========================================================================
   // 2. CARD INFORMASI HASIL PEMERIKSAAN
   // ===========================================================================
-  Widget _buildExaminationInfoCard() {
+  Widget _buildExaminationInfoCard(bool isDark) {
     // Format berat badan dan tinggi badan agar rapi tanpa trailing zero berlebih
     final String displayBeratSekarang = beratBadanSekarang % 1 == 0
         ? beratBadanSekarang.toInt().toString()
@@ -199,102 +201,106 @@ class HasilCekStuntingPage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 12,
-            spreadRadius: 1,
-            offset: Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Nama Lengkap
-          _buildFieldLabel('Nama Lengkap'),
+          _buildFieldLabel('Nama Lengkap', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(namaAnak),
+          _buildReadOnlyField(namaAnak, isDark),
           const SizedBox(height: 10),
 
           // 2. Jenis Kelamin
-          _buildFieldLabel('Jenis Kelamin'),
+          _buildFieldLabel('Jenis Kelamin', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(jenisKelamin),
+          _buildReadOnlyField(jenisKelamin, isDark),
           const SizedBox(height: 10),
 
           // 3. Tanggal Lahir
-          _buildFieldLabel('Tanggal Lahir'),
+          _buildFieldLabel('Tanggal Lahir', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(tanggalLahir),
+          _buildReadOnlyField(tanggalLahir, isDark),
           const SizedBox(height: 10),
 
           // 4. Tanggal Cek Stunting
-          _buildFieldLabel('Tanggal Cek Stunting'),
+          _buildFieldLabel('Tanggal Cek Stunting', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(tanggalPemeriksaan),
+          _buildReadOnlyField(tanggalPemeriksaan, isDark),
           const SizedBox(height: 10),
 
           // 5. Berat Badan Saat Lahir
-          _buildFieldLabel('Berat Badan Saat Lahir'),
+          _buildFieldLabel('Berat Badan Saat Lahir', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(beratBadanLahir),
+          _buildReadOnlyField(beratBadanLahir, isDark),
           const SizedBox(height: 10),
 
           // 6. Tinggi Badan Saat Lahir
-          _buildFieldLabel('Tinggi Badan Saat Lahir'),
+          _buildFieldLabel('Tinggi Badan Saat Lahir', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(tinggiBadanLahir),
+          _buildReadOnlyField(tinggiBadanLahir, isDark),
           const SizedBox(height: 10),
 
           // 7. Berat Badan Sekarang
-          _buildFieldLabel('Berat Badan Sekarang'),
+          _buildFieldLabel('Berat Badan Sekarang', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(displayBeratSekarang),
+          _buildReadOnlyField(displayBeratSekarang, isDark),
           const SizedBox(height: 10),
 
           // 8. Tinggi Badan Sekarang
-          _buildFieldLabel('Tinggi Badan Sekarang'),
+          _buildFieldLabel('Tinggi Badan Sekarang', isDark),
           const SizedBox(height: 6),
-          _buildReadOnlyField(displayTinggiSekarang),
+          _buildReadOnlyField(displayTinggiSekarang, isDark),
           const SizedBox(height: 12),
 
           // 9. Pertanyaan Pemberian ASI Penuh
           _buildFieldLabel(
             'Apakah hingga saat ini si kecil mendapatkan ASI secara penuh?',
+            isDark,
           ),
           const SizedBox(height: 8),
-          _buildAsiOptionButtons(isAsiEksklusif),
+          _buildAsiOptionButtons(isAsiEksklusif, isDark),
         ],
       ),
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(String label, bool isDark) {
     return Text(
       label,
       style: GoogleFonts.lato(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: colorTextBlack,
+        color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
       ),
     );
   }
 
   /// Field read-only modern berbentuk kapsul rounded dengan border grey lembut
-  Widget _buildReadOnlyField(String value) {
+  Widget _buildReadOnlyField(String value, bool isDark) {
     return Container(
       width: double.infinity,
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
-        color: colorReadOnlyBg,
+        color: isDark ? const Color(0xFF0B1014) : colorReadOnlyBg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colorBorderGrey,
+          color: isDark ? const Color(0xFF2C363D) : colorBorderGrey,
           width: 1.0,
         ),
       ),
@@ -303,14 +309,14 @@ class HasilCekStuntingPage extends StatelessWidget {
         style: GoogleFonts.lato(
           fontSize: 14,
           fontWeight: FontWeight.normal,
-          color: colorTextBlack,
+          color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
         ),
       ),
     );
   }
 
   /// Dua tombol opsi ASI Eksklusif (Tidak / Ya) dengan highlight dinamis
-  Widget _buildAsiOptionButtons(bool isYaActive) {
+  Widget _buildAsiOptionButtons(bool isYaActive, bool isDark) {
     return Row(
       children: [
         // Tombol "Tidak"
@@ -318,10 +324,14 @@ class HasilCekStuntingPage extends StatelessWidget {
           child: Container(
             height: 38,
             decoration: BoxDecoration(
-              color: !isYaActive ? const Color(0xFFFFEBEE) : Colors.white,
+              color: !isYaActive
+                  ? (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.3) : const Color(0xFFFFEBEE))
+                  : (isDark ? const Color(0xFF0B1014) : Colors.white),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: !isYaActive ? colorDangerRed : colorBorderGrey,
+                color: !isYaActive
+                    ? colorDangerRed
+                    : (isDark ? const Color(0xFF2C363D) : colorBorderGrey),
                 width: 1.0,
               ),
             ),
@@ -331,7 +341,9 @@ class HasilCekStuntingPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: !isYaActive ? colorDangerRed : colorTextBlack,
+                  color: !isYaActive
+                      ? colorDangerRed
+                      : (isDark ? const Color(0xFFE9EDEF) : colorTextBlack),
                 ),
               ),
             ),
@@ -344,10 +356,14 @@ class HasilCekStuntingPage extends StatelessWidget {
           child: Container(
             height: 38,
             decoration: BoxDecoration(
-              color: isYaActive ? colorMintBg : Colors.white,
+              color: isYaActive
+                  ? (isDark ? const Color(0xFF064E3B) : colorMintBg)
+                  : (isDark ? const Color(0xFF0B1014) : Colors.white),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isYaActive ? colorMintBorder : colorBorderGrey,
+                color: isYaActive
+                    ? (isDark ? const Color(0xFF10B981) : colorMintBorder)
+                    : (isDark ? const Color(0xFF2C363D) : colorBorderGrey),
                 width: 1.2,
               ),
             ),
@@ -357,7 +373,9 @@ class HasilCekStuntingPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isYaActive ? colorMintText : colorTextBlack,
+                  color: isYaActive
+                      ? (isDark ? const Color(0xFF6EE7B7) : colorMintText)
+                      : (isDark ? const Color(0xFFE9EDEF) : colorTextBlack),
                 ),
               ),
             ),
@@ -370,10 +388,10 @@ class HasilCekStuntingPage extends StatelessWidget {
   // ===========================================================================
   // 3. WARNING / INFORMATION BOX (BORDER DASHED #B2CC08)
   // ===========================================================================
-  Widget _buildWarningInformationBox() {
+  Widget _buildWarningInformationBox(bool isDark) {
     return CustomPaint(
       painter: DashedRectPainter(
-        color: colorAccentLime,
+        color: isDark ? const Color(0xFFEAB308) : colorAccentLime,
         strokeWidth: 1.8,
         gap: 4.0,
         dashLength: 7.0,
@@ -388,7 +406,7 @@ class HasilCekStuntingPage extends StatelessWidget {
           style: GoogleFonts.lato(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: colorTextBlack,
+            color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
             height: 1.35,
           ),
         ),
@@ -435,20 +453,23 @@ class HasilCekStuntingPage extends StatelessWidget {
   // ===========================================================================
   // 5. CARD REKOMENDASI PENCEGAHAN STUNTING
   // ===========================================================================
-  Widget _buildRecommendationCard() {
+  Widget _buildRecommendationCard(bool isDark) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 10,
-            spreadRadius: 1,
-            offset: Offset(0, 3),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                  offset: Offset(0, 3),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,15 +516,15 @@ class HasilCekStuntingPage extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildRecommendationBullet('Pemberian pola asuh yang tepat'),
-                _buildRecommendationBullet('Memberikan MPASI yang optimal'),
-                _buildRecommendationBullet('Mengobati penyakit yang dialami anak'),
-                _buildRecommendationBullet('Perbaikan kebersihan lingkungan'),
-                _buildRecommendationBullet('Menerapkan hidup bersih keluarga'),
+                _buildRecommendationBullet('Pemberian pola asuh yang tepat', isDark),
+                _buildRecommendationBullet('Memberikan MPASI yang optimal', isDark),
+                _buildRecommendationBullet('Mengobati penyakit yang dialami anak', isDark),
+                _buildRecommendationBullet('Perbaikan kebersihan lingkungan', isDark),
+                _buildRecommendationBullet('Menerapkan hidup bersih keluarga', isDark),
               ],
             ),
           ),
@@ -512,18 +533,18 @@ class HasilCekStuntingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendationBullet(String text) {
+  Widget _buildRecommendationBullet(String text, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '• ',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: colorTextBlack,
+              color: isDark ? const Color(0xFFD1D7DB) : colorTextBlack,
             ),
           ),
           Expanded(
@@ -532,7 +553,7 @@ class HasilCekStuntingPage extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: colorTextBlack,
+                color: isDark ? const Color(0xFFD1D7DB) : colorTextBlack,
                 height: 1.3,
               ),
             ),
@@ -545,7 +566,7 @@ class HasilCekStuntingPage extends StatelessWidget {
   // ===========================================================================
   // 6. ACTION BUTTONS: CETAK HASIL & SELESAI
   // ===========================================================================
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, bool isDark) {
     return Row(
       children: [
         // Tombol Cetak Hasil (Putih dengan Border #3985E7)
@@ -575,7 +596,7 @@ class HasilCekStuntingPage extends StatelessWidget {
                 );
               },
               style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
                 side: const BorderSide(color: colorPrimaryBlue, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -587,7 +608,7 @@ class HasilCekStuntingPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: colorPrimaryBlue,
+                  color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                 ),
               ),
             ),
@@ -633,13 +654,14 @@ class HasilCekStuntingPage extends StatelessWidget {
   // ===========================================================================
   // 7. NAVIGATION BAR (SCAFFOLD.BOTTOMNAVIGATIONBAR)
   // ===========================================================================
-  Widget _buildBottomNavigationBar(BuildContext context) {
+  Widget _buildBottomNavigationBar(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
       height: 68,
-      decoration: const BoxDecoration(
-        color: colorNavBarBg,
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : colorNavBarBg,
+        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8,
@@ -654,6 +676,7 @@ class HasilCekStuntingPage extends StatelessWidget {
             context: context,
             icon: Icons.home_rounded,
             label: 'Beranda',
+            isDark: isDark,
             onTap: () => Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => const BerandaPage()),
               (route) => false,
@@ -663,6 +686,7 @@ class HasilCekStuntingPage extends StatelessWidget {
             context: context,
             icon: Icons.question_answer_rounded,
             label: 'Konsultasi',
+            isDark: isDark,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
@@ -672,6 +696,7 @@ class HasilCekStuntingPage extends StatelessWidget {
             context: context,
             icon: Icons.manage_search_rounded,
             label: 'Riwayat Konsultasi',
+            isDark: isDark,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
@@ -681,6 +706,7 @@ class HasilCekStuntingPage extends StatelessWidget {
             context: context,
             icon: Icons.person_outline_rounded,
             label: 'Profil',
+            isDark: isDark,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MenuProfilPage()),
@@ -695,8 +721,10 @@ class HasilCekStuntingPage extends StatelessWidget {
     required BuildContext context,
     required IconData icon,
     required String label,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
+    final inactiveColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -706,7 +734,7 @@ class HasilCekStuntingPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: const Color(0xFF9E9E9E)),
+            Icon(icon, size: 24, color: inactiveColor),
             const SizedBox(height: 3),
             Text(
               label,
@@ -715,7 +743,7 @@ class HasilCekStuntingPage extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
                 fontSize: 11,
-                color: const Color(0xFF9E9E9E),
+                color: inactiveColor,
               ),
             ),
           ],

@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/services/local_push_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/staff_account_model.dart';
@@ -90,7 +90,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -100,7 +100,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -122,7 +122,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -130,7 +130,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -149,7 +149,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -175,8 +175,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       );
       if (picked != null) {
         setState(() => _avatarPath = picked.path);
-        final persistable =
-            await StorageService.uploadIfLocal(picked.path);
+        final persistable = await StorageService.uploadIfLocal(picked.path);
         final prefs = await SharedPreferences.getInstance();
         if (_pmik?.id != null) {
           await prefs.setString('pmik_avatar_${_pmik!.id}', persistable);
@@ -186,18 +185,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           );
         }
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Berhasil memperbarui foto profil',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-              ),
-              backgroundColor: const Color(0xFF16A34A),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          LocalPushService().show(
+            title: 'PediaGrow',
+            body: 'Berhasil memperbarui foto profil',
+            targetRole: PushRole.pmik,
           );
         }
       }
@@ -226,7 +217,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -235,7 +226,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -248,7 +239,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: const BorderSide(color: Color(0xFFD1D7DB)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -258,7 +249,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF475569),
+                            color: const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -318,12 +309,13 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             transitionDuration: const Duration(milliseconds: 280),
             pageBuilder: (_, _, _) => const BerandaPmikPage(),
             transitionsBuilder: (_, anim, _, child) => SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(-0.25, 0.0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-              ),
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(-0.25, 0.0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+                  ),
               child: FadeTransition(
                 opacity: Tween<double>(begin: 0, end: 1).animate(anim),
                 child: child,
@@ -376,102 +368,102 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           preferredSize: const Size.fromHeight(56.0),
           child: _buildCustomHeader(),
         ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16.0),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16.0),
 
-              // 1. KARTU PROFIL
-              _buildProfileCard(),
+                // 1. KARTU PROFIL
+                _buildProfileCard(),
 
-              const SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
 
-              // 2. INFORMASI UMUM
-              Text(
-                'Informasi Umum',
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                // 2. INFORMASI UMUM
+                Text(
+                  'Informasi Umum',
+                  style: GoogleFonts.lato(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0B1014),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12.0),
-              _buildGeneralInfoCard(),
+                const SizedBox(height: 12.0),
+                _buildGeneralInfoCard(),
 
-              const SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
 
-              // 3. INFO hanya superadmin yang bisa edit
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFED7AA)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      color: Color(0xFFF97316),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Informasi profil hanya dapat diubah oleh Superadmin. '
-                        'Hubungi Superadmin jika perlu pembaruan data.',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: const Color(0xFF92400E),
-                          height: 1.4,
+                // 3. INFO hanya superadmin yang bisa edit
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFED7AA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        color: Color(0xFFF97316),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Informasi profil hanya dapat diubah oleh Superadmin. '
+                          'Hubungi Superadmin jika perlu pembaruan data.',
+                          style: GoogleFonts.lato(
+                            fontSize: 13,
+                            color: const Color(0xFF92400E),
+                            height: 1.4,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24.0),
-
-              // 4. TOMBOL LOGOUT
-              SizedBox(
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: _showLogoutConfirmationDialog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3985E7),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: Text(
-                    'LOGOUT',
-                    style: GoogleFonts.lato(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                      color: Colors.white,
-                    ),
+                    ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 24.0),
-            ],
+                const SizedBox(height: 24.0),
+
+                // 4. TOMBOL LOGOUT
+                SizedBox(
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: _showLogoutConfirmationDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3985E7),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    child: Text(
+                      'LOGOUT',
+                      style: GoogleFonts.lato(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24.0),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    ),
-  );
-}
+    );
+  }
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
   Widget _buildCustomHeader() {
@@ -539,7 +531,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -557,7 +549,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -567,7 +559,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -577,7 +569,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.0,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                 ),
               ],
@@ -621,7 +613,9 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 CircleAvatar(
                   radius: avatarRadius,
                   backgroundColor: const Color(0xFFE0F2FE),
-                  backgroundImage: StorageService.buildImageProvider(_avatarPath),
+                  backgroundImage: StorageService.buildImageProvider(
+                    _avatarPath,
+                  ),
                   child: StorageService.buildImageProvider(_avatarPath) == null
                       ? Icon(
                           Icons.person_rounded,
@@ -692,7 +686,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
               ),
               Text(
@@ -702,7 +696,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
             ],
@@ -735,7 +729,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -774,7 +768,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           item.label,
                           style: GoogleFonts.lato(
                             fontSize: 12,
-                            color: const Color(0xFF94A3B8),
+                            color: const Color(0xFF8696A0),
                           ),
                         ),
                         Text(
@@ -782,7 +776,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                       ],
@@ -791,7 +785,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 ),
               ),
               if (i < items.length - 1)
-                const Divider(height: 1, indent: 66, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, indent: 66, color: Color(0xFFE9EDEF)),
             ],
           );
         }),
@@ -804,7 +798,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     final navItems = [
       const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
+      const _NavItem(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
       const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 

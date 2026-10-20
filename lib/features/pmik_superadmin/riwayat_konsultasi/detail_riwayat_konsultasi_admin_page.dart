@@ -354,7 +354,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                   style: GoogleFonts.lato(
                     fontSize: 16.5,
                     fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
                 const SizedBox(height: 4.0),
@@ -463,7 +463,7 @@ class _DetailRiwayatKonsultasiAdminPageState
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
+              color: const Color(0xFF1A2228),
             ),
           ),
         ),
@@ -618,7 +618,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

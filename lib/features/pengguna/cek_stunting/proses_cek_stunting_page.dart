@@ -13,6 +13,7 @@ import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Proses Cek Stunting PediaGrow
 ///
@@ -393,12 +394,14 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         resizeToAvoidBottomInset: true,
-        bottomNavigationBar: _buildPermanentBottomNavigationBar(),
+        bottomNavigationBar: _buildPermanentBottomNavigationBar(isDark),
         body: SafeArea(
           bottom: false,
           child: Stack(
@@ -409,7 +412,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               Column(
                 children: [
                   // A. Custom Header Fixed 56dp (Back 12dp dari kiri, Judul 12dp setelahnya)
-                  _buildCustomHeader(),
+                  _buildCustomHeader(isDark),
 
                   // B. Area Scrollable Form (Bebas Overflow)
                   Expanded(
@@ -428,7 +431,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                               style: GoogleFonts.lato(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                color: colorTextTitle,
+                                color: isDark ? const Color(0xFFE9EDEF) : colorTextTitle,
                               ),
                             ),
                           ),
@@ -438,7 +441,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                           // Card Formulir Lengkap
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: _buildFormCard(),
+                            child: _buildFormCard(isDark),
                           ),
 
                           const SizedBox(height: 20),
@@ -495,7 +498,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                       begin: const Offset(0, 1),
                       end: Offset.zero,
                     ).animate(_sheetSlideAnimation),
-                    child: _buildResultBottomSheetContent(),
+                    child: _buildResultBottomSheetContent(isDark),
                   ),
                 ),
             ],
@@ -509,11 +512,11 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // 1. CUSTOM APP BAR / HEADER FIXED 56DP
   // ===========================================================================
 
-  Widget _buildCustomHeader() {
+  Widget _buildCustomHeader(bool isDark) {
     return Container(
       height: 56.0,
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -524,11 +527,11 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               if (!_isAnalyzing) Navigator.maybePop(context);
             },
             borderRadius: BorderRadius.circular(20),
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
               child: Icon(
                 Icons.arrow_back_rounded,
-                color: Color(0xFF9E9E9E),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF9E9E9E),
                 size: 26,
               ),
             ),
@@ -543,7 +546,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFFBDBDBD),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFFBDBDBD),
             ),
           ),
         ],
@@ -555,89 +558,97 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // 2. CARD FORMULIR CEK STUNTING (COMPACT & MODERN)
   // ===========================================================================
 
-  Widget _buildFormCard() {
+  Widget _buildFormCard(bool isDark) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 12,
-            spreadRadius: 1,
-            offset: Offset(0, 3),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x0F000000),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: Offset(0, 3),
+                ),
+              ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Nama Lengkap
-          _buildFieldTitle('Nama Lengkap'),
+          _buildFieldTitle('Nama Lengkap', isDark),
           const SizedBox(height: 5),
-          _buildInputField(controller: _namaController, isReadOnly: true),
+          _buildInputField(controller: _namaController, isReadOnly: true, isDark: isDark),
           const SizedBox(height: 9),
 
           // 2. Jenis Kelamin
-          _buildFieldTitle('Jenis Kelamin'),
+          _buildFieldTitle('Jenis Kelamin', isDark),
           const SizedBox(height: 5),
-          _buildInputField(text: _jenisKelamin, isReadOnly: true),
+          _buildInputField(text: _jenisKelamin, isReadOnly: true, isDark: isDark),
           const SizedBox(height: 9),
 
           // 3. Tanggal Lahir
-          _buildFieldTitle('Tanggal Lahir'),
+          _buildFieldTitle('Tanggal Lahir', isDark),
           const SizedBox(height: 5),
           _buildDateField(
             dateText: _formatDate(_birthDate),
             onTap: _pickBirthDate,
+            isDark: isDark,
           ),
           const SizedBox(height: 9),
 
           // 4. Tanggal Cek Stunting
-          _buildFieldTitle('Tanggal Cek Stunting'),
+          _buildFieldTitle('Tanggal Cek Stunting', isDark),
           const SizedBox(height: 5),
           _buildDateField(
             dateText: _formatDate(_checkDate),
             onTap: _pickCheckDate,
+            isDark: isDark,
           ),
           const SizedBox(height: 9),
 
           // 5. Berat Badan Saat Lahir
-          _buildFieldTitle('Berat Badan Saat Lahir'),
+          _buildFieldTitle('Berat Badan Saat Lahir', isDark),
           const SizedBox(height: 5),
-          _buildInputField(controller: _beratLahirController, isReadOnly: true),
+          _buildInputField(controller: _beratLahirController, isReadOnly: true, isDark: isDark),
           const SizedBox(height: 9),
 
           // 6. Tinggi Badan Saat Lahir
-          _buildFieldTitle('Tinggi Badan Saat Lahir'),
+          _buildFieldTitle('Tinggi Badan Saat Lahir', isDark),
           const SizedBox(height: 5),
           _buildInputField(
             controller: _tinggiLahirController,
             isReadOnly: true,
+            isDark: isDark,
           ),
           const SizedBox(height: 9),
 
           // 7. Berat Badan Sekarang
-          _buildFieldTitle('Berat Badan Sekarang'),
+          _buildFieldTitle('Berat Badan Sekarang', isDark),
           const SizedBox(height: 5),
           _buildEditableField(
             controller: _beratSekarangController,
             focusNode: _beratSekarangFocus,
             hint: 'Contoh: 9.1',
             errorText: _beratError,
+            isDark: isDark,
           ),
           const SizedBox(height: 9),
 
           // 8. Tinggi Badan Sekarang
-          _buildFieldTitle('Tinggi Badan Sekarang'),
+          _buildFieldTitle('Tinggi Badan Sekarang', isDark),
           const SizedBox(height: 5),
           _buildEditableField(
             controller: _tinggiSekarangController,
             focusNode: _tinggiSekarangFocus,
             hint: 'Contoh: 77',
             errorText: _tinggiError,
+            isDark: isDark,
           ),
           const SizedBox(height: 10),
 
@@ -647,7 +658,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             style: GoogleFonts.lato(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: colorTextTitle,
+              color: isDark ? const Color(0xFFE9EDEF) : colorTextTitle,
             ),
           ),
           const SizedBox(height: 8),
@@ -660,6 +671,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                 child: _buildAsiPill(
                   label: 'Tidak',
                   isSelected: _isAsiEksklusif == false,
+                  isDark: isDark,
                   onTap: () {
                     if (!_isAnalyzing) {
                       setState(() {
@@ -677,6 +689,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                 child: _buildAsiPill(
                   label: 'Ya',
                   isSelected: _isAsiEksklusif == true,
+                  isDark: isDark,
                   onTap: () {
                     if (!_isAnalyzing) {
                       setState(() {
@@ -702,13 +715,13 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     );
   }
 
-  Widget _buildFieldTitle(String title) {
+  Widget _buildFieldTitle(String title, bool isDark) {
     return Text(
       title,
       style: GoogleFonts.lato(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: const Color(0xFF9E9E9E),
+        color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF9E9E9E),
       ),
     );
   }
@@ -717,15 +730,21 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     TextEditingController? controller,
     String? text,
     bool isReadOnly = true,
+    required bool isDark,
   }) {
     return Container(
       height: 38,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: isReadOnly ? colorReadOnlyBg : Colors.white,
+        color: isReadOnly
+            ? (isDark ? const Color(0xFF0B1014) : colorReadOnlyBg)
+            : (isDark ? const Color(0xFF0B1014) : Colors.white),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colorBorderGrey, width: 0.9),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : colorBorderGrey,
+          width: 0.9,
+        ),
       ),
       alignment: Alignment.centerLeft,
       child: controller != null
@@ -734,7 +753,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               readOnly: isReadOnly,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF757575),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF757575),
               ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
@@ -746,7 +765,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               text ?? '',
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF757575),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF757575),
               ),
             ),
     );
@@ -755,6 +774,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   Widget _buildDateField({
     required String dateText,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return InkWell(
       onTap: _isAnalyzing ? null : onTap,
@@ -764,9 +784,12 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: colorReadOnlyBg,
+          color: isDark ? const Color(0xFF0B1014) : colorReadOnlyBg,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: colorBorderGrey, width: 0.9),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : colorBorderGrey,
+            width: 0.9,
+          ),
         ),
         alignment: Alignment.centerLeft,
         child: Row(
@@ -776,13 +799,13 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               dateText,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF757575),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF757575),
               ),
             ),
-            const Icon(
+            Icon(
               Icons.calendar_today_outlined,
               size: 16,
-              color: Color(0xFF9E9E9E),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
             ),
           ],
         ),
@@ -795,6 +818,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     required FocusNode focusNode,
     required String hint,
     String? errorText,
+    required bool isDark,
   }) {
     final hasError = errorText != null;
     return Column(
@@ -805,10 +829,12 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF0B1014) : Colors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: hasError ? colorDangerRed : colorBorderGrey,
+              color: hasError
+                  ? colorDangerRed
+                  : (isDark ? const Color(0xFF2C363D) : colorBorderGrey),
               width: hasError ? 1.2 : 0.9,
             ),
           ),
@@ -818,14 +844,17 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             focusNode: focusNode,
             enabled: !_isAnalyzing,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: GoogleFonts.lato(fontSize: 13, color: colorTextDark),
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              color: isDark ? const Color(0xFFE9EDEF) : colorTextDark,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
               hintText: focusNode.hasFocus ? '' : hint,
               hintStyle: GoogleFonts.lato(
                 fontSize: 13,
-                color: Colors.grey.shade400,
+                color: isDark ? const Color(0xFF667781) : Colors.grey.shade400,
               ),
               contentPadding: EdgeInsets.zero,
             ),
@@ -846,16 +875,21 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 36,
         decoration: BoxDecoration(
-          color: isSelected ? colorMintBg : Colors.white,
+          color: isSelected
+              ? (isDark ? const Color(0xFF064E3B) : colorMintBg)
+              : (isDark ? const Color(0xFF0B1014) : Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? colorMintBorder : colorBorderGrey,
+            color: isSelected
+                ? (isDark ? const Color(0xFF10B981) : colorMintBorder)
+                : (isDark ? const Color(0xFF2C363D) : colorBorderGrey),
             width: isSelected ? 1.3 : 0.9,
           ),
         ),
@@ -865,7 +899,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           style: GoogleFonts.lato(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? colorMintText : const Color(0xFF757575),
+            color: isSelected
+                ? (isDark ? const Color(0xFF6EE7B7) : colorMintText)
+                : (isDark ? const Color(0xFF8696A0) : const Color(0xFF757575)),
           ),
         ),
       ),
@@ -907,33 +943,21 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // ===========================================================================
 
   Widget _buildFooterLandscape() {
-    return Container(
-      width: double.infinity,
-      height: 34,
-      alignment: Alignment.bottomCenter,
-      child: Opacity(
-        opacity: 0.85,
-        child: Image.asset(
-          'assets/images/beranda_landscape_footer_fiks.png',
-          width: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(height: 34, fit: BoxFit.cover);
   }
 
   // ===========================================================================
   // 5. SCAFFOLD.BOTTOMNAVIGATIONBAR PERMANEN 4 MENU
   // ===========================================================================
 
-  Widget _buildPermanentBottomNavigationBar() {
+  Widget _buildPermanentBottomNavigationBar(bool isDark) {
     return Container(
       width: double.infinity,
       height: 64,
-      decoration: const BoxDecoration(
-        color: colorNavBarBg,
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : colorNavBarBg,
+        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
             blurRadius: 8,
@@ -948,6 +972,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             icon: Icons.home_rounded,
             label: 'Beranda',
             isActive: false,
+            isDark: isDark,
             onTap: () {
               if (!_isAnalyzing) {
                 Navigator.of(context).popUntil((route) => route.isFirst);
@@ -958,6 +983,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             icon: Icons.question_answer_rounded,
             label: 'Konsultasi',
             isActive: false,
+            isDark: isDark,
             onTap: () {
               if (!_isAnalyzing) {
                 Navigator.push(
@@ -971,6 +997,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             icon: Icons.manage_search_rounded,
             label: 'Riwayat Konsultasi',
             isActive: false,
+            isDark: isDark,
             onTap: () {
               if (!_isAnalyzing) {
                 Navigator.push(
@@ -984,6 +1011,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             icon: Icons.person_outline_rounded,
             label: 'Profil',
             isActive: false,
+            isDark: isDark,
             onTap: () {
               if (!_isAnalyzing) {
                 Navigator.push(
@@ -1002,8 +1030,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     required IconData icon,
     required String label,
     required bool isActive,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
+    final inactiveColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -1016,7 +1046,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
             Icon(
               icon,
               size: 23,
-              color: isActive ? colorPrimaryBlue : const Color(0xFF9E9E9E),
+              color: isActive ? colorPrimaryBlue : inactiveColor,
             ),
             const SizedBox(height: 2),
             Text(
@@ -1027,7 +1057,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               style: GoogleFonts.lato(
                 fontSize: 11,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? colorPrimaryBlue : const Color(0xFF9E9E9E),
+                color: isActive ? colorPrimaryBlue : inactiveColor,
               ),
             ),
           ],
@@ -1040,20 +1070,21 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // 6. BOTTOM SHEET HASIL ANALISIS STUNTING
   // ===========================================================================
 
-  Widget _buildResultBottomSheetContent() {
+  Widget _buildResultBottomSheetContent(bool isDark) {
     final res = _predictionResult!;
     final isNormal = res.status == StuntingStatusCategory.normal;
     final statusColor = isNormal ? const Color(0xFF2E7D32) : colorDangerRed;
     final statusBgColor = isNormal
-        ? const Color(0xFFE8F5E9)
-        : const Color(0xFFFFEBEE);
+        ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFE8F5E9))
+        : (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.3) : const Color(0xFFFFEBEE));
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x28000000),
             blurRadius: 16,
@@ -1072,7 +1103,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: isDark ? const Color(0xFF2C363D) : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1112,7 +1143,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                         'Akurasi: ${(res.confidenceProbability * 100).toStringAsFixed(1)}% | Z-Score (TB/U): ${res.zScoreHeightForAge.toStringAsFixed(2)} SD',
                         style: GoogleFonts.lato(
                           fontSize: 11.5,
-                          color: Colors.black87,
+                          color: isDark ? const Color(0xFFD1D7DB) : Colors.black87,
                         ),
                       ),
                     ],
@@ -1128,30 +1159,34 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             decoration: BoxDecoration(
-              color: colorReadOnlyBg,
+              color: isDark ? const Color(0xFF0B1014) : colorReadOnlyBg,
               borderRadius: BorderRadius.circular(12),
+              border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
             ),
             child: Row(
               children: [
                 Expanded(
-                  child: _buildSummaryInfo('Umur Anak', _calculatedAgeText),
+                  child: _buildSummaryInfo('Umur Anak', _calculatedAgeText, isDark),
                 ),
                 Expanded(
                   child: _buildSummaryInfo(
                     'BB Sekarang',
                     '${_beratSekarangController.text.trim()} kg',
+                    isDark,
                   ),
                 ),
                 Expanded(
                   child: _buildSummaryInfo(
                     'TB Sekarang',
                     '${_tinggiSekarangController.text.trim()} cm',
+                    isDark,
                   ),
                 ),
                 Expanded(
                   child: _buildSummaryInfo(
                     'ASI',
                     _isAsiEksklusif == true ? 'Penuh' : 'Tidak',
+                    isDark,
                   ),
                 ),
               ],
@@ -1168,7 +1203,9 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                   onPressed: _hideResultSheet,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: const BorderSide(color: colorBorderGrey),
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF2C363D) : colorBorderGrey,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1178,7 +1215,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
                     style: GoogleFonts.lato(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: colorTextDark,
+                      color: isDark ? const Color(0xFFE9EDEF) : colorTextDark,
                     ),
                   ),
                 ),
@@ -1252,7 +1289,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     );
   }
 
-  Widget _buildSummaryInfo(String title, String val) {
+  Widget _buildSummaryInfo(String title, String val, bool isDark) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1261,7 +1298,10 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.lato(fontSize: 10.5, color: Colors.grey.shade600),
+          style: GoogleFonts.lato(
+            fontSize: 10.5,
+            color: isDark ? const Color(0xFF8696A0) : Colors.grey.shade600,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
@@ -1272,7 +1312,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
           style: GoogleFonts.lato(
             fontSize: 11.5,
             fontWeight: FontWeight.bold,
-            color: colorTextDark,
+            color: isDark ? const Color(0xFFE9EDEF) : colorTextDark,
           ),
         ),
       ],

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Halaman Tentang Aplikasi PediaGrow.
@@ -7,8 +7,16 @@ class TentangAplikasiPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final versionBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
+    final versionText = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final logoBg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -22,11 +30,11 @@ class TentangAplikasiPage extends StatelessWidget {
                     InkWell(
                       onTap: () => Navigator.of(context).pop(),
                       borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: Icon(
                           Icons.arrow_back,
-                          color: Color(0xFF000000),
+                          color: titleColor,
                           size: 24,
                         ),
                       ),
@@ -37,7 +45,7 @@ class TentangAplikasiPage extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF000000),
+                        color: titleColor,
                       ),
                     ),
                   ],
@@ -58,7 +66,7 @@ class TentangAplikasiPage extends StatelessWidget {
                       height: 90,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECF6FF),
+                        color: logoBg,
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
@@ -111,14 +119,14 @@ class TentangAplikasiPage extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: versionBg,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         'Versi 1.0.0 (Rilis Publik)',
                         style: GoogleFonts.lato(
                           fontSize: 12,
-                          color: const Color(0xFF64748B),
+                          color: versionText,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -126,6 +134,8 @@ class TentangAplikasiPage extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     _buildInfoCard(
+                      context: context,
+                      isDark: isDark,
                       title: 'Mengenal PediaGrow',
                       description:
                           'PediaGrow merupakan aplikasi kesehatan anak yang berfungsi untuk membantu para orangtua untuk memantau pertumbuhan anak secara mudah dan praktis.\n'
@@ -137,6 +147,8 @@ class TentangAplikasiPage extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     _buildInfoCard(
+                      context: context,
+                      isDark: isDark,
                       title: 'Menu PediaGrow',
                       description:
                           '• Deteksi & Cek Risiko Stunting Balita\n'
@@ -152,6 +164,8 @@ class TentangAplikasiPage extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     _buildInfoCard(
+                      context: context,
+                      isDark: isDark,
                       title: 'Bantuan & Pengembang',
                       description:
                           'Memerlukan bantuan atau memiliki pertanyaan seputar aplikasi?\n\n'
@@ -170,7 +184,7 @@ class TentangAplikasiPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.lato(
                         fontSize: 12,
-                        color: const Color(0xFF94A3B8),
+                        color: subtitleColor,
                         height: 1.5,
                       ),
                     ),
@@ -185,6 +199,8 @@ class TentangAplikasiPage extends StatelessWidget {
   }
 
   Widget _buildInfoCard({
+    required BuildContext context,
+    required bool isDark,
     required String title,
     required String description,
     required IconData icon,
@@ -194,9 +210,11 @@ class TentangAplikasiPage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +228,7 @@ class TentangAplikasiPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
               ),
             ],
@@ -220,7 +238,7 @@ class TentangAplikasiPage extends StatelessWidget {
             description,
             style: GoogleFonts.lato(
               fontSize: 14,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
               height: 1.5,
             ),
           ),

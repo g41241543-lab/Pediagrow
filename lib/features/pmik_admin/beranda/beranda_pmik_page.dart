@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
-import '../../../core/services/notification_service.dart';
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/superadmin_notification_service.dart';
+import '../../../core/services/theme_service.dart';
 import '../../../models/artikel_model.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../models/superadmin_notification_model.dart';
 import '../../../widgets/hak_akses_logo.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
@@ -91,67 +94,53 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   }
 
   void _showLockedMenuNotice(String featureName) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.lock_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Akses fitur "$featureName" hanya dapat diakses oleh Superadmin.',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFFDC2626),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
+    LocalPushService().show(
+      title: 'Akses Terbatas',
+      body: 'Akses fitur "$featureName" hanya dapat diakses oleh Superadmin.',
+      targetRole: PushRole.pmik,
     );
   }
 
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      body: ScrollConfiguration(
-        behavior: const ScrollBehavior().copyWith(overscroll: false),
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Background animasi langit
-              const Positioned.fill(child: FullPageSkyBackground()),
+    return Theme(
+      data: ThemeService.lightTheme,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Background animasi langit
+                const Positioned.fill(child: FullPageSkyBackground()),
 
-              // Konten Utama
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Area Biru Seamless
-                  _buildSeamlessBlueArea(context),
+                // Konten Utama
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. Area Biru Seamless
+                    _buildSeamlessBlueArea(context),
 
-                  // 2. Konten Putih
-                  _buildWhiteContentSection(context),
+                    // 2. Konten Putih
+                    _buildWhiteContentSection(context),
 
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // 3. Ilustrasi Landscape Footer
-                  _buildFooterIllustration(),
-                ],
-              ),
-            ],
+                    // 3. Ilustrasi Landscape Footer
+                    _buildFooterIllustration(),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -221,13 +210,15 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                             },
                           ),
                         ),
-                        ValueListenableBuilder<int>(
+                        ValueListenableBuilder<List<SuperadminNotificationItem>>(
                           valueListenable:
-                              NotificationService().unreadCountNotifier,
-                          builder: (context, unreadCount, _) {
+                              SuperadminNotificationService().notificationsNotifier,
+                          builder: (context, _, _) {
+                            final unreadCount = SuperadminNotificationService()
+                                .getUnreadCountForRole(PushRole.pmik);
                             return GestureDetector(
                               onTap: () =>
-                                  _navigateTo(const NotifikasiSuperadminPage()),
+                                  _navigateTo(const NotifikasiSuperadminPage(role: PushRole.pmik)),
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
@@ -248,7 +239,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                     alignment: Alignment.center,
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
-                                      color: Color(0xFF1E293B),
+                                      color: Color(0xFF1A2228),
                                       size: 19,
                                     ),
                                   ),
@@ -266,7 +257,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE53E3E),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
                                             color: Colors.white,
                                             width: 1,
@@ -390,14 +383,14 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
                       'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
                       style: GoogleFonts.lato(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: const Color(0xFF667781),
                         height: 1.3,
                       ),
                     ),
@@ -623,6 +616,37 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     );
   }
 
+  /// Isi ikon/gambar untuk satu tile menu (tanpa efek terkunci).
+  Widget _buildTileContent({
+    required String? imageAsset,
+    required IconData? icon,
+    required Color? iconColor,
+    required Widget? customIcon,
+    required double imageSize,
+    required Color fallbackColor,
+  }) {
+    if (customIcon != null) return customIcon;
+
+    if (imageAsset != null) {
+      return Image.asset(
+        imageAsset,
+        height: imageSize,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Icon(
+          icon ?? Icons.widgets_rounded,
+          size: imageSize,
+          color: iconColor ?? fallbackColor,
+        ),
+      );
+    }
+
+    return Icon(
+      icon ?? Icons.widgets_rounded,
+      size: imageSize,
+      color: iconColor ?? fallbackColor,
+    );
+  }
+
   Widget _buildMenuItem({
     required String title,
     required VoidCallback onTap,
@@ -636,6 +660,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
+    final Widget baseContent = _buildTileContent(
+      imageAsset: imageAsset,
+      icon: icon,
+      iconColor: iconColor,
+      customIcon: customIcon,
+      imageSize: imageSize,
+      fallbackColor: isLocked
+          ? const Color(0xFF94A3B8)
+          : const Color(0xFF3985E7),
+    );
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -680,44 +715,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                           offset: Offset(logoOffsetX, 0),
                           child: isLocked
                               ? ColorFiltered(
-                                  colorFilter: const ColorFilter.matrix(<double>[
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0,      0,      0,      0.65, 0,
-                                  ]),
-                                  child: customIcon ??
-                                      (imageAsset != null
-                                          ? Image.asset(
-                                              imageAsset,
-                                              height: imageSize,
-                                              fit: BoxFit.contain,
-                                            )
-                                          : Icon(
-                                              icon ?? Icons.widgets_rounded,
-                                              size: imageSize,
-                                              color: const Color(0xFF94A3B8),
-                                            )),
+                                  colorFilter: const ColorFilter.matrix(
+                                    <double>[
+                                      0.2126, 0.7152, 0.0722, 0, 0, //
+                                      0.2126, 0.7152, 0.0722, 0, 0, //
+                                      0.2126, 0.7152, 0.0722, 0, 0, //
+                                      0, 0, 0, 0.65, 0, //
+                                    ],
+                                  ),
+                                  child: baseContent,
                                 )
-                              : (customIcon ??
-                                  (imageAsset != null
-                                      ? Image.asset(
-                                          imageAsset,
-                                          height: imageSize,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (_, _, _) => Icon(
-                                            icon ?? Icons.widgets_rounded,
-                                            size: imageSize,
-                                            color: iconColor ??
-                                                const Color(0xFF3985E7),
-                                          ),
-                                        )
-                                      : Icon(
-                                          icon ?? Icons.widgets_rounded,
-                                          size: imageSize,
-                                          color: iconColor ??
-                                              const Color(0xFF3985E7),
-                                        ))),
+                              : baseContent,
                         ),
                       ),
 
@@ -904,7 +912,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           )
         else if (_latestArticles.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
             child: Text(
               'Belum ada artikel terbaru.',
               style: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
@@ -917,12 +928,11 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
               itemCount: _latestArticles.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
+              separatorBuilder: (context, index) => const SizedBox(width: 14),
               itemBuilder: (context, index) {
                 final artikel = _latestArticles[index];
                 return GestureDetector(
-                  onTap: () =>
-                      _navigateTo(DetailArtikelPage(artikel: artikel)),
+                  onTap: () => _navigateTo(DetailArtikelPage(artikel: artikel)),
                   child: Container(
                     width: 220,
                     decoration: BoxDecoration(
@@ -1122,6 +1132,17 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     );
   }
 
+  void _replaceWithFade(Widget page) {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
+    );
+  }
+
   void _onNavTap(int index) {
     if (index == _selectedIndex) return;
     switch (index) {
@@ -1129,34 +1150,13 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         // Beranda aktif
         break;
       case 1:
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => const KonsultasiPmikAdminPage(),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 200),
-          ),
-        );
+        _replaceWithFade(const KonsultasiPmikAdminPage());
         break;
       case 2:
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => const DaftarRiwayatKonsultasiAdminPage(),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 200),
-          ),
-        );
+        _replaceWithFade(const DaftarRiwayatKonsultasiAdminPage());
         break;
       case 3:
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => const ProfilPmikPage(),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-            transitionDuration: const Duration(milliseconds: 200),
-          ),
-        );
+        _replaceWithFade(const ProfilPmikPage());
         break;
     }
   }

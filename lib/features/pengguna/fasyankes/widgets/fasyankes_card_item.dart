@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -65,28 +65,30 @@ class FasyankesCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Warna teks & aksen sesuai desain referensi
-    const colorTitle = Color(0xFF000000);
-    const colorSubtitle = Color(0xFF8E8E93);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Warna teks & aksen sesuai mode
+    final colorTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final colorSubtitle = isDark ? const Color(0xFF8696A0) : const Color(0xFF8E8E93);
     const colorStar = Color(0xFFFBBF24); // Kuning keemasan hangat
     const colorPrimaryBlue = Color(0xFF2B7AE8);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
-              ? colorPrimaryBlue.withValues(alpha: 0.65)
-              : const Color(0xFFE2E8F0),
+              ? colorPrimaryBlue.withValues(alpha: isDark ? 0.85 : 0.65)
+              : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
           width: isSelected ? 1.8 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? colorPrimaryBlue.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.06),
+                ? colorPrimaryBlue.withValues(alpha: isDark ? 0.25 : 0.12)
+                : Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
             blurRadius: isSelected ? 14 : 10,
             spreadRadius: 0,
             offset: const Offset(0, 4),
@@ -130,20 +132,24 @@ class FasyankesCardItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 9, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
+                          color: isDark
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.4)
+                              : const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFFBFDBFE),
+                            color: isDark
+                                ? const Color(0xFF3B82F6).withValues(alpha: 0.6)
+                                : const Color(0xFFBFDBFE),
                             width: 0.8,
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.directions_outlined,
                               size: 14,
-                              color: colorPrimaryBlue,
+                              color: isDark ? const Color(0xFF93C5FD) : colorPrimaryBlue,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -151,7 +157,7 @@ class FasyankesCardItem extends StatelessWidget {
                               style: GoogleFonts.lato(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: colorPrimaryBlue,
+                                color: isDark ? const Color(0xFF93C5FD) : colorPrimaryBlue,
                               ),
                             ),
                           ],
@@ -188,7 +194,7 @@ class FasyankesCardItem extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.phone_outlined,
                             size: 18,
                             color: colorSubtitle,
@@ -233,7 +239,7 @@ class FasyankesCardItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -241,7 +247,7 @@ class FasyankesCardItem extends StatelessWidget {
                           style: GoogleFonts.lato(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF64748B),
+                            color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF667781),
                           ),
                         ),
                       ),

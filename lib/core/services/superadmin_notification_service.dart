@@ -113,9 +113,95 @@ class SuperadminNotificationService {
     await _saveToPrefs();
   }
 
+  PushRole _getPushRole(String? roleStr) {
+    if (roleStr == 'dokter') return PushRole.dokter;
+    if (roleStr == 'pmik') return PushRole.pmik;
+    return PushRole.superadmin;
+  }
+
+  /// Mengambil daftar notifikasi khusus untuk role staf tertentu
+  List<SuperadminNotificationItem> getNotificationsForRole(PushRole role) {
+    return notificationsNotifier.value.where((item) {
+      if (role == PushRole.superadmin) {
+        return item.role == null || item.role == 'superadmin';
+      } else if (role == PushRole.dokter) {
+        return item.role == 'dokter';
+      } else if (role == PushRole.pmik) {
+        return item.role == 'pmik';
+      }
+      return true;
+    }).toList();
+  }
+
+  /// Menghitung unread count untuk role staf tertentu
+  int getUnreadCountForRole(PushRole role) {
+    return getNotificationsForRole(role).where((item) => !item.isRead).length;
+  }
+
+  /// Tandai notifikasi role tertentu sudah dibaca
+  Future<void> markRoleAsRead(PushRole role) async {
+    final current = notificationsNotifier.value;
+    if (current.isEmpty) return;
+
+    final roleName = role.name;
+    final updated = current.map((item) {
+      final matches = (role == PushRole.superadmin &&
+              (item.role == null || item.role == 'superadmin')) ||
+          item.role == roleName;
+      if (matches) {
+        return item.copyWith(isRead: true);
+      }
+      return item;
+    }).toList();
+
+    notificationsNotifier.value = updated;
+    unreadCountNotifier.value = updated.where((item) => !item.isRead).length;
+    await _saveToPrefs();
+  }
+
+  /// Menghapus notifikasi spesifik berdasarkan ID
+  Future<void> deleteNotification(String id) async {
+    final currentList =
+        List<SuperadminNotificationItem>.from(notificationsNotifier.value);
+    currentList.removeWhere((element) => element.id == id);
+    notificationsNotifier.value = currentList;
+    unreadCountNotifier.value =
+        currentList.where((element) => !element.isRead).length;
+    await _saveToPrefs();
+  }
+
+  /// Menghapus seluruh notifikasi untuk role tertentu atau semua jika role == null
+  Future<void> clearNotificationsForRole([PushRole? role]) async {
+    if (role == null) {
+      notificationsNotifier.value = [];
+      unreadCountNotifier.value = 0;
+    } else {
+      final currentList =
+          List<SuperadminNotificationItem>.from(notificationsNotifier.value);
+      final roleName = role.name;
+      currentList.removeWhere((item) {
+        if (role == PushRole.superadmin) {
+          return item.role == null || item.role == 'superadmin';
+        } else if (role == PushRole.dokter) {
+          return item.role == 'dokter';
+        } else if (role == PushRole.pmik) {
+          return item.role == 'pmik';
+        }
+        return item.role == roleName;
+      });
+      notificationsNotifier.value = currentList;
+      unreadCountNotifier.value =
+          currentList.where((element) => !element.isRead).length;
+    }
+    await _saveToPrefs();
+  }
+
   /// Menambahkan notifikasi baru ke daftar (di posisi paling atas).
   /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
-  Future<void> addNotification(SuperadminNotificationItem item) async {
+  Future<void> addNotification(
+    SuperadminNotificationItem item, {
+    bool showPush = true,
+  }) async {
     final currentList =
         List<SuperadminNotificationItem>.from(notificationsNotifier.value);
     // Hapus jika ada duplikasi ID yang sama
@@ -128,12 +214,59 @@ class SuperadminNotificationService {
     }
     await _saveToPrefs();
 
-    // Tampilkan notifikasi sistem (push lokal) — hanya untuk role superadmin
-    LocalPushService().show(
-      title: item.title,
-      body: item.message,
-      targetRole: PushRole.superadmin,
+    if (showPush) {
+      // Tampilkan notifikasi sistem (push lokal) — sesuai role penerima
+      LocalPushService().show(
+        title: item.title,
+        body: item.message,
+        targetRole: _getPushRole(item.role),
+        recordInApp: false,
+      );
+    }
+  }
+
+  /// Menambahkan notifikasi yang dipicu dari LocalPushService.show ke daftar in-app
+  Future<void> addNotificationFromPush({
+    required String title,
+    required String message,
+    required PushRole role,
+    SuperadminNotificationType? type,
+  }) async {
+    final now = DateTime.now();
+    final detectedType = type ?? _detectType(title, message);
+    final item = SuperadminNotificationItem(
+      id: 'staff_push_${now.millisecondsSinceEpoch}',
+      title: title,
+      message: message,
+      date: now,
+      type: detectedType,
+      actionType: SuperadminActionType.info,
+      role: role.name,
     );
+    await addNotification(item, showPush: false);
+  }
+
+  SuperadminNotificationType _detectType(String title, String message) {
+    final lower = '${title.toLowerCase()} ${message.toLowerCase()}';
+    if (lower.contains('artikel')) return SuperadminNotificationType.artikel;
+    if (lower.contains('resep') || lower.contains('mpasi')) {
+      return SuperadminNotificationType.resepMpasi;
+    }
+    if (lower.contains('dokter')) return SuperadminNotificationType.dokter;
+    if (lower.contains('pmik')) return SuperadminNotificationType.pmik;
+    if (lower.contains('dataset') ||
+        lower.contains('unduh') ||
+        lower.contains('rekapitulasi')) {
+      return SuperadminNotificationType.unduhDataset;
+    }
+    if (lower.contains('jadwal')) return SuperadminNotificationType.jadwal;
+    if (lower.contains('konsultasi') || lower.contains('pasien')) {
+      return SuperadminNotificationType.konsultasi;
+    }
+    if (lower.contains('profil') || lower.contains('foto')) {
+      return SuperadminNotificationType.profil;
+    }
+    return SuperadminNotificationType.umum;
   }
 
   /// Hapus seluruh notifikasi (untuk testing / reset)

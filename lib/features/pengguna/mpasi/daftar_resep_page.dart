@@ -162,6 +162,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
     return PopScope(
@@ -174,7 +175,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
         }
       },
       child: Scaffold(
-      backgroundColor: _colorWhite,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : _colorWhite,
       // Bottom navigation bar FIXED — PediaBottomNavBar terpusat
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       body: SafeArea(
@@ -183,20 +184,20 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Header: Back button + Judul "Daftar Resep MPASI" (FIXED 56dp)
-            _buildHeader(context),
+            _buildHeader(context, isDark),
 
             // 2. Search Bar dinamis (FIXED)
-            _buildSearchBar(),
+            _buildSearchBar(isDark),
 
             // 3. Filter Kategori Usia (FIXED)
-            _buildAgeFilter(),
+            _buildAgeFilter(isDark),
 
             const SizedBox(height: 8),
 
             // 4. Konten utama: daftar resep SCROLLABLE dengan ilustrasi
             //    yang ikut ter-scroll di paling bawah setelah resep terakhir
             Expanded(
-              child: _buildScrollableContent(),
+              child: _buildScrollableContent(isDark),
             ),
           ],
         ),
@@ -209,11 +210,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // 1. HEADER (Back button + Judul "Daftar Resep MPASI") — FIXED 56dp
   // -------------------------------------------------------------------------
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       height: 56,
       width: double.infinity,
-      color: _colorWhite,
+      color: isDark ? const Color(0xFF0B1014) : _colorWhite,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -224,12 +225,12 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             child: InkWell(
               onTap: _onBackPressed,
               borderRadius: BorderRadius.circular(24),
-              child: const Padding(
-                padding: EdgeInsets.all(8.0),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Icon(
                   Icons.arrow_back,
                   size: 24,
-                  color: _colorDark,
+                  color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
                 ),
               ),
             ),
@@ -245,7 +246,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: _colorDark,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
               ),
             ),
           ),
@@ -258,23 +259,24 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // 2. SEARCH BAR DINAMIS — Sesuai Halaman Artikel Kesehatan
   // -------------------------------------------------------------------------
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: _colorSearchBg,
+          color: isDark ? const Color(0xFF1A2228) : _colorSearchBg,
           borderRadius: BorderRadius.circular(20),
+          border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.search_rounded,
               size: 22,
-              color: Color(0xFF9E9E9E),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -283,13 +285,13 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                 focusNode: _searchFocusNode,
                 style: GoogleFonts.lato(
                   fontSize: 15,
-                  color: _colorDark,
+                  color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Resep MPASI',
                   hintStyle: GoogleFonts.lato(
                     fontSize: 15,
-                    color: _colorTextMuted,
+                    color: isDark ? const Color(0xFF667781) : _colorTextMuted,
                     fontWeight: FontWeight.w400,
                   ),
                   border: InputBorder.none,
@@ -302,12 +304,12 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             if (_searchQuery.isNotEmpty)
               GestureDetector(
                 onTap: _clearSearch,
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
                   child: Icon(
                     Icons.close_rounded,
                     size: 18,
-                    color: Color(0xFF9E9E9E),
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                   ),
                 ),
               ),
@@ -321,10 +323,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // 3. FILTER KATEGORI USIA (0-6 bulan dihapus)
   // -------------------------------------------------------------------------
 
-  Widget _buildAgeFilter() {
+  Widget _buildAgeFilter(bool isDark) {
     return Container(
       width: double.infinity,
-      color: _colorWhite,
+      color: isDark ? const Color(0xFF0B1014) : _colorWhite,
       padding: const EdgeInsets.only(top: 4, bottom: 6),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -343,10 +345,18 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: isActive ? _colorSoftBlue : _colorWhite,
+                    color: isActive
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                            : _colorSoftBlue)
+                        : (isDark ? const Color(0xFF1A2228) : _colorWhite),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isActive ? _colorPrimaryBlue : const Color(0xFFE2E8F0),
+                      color: isActive
+                          ? _colorPrimaryBlue
+                          : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFE9EDEF)),
                       width: 1.2,
                     ),
                   ),
@@ -356,7 +366,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                       fontSize: 13,
                       fontWeight:
                           isActive ? FontWeight.w600 : FontWeight.normal,
-                      color: isActive ? _colorPrimaryBlue : const Color(0xFF7F7F7F),
+                      color: isActive
+                          ? _colorPrimaryBlue
+                          : (isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF7F7F7F)),
                     ),
                   ),
                 ),
@@ -374,7 +388,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // dan selalu berada tepat di bawah resep terakhir (bukan di lapisan belakang).
   // -------------------------------------------------------------------------
 
-  Widget _buildScrollableContent() {
+  Widget _buildScrollableContent(bool isDark) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -385,11 +399,11 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     }
 
     if (_errorMessage != null) {
-      return _buildErrorState();
+      return _buildErrorState(isDark);
     }
 
     if (_recipes.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(isDark);
     }
 
     return CustomScrollView(
@@ -403,17 +417,17 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
               (context, index) {
                 if (index.isOdd) {
                   // Divider pemisah antar resep
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Divider(
                       height: 32,
                       thickness: 1,
-                      color: _colorDivider,
+                      color: isDark ? const Color(0xFF2C363D) : _colorDivider,
                     ),
                   );
                 }
                 final recipe = _recipes[index ~/ 2];
-                return _buildRecipeItem(recipe);
+                return _buildRecipeItem(recipe, isDark);
               },
               childCount: _recipes.length * 2 - 1,
             ),
@@ -440,7 +454,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   //    seperti halaman Daftar Artikel Kesehatan
   // -------------------------------------------------------------------------
 
-  Widget _buildRecipeItem(ResepMpasiModel recipe) {
+  Widget _buildRecipeItem(ResepMpasiModel recipe, bool isDark) {
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -453,8 +467,8 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
           ),
         );
       },
-      splashColor: const Color(0x10000000),
-      highlightColor: const Color(0x08000000),
+      splashColor: isDark ? const Color(0x20FFFFFF) : const Color(0x10000000),
+      highlightColor: isDark ? const Color(0x10FFFFFF) : const Color(0x08000000),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Row(
@@ -465,7 +479,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Judul Resep (Lato 16sp bold hitam, max 3 baris dengan ellipsis)
+                  // Judul Resep (Lato 16sp bold, max 3 baris dengan ellipsis)
                   Text(
                     recipe.judul,
                     maxLines: 3,
@@ -473,7 +487,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: _colorDark,
+                      color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
                       height: 1.25,
                     ),
                   ),
@@ -482,10 +496,10 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                   // Metadata: Ikon Jam + "Resep MPASI" + Kategori Usia
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.access_time_rounded,
                         size: 14,
-                        color: _colorTextMuted,
+                        color: isDark ? const Color(0xFF8696A0) : _colorTextMuted,
                       ),
                       const SizedBox(width: 5),
                       Flexible(
@@ -496,7 +510,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                           style: GoogleFonts.lato(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
-                            color: _colorTextMuted,
+                            color: isDark ? const Color(0xFF8696A0) : _colorTextMuted,
                           ),
                         ),
                       ),
@@ -510,7 +524,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: _colorTextMuted,
+                      color: isDark ? const Color(0xFF8696A0) : _colorTextMuted,
                     ),
                   ),
                 ],
@@ -520,7 +534,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
             const SizedBox(width: 16),
 
             // Bagian Kanan: Thumbnail gambar resep (rounded 18dp, 124x84dp, BoxFit.cover)
-            _buildThumbnail(recipe),
+            _buildThumbnail(recipe, isDark),
           ],
         ),
       ),
@@ -528,7 +542,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   }
 
   /// Thumbnail resep dengan sudut membulat modern dan placeholder fallback
-  Widget _buildThumbnail(ResepMpasiModel recipe) {
+  Widget _buildThumbnail(ResepMpasiModel recipe, bool isDark) {
     const double thumbWidth = 124;
     const double thumbHeight = 84;
     const double borderRadius = 18;
@@ -539,7 +553,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       width: thumbWidth,
       height: thumbHeight,
       decoration: BoxDecoration(
-        color: _colorSearchBg,
+        color: isDark ? const Color(0xFF1A2228) : _colorSearchBg,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: const [
           BoxShadow(
@@ -556,24 +570,24 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
           width: thumbWidth,
           height: thumbHeight,
           fit: BoxFit.cover,
-          placeholder: _buildThumbnailPlaceholder(),
-          errorWidget: _buildThumbnailPlaceholder(),
+          placeholder: _buildThumbnailPlaceholder(isDark),
+          errorWidget: _buildThumbnailPlaceholder(isDark),
         ),
       ),
     );
   }
 
   /// Placeholder jika gambar resep belum tersedia / gagal dimuat
-  Widget _buildThumbnailPlaceholder() {
+  Widget _buildThumbnailPlaceholder(bool isDark) {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: const Color(0xFFEEEEEE),
-      child: const Center(
+      color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEEEEEE),
+      child: Center(
         child: Icon(
           Icons.restaurant_menu_rounded,
           size: 32,
-          color: Color(0xFFBDBDBD),
+          color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
         ),
       ),
     );
@@ -583,7 +597,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // 6. EMPTY STATE & ERROR STATE
   // -------------------------------------------------------------------------
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -595,7 +609,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
                   ? Icons.search_off_rounded
                   : Icons.restaurant_menu_outlined,
               size: 56,
-              color: const Color(0xFFBDBDBD),
+              color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
             ),
             const SizedBox(height: 16),
             Text(
@@ -606,7 +620,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF4A4A4A),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF4A4A4A),
               ),
             ),
             const SizedBox(height: 6),
@@ -617,7 +631,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF9E9E9E),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                 height: 1.4,
               ),
             ),
@@ -628,24 +642,24 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.cloud_off_rounded,
               size: 48,
-              color: Color(0xFF9E9E9E),
+              color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
             ),
             const SizedBox(height: 12),
             Text(
               _errorMessage ?? 'Terjadi kesalahan.',
               style: GoogleFonts.lato(
                 fontSize: 14,
-                color: const Color(0xFF9E9E9E),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
               ),
               textAlign: TextAlign.center,
             ),

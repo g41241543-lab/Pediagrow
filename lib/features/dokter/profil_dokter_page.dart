@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/doctor_service.dart';
+import '../../core/services/local_push_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/doctor_model.dart';
@@ -178,7 +179,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -188,7 +189,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -210,7 +211,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -218,7 +219,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -237,7 +238,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -292,18 +293,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         } catch (_) {}
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Berhasil memperbarui foto profil',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-              ),
-              backgroundColor: const Color(0xFF16A34A),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          LocalPushService().show(
+            title: 'PediaGrow',
+            body: 'Berhasil memperbarui foto profil',
+            targetRole: PushRole.dokter,
           );
         }
       }
@@ -332,7 +325,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -341,7 +334,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -354,7 +347,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: const BorderSide(color: Color(0xFFD1D7DB)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -364,7 +357,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF475569),
+                            color: const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -522,7 +515,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       style: GoogleFonts.lato(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
@@ -663,7 +656,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -681,7 +674,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -691,7 +684,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -701,7 +694,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.0,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                 ),
               ],
@@ -836,7 +829,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
               ),
               Text(
@@ -846,7 +839,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
             ],
@@ -928,7 +921,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+          border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
           boxShadow: const [
             BoxShadow(
               color: Color(0x0A000000),
@@ -950,7 +943,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               child: const Icon(
                 Icons.apartment_rounded,
                 size: 20,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ),
             const SizedBox(width: 12),
@@ -959,7 +952,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 'Belum ada tempat praktik yang ditambahkan oleh Superadmin.',
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
             ),
@@ -973,7 +966,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -1017,7 +1010,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E293B),
+                          color: const Color(0xFF1A2228),
                         ),
                       ),
                     ),
@@ -1029,7 +1022,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   height: 1,
                   thickness: 1,
                   indent: 68,
-                  color: Color(0xFFF1F5F9),
+                  color: Color(0xFFE9EDEF),
                 ),
             ],
           );
@@ -1114,7 +1107,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

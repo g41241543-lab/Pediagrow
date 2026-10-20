@@ -1,7 +1,5 @@
-import 'dart:io';
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -68,8 +66,8 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
   String? _judulError;
 
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorDark = Color(0xFF0F172A);
-  static const Color _colorMuted = Color(0xFF94A3B8);
+  static const Color _colorDark = Color(0xFF0B1014);
+  static const Color _colorMuted = Color(0xFF8696A0);
   static const Color _colorGray = Color(0xFF7F7F7F);
   static const Color _colorGreen = Color(0xFF22C55E);
 
@@ -229,7 +227,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                   width: 40.0,
                   height: 4.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2.0),
                   ),
                 ),
@@ -269,7 +267,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1.0, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8.0),
@@ -770,7 +768,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                 hintText: '0',
                 hintStyle: GoogleFonts.lato(
                   fontSize: 14.0,
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   fontWeight: FontWeight.bold,
                 ),
                 border: InputBorder.none,
@@ -816,7 +814,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                   border: Border.all(
                     color: isSelected
                         ? _colorPrimaryBlue
-                        : const Color(0xFFCBD5E1),
+                        : const Color(0xFFD1D7DB),
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -913,7 +911,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFF1F5F9)),
+            border: Border.all(color: const Color(0xFFE9EDEF)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -959,7 +957,7 @@ class _EditResepMpasiPageState extends State<EditResepMpasiPage> {
                                   : '$hintText...',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 13.0,
-                                color: const Color(0xFFCBD5E1),
+                                color: const Color(0xFFD1D7DB),
                               ),
                               border: InputBorder.none,
                             ),
@@ -1183,7 +1181,7 @@ class _DashedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = const Color(0xFFD1D7DB)
       ..strokeWidth = 1.0;
     double x = 0;
     while (x < size.width) {

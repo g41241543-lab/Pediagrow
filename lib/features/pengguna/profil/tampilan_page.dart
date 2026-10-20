@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/theme_service.dart';
@@ -19,10 +19,10 @@ class TampilanPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
-    final headerTextColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF000000);
-    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final dividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -176,14 +176,14 @@ class _ThemeOptionCard extends StatelessWidget {
 
     final cardBg = isSelected
         ? (isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF))
-        : (isDark ? const Color(0xFF1E293B) : Colors.white);
+        : (isDark ? const Color(0xFF1A2228) : Colors.white);
 
     final borderColor = isSelected
         ? accent
-        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF));
 
-    final titleColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A);
-    final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+    final descColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
 
     return GestureDetector(
       onTap: () => ThemeService().setTheme(mode),
@@ -251,7 +251,7 @@ class _ThemeOptionCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? accent : (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+                  color: isSelected ? accent : (isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB)),
                   width: 2,
                 ),
                 color: isSelected ? accent : Colors.transparent,
@@ -305,10 +305,10 @@ class _PhonePreviewHalf extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = dark ? const Color(0xFF0F172A) : Colors.white;
+    final bg = dark ? const Color(0xFF0B1014) : Colors.white;
     final header = dark ? const Color(0xFF1565C0) : const Color(0xFF3985E7);
-    final card = dark ? const Color(0xFF1E293B) : const Color(0xFFECF6FF);
-    final line = dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final card = dark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF);
+    final line = dark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
     return Container(
       color: bg,
@@ -375,11 +375,11 @@ class _PhonePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = dark ? const Color(0xFF0F172A) : Colors.white;
+    final bg = dark ? const Color(0xFF0B1014) : Colors.white;
     final header = dark ? const Color(0xFF1565C0) : const Color(0xFF3985E7);
-    final card = dark ? const Color(0xFF1E293B) : const Color(0xFFECF6FF);
+    final card = dark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF);
     final card2 = dark ? const Color(0xFF1A2744) : const Color(0xFFF0FDF4);
-    final line = dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final line = dark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
     return Container(
       width: 64,
