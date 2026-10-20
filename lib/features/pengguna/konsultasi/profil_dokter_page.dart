@@ -1,12 +1,12 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
+import '../../../core/services/storage_service.dart';
 import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
@@ -49,105 +49,120 @@ class ProfilDokterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // -------------------------------------------------------------
-            // 1. HEADER (56dp)
-            // -------------------------------------------------------------
-            SizedBox(
-              height: 56,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.all(6.0),
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: Color(0xFF000000),
-                          size: 24,
+    // Bungkus dengan ValueListenableBuilder agar foto dokter
+    // otomatis sinkron saat dokter memperbarui foto profilnya.
+    return ValueListenableBuilder<List<DoctorModel>>(
+      valueListenable: DoctorService().doctorsNotifier,
+      builder: (context, doctors, _) {
+        // Cari dokter terkini dari DoctorService berdasarkan id atau nama
+        final liveDoctor = doctors.firstWhere(
+          (d) =>
+              d.id == doctor.id ||
+              (d.staffAccountId != null &&
+                  d.staffAccountId == doctor.staffAccountId) ||
+              d.name.trim().toLowerCase() ==
+                  doctor.name.trim().toLowerCase(),
+          orElse: () => doctor,
+        );
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // ---------------------------------------------------------
+                // 1. HEADER (56dp)
+                // ---------------------------------------------------------
+                SizedBox(
+                  height: 56,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(8),
+                          child: const Padding(
+                            padding: EdgeInsets.all(6.0),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: Color(0xFF000000),
+                              size: 24,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Profil Dokter Anak',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF000000),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Profil Dokter Anak',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF000000),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // -------------------------------------------------------------
-            // 2. KONTEN SCROLLABLE PROFIL DOKTER
-            // -------------------------------------------------------------
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
+                // ---------------------------------------------------------
+                // 2. KONTEN SCROLLABLE PROFIL DOKTER
+                // ---------------------------------------------------------
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 12),
 
-                    // Kartu Utama Dokter (Avatar Overlapping di bagian atas)
-                    _buildDoctorProfileCard(),
+                        // Kartu Utama Dokter
+                        _buildDoctorProfileCard(liveDoctor),
 
-                    const SizedBox(height: 28),
+                        const SizedBox(height: 28),
 
-                    // Judul Section: Tempat Praktik
-                    Text(
-                      'Tempat Praktik',
-                      style: GoogleFonts.lato(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF000000),
-                      ),
+                        Text(
+                          'Tempat Praktik',
+                          style: GoogleFonts.lato(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF000000),
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        _buildPracticeLocationsCard(),
+
+                        const SizedBox(height: 28),
+
+                        _buildJadwalPraktikSection(context),
+
+                        const SizedBox(height: 32),
+                      ],
                     ),
-
-                    const SizedBox(height: 14),
-
-                    // Kartu Daftar Tempat Praktik
-                    _buildPracticeLocationsCard(),
-
-                    const SizedBox(height: 28),
-
-                    // Section Jadwal Praktik Dokter Terintegrasi
-                    _buildJadwalPraktikSection(context),
-
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // -------------------------------------------------------------
-            // 3. BOTTOM BAR (Tombol Chat Dokter di Kanan)
-            // -------------------------------------------------------------
-            _buildBottomActionBar(context),
-          ],
-        ),
-      ),
+                // ---------------------------------------------------------
+                // 3. BOTTOM BAR
+                // ---------------------------------------------------------
+                _buildBottomActionBar(context),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   /// Kartu utama profil dokter dengan foto bundar overlapping di atas
-  Widget _buildDoctorProfileCard() {
+  Widget _buildDoctorProfileCard(DoctorModel liveDoctor) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -173,7 +188,7 @@ class ProfilDokterPage extends StatelessWidget {
             children: [
               // Nama Dokter (Lato Bold 18, #000000, Center)
               Text(
-                doctor.name,
+                liveDoctor.name,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 17,
@@ -186,7 +201,7 @@ class ProfilDokterPage extends StatelessWidget {
 
               // Spesialisasi (Lato 14, #64748B, Center)
               Text(
-                doctor.specialization,
+                liveDoctor.specialization,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
@@ -233,7 +248,7 @@ class ProfilDokterPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${doctor.experienceYears} tahun',
+                                '${liveDoctor.experienceYears} tahun',
                                 style: GoogleFonts.lato(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -280,7 +295,7 @@ class ProfilDokterPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                doctor.strNumber ?? '3511201402016252',
+                                liveDoctor.strNumber ?? '3511201402016252',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
@@ -319,7 +334,7 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipOval(child: _buildAvatarImage()),
+            child: ClipOval(child: _buildAvatarImage(liveDoctor)),
           ),
         ),
       ],
@@ -513,30 +528,27 @@ class ProfilDokterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatarImage() {
-    if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
-      return Image.asset(
-        doctor.assetImagePath!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
-      );
-    }
-    final url = doctor.avatarUrl;
+  /// Menampilkan foto dokter dari data live (DoctorService).
+  /// Mendukung Base64 Data URI, URL jaringan, dan path asset.
+  Widget _buildAvatarImage(DoctorModel liveDoctor) {
+    // Prioritaskan avatarUrl (diperbarui saat dokter mengganti foto profil)
+    final url = liveDoctor.avatarUrl;
     if (url != null && url.isNotEmpty) {
-      // Path file lokal (dari image_picker di sisi dokter/superadmin)
-      if (url.startsWith('/') || url.startsWith('file://')) {
-        final file = File(url.replaceFirst('file://', ''));
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
-        );
-      }
-      // URL jaringan
-      return Image.network(
+      return StorageService.buildImageWidget(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _fallbackAvatar(),
+        placeholder: _fallbackAvatar(),
+        errorWidget: _fallbackAvatar(),
+      );
+    }
+    // Fallback ke assetImagePath jika avatarUrl belum diatur
+    if (liveDoctor.assetImagePath != null &&
+        liveDoctor.assetImagePath!.isNotEmpty) {
+      return StorageService.buildImageWidget(
+        liveDoctor.assetImagePath,
+        fit: BoxFit.cover,
+        placeholder: _fallbackAvatar(),
+        errorWidget: _fallbackAvatar(),
       );
     }
     return _fallbackAvatar();

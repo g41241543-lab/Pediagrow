@@ -603,199 +603,48 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     final hasCustomName =
         _activeChild != null ||
         (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty);
-    final allChildren = ChildService().children;
-    final canSwitchChild = allChildren.length > 1;
 
-    return InkWell(
-      onTap: canSwitchChild ? _showChildPickerBottomSheet : null,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Avatar Anak Lingkaran Proporsional (Anti-peyang)
-            _buildChildAvatar(),
-            const SizedBox(width: 14),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Avatar Anak Lingkaran Proporsional (Anti-peyang)
+          _buildChildAvatar(),
+          const SizedBox(width: 14),
 
-            // Teks "Data Anak" dan Subtitle Dinamis
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: colorTextPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          // Teks "Data Anak" dan Subtitle Dinamis
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
+                  style: GoogleFonts.lato(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colorTextPrimary,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$_effectiveGender, $_effectiveAge',
-                    style: GoogleFonts.lato(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w500,
-                      color: colorTextSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$_effectiveGender, $_effectiveAge',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: colorTextSecondary,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            if (canSwitchChild)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: colorSoftBlue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Ganti',
-                      style: GoogleFonts.lato(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: colorPrimaryBlue,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 16,
-                      color: colorPrimaryBlue,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  void _showChildPickerBottomSheet() {
-    final allChildren = ChildService().children;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Pilih Anak untuk Konsultasi',
-                style: GoogleFonts.lato(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: colorTextPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ...allChildren.map((child) {
-                final isSelected = child.id == _activeChild?.id;
-                final isGirl = child.gender.toLowerCase().contains('perempuan');
-                return InkWell(
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _applyChildModel(child);
-                    ChildService().setActiveChild(child);
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isSelected ? colorSoftBlue : colorCardBg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? colorPrimaryBlue : colorBorder,
-                        width: isSelected ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: isGirl
-                              ? const Color(0xFFFFD1DC)
-                              : const Color(0xFFCCE4FF),
-                          child: Icon(
-                            Icons.child_care_rounded,
-                            color: isGirl
-                                ? const Color(0xFFF687B3)
-                                : const Color(0xFF63B3ED),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                child.name,
-                                style: GoogleFonts.lato(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorTextPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${child.gender}, ${child.ageDescription}',
-                                style: GoogleFonts.lato(
-                                  fontSize: 12,
-                                  color: colorTextSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          const Icon(
-                            Icons.check_circle_rounded,
-                            color: colorPrimaryBlue,
-                            size: 22,
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 12),
-            ],
-          ),
-        );
-      },
     );
   }
 

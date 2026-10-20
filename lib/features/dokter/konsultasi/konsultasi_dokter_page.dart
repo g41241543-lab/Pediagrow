@@ -1796,7 +1796,6 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
 
     return Container(
       width: double.infinity,
-      height: 68.0,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
@@ -1809,26 +1808,26 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedNavIndex;
-            final item = navItems[i];
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
+        child: SizedBox(
+          height: 60.0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(navItems.length, (i) {
+              final isSelected = i == _selectedNavIndex;
+              final item = navItems[i];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => _onNavTap(i),
+                  behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isSelected) ...[
                         Container(
-                          width: 36.0,
-                          height: 36.0,
+                          width: 32.0,
+                          height: 32.0,
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -1843,7 +1842,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                           alignment: Alignment.center,
                           child: Icon(
                             item.icon,
-                            size: 22.0,
+                            size: 19.0,
                             color: const Color(0xFF72A9F4),
                           ),
                         ),
@@ -1855,7 +1854,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                               item.label,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.lato(
-                                fontSize: 11.0,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
                                 color: const Color(0xFF1E293B),
                               ),
@@ -1865,7 +1864,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                       ] else ...[
                         Icon(
                           item.icon,
-                          size: 24.0,
+                          size: 21.0,
                           color: const Color(0xFF9E9E9E),
                         ),
                         const SizedBox(height: 3.0),
@@ -1878,7 +1877,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.lato(
-                                fontSize: 11.0,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
                                 color: const Color(0xFF9E9E9E),
                               ),
@@ -1889,9 +1888,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                     ],
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );

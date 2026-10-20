@@ -306,47 +306,70 @@ class _DaftarRiwayatKonsultasiAdminPageState
                 // ─── HEADER (56dp dari atas layar) ───────────────────────────
                 _buildHeader(),
 
-                // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
+                // ─── KONTEN SCROLLABLE ──────────────────────────────────────────
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12.0),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(minHeight: constraints.maxHeight),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 10.0),
 
-                        // 1. Baris Search Bar berdampingan dengan Tombol Filter Estetik
-                        // (mode dokter: hanya search bar, tanpa tombol filter)
-                        _isDoctorMode
-                            ? _buildSearchBarOnly()
-                            : _buildSearchAndFilterRow(doctorOptions.toList()),
+                                      // 1. Baris Search Bar berdampingan dengan Tombol Filter Estetik
+                                      // (mode dokter: hanya search bar, tanpa tombol filter)
+                                      _isDoctorMode
+                                          ? _buildSearchBarOnly()
+                                          : _buildSearchAndFilterRow(
+                                              doctorOptions.toList()),
 
-                        // 2. Chip status dokter aktif (mode admin saja)
-                        if (!_isDoctorMode) _buildActiveDoctorFilterChip(),
-                        const SizedBox(height: 16.0),
+                                      // 2. Chip status dokter aktif (mode admin saja)
+                                      if (!_isDoctorMode)
+                                        _buildActiveDoctorFilterChip(),
+                                      const SizedBox(height: 10.0),
 
-                        // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
-                        if (isLoading)
-                          _buildLoadingState()
-                        else if (hasError)
-                          _buildErrorState(snapshot.error.toString())
-                        else if (filtered.isEmpty)
-                          _buildEmptyState()
-                        else
-                          _buildConsultationList(filtered),
+                                      // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
+                                      if (isLoading)
+                                        _buildLoadingState()
+                                      else if (hasError)
+                                        _buildErrorState(
+                                            snapshot.error.toString())
+                                      else if (filtered.isEmpty)
+                                        _buildEmptyState()
+                                      else
+                                        _buildConsultationList(filtered),
 
-                        const SizedBox(height: 18.0),
+                                      const SizedBox(height: 14.0),
 
-                        // 4. Banner Keterangan di BAGIAN BAWAH (persis sesuai referensi desain slide 1)
-                        _isDoctorMode
-                            ? _buildDoctorInfoBanner()
-                            : _buildInfoBanner(),
+                                      // 4. Banner Keterangan di BAGIAN BAWAH
+                                      _isDoctorMode
+                                          ? _buildDoctorInfoBanner()
+                                          : _buildInfoBanner(),
+                                    ],
+                                  ),
+                                ),
 
-                        const SizedBox(height: 24.0),
-                        _buildFooterIllustration(),
-                      ],
-                    ),
+                                const Spacer(),
+                                const SizedBox(height: 14.0),
+                                _buildFooterIllustration(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -1145,7 +1168,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
     return Container(
       width: double.infinity,
-      height: 68.0,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
@@ -1158,19 +1180,19 @@ class _DaftarRiwayatKonsultasiAdminPageState
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedNavIndex;
-            final item = navItems[i];
+        child: SizedBox(
+          height: 60.0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(navItems.length, (i) {
+              final isSelected = i == _selectedNavIndex;
+              final item = navItems[i];
 
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => _onBottomNavTap(i),
+                  behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
@@ -1178,8 +1200,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       if (isSelected) ...[
                         // Lingkaran putih timbul di belakang ikon aktif biru
                         Container(
-                          width: 36.0,
-                          height: 36.0,
+                          width: 32.0,
+                          height: 32.0,
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -1194,7 +1216,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                           alignment: Alignment.center,
                           child: Icon(
                             item.icon,
-                            size: 22.0,
+                            size: 19.0,
                             color: _colorActiveBlue,
                           ),
                         ),
@@ -1206,7 +1228,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                               item.label,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.lato(
-                                fontSize: 11.0,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
                                 color: _colorTextBlack,
                               ),
@@ -1216,7 +1238,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       ] else ...[
                         Icon(
                           item.icon,
-                          size: 24.0,
+                          size: 21.0,
                           color: _colorInactiveNav,
                         ),
                         const SizedBox(height: 3.0),
@@ -1229,7 +1251,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.lato(
-                                fontSize: 11.0,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
                                 color: _colorInactiveNav,
                               ),
@@ -1240,9 +1262,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     ],
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );

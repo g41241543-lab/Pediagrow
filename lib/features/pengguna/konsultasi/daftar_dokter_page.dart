@@ -1320,19 +1320,26 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   }
 
   Widget _buildAvatar(DoctorModel doctor) {
-    if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
-      return Image.asset(
-        doctor.assetImagePath!,
+    // Prioritaskan avatarUrl (foto yang diperbarui dokter secara real-time)
+    final url = doctor.avatarUrl;
+    if (url != null && url.isNotEmpty) {
+      return StorageService.buildImageWidget(
+        url,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _fallbackAvatar(),
+        placeholder: _fallbackAvatar(),
+        errorWidget: _fallbackAvatar(),
       );
     }
-    return StorageService.buildImageWidget(
-      doctor.avatarUrl,
-      fit: BoxFit.cover,
-      placeholder: _fallbackAvatar(),
-      errorWidget: _fallbackAvatar(),
-    );
+    // Fallback ke assetImagePath bawaan jika avatarUrl kosong
+    if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
+      return StorageService.buildImageWidget(
+        doctor.assetImagePath,
+        fit: BoxFit.cover,
+        placeholder: _fallbackAvatar(),
+        errorWidget: _fallbackAvatar(),
+      );
+    }
+    return _fallbackAvatar();
   }
 
   Widget _fallbackAvatar() {

@@ -136,8 +136,11 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       (resumes) {
         if (!mounted) return;
 
-        // 1. Filter resume medis secara akurat sesuai anak yang dipilih
+        // 1. Filter resume medis secara akurat sesuai anak yang dipilih dan berstatus selesai
         final filteredResumes = resumes.where((r) {
+          final isCompleted = r.status.toLowerCase().trim() == 'selesai';
+          if (!isCompleted) return false;
+
           if (targetChild == null) return true;
           final matchesId = r.childId.isNotEmpty && r.childId == targetChild.id;
           final matchesName =
@@ -145,9 +148,12 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
           return matchesId || matchesName;
         }).toList();
 
-        // 2. Ambil data dari BookingService untuk anak yang bersangkutan
+        // 2. Ambil data dari BookingService untuk anak yang bersangkutan (hanya yang statusnya selesai)
         final allBookings = BookingService().bookingsNotifier.value;
         final filteredBookings = allBookings.where((b) {
+          final isCompleted = b.status.toLowerCase().trim() == 'selesai';
+          if (!isCompleted) return false;
+
           if (targetChild != null) {
             final matchesId =
                 b.child.id.isNotEmpty && b.child.id == targetChild.id;
