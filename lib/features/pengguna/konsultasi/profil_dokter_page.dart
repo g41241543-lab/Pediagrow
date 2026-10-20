@@ -50,7 +50,6 @@ class ProfilDokterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     // Bungkus dengan ValueListenableBuilder agar foto dokter
     // otomatis sinkron saat dokter memperbarui foto profilnya.
     return ValueListenableBuilder<List<DoctorModel>>(
@@ -105,46 +104,6 @@ class ProfilDokterPage extends StatelessWidget {
                               color: const Color(0xFF000000),
                             ),
                           ),
-=======
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // -------------------------------------------------------------
-            // 1. HEADER (56dp)
-            // -------------------------------------------------------------
-            SizedBox(
-              height: 56,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(6.0),
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: isDark ? Colors.white : const Color(0xFF000000),
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Profil Dokter Anak',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
                         ),
                       ],
                     ),
@@ -163,17 +122,11 @@ class ProfilDokterPage extends StatelessWidget {
                       children: [
                         const SizedBox(height: 12),
 
-<<<<<<< HEAD
                         // Kartu Utama Dokter
                         _buildDoctorProfileCard(liveDoctor),
-=======
-                    // Kartu Utama Dokter (Avatar Overlapping di bagian atas)
-                    _buildDoctorProfileCard(isDark),
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
 
                         const SizedBox(height: 28),
 
-<<<<<<< HEAD
                         Text(
                           'Tempat Praktik',
                           style: GoogleFonts.lato(
@@ -195,33 +148,8 @@ class ProfilDokterPage extends StatelessWidget {
                       ],
                     ),
                   ),
-=======
-                    // Judul Section: Tempat Praktik
-                    Text(
-                      'Tempat Praktik',
-                      style: GoogleFonts.lato(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // Kartu Daftar Tempat Praktik
-                    _buildPracticeLocationsCard(isDark),
-
-                    const SizedBox(height: 28),
-
-                    // Section Jadwal Praktik Dokter Terintegrasi
-                    _buildJadwalPraktikSection(context, isDark),
-
-                    const SizedBox(height: 32),
-                  ],
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
                 ),
 
-<<<<<<< HEAD
                 // ---------------------------------------------------------
                 // 3. BOTTOM BAR
                 // ---------------------------------------------------------
@@ -231,24 +159,11 @@ class ProfilDokterPage extends StatelessWidget {
           ),
         );
       },
-=======
-            // -------------------------------------------------------------
-            // 3. BOTTOM BAR (Tombol Chat Dokter di Kanan)
-            // -------------------------------------------------------------
-            _buildBottomActionBar(context, isDark),
-          ],
-        ),
-      ),
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
     );
   }
 
   /// Kartu utama profil dokter dengan foto bundar overlapping di atas
-<<<<<<< HEAD
   Widget _buildDoctorProfileCard(DoctorModel liveDoctor) {
-=======
-  Widget _buildDoctorProfileCard(bool isDark) {
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
