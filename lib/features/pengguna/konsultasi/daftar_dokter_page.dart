@@ -102,7 +102,6 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-
   void _navigateToNotification() {
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -116,13 +115,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0B1014) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       resizeToAvoidBottomInset: false,
       body: PopScope(
         canPop: false,
@@ -212,7 +209,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1A2228)
+                              : Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: isDark
@@ -231,7 +230,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                         alignment: Alignment.center,
                         child: Icon(
                           Icons.notifications_none_rounded,
-                          color: isDark ? const Color(0xFFD1D7DB) : _colorTextBlack,
+                          color: isDark
+                              ? const Color(0xFFD1D7DB)
+                              : _colorTextBlack,
                           size: 19,
                         ),
                       ),
@@ -293,7 +294,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
           fontWeight: FontWeight.w500,
         ),
         labelColor: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-        unselectedLabelColor: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+        unselectedLabelColor: isDark
+            ? const Color(0xFF8696A0)
+            : _colorLabelGrey,
         tabs: [
           Tab(
             height: 48,
@@ -335,7 +338,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             .toSet();
 
                         final myBookings = allBookings.where((booking) {
-                          final isChildMatch = userChildIds.contains(booking.child.id) ||
+                          final isChildMatch =
+                              userChildIds.contains(booking.child.id) ||
                               userChildNames.contains(
                                 booking.child.name.toLowerCase().trim(),
                               );
@@ -346,7 +350,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                         final seen = <String>{};
                         final uniqueBookings = <BookingConsultationModel>[];
                         for (final b in myBookings) {
-                          final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                          final slotKey =
+                              '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
                           if (seen.add(b.id) && seen.add(slotKey)) {
                             uniqueBookings.add(b);
                           }
@@ -422,13 +427,16 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Builder(
                         builder: (context) {
-                          final isDark = Theme.of(context).brightness == Brightness.dark;
+                          final isDark =
+                              Theme.of(context).brightness == Brightness.dark;
                           return Text(
                             'Dokter Tersedia',
                             style: GoogleFonts.lato(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : _colorTextBlack,
                             ),
                           );
                         },
@@ -621,8 +629,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                       width: 58,
                       height: 58,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFECF6FF),
-                        borderRadius: BorderRadius.circular(16),
+                        color: isDark
+                            ? const Color(0xFF0B1014)
+                            : const Color(0xFFECF6FF),
+                        shape: BoxShape
+                            .circle, // ← ganti borderRadius menjadi circle
                         border: Border.all(
                           color: isDark
                               ? const Color(0xFF3985E7).withValues(alpha: 0.4)
@@ -648,7 +659,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             style: GoogleFonts.lato(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : _colorTextBlack,
                             ),
                           ),
                           const SizedBox(height: 3),
@@ -704,7 +717,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                   child: Divider(
                     height: 1,
                     thickness: 1,
-                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                    color: isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFE9EDEF),
                   ),
                 ),
                 Row(
@@ -834,7 +849,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               .toSet();
 
                           final myBookings = allBookings.where((booking) {
-                            final isChildMatch = userChildIds.contains(booking.child.id) ||
+                            final isChildMatch =
+                                userChildIds.contains(booking.child.id) ||
                                 userChildNames.contains(
                                   booking.child.name.toLowerCase().trim(),
                                 );
@@ -845,7 +861,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                           final seen = <String>{};
                           final uniqueBookings = <BookingConsultationModel>[];
                           for (final b in myBookings) {
-                            final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                            final slotKey =
+                                '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
                             if (seen.add(b.id) && seen.add(slotKey)) {
                               uniqueBookings.add(b);
                             }
@@ -853,11 +870,19 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
 
                           // Urutkan jadwal: yang sedang berlangsung di paling atas, disusul tanggal & jam terdekat
                           uniqueBookings.sort((a, b) {
-                            final aActive = (a.isInTimeWindow || a.status == 'Sedang Berlangsung') && !a.isExpired;
-                            final bActive = (b.isInTimeWindow || b.status == 'Sedang Berlangsung') && !b.isExpired;
+                            final aActive =
+                                (a.isInTimeWindow ||
+                                    a.status == 'Sedang Berlangsung') &&
+                                !a.isExpired;
+                            final bActive =
+                                (b.isInTimeWindow ||
+                                    b.status == 'Sedang Berlangsung') &&
+                                !b.isExpired;
                             if (aActive && !bActive) return -1;
                             if (!aActive && bActive) return 1;
-                            return a.scheduledStartDateTime.compareTo(b.scheduledStartDateTime);
+                            return a.scheduledStartDateTime.compareTo(
+                              b.scheduledStartDateTime,
+                            );
                           });
 
                           if (uniqueBookings.isEmpty) {
@@ -1023,7 +1048,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                                   style: GoogleFonts.lato(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                                    color: isDark
+                                        ? const Color(0xFFE9EDEF)
+                                        : _colorTextBlack,
                                   ),
                                 ),
                               ),
@@ -1155,7 +1182,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               Divider(
                 height: 1,
                 thickness: 1,
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
               ),
 
               // ── Baris Bawah: Dokter & Tombol Detail ────────────────────────────
@@ -1194,7 +1223,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   }
 
   Widget _buildBookingActionButton(BookingConsultationModel booking) {
-    final bool isReady = booking.isInTimeWindow || booking.status == 'Sedang Berlangsung';
+    final bool isReady =
+        booking.isInTimeWindow || booking.status == 'Sedang Berlangsung';
     final bool isExpired = booking.isExpired;
 
     String text;
@@ -1259,9 +1289,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   void _onAksiBookingPressed(BookingConsultationModel booking) {
     if (booking.isExpired) {
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => StatusBookingPage(booking: booking),
-        ),
+        MaterialPageRoute(builder: (_) => StatusBookingPage(booking: booking)),
       );
       return;
     }
@@ -1281,8 +1309,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         );
       } else {
         // Jika sudah pernah mengisi formulir konsultasi, langsung masuk ke ruang obrolan dokter
-        final effectiveSessionId =
-            booking.sessionId ?? 'session_${booking.id}';
+        final effectiveSessionId = booking.sessionId ?? 'session_${booking.id}';
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => ChatKonsultasiPage(
@@ -1300,9 +1327,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     } else {
       // Belum waktu jadwalnya: buka halaman detail & status booking
       Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => StatusBookingPage(booking: booking),
-        ),
+        MaterialPageRoute(builder: (_) => StatusBookingPage(booking: booking)),
       );
     }
   }
@@ -1354,19 +1379,26 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   }
 
   Widget _buildAvatar(DoctorModel doctor) {
-    if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
-      return Image.asset(
-        doctor.assetImagePath!,
+    // Prioritaskan avatarUrl (foto yang diperbarui dokter secara real-time)
+    final url = doctor.avatarUrl;
+    if (url != null && url.isNotEmpty) {
+      return StorageService.buildImageWidget(
+        url,
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _fallbackAvatar(),
+        placeholder: _fallbackAvatar(),
+        errorWidget: _fallbackAvatar(),
       );
     }
-    return StorageService.buildImageWidget(
-      doctor.avatarUrl,
-      fit: BoxFit.cover,
-      placeholder: _fallbackAvatar(),
-      errorWidget: _fallbackAvatar(),
-    );
+    // Fallback ke assetImagePath bawaan jika avatarUrl kosong
+    if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
+      return StorageService.buildImageWidget(
+        doctor.assetImagePath,
+        fit: BoxFit.cover,
+        placeholder: _fallbackAvatar(),
+        errorWidget: _fallbackAvatar(),
+      );
+    }
+    return _fallbackAvatar();
   }
 
   Widget _fallbackAvatar() {
@@ -1427,7 +1459,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               color: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
               shape: BoxShape.circle,
               border: Border.all(
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
                 width: 1,
               ),
             ),

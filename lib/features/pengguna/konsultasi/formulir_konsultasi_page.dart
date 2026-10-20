@@ -602,9 +602,41 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     final hasCustomName =
         _activeChild != null ||
         (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty);
-    final allChildren = ChildService().children;
-    final canSwitchChild = allChildren.length > 1;
 
+<<<<<<< HEAD
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Avatar Anak Lingkaran Proporsional (Anti-peyang)
+          _buildChildAvatar(),
+          const SizedBox(width: 14),
+
+          // Teks "Data Anak" dan Subtitle Dinamis
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
+                  style: GoogleFonts.lato(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colorTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$_effectiveGender, $_effectiveAge',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: colorTextSecondary,
+=======
     return InkWell(
       onTap: canSwitchChild ? () => _showChildPickerBottomSheet(isDark) : null,
       borderRadius: BorderRadius.circular(12),
@@ -643,10 +675,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+>>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
+<<<<<<< HEAD
+          ),
+        ],
+=======
             if (canSwitchChild)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -680,10 +719,13 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
               ),
           ],
         ),
+>>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
       ),
     );
   }
 
+<<<<<<< HEAD
+=======
   void _showChildPickerBottomSheet(bool isDark) {
     final allChildren = ChildService().children;
     showModalBottomSheet(
@@ -809,6 +851,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     );
   }
 
+>>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
   Widget _buildChildAvatar() {
     const double size = 48;
     final isGirl = _effectiveGender.toLowerCase().contains('perempuan');
