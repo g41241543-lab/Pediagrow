@@ -5,7 +5,6 @@ import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
-import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/storage_service.dart';
 import 'booking_konsultasi_page.dart';
@@ -50,62 +49,6 @@ class ProfilDokterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    // Bungkus dengan ValueListenableBuilder agar foto dokter
-    // otomatis sinkron saat dokter memperbarui foto profilnya.
-    return ValueListenableBuilder<List<DoctorModel>>(
-      valueListenable: DoctorService().doctorsNotifier,
-      builder: (context, doctors, _) {
-        // Cari dokter terkini dari DoctorService berdasarkan id atau nama
-        final liveDoctor = doctors.firstWhere(
-          (d) =>
-              d.id == doctor.id ||
-              (d.staffAccountId != null &&
-                  d.staffAccountId == doctor.staffAccountId) ||
-              d.name.trim().toLowerCase() ==
-                  doctor.name.trim().toLowerCase(),
-          orElse: () => doctor,
-        );
-
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Column(
-              children: [
-                // ---------------------------------------------------------
-                // 1. HEADER (56dp)
-                // ---------------------------------------------------------
-                SizedBox(
-                  height: 56,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        InkWell(
-                          onTap: () => Navigator.of(context).pop(),
-                          borderRadius: BorderRadius.circular(8),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6.0),
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: Color(0xFF000000),
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Profil Dokter Anak',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF000000),
-                            ),
-                          ),
-=======
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -144,58 +87,31 @@ class ProfilDokterPage extends StatelessWidget {
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+              ),
+            ),
 
-                // ---------------------------------------------------------
-                // 2. KONTEN SCROLLABLE PROFIL DOKTER
-                // ---------------------------------------------------------
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12),
+            // -------------------------------------------------------------
+            // 2. KONTEN SCROLLABLE PROFIL DOKTER
+            // -------------------------------------------------------------
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
 
-<<<<<<< HEAD
-                        // Kartu Utama Dokter
-                        _buildDoctorProfileCard(liveDoctor),
-=======
                     // Kartu Utama Dokter (Avatar Overlapping di bagian atas)
                     _buildDoctorProfileCard(isDark),
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
 
-                        const SizedBox(height: 28),
+                    const SizedBox(height: 28),
 
-<<<<<<< HEAD
-                        Text(
-                          'Tempat Praktik',
-                          style: GoogleFonts.lato(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF000000),
-                          ),
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        _buildPracticeLocationsCard(),
-
-                        const SizedBox(height: 28),
-
-                        _buildJadwalPraktikSection(context),
-
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-=======
                     // Judul Section: Tempat Praktik
                     Text(
                       'Tempat Praktik',
@@ -218,20 +134,10 @@ class ProfilDokterPage extends StatelessWidget {
 
                     const SizedBox(height: 32),
                   ],
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
                 ),
-
-<<<<<<< HEAD
-                // ---------------------------------------------------------
-                // 3. BOTTOM BAR
-                // ---------------------------------------------------------
-                _buildBottomActionBar(context),
-              ],
+              ),
             ),
-          ),
-        );
-      },
-=======
+
             // -------------------------------------------------------------
             // 3. BOTTOM BAR (Tombol Chat Dokter di Kanan)
             // -------------------------------------------------------------
@@ -239,16 +145,11 @@ class ProfilDokterPage extends StatelessWidget {
           ],
         ),
       ),
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
     );
   }
 
   /// Kartu utama profil dokter dengan foto bundar overlapping di atas
-<<<<<<< HEAD
-  Widget _buildDoctorProfileCard(DoctorModel liveDoctor) {
-=======
   Widget _buildDoctorProfileCard(bool isDark) {
->>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -277,7 +178,7 @@ class ProfilDokterPage extends StatelessWidget {
             children: [
               // Nama Dokter (Lato Bold 18, Center)
               Text(
-                liveDoctor.name,
+                doctor.name,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 17,
@@ -290,7 +191,7 @@ class ProfilDokterPage extends StatelessWidget {
 
               // Spesialisasi (Lato 14, Center)
               Text(
-                liveDoctor.specialization,
+                doctor.specialization,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
@@ -337,7 +238,7 @@ class ProfilDokterPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${liveDoctor.experienceYears} tahun',
+                                '${doctor.experienceYears} tahun',
                                 style: GoogleFonts.lato(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -384,7 +285,7 @@ class ProfilDokterPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                liveDoctor.strNumber ?? '3511201402016252',
+                                doctor.strNumber ?? '3511201402016252',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
@@ -426,7 +327,7 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipOval(child: _buildAvatarImage(liveDoctor)),
+            child: ClipOval(child: _buildAvatarImage(doctor)),
           ),
         ),
       ],
