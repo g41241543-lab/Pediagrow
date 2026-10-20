@@ -131,6 +131,7 @@ class _LoginPageState extends State<LoginPage> {
 
       UserService().logout(); // pastikan tidak ada sesi pengguna yang tersisa
       await SessionService().saveStaffSession(staff);
+      if (!mounted) return;
 
       // Arahkan setiap role ke beranda yang sesuai.
       Widget destination;
@@ -178,6 +179,8 @@ class _LoginPageState extends State<LoginPage> {
     await SessionService().savePenggunaSession(
       userId: UserService().currentUser.id,
     );
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

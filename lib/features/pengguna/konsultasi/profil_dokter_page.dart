@@ -50,6 +50,7 @@ class ProfilDokterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Bungkus dengan ValueListenableBuilder agar foto dokter
     // otomatis sinkron saat dokter memperbarui foto profilnya.
     return ValueListenableBuilder<List<DoctorModel>>(
@@ -59,15 +60,13 @@ class ProfilDokterPage extends StatelessWidget {
         final liveDoctor = doctors.firstWhere(
           (d) =>
               d.id == doctor.id ||
-              (d.staffAccountId != null &&
-                  d.staffAccountId == doctor.staffAccountId) ||
               d.name.trim().toLowerCase() ==
                   doctor.name.trim().toLowerCase(),
           orElse: () => doctor,
         );
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
           body: SafeArea(
             child: Column(
               children: [
@@ -83,11 +82,11 @@ class ProfilDokterPage extends StatelessWidget {
                         InkWell(
                           onTap: () => Navigator.of(context).pop(),
                           borderRadius: BorderRadius.circular(8),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6.0),
                             child: Icon(
                               Icons.arrow_back,
-                              color: Color(0xFF000000),
+                              color: isDark ? Colors.white : const Color(0xFF000000),
                               size: 24,
                             ),
                           ),
@@ -101,7 +100,7 @@ class ProfilDokterPage extends StatelessWidget {
                             style: GoogleFonts.lato(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF000000),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                             ),
                           ),
                         ),
@@ -123,7 +122,7 @@ class ProfilDokterPage extends StatelessWidget {
                         const SizedBox(height: 12),
 
                         // Kartu Utama Dokter
-                        _buildDoctorProfileCard(liveDoctor),
+                        _buildDoctorProfileCard(liveDoctor, isDark),
 
                         const SizedBox(height: 28),
 
@@ -132,17 +131,17 @@ class ProfilDokterPage extends StatelessWidget {
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF000000),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                           ),
                         ),
 
                         const SizedBox(height: 14),
 
-                        _buildPracticeLocationsCard(),
+                        _buildPracticeLocationsCard(isDark),
 
                         const SizedBox(height: 28),
 
-                        _buildJadwalPraktikSection(context),
+                        _buildJadwalPraktikSection(context, isDark),
 
                         const SizedBox(height: 32),
                       ],
@@ -153,7 +152,7 @@ class ProfilDokterPage extends StatelessWidget {
                 // ---------------------------------------------------------
                 // 3. BOTTOM BAR
                 // ---------------------------------------------------------
-                _buildBottomActionBar(context),
+                _buildBottomActionBar(context, isDark),
               ],
             ),
           ),
@@ -163,7 +162,7 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Kartu utama profil dokter dengan foto bundar overlapping di atas
-  Widget _buildDoctorProfileCard(DoctorModel liveDoctor) {
+  Widget _buildDoctorProfileCard(DoctorModel liveDoctor, bool isDark) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
