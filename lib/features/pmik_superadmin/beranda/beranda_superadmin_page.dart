@@ -1403,12 +1403,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         );
         break;
       case 2:
-        _handleMenuTap(
-          permissionKey: 'riwayat_konsultasi',
-          featureName: 'Riwayat Konsultasi',
-          onAllowed: () =>
-              _navigateTo(const DaftarRiwayatKonsultasiAdminPage()),
-        );
+        _navigateTo(const DaftarRiwayatKonsultasiAdminPage());
         break;
       case 3:
         _handleMenuTap(

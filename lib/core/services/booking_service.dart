@@ -553,6 +553,18 @@ class BookingService {
     });
   }
 
+  /// Membatalkan booking konsultasi dan menyelaraskannya ke Firestore serta notifier
+  Future<void> cancelBooking(String bookingId) async {
+    updateBookingStatus(bookingId, 'Dibatalkan');
+    try {
+      await _db.collection(_collectionName).doc(bookingId).delete();
+      debugPrint('[BookingService] Sukses menghapus booking $bookingId yang dibatalkan');
+    } catch (e) {
+      debugPrint('[BookingService] Gagal menghapus booking dari Firestore: $e');
+    }
+  }
+
+
   /// Format URL Google Calendar (Render Template Action)
   /// Menyertakan nama dokter, nama anak, waktu janji temu, dan pengingat
   String generateGoogleCalendarUrl({

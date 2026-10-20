@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/doctor_service.dart';
+import '../../core/services/jadwal_dokter_service.dart';
 import '../../core/services/local_push_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/storage_service.dart';
@@ -12,6 +13,7 @@ import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_dokter_page.dart';
+import 'jadwal/atur_jadwal_dokter_page.dart';
 import 'konsultasi/konsultasi_dokter_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
@@ -523,10 +525,83 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 const SizedBox(height: 12.0),
                 _buildPracticeLocationsCard(),
 
+                const SizedBox(height: 24.0),
+
+                // 3. JADWAL PRAKTIK MINGGUAN
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.schedule_rounded,
+                            color: Color(0xFF3985E7),
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Jadwal Praktik',
+                          style: GoogleFonts.lato(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0B1014),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AturJadwalDokterPage(
+                            dokterId: _doctorModel?.id ?? _dokter?.id,
+                            doctorName: _doctorModel?.name ?? _dokter?.name,
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_rounded,
+                                size: 14, color: Color(0xFF3985E7)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Atur Jadwal',
+                              style: GoogleFonts.lato(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF3985E7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                _buildJadwalPraktikCard(),
+
                 const SizedBox(height: 20.0),
 
                 // 4. INFORMASI DIUBAH HANYA OLEH SUPERADMIN (Gaya PMIK Admin)
                 _buildSuperadminEditNotice(),
+
 
                 const SizedBox(height: 24.0),
 
@@ -1031,6 +1106,140 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
+  // ─── JADWAL PRAKTIK CARD (read-only, Halodoc style) ─────────────────────
+  Widget _buildJadwalPraktikCard() {
+    final doctorId = _doctorModel?.id ?? _dokter?.id ?? '';
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        JadwalDokterService().jadwalListNotifier,
+        JadwalDokterService().cutiListNotifier,
+      ]),
+      builder: (context, _) {
+        final jadwalMingguan = JadwalDokterService().getJadwalDokter(doctorId);
+        final List<_HariJadwalDokter> hariAktif = [];
+        for (int d = 1; d <= 7; d++) {
+          final sessions = jadwalMingguan.where((j) => j.hari == d && j.aktif).toList();
+          if (sessions.isNotEmpty) hariAktif.add(_HariJadwalDokter(hari: d, sessions: sessions));
+        }
+        final todayWeekday = DateTime.now().weekday;
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+            boxShadow: const [
+              BoxShadow(color: Color(0x0A000000), blurRadius: 12.0, offset: Offset(0, 2)),
+            ],
+          ),
+          child: hariAktif.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.event_busy_outlined, size: 38, color: Color(0xFFD1D5DB)),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Belum ada jadwal praktik',
+                        style: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF8696A0)),
+                      ),
+                      const SizedBox(height: 4),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AturJadwalDokterPage(
+                              dokterId: _doctorModel?.id ?? _dokter?.id,
+                              doctorName: _doctorModel?.name ?? _dokter?.name,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'Tap "Atur Jadwal" untuk menambahkan jadwal.',
+                          style: GoogleFonts.lato(fontSize: 12.5, color: const Color(0xFF3985E7)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: List.generate(hariAktif.length, (idx) {
+                    final item = hariAktif[idx];
+                    final isLast = idx == hariAktif.length - 1;
+                    final isToday = item.hari == todayWeekday;
+                    final namaHari = JadwalPraktikModel.getNamaHari(item.hari);
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 80,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 8, height: 8,
+                                      margin: const EdgeInsets.only(top: 4),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isToday ? const Color(0xFF3985E7) : const Color(0xFF10B981),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        namaHari,
+                                        style: GoogleFonts.lato(
+                                          fontSize: 13.5,
+                                          fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+                                          color: isToday ? const Color(0xFF3985E7) : const Color(0xFF1A2228),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Wrap(
+                                  spacing: 8, runSpacing: 6,
+                                  children: item.sessions.map((s) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: isToday ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isToday ? const Color(0xFF93C5FD) : const Color(0xFFD1D5DB), width: 1),
+                                      ),
+                                      child: Text(
+                                        '${s.jamMulai}–${s.jamSelesai}',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 12, fontWeight: FontWeight.w600,
+                                          color: isToday ? const Color(0xFF2563EB) : const Color(0xFF374151),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!isLast)
+                          const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16, color: Color(0xFFF1F5F9)),
+                      ],
+                    );
+                  }),
+                ),
+        );
+      },
+    );
+  }
+
   // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
   Widget _buildBottomNavigationBar() {
     final navItems = [
@@ -1152,4 +1361,10 @@ class _NavItem {
   final IconData icon;
   final String label;
   const _NavItem({required this.icon, required this.label});
+}
+
+class _HariJadwalDokter {
+  final int hari;
+  final List<JadwalPraktikModel> sessions;
+  const _HariJadwalDokter({required this.hari, required this.sessions});
 }

@@ -37,8 +37,12 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   String? _errorMessage;
 
   ChildModel? _activeChild;
-  bool _showAllChildren = false;
+  bool _showAllChildren = true;
   StreamSubscription<List<ResumeMedisModel>>? _resumeSub;
+
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -56,6 +60,8 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
   @override
   void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     if (widget.initialRiwayatList == null) {
       ChildService().activeChildNotifier.removeListener(_onActiveChildChanged);
       ChildService().childrenNotifier.removeListener(_onChildrenChanged);
@@ -347,6 +353,20 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                ).copyWith(
+                  overlayColor: WidgetStateProperty.resolveWith((s) {
+                    if (s.contains(WidgetState.pressed)) {
+                      return Colors.black.withValues(alpha: 0.12);
+                    }
+                    if (s.contains(WidgetState.hovered)) {
+                      return Colors.black.withValues(alpha: 0.10);
+                    }
+                    return null;
+                  }),
+                  mouseCursor: WidgetStateProperty.resolveWith((s) =>
+                      s.contains(WidgetState.disabled)
+                          ? SystemMouseCursors.forbidden
+                          : SystemMouseCursors.click),
                 ),
                 child: Text(
                   'Coba Lagi',
@@ -367,11 +387,24 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       return _buildNoChildView(isDark);
     }
 
-    if (_riwayatList.isEmpty) {
-      return _buildEmptyView();
+    if (_riwayatList.isEmpty && _searchQuery.isEmpty) {
+      return _buildEmptyView(isDark);
     }
 
-    return _buildPopulatedView();
+    return _buildPopulatedView(isDark);
+  }
+
+  List<RiwayatKonsultasiModel> get _displayedRiwayatList {
+    if (_searchQuery.trim().isEmpty) return _riwayatList;
+    final q = _searchQuery.trim().toLowerCase();
+    return _riwayatList.where((item) {
+      final childMatch = item.childName.toLowerCase().contains(q);
+      final docMatch = item.doctorName.toLowerCase().contains(q);
+      final compMatch = item.complaint.toLowerCase().contains(q);
+      final specMatch = item.doctorSpecialization.toLowerCase().contains(q);
+      final dateMatch = item.formattedDate.toLowerCase().contains(q);
+      return childMatch || docMatch || compMatch || specMatch || dateMatch;
+    }).toList();
   }
 
   /// Tampilan ketika belum ada profil anak terdaftar
@@ -441,7 +474,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   }
 
   /// Tampilan Empty State ketika belum terdapat riwayat konsultasi
-  Widget _buildEmptyView() {
+  Widget _buildEmptyView(bool isDark) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -452,7 +485,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildChildSelector(),
+                  _buildSearchBarAndFilter(isDark),
                   const Expanded(child: Center(child: RiwayatEmptyState())),
                   _buildFooterIllustration(),
                 ],
@@ -465,7 +498,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   }
 
   /// Tampilan Daftar Kartu Konsultasi ketika data tersedia
-  Widget _buildPopulatedView() {
+  Widget _buildPopulatedView(bool isDark) {
+    final displayed = _displayedRiwayatList;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -476,19 +511,51 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildChildSelector(),
+                  _buildSearchBarAndFilter(isDark),
 
-                  const SizedBox(height: 4.0),
+                  const SizedBox(height: 10.0),
 
-                  ..._riwayatList.map((item) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: RiwayatConsultationCard(
-                        riwayat: item,
-                        onTap: () => _navigateToDetail(item),
+                  if (displayed.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.search_off_rounded,
+                                size: 48,
+                                color: isDark
+                                    ? const Color(0xFF8696A0)
+                                    : const Color(0xFF9E9E9E),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Tidak ada riwayat konsultasi yang cocok.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.lato(
+                                  fontSize: 14,
+                                  color: isDark
+                                      ? const Color(0xFF8696A0)
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    );
-                  }),
+                    )
+                  else
+                    ...displayed.map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: RiwayatConsultationCard(
+                          riwayat: item,
+                          onTap: () => _navigateToDetail(item),
+                        ),
+                      );
+                    }),
 
                   const Spacer(),
                   const SizedBox(height: 16.0),
@@ -502,148 +569,231 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     );
   }
 
-  /// Filter interaktif untuk memilih riwayat berdasarkan profil anak
-  Widget _buildChildSelector() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final children = ChildService().children;
-    if (children.isEmpty) {
-      if (_activeChild == null) return const SizedBox.shrink();
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Row(
-          children: [
-            const Icon(Icons.child_care_rounded, size: 16, color: Color(0xFF72A9F4)),
-            const SizedBox(width: 6),
-            Text(
-              'Anak: ',
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-              ),
+  /// Search Bar dan Filter Kategori Anak (Identik dengan Desain Daftar Resep MPASI)
+  Widget _buildSearchBarAndFilter(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Search Bar mirip Daftar Resep MPASI
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2F4F7),
+              borderRadius: BorderRadius.circular(20),
+              border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
             ),
-            Text(
-              _activeChild!.name,
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.tune_rounded, size: 16, color: Color(0xFF72A9F4)),
-              const SizedBox(width: 6),
-              Text(
-                'Pilih Profil Anak:',
-                style: GoogleFonts.lato(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF475569),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildFilterChip(
-                  label: 'Semua Anak',
-                  icon: Icons.groups_rounded,
-                  isSelected: _showAllChildren,
-                  onTap: () => _selectChild(null),
+                Icon(
+                  Icons.search_rounded,
+                  size: 22,
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                 ),
-                const SizedBox(width: 8),
-                ...children.map((child) {
-                  final isSelected =
-                      !_showAllChildren && _activeChild?.id == child.id;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _buildFilterChip(
-                      label: child.name,
-                      icon: Icons.child_care_rounded,
-                      isSelected: isSelected,
-                      onTap: () => _selectChild(child),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    onChanged: (val) {
+                      setState(() => _searchQuery = val.trim());
+                    },
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                     ),
-                  );
-                }),
+                    decoration: InputDecoration(
+                      hintText: 'Cari riwayat konsultasi...',
+                      hintStyle: GoogleFonts.lato(
+                        fontSize: 14.5,
+                        color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    textInputAction: TextInputAction.search,
+                  ),
+                ),
+                if (_searchQuery.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      _searchFocusNode.unfocus();
+                      setState(() => _searchQuery = '');
+                    },
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+
+        // 2. Filter Kategori Anak (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : MediaQuery.of(context).size.width;
+            // Padding horizontal 16 kiri & kanan (total 32), 2 jarak celah antar 3 filter @ 8dp (total 16)
+            final chipWidth = (screenWidth - 32 - 16) / 3;
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildMpasiStyleChip(
+                    label: 'Semua',
+                    isSelected: _showAllChildren,
+                    onTap: () => _selectChild(null),
+                    isDark: isDark,
+                    width: chipWidth,
+                  ),
+                  const SizedBox(width: 8),
+                  ...ChildService().children.map((child) {
+                    final isSelected = !_showAllChildren && _activeChild?.id == child.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildMpasiStyleChip(
+                        label: child.name,
+                        isSelected: isSelected,
+                        onTap: () => _selectChild(child),
+                        isDark: isDark,
+                        width: chipWidth,
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildFilterChip({
+  Widget _buildMpasiStyleChip({
     required String label,
-    required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
+    required bool isDark,
+    required double width,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF72A9F4) : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? const Color(0xFF72A9F4) : const Color(0xFFE2E8F0),
-              width: 1.2,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF72A9F4).withValues(alpha: 0.25),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 15,
-                color: isSelected ? Colors.white : const Color(0xFF64748B),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: GoogleFonts.lato(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? Colors.white : const Color(0xFF334155),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return _HoverChip(
+      label: label,
+      isSelected: isSelected,
+      onTap: onTap,
+      isDark: isDark,
+      width: width,
     );
   }
 
   /// Ilustrasi Footer Landscape Full-Bleed
   Widget _buildFooterIllustration() {
     return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+  }
+}
+
+class _HoverChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final bool isDark;
+  final double width;
+
+  const _HoverChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.isDark,
+    required this.width,
+  });
+
+  @override
+  State<_HoverChip> createState() => _HoverChipState();
+}
+
+class _HoverChipState extends State<_HoverChip> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    Color bgColor;
+    Color borderColor;
+
+    if (widget.isSelected) {
+      bgColor = widget.isDark
+          ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+          : const Color(0xFFEFF6FF);
+      borderColor = const Color(0xFF3985E7);
+    } else {
+      if (_hovered) {
+        bgColor = widget.isDark
+            ? const Color(0xFF243038)
+            : const Color(0xFFF1F5F9);
+        borderColor = widget.isDark
+            ? const Color(0xFF475569)
+            : const Color(0xFFCBD5E1);
+      } else {
+        bgColor = widget.isDark ? const Color(0xFF1A2228) : Colors.white;
+        borderColor = widget.isDark
+            ? const Color(0xFF2C363D)
+            : const Color(0xFFE9EDEF);
+      }
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: widget.width,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: borderColor,
+              width: 1.2,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: widget.isSelected
+                  ? const Color(0xFF3985E7)
+                  : (widget.isDark
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF7F7F7F)),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

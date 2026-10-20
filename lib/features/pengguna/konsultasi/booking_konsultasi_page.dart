@@ -765,7 +765,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           const SizedBox(width: 12.0),
           Expanded(
             child: Text(
-              'Jadwal Konsultasi Dokter',
+              'Booking Konsultasi',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
