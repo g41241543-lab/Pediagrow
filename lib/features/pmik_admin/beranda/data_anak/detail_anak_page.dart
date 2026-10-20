@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -50,9 +50,9 @@ class DetailAnakPage extends StatefulWidget {
 class _DetailAnakPageState extends State<DetailAnakPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorButtonBg = Color(0xFFEBF5FF);
-  static const Color _colorTableBorder = Color(0xFFE2E8F0);
+  static const Color _colorTableBorder = Color(0xFFE9EDEF);
   static const Color _colorTableHeader = Color(0xFFE9F4FF);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
+  static const Color _colorLabelGrey = Color(0xFF667781);
   static const Color _colorTextBlack = Color(0xFF000000);
 
   int _selectedTabIndex = 0;
@@ -353,7 +353,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             width: 44,
             height: 44,
             decoration: const BoxDecoration(
-              color: Color(0xFFCBD5E1),
+              color: Color(0xFFD1D7DB),
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
@@ -361,7 +361,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               imagePath: _parentUser?.avatarPath,
               size: 44,
               fallback: const Center(
-                child: Icon(Icons.person, color: Color(0xFF64748B), size: 28),
+                child: Icon(Icons.person, color: Color(0xFF667781), size: 28),
               ),
             ),
           ),
@@ -389,7 +389,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+          bottom: BorderSide(color: Color(0xFFE9EDEF), width: 1.0),
         ),
       ),
       child: Row(
@@ -417,7 +417,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             : FontWeight.w500,
                         color: _selectedTabIndex == 0
                             ? _colorTextBlack
-                            : const Color(0xFF64748B),
+                            : const Color(0xFF667781),
                       ),
                     ),
                   ),
@@ -454,7 +454,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                         const Icon(
                           Icons.lock_rounded,
                           size: 15,
-                          color: Color(0xFF94A3B8),
+                          color: Color(0xFF8696A0),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -466,7 +466,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                                 : FontWeight.w500,
                             color: _selectedTabIndex == 1
                                 ? _colorTextBlack
-                                : const Color(0xFF64748B),
+                                : const Color(0xFF667781),
                           ),
                         ),
                       ],
@@ -819,7 +819,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             child: const Icon(
               Icons.lock_rounded,
               size: 36,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
             ),
           ),
           const SizedBox(height: 16),

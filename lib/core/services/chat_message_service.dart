@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/chat_message_model.dart';
+import 'storage_service.dart';
 
 /// Service untuk mengelola pesan real-time dalam sesi konsultasi.
 ///
@@ -17,7 +18,7 @@ class ChatMessageService {
   ChatMessageService._();
   static final ChatMessageService instance = ChatMessageService._();
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> _messages(String sessionId) {
     return _db
@@ -32,16 +33,19 @@ class ChatMessageService {
   /// Pesan diurutkan dari yang terlama ke terbaru.
   Stream<List<ChatMessageModel>> streamPesan(String sessionId) {
     return _messages(sessionId)
-        .orderBy('timestamp', descending: false)
         .snapshots()
         .map(
-          (snap) => snap.docs
-              .map(
-                (d) => ChatMessageModel.fromDoc(
-                  d as DocumentSnapshot<Map<String, dynamic>>,
-                ),
-              )
-              .toList(),
+          (snap) {
+            final list = snap.docs
+                .map(
+                  (d) => ChatMessageModel.fromDoc(
+                    d as DocumentSnapshot<Map<String, dynamic>>,
+                  ),
+                )
+                .toList();
+            list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+            return list;
+          },
         );
   }
 
@@ -96,17 +100,21 @@ class ChatMessageService {
 
   // ─── KIRIM GAMBAR ───────────────────────────────────────────────────────────
 
-  /// Mengirim pesan bertipe 'image' dengan path gambar yang dipilih.
+  /// Mengirim pesan bertipe 'image' dengan gambar yang dipilih.
   ///
   /// [imageFile] : File gambar dari kamera / galeri (dart:io File).
-  /// Mengembalikan path gambar.
+  /// Gambar dikonversi ke Base64 Data URI agar dapat dibaca lintas perangkat.
+  /// Mengembalikan string imageUrl (Base64 atau path fallback).
   Future<String> kirimGambar({
     required String sessionId,
     required String senderId,
     required MessageSender senderRole,
     required File imageFile,
   }) async {
-    final imagePath = imageFile.path;
+    // Konversi ke Base64 agar bisa disimpan di Firestore & dibaca lintas perangkat
+    final imageUrl = await StorageService.toPersistableString(imageFile.path);
+    // Jika konversi gagal (misal file tidak ditemukan), gunakan path asli sebagai fallback
+    final persistedUrl = imageUrl.isNotEmpty ? imageUrl : imageFile.path;
 
     // Simpan pesan ke Firestore
     final ref = _messages(sessionId).doc();
@@ -115,14 +123,14 @@ class ChatMessageService {
         id: ref.id,
         senderId: senderId,
         senderRole: senderRole,
-        imageUrl: imagePath,
+        imageUrl: persistedUrl,
         type: MessageType.image,
         timestamp: DateTime.now(),
         isRead: false,
       ).toMap(),
     );
 
-    return imagePath;
+    return persistedUrl;
   }
 
 

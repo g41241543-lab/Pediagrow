@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -205,7 +205,7 @@ Referensi: Kemenkes RI, 2022''';
                   width: 40.0,
                   height: 4.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2.0),
                   ),
                 ),
@@ -215,7 +215,7 @@ Referensi: Kemenkes RI, 2022''';
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16.0),
@@ -237,7 +237,7 @@ Referensi: Kemenkes RI, 2022''';
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -245,7 +245,7 @@ Referensi: Kemenkes RI, 2022''';
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1.0, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8.0),
@@ -264,7 +264,7 @@ Referensi: Kemenkes RI, 2022''';
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {

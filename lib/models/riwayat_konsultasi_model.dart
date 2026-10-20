@@ -4,6 +4,7 @@
 /// keluhan, status penyelesaian, serta ringkasan konsultasi dokter.
 class RiwayatKonsultasiModel {
   final String id;
+  final String doctorId;
   final String doctorName;
   final String doctorSpecialization;
   final String? doctorPhoto;
@@ -20,6 +21,7 @@ class RiwayatKonsultasiModel {
 
   const RiwayatKonsultasiModel({
     required this.id,
+    this.doctorId = '',
     required this.doctorName,
     this.doctorSpecialization = 'Dokter Spesialis Anak',
     this.doctorPhoto,
@@ -37,6 +39,7 @@ class RiwayatKonsultasiModel {
   /// Salin objek dengan nilai atribut baru jika diperlukan
   RiwayatKonsultasiModel copyWith({
     String? id,
+    String? doctorId,
     String? doctorName,
     String? doctorSpecialization,
     String? doctorPhoto,
@@ -52,6 +55,7 @@ class RiwayatKonsultasiModel {
   }) {
     return RiwayatKonsultasiModel(
       id: id ?? this.id,
+      doctorId: doctorId ?? this.doctorId,
       doctorName: doctorName ?? this.doctorName,
       doctorSpecialization: doctorSpecialization ?? this.doctorSpecialization,
       doctorPhoto: doctorPhoto ?? this.doctorPhoto,
@@ -71,6 +75,7 @@ class RiwayatKonsultasiModel {
   factory RiwayatKonsultasiModel.fromMap(Map<String, dynamic> map) {
     return RiwayatKonsultasiModel(
       id: map['id']?.toString() ?? '',
+      doctorId: map['doctor_id']?.toString() ?? map['doctorId']?.toString() ?? '',
       doctorName: map['doctor_name'] ?? 'dr. Ririn Esterina, Sp. A',
       doctorSpecialization:
           map['doctor_specialization'] ?? 'Dokter Spesialis Anak',
@@ -97,6 +102,7 @@ class RiwayatKonsultasiModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'doctor_id': doctorId,
       'doctor_name': doctorName,
       'doctor_specialization': doctorSpecialization,
       'doctor_photo': doctorPhoto,
@@ -115,7 +121,7 @@ class RiwayatKonsultasiModel {
   /// Data mock Amara Adiratna (Card 1 pada referensi desain)
   static final RiwayatKonsultasiModel sampleRiwayatAmara = RiwayatKonsultasiModel(
     id: 'riwayat-001',
-    doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
+    doctorName: 'dr. Reny, Sp. A',
     doctorSpecialization: 'Dokter Spesialis Anak',
     childName: 'Amara Adiratna',
     childAge: '1 tahun 2 bulan 10 hari',
@@ -131,9 +137,8 @@ class RiwayatKonsultasiModel {
   /// Data mock utama (Kaia Anastasya - Card 2 pada referensi desain & Detail)
   static final RiwayatKonsultasiModel sampleRiwayat1 = RiwayatKonsultasiModel(
     id: 'riwayat-002',
-    doctorName: 'dr. Ririn Esterina, Sp. A',
+    doctorName: 'dr. Zaskia, Sp. A',
     doctorSpecialization: 'Dokter Spesialis Anak',
-    doctorPhoto: 'assets/images/doctor_ririn.png',
     childName: 'Kaia Anastasya',
     childAge: '1 tahun 3 bulan 3 hari',
     childGender: 'female',
@@ -149,7 +154,7 @@ class RiwayatKonsultasiModel {
   /// Data mock Zafran Aditya (Card 3 pada referensi desain)
   static final RiwayatKonsultasiModel sampleRiwayatZafran = RiwayatKonsultasiModel(
     id: 'riwayat-003',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
+    doctorName: 'dr. Reny, Sp. A',
     doctorSpecialization: 'Dokter Spesialis Anak',
     childName: 'Zafran Aditya',
     childAge: '2 tahun 1 bulan 5 hari',
@@ -162,12 +167,11 @@ class RiwayatKonsultasiModel {
     summary: 'Jadwal konsultasi telah dikonfirmasi untuk evaluasi alergi makanan.',
   );
 
-  /// Data mock Devaro Ramadhan (Card 4 pada referensi desain)
+  /// Data mock Devaro Ramadhan (disesuaikan dengan dokter aktif)
   static final RiwayatKonsultasiModel sampleRiwayatDevaro = RiwayatKonsultasiModel(
     id: 'riwayat-004',
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
+    doctorName: 'dr. Zaskia, Sp. A',
     doctorSpecialization: 'Dokter Spesialis Anak',
-    doctorPhoto: 'assets/images/doctor_ahmad_nuri.png',
     childName: 'Devaro Ramadhan',
     childAge: '1 tahun 8 bulan 12 hari',
     childGender: 'male',
@@ -182,9 +186,8 @@ class RiwayatKonsultasiModel {
   /// Data mock kedua sebelumnya untuk kompatibilitas
   static final RiwayatKonsultasiModel sampleRiwayat2 = RiwayatKonsultasiModel(
     id: 'riwayat-legacy',
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
+    doctorName: 'dr. Reny, Sp. A',
     doctorSpecialization: 'Dokter Spesialis Anak',
-    doctorPhoto: 'assets/images/doctor_ahmad_nuri.png',
     childName: 'Kaia Anastasya',
     childAge: '1 tahun 3 bulan',
     childGender: 'female',

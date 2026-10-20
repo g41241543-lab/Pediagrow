@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,7 +31,7 @@ class AuthChoicePage extends StatelessWidget {
   static const Color colorPediaBlue = Color(0xFF4B83D6); // Pedia
   static const Color colorGrowGreen = Color(0xFF3CC3A6); // Grow
   static const Color colorButtonPrimary = Color(0xFF3985E7); // Tombol Masuk
-  static const Color colorTextDark = Color(0xFF1E293B); // Tagline text
+  static const Color colorTextDark = Color(0xFF1A2228); // Tagline text
 
   @override
   Widget build(BuildContext context) {

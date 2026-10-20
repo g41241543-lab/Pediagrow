@@ -6,6 +6,7 @@ class ResumeMedisModel {
   final String id;
   final String childId;
   final String userId;
+  final String doctorId;
   final String doctorName;
   final String doctorSpecialization;
   final String? doctorPhoto;
@@ -31,6 +32,7 @@ class ResumeMedisModel {
     required this.id,
     this.childId = '',
     this.userId = '',
+    this.doctorId = '',
     required this.doctorName,
     this.doctorSpecialization = 'Spesialis Anak',
     this.doctorPhoto,
@@ -80,6 +82,7 @@ class ResumeMedisModel {
       id: docId ?? map['id']?.toString() ?? '',
       childId: map['child_id']?.toString() ?? map['childId']?.toString() ?? '',
       userId: map['user_id']?.toString() ?? map['userId']?.toString() ?? '',
+      doctorId: map['doctor_id']?.toString() ?? map['doctorId']?.toString() ?? '',
       doctorName:
           map['doctor_name'] ?? map['doctorName'] ?? 'dr. Ririn Esterina, Sp.A',
       doctorSpecialization:
@@ -132,6 +135,7 @@ class ResumeMedisModel {
     return {
       'child_id': childId,
       'user_id': userId,
+      'doctor_id': doctorId,
       'doctor_name': doctorName,
       'doctor_specialization': doctorSpecialization,
       'doctor_photo': doctorPhoto,
@@ -252,9 +256,9 @@ class ResumeMedisModel {
         id: 'resume-004',
         childId: childId,
         userId: userId,
-        doctorName: 'dr. Ahmad Nuri, Sp. A',
+        doctorName: 'dr. Reny, Sp. A',
         doctorSpecialization: 'Spesialis Anak',
-        doctorPhoto: 'assets/images/doctor_ahmad_nuri.png',
+        doctorPhoto: 'assets/images/doctor_avatar.png',
         childName: childName,
         childAgeAtConsultation: '0 tahun 0 bulan 15 hari',
         consultationDate: '18 April 2026',

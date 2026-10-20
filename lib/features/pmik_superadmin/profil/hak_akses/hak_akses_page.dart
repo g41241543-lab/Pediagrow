@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'daftar_dokter_akses_page.dart';
@@ -72,7 +72,7 @@ class HakAksesPage extends StatelessWidget {
             const Divider(
               height: 1.0,
               thickness: 1.0,
-              color: Color(0xFFF1F5F9),
+              color: Color(0xFFE9EDEF),
               indent: 16.0,
               endIndent: 16.0,
             ),
@@ -179,7 +179,7 @@ class HakAksesPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
             ),
@@ -189,10 +189,10 @@ class HakAksesPage extends StatelessWidget {
               width: 30.0,
               height: 30.0,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: const Color(0xFFE9EDEF),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFE2E8F0),
+                  color: const Color(0xFFE9EDEF),
                   width: 0.8,
                 ),
               ),
@@ -200,7 +200,7 @@ class HakAksesPage extends StatelessWidget {
               child: const Icon(
                 Icons.chevron_right,
                 size: 20.0,
-                color: Color(0xFF64748B),
+                color: Color(0xFF667781),
               ),
             ),
           ],

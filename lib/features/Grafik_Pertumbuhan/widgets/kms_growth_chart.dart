@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/growth_record_model.dart';
 import '../services/zscore_calculator.dart';
@@ -36,15 +36,20 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -55,12 +60,12 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Toggle Tab 3 Pilihan: "Berat Badan", "Tinggi Badan", "Lingkar Kepala"
-          _buildTabToggle(),
+          _buildTabToggle(isDark),
 
           const SizedBox(height: 12),
 
           // 2. Legend / Keterangan Pita Warna KMS
-          _buildKmsLegend(),
+          _buildKmsLegend(isDark),
 
           const SizedBox(height: 10),
 
@@ -78,6 +83,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
                       isGirl: widget.isGirl,
                       indicator: widget.activeIndicator,
                       selectedRecord: _selectedRecord,
+                      isDark: isDark,
                     ),
                   ),
                 );
@@ -88,7 +94,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
           // 4. Detail Tooltip interaktif jika ada titik yang dipilih
           if (_selectedRecord != null) ...[
             const SizedBox(height: 10),
-            _buildSelectedPointTooltip(_selectedRecord!),
+            _buildSelectedPointTooltip(_selectedRecord!, isDark),
           ],
         ],
       ),
@@ -96,10 +102,10 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
   }
 
   /// Toggle Tab 2 Pilihan: Berat Badan, Tinggi Badan
-  Widget _buildTabToggle() {
+  Widget _buildTabToggle(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(4),
@@ -109,6 +115,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
             child: _buildTabButton(
               title: 'Berat Badan',
               indicator: ChartIndicatorType.weight,
+              isDark: isDark,
             ),
           ),
           const SizedBox(width: 4),
@@ -116,6 +123,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
             child: _buildTabButton(
               title: 'Tinggi Badan',
               indicator: ChartIndicatorType.height,
+              isDark: isDark,
             ),
           ),
         ],
@@ -126,6 +134,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
   Widget _buildTabButton({
     required String title,
     required ChartIndicatorType indicator,
+    required bool isDark,
   }) {
     final isActive = widget.activeIndicator == indicator;
     return GestureDetector(
@@ -136,12 +145,14 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
+          color: isActive
+              ? (isDark ? const Color(0xFF1A2228) : Colors.white)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
+                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -157,7 +168,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             color: isActive
                 ? const Color(0xFF3985E7)
-                : const Color(0xFF64748B),
+                : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
           ),
         ),
       ),
@@ -165,23 +176,26 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
   }
 
   /// Keterangan Pita Warna KMS Balita
-  Widget _buildKmsLegend() {
+  Widget _buildKmsLegend(bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildLegendItem(
           color: const Color(0xFF4ADE80), // Hijau normal
           label: 'Normal',
+          isDark: isDark,
         ),
         const SizedBox(width: 14),
         _buildLegendItem(
           color: const Color(0xFFFBBF24), // Kuning waspada
           label: 'Waspada',
+          isDark: isDark,
         ),
         const SizedBox(width: 14),
         _buildLegendItem(
           color: const Color(0xFFF87171), // Merah gizi buruk / BGM
           label: 'Gizi Buruk',
+          isDark: isDark,
         ),
         const SizedBox(width: 14),
         _buildLegendItem(
@@ -190,6 +204,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
               : const Color(0xFF2563EB),
           label: 'Anak',
           isLine: true,
+          isDark: isDark,
         ),
       ],
     );
@@ -199,6 +214,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
     required Color color,
     required String label,
     bool isLine = false,
+    required bool isDark,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -226,7 +242,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
           label,
           style: GoogleFonts.lato(
             fontSize: 11,
-            color: const Color(0xFF64748B),
+            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -235,7 +251,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
   }
 
   /// Tooltip bubble data titik pengukuran yang dipilih
-  Widget _buildSelectedPointTooltip(GrowthRecordModel record) {
+  Widget _buildSelectedPointTooltip(GrowthRecordModel record, bool isDark) {
     double value;
     String unit;
     switch (widget.activeIndicator) {
@@ -256,9 +272,12 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -271,7 +290,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               Text(
@@ -280,7 +299,7 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
                     : '${record.date.day}/${record.date.month}/${record.date.year}',
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ],
@@ -366,6 +385,7 @@ class _KmsChartPainter extends CustomPainter {
   final bool isGirl;
   final ChartIndicatorType indicator;
   final GrowthRecordModel? selectedRecord;
+  final bool isDark;
 
   static const chartPadding = EdgeInsets.fromLTRB(36, 12, 16, 26);
 
@@ -374,6 +394,7 @@ class _KmsChartPainter extends CustomPainter {
     required this.isGirl,
     required this.indicator,
     this.selectedRecord,
+    required this.isDark,
   });
 
   @override
@@ -427,12 +448,12 @@ class _KmsChartPainter extends CustomPainter {
     // 1. GAMBAR GRID & SUMBU X, Y
     // -------------------------------------------------------------------------
     final gridPaint = Paint()
-      ..color = const Color(0xFFE2E8F0)
+      ..color = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)
       ..strokeWidth = 0.8;
 
     final textStyle = GoogleFonts.lato(
       fontSize: 9,
-      color: const Color(0xFF94A3B8),
+      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
       fontWeight: FontWeight.w600,
     );
 
@@ -484,7 +505,7 @@ class _KmsChartPainter extends CustomPainter {
       text: '(Bulan)',
       style: GoogleFonts.lato(
         fontSize: 8,
-        color: const Color(0xFF64748B),
+        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
         fontWeight: FontWeight.bold,
       ),
     );
@@ -663,6 +684,7 @@ class _KmsChartPainter extends CustomPainter {
     return oldDelegate.records != records ||
         oldDelegate.isGirl != isGirl ||
         oldDelegate.indicator != indicator ||
-        oldDelegate.selectedRecord != selectedRecord;
+        oldDelegate.selectedRecord != selectedRecord ||
+        oldDelegate.isDark != isDark;
   }
 }

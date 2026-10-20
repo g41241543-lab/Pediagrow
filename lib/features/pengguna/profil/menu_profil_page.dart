@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/storage_service.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/user_model.dart';
@@ -17,6 +17,7 @@ import '../beranda/notifikasi_page.dart';
 import 'keluar_logout_dialog.dart';
 import 'profil_ibu_page.dart';
 import 'tentang_aplikasi_page.dart';
+import 'tampilan_page.dart';
 import 'ubah_password_page.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 
@@ -59,10 +60,6 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   final ImagePicker _picker = ImagePicker();
   bool _isUploadingAvatar = false;
 
-  String _successBannerMessage = 'Berhasil Memperbarui Profil';
-  bool _isSuccessBannerVisible = false;
-  Timer? _bannerTimer;
-
   @override
   void initState() {
     super.initState();
@@ -75,39 +72,12 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _bannerTimer?.cancel();
-    super.dispose();
-  }
-
   void _triggerSuccessBanner({String message = 'Berhasil Memperbarui Profil'}) {
-    _bannerTimer?.cancel();
-    setState(() {
-      _successBannerMessage = message;
-    });
-
-    // Animasi after delay / timer otomatis masuk halus
-    Future.delayed(const Duration(milliseconds: 120), () {
-      if (!mounted) return;
-      setState(() {
-        _isSuccessBannerVisible = true;
-      });
-
-      // Banner otomatis menghilang setelah durasi 1 menit (60 detik)
-      _bannerTimer = Timer(const Duration(minutes: 1), () {
-        _hideSuccessBanner();
-      });
-    });
-  }
-
-  void _hideSuccessBanner() {
-    _bannerTimer?.cancel();
-    if (mounted && _isSuccessBannerVisible) {
-      setState(() {
-        _isSuccessBannerVisible = false;
-      });
-    }
+    LocalPushService().show(
+      title: 'PediaGrow',
+      body: message,
+      targetRole: PushRole.pengguna,
+    );
   }
 
   void _navigateTo(Widget page) async {
@@ -124,9 +94,10 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
 
   /// Menampilkan opsi pemilihan sumber gambar (Kamera atau Galeri)
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -141,7 +112,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -151,7 +122,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -159,7 +130,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -173,7 +144,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                     ),
                   ),
                   onTap: () {
@@ -181,12 +152,15 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -200,7 +174,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                     ),
                   ),
                   onTap: () {
@@ -249,8 +223,12 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SafeArea(
         bottom: false,
         child: Stack(
@@ -292,10 +270,10 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                                 const SizedBox(height: 16),
 
                                 // Garis pembatas tipis di bawah kartu profil
-                                const Divider(
+                                Divider(
                                   height: 1,
                                   thickness: 1,
-                                  color: Color(0xFFF1F5F9),
+                                  color: dividerColor,
                                 ),
 
                                 const SizedBox(height: 8),
@@ -342,60 +320,18 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   // SUCCESS BANNER (NOTIFIKASI BERHASIL MEMPERBARUI PROFIL)
   // -------------------------------------------------------------------------
   Widget _buildSuccessBanner() {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeInOut,
-      top: _isSuccessBannerVisible ? 62.0 : -70.0,
-      left: 16.0,
-      right: 16.0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 100),
-        opacity: _isSuccessBannerVisible ? 1.0 : 0.0,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF3985E7),
-            borderRadius: BorderRadius.circular(17),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                _successBannerMessage,
-                style: GoogleFonts.lato(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFFFFFFFF),
-                ),
-              ),
-              InkWell(
-                onTap: _hideSuccessBanner,
-                borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: Icon(Icons.close, size: 20, color: Color(0xFF000000)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   // -------------------------------------------------------------------------
   // 1. HEADER TETAP DI ATAS (56dp)
   // -------------------------------------------------------------------------
   Widget _buildFixedHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final notifCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final notifIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return SizedBox(
       height: 56,
       child: Padding(
@@ -403,18 +339,18 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Nama Halaman: Profil Ibu (Lato Bold 20, #000000, 16dp dari pinggir kiri layar)
+            // Nama Halaman: Profil Ibu (Lato Bold 20, dinamis terhadap dark mode)
             Text(
               'Profil Ibu',
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: headerTextColor,
               ),
             ),
             const Spacer(),
 
-            // Lingkaran Notifikasi (31×31, #FFFFFF, 12dp dari kanan) + badge angka
+            // Lingkaran Notifikasi (31×31, #FFFFFF/Surface, 12dp dari kanan) + badge angka
             ValueListenableBuilder<int>(
               valueListenable: NotificationService().unreadCountNotifier,
               builder: (context, unreadCount, _) {
@@ -426,10 +362,10 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                       Container(
                         width: 31,
                         height: 31,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: notifCircleBg,
                           shape: BoxShape.circle,
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Color(0x1F000000),
                               blurRadius: 4,
@@ -438,9 +374,9 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                           ],
                         ),
                         alignment: Alignment.center,
-                        child: const Icon(
+                        child: Icon(
                           Icons.notifications_none_rounded,
-                          color: Color(0xFF1E293B),
+                          color: notifIconColor,
                           size: 19,
                         ),
                       ),
@@ -508,7 +444,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     height: 68,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       image: hasPhoto
                           ? DecorationImage(
                               image: imageProvider,
@@ -532,7 +468,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                             : const Icon(
                                 Icons.person,
                                 size: 40,
-                                color: Color(0xFF64748B),
+                                color: Color(0xFF667781),
                               ),
                   ),
 
@@ -587,7 +523,9 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF000000),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFFE9EDEF)
+                              : const Color(0xFF000000),
                         ),
                       ),
                     ],
@@ -602,7 +540,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   }
 
   // -------------------------------------------------------------------------
-  // 3. DAFTAR MENU (5 Item Vertikal)
+  // 3. DAFTAR MENU (6 Item Vertikal)
   // -------------------------------------------------------------------------
   Widget _buildMenuList() {
     return Column(
@@ -621,21 +559,28 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
           onTap: () => _navigateTo(const UbahPasswordPage()),
         ),
 
-        // 3. Tentang Aplikasi (info outline -> tentang_aplikasi_page.dart)
+        // 3. Tampilan (palette outline -> tampilan_page.dart)
+        _buildMenuItem(
+          icon: Icons.palette_outlined,
+          title: 'Tampilan',
+          onTap: () => _navigateTo(const TampilanPage()),
+        ),
+
+        // 4. Tentang Aplikasi (info outline -> tentang_aplikasi_page.dart)
         _buildMenuItem(
           icon: Icons.info_outline_rounded,
           title: 'Tentang Aplikasi',
           onTap: () => _navigateTo(const TentangAplikasiPage()),
         ),
 
-        // 4. Keluar (logout outline -> konfirmasi dialog)
+        // 5. Keluar (logout outline -> konfirmasi dialog)
         _buildMenuItem(
           icon: Icons.logout_rounded,
           title: 'Keluar',
           onTap: () => showKeluarLogoutDialog(context),
         ),
 
-        // 5. Syarat dan Ketentuan (document outline -> terms_page.dart)
+        // 6. Syarat dan Ketentuan (document outline -> terms_page.dart)
         _buildMenuItem(
           icon: Icons.description_outlined,
           title: 'Syarat dan Ketentuan',
@@ -653,6 +598,10 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
     required VoidCallback onTap,
     bool showDivider = true,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final itemTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final itemDividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Column(
       children: [
         Material(
@@ -666,27 +615,27 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
               height: 54,
               child: Row(
                 children: [
-                  // Icon Outline sebelah kiri (warna #000000, ukuran 22-24dp)
-                  Icon(icon, size: 22, color: const Color(0xFF000000)),
+                  // Icon Outline sebelah kiri
+                  Icon(icon, size: 22, color: itemTextColor),
                   const SizedBox(width: 14),
 
-                  // Label Teks Nama Menu (font Lato reguler 18, warna #000000)
+                  // Label Teks Nama Menu
                   Expanded(
                     child: Text(
                       title,
                       style: GoogleFonts.lato(
                         fontSize: 18,
                         fontWeight: FontWeight.normal,
-                        color: const Color(0xFF000000),
+                        color: itemTextColor,
                       ),
                     ),
                   ),
 
                   // Ikon Selanjutnya (>) sebelah kanan
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
                     size: 22,
-                    color: Color(0xFF000000),
+                    color: itemTextColor,
                   ),
                 ],
               ),
@@ -694,7 +643,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
           ),
         ),
         if (showDivider)
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+          Divider(height: 1, thickness: 1, color: itemDividerColor),
       ],
     );
   }

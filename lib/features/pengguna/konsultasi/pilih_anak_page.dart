@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/child_service.dart';
@@ -283,12 +283,13 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   // ===========================================================================
 
   Widget _buildBottomSheetCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
             blurRadius: 20,
@@ -313,7 +314,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                   style: GoogleFonts.lato(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -328,9 +329,9 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
-                      color: colorTextBlack,
+                      color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                       size: 24,
                     ),
                   ),
@@ -354,7 +355,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
             Container(
               width: double.infinity,
               height: 1,
-              color: colorDividerGrey,
+              color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
             ),
 
             const SizedBox(height: 6),
@@ -380,11 +381,16 @@ class _PilihAnakPageState extends State<PilihAnakPage>
 
     // Kondisi 2 Anak: 2 profil dengan divider di antara profil (Sesuai Gambar)
     if (_childList.length == 2) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildChildRow(_childList[0]),
-          Container(width: double.infinity, height: 1, color: colorDividerGrey),
+          Container(
+            width: double.infinity,
+            height: 1,
+            color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
+          ),
           _buildChildRow(_childList[1]),
         ],
       );
@@ -399,11 +405,14 @@ class _PilihAnakPageState extends State<PilihAnakPage>
         physics: const BouncingScrollPhysics(),
         padding: EdgeInsets.zero,
         itemCount: _childList.length,
-        separatorBuilder: (context, index) => Container(
-          width: double.infinity,
-          height: 1,
-          color: colorDividerGrey,
-        ),
+        separatorBuilder: (context, index) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            width: double.infinity,
+            height: 1,
+            color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
+          );
+        },
         itemBuilder: (context, index) {
           return _buildChildRow(_childList[index]);
         },
@@ -415,6 +424,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
   Widget _buildChildRow(ChildModel child) {
     final isTapped = _tappedChildId == child.id;
     final isGirl = child.gender.toLowerCase().contains('perempuan');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Umur dihitung otomatis berdasarkan tanggal lahir
     final String ageString = child.birthDate != null
@@ -456,7 +466,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: colorTextBlack,
+                          color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -468,7 +478,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.normal,
-                          color: colorTextBlack,
+                          color: isDark ? const Color(0xFFD1D7DB) : colorTextBlack,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -481,14 +491,14 @@ class _PilihAnakPageState extends State<PilihAnakPage>
                 Container(
                   width: 32,
                   height: 32,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF1F5F9),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                     shape: BoxShape.circle,
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.chevron_right_rounded,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                       size: 20,
                     ),
                   ),
@@ -522,7 +532,7 @@ class CuteBabyFacePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
+      ..color = const Color(0xFF1A2228)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round
@@ -575,7 +585,7 @@ class CuteBabyFacePainter extends CustomPainter {
     canvas.drawCircle(
       Offset(w * 0.5, h * 0.54),
       1.2,
-      Paint()..color = const Color(0xFF1E293B),
+      Paint()..color = const Color(0xFF1A2228),
     );
 
     // Senyuman Ceria

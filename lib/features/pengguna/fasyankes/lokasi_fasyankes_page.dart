@@ -11,6 +11,7 @@ import 'models/fasyankes_model.dart';
 import 'services/fasyankes_service.dart';
 import 'widgets/fasyankes_card_item.dart';
 import 'widgets/fasyankes_map_widget.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Lokasi Fasilitas Pelayanan Kesehatan (Fasyankes) PediaGrow
 ///
@@ -145,34 +146,24 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
-      // Dismiss keyboard saat pengguna mengetuk area di luar input pencarian
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              // -------------------------------------------------------------
-              // 1. HEADER FIXED (56dp) — Tidak ikut scrolling
-              // -------------------------------------------------------------
-              _buildFixedHeader(),
-
-              // -------------------------------------------------------------
-              // 2. KONTEN UTAMA SCROLLABLE (Peta + List Card Fasyankes + Footer)
-              // -------------------------------------------------------------
+              _buildFixedHeader(isDark),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // A. Search Bar "Cari Lokasi" di atas Peta
-                      _buildSearchBarSection(),
-
-                      // B. Peta Google Maps Interaktif
+                      _buildSearchBarSection(isDark),
                       FasyankesMapWidget(
                         fasyankesList: _fasyankesList,
                         selectedFasyankes: _selectedFasyankes,
@@ -182,22 +173,15 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                           setState(() => _selectedFasyankes = fasyankes);
                         },
                         onLocateUser: () {
-                          // Tetapkan posisi pengguna ke koordinat default
                           setState(() {
                             _userLat = FasyankesService.defaultLat;
                             _userLng = FasyankesService.defaultLng;
                           });
                         },
                       ),
-
                       const SizedBox(height: 14),
-
-                      // C. Konten List Fasyankes / Loading / Empty / Error State
-                      _buildFasyankesListContent(),
-
+                      _buildFasyankesListContent(isDark),
                       const SizedBox(height: 16),
-
-                      // D. Ilustrasi Footer Landscape (Pepohonan & Tenda)
                       _buildFooterIllustration(),
                     ],
                   ),
@@ -206,41 +190,36 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
             ],
           ),
         ),
-        // -----------------------------------------------------------------
-        // 3. BOTTOM NAVIGATION BAR FIXED — Menempel di Scaffold
-        // -----------------------------------------------------------------
-        bottomNavigationBar: _buildFixedNavBar(),
+        bottomNavigationBar: _buildFixedNavBar(isDark),
       ),
     );
   }
 
   // ===========================================================================
   // 1. HEADER TETAP (Tinggi 56dp)
-  // Tombol Back 12dp dari sisi kiri layar, Judul 12dp setelah tombol back.
   // ===========================================================================
-  Widget _buildFixedHeader() {
+  Widget _buildFixedHeader(bool isDark) {
     return Container(
       width: double.infinity,
       height: 56,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(left: 12, right: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Tombol Kembali
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                size: 24,
+              ),
             ),
           ),
-
-          // Jarak 12dp setelah tombol kembali
           const SizedBox(width: 12),
-
-          // Judul Halaman "Lokasi Fasyankes" (Font Lato, Bold, #000000)
           Expanded(
             child: Text(
               'Lokasi Fasyankes',
@@ -249,7 +228,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
               ),
             ),
           ),
@@ -259,26 +238,26 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   }
 
   // ===========================================================================
-  // 2. SEARCH BAR "CARI LOKASI FASYANKES" — Sama dengan Halaman Resep MPASI
+  // 2. SEARCH BAR "CARI LOKASI FASYANKES"
   // ===========================================================================
-  Widget _buildSearchBarSection() {
+  Widget _buildSearchBarSection(bool isDark) {
     return Container(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F2F6),
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6),
           borderRadius: BorderRadius.circular(20),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.search_rounded,
               size: 22,
-              color: Color(0xFF9E9E9E),
+              color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -292,13 +271,13 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                 textInputAction: TextInputAction.search,
                 style: GoogleFonts.lato(
                   fontSize: 15,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Lokasi Fasyankes',
                   hintStyle: GoogleFonts.lato(
                     fontSize: 15,
-                    color: const Color(0xFFA0A0A0),
+                    color: isDark ? const Color(0xFF667781) : const Color(0xFFA0A0A0),
                     fontWeight: FontWeight.w400,
                   ),
                   border: InputBorder.none,
@@ -313,12 +292,12 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                   setState(() {});
                   _clearSearch();
                 },
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
                   child: Icon(
                     Icons.close_rounded,
                     size: 18,
-                    color: Color(0xFF9E9E9E),
+                    color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
                   ),
                 ),
               ),
@@ -331,7 +310,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   // ===========================================================================
   // 3. LIST CARD FASYANKES / STATE VIEWS
   // ===========================================================================
-  Widget _buildFasyankesListContent() {
+  Widget _buildFasyankesListContent(bool isDark) {
     // A. State Loading
     if (_isLoading) {
       return const Padding(
@@ -364,7 +343,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 15,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
               const SizedBox(height: 16),
@@ -401,7 +380,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
               const Icon(
                 Icons.location_off_outlined,
                 size: 50,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
               const SizedBox(height: 12),
               Text(
@@ -409,7 +388,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                 ),
               ),
               const SizedBox(height: 6),
@@ -418,7 +397,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ],
@@ -451,31 +430,13 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   // 4. ILUSTRASI FOOTER LANDSCAPE (Menempel ke Nav Bar)
   // ===========================================================================
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 90,
-          color: const Color(0xFFDCFCE7),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 40,
-            color: Color(0xFF10B981),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // ===========================================================================
   // 5. NAVIGATION BAR FIXED (Tinggi 68dp, #F2EDED)
   // ===========================================================================
-  Widget _buildFixedNavBar() {
+  Widget _buildFixedNavBar(bool isDark) {
     final navItems = [
       const _NavData(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -489,9 +450,9 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
     return Container(
       width: double.infinity,
       height: 68,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8,
@@ -520,10 +481,10 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                     Container(
                       width: 38,
                       height: 38,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0B1014) : Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: Color(0x1A000000),
                             blurRadius: 4,
@@ -545,12 +506,15 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                       style: GoogleFonts.lato(
                         fontSize: 11,
                         fontWeight: FontWeight.normal,
-                        color: const Color(0xFF1E293B),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                       ),
                     ),
                   ] else ...[
-                    // State tidak aktif: icon & label abu-abu #9E9E9E
-                    Icon(item.icon, size: 24, color: const Color(0xFF9E9E9E)),
+                    Icon(
+                      item.icon,
+                      size: 24,
+                      color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+                    ),
                     const SizedBox(height: 3),
                     Text(
                       item.label,
@@ -560,7 +524,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                       style: GoogleFonts.lato(
                         fontSize: 11,
                         fontWeight: FontWeight.normal,
-                        color: const Color(0xFF9E9E9E),
+                        color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
                       ),
                     ),
                   ],

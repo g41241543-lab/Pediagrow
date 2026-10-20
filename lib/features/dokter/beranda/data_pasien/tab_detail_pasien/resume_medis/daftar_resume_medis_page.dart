@@ -5,6 +5,8 @@ import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
+import '../../../../../../shared/widgets/doctor_live_avatar.dart';
+import '../../../../../../shared/widgets/pedia_banner.dart';
 import 'detail_resume_medis_page.dart';
 
 /// Halaman Daftar Resume Medis.
@@ -36,6 +38,126 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       userId: widget.user?.id,
     );
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _confirmDeleteResume(ResumeMedisModel resume) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.54),
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 8,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Hapus Data',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Mohon pastikan ulang sebelum menghapus resume medis. Apakah anda yakin ingin menghapus?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    color: const Color(0xFF7F7F7F),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(dialogCtx).pop(true),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFC5C5C5),
+                              width: 1.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Ya',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(dialogCtx).pop(false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3985E7),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Tidak',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ResumeMedisService().deleteResumeMedis(resume.id);
+        if (mounted) {
+          PediaBanner.showSuccess(
+            context,
+            message: 'Berhasil Menghapus Resume Medis',
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          PediaBanner.showError(
+            context,
+            message: 'Gagal menghapus resume medis: $e',
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -117,7 +239,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.lato(
                                     fontSize: 15,
-                                    color: const Color(0xFF64748B),
+                                    color: const Color(0xFF667781),
                                   ),
                                 ),
                               ],
@@ -202,7 +324,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
             const SizedBox(width: 14),
             const Icon(
               Icons.search_rounded,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
               size: 22,
             ),
             const SizedBox(width: 10),
@@ -212,13 +334,13 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                 focusNode: _searchFocusNode,
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFF1A2228),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Resume Medis',
                   hintStyle: GoogleFonts.lato(
                     fontSize: 14.5,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                   border: InputBorder.none,
                   isDense: true,
@@ -237,7 +359,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Icon(
                     Icons.close_rounded,
-                    color: Color(0xFF94A3B8),
+                    color: Color(0xFF8696A0),
                     size: 18,
                   ),
                 ),
@@ -256,8 +378,8 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          final result = await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => DetailResumeMedisPage(
                 resume: resume,
@@ -266,12 +388,18 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               ),
             ),
           );
+          if (result == 'deleted' && mounted) {
+            PediaBanner.showSuccess(
+              context,
+              message: 'Berhasil Menghapus Resume Medis',
+            );
+          }
         },
         borderRadius: BorderRadius.circular(14),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0A000000),
@@ -289,36 +417,16 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar Dokter
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF2B7AE8)
-                              .withValues(alpha: 0.15),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child:
-                            resume.doctorPhoto != null &&
-                                resume.doctorPhoto!.isNotEmpty
-                            ? (resume.doctorPhoto!.startsWith('http')
-                                  ? Image.network(
-                                      resume.doctorPhoto!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) =>
-                                          _buildDoctorAvatarFallback(),
-                                    )
-                                  : Image.asset(
-                                      resume.doctorPhoto!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) =>
-                                          _buildDoctorAvatarFallback(),
-                                    ))
-                            : _buildDoctorAvatarFallback(),
+                    // Avatar Dokter Real-Time
+                    DoctorLiveAvatar(
+                      doctorId: resume.doctorId,
+                      doctorName: resume.doctorName,
+                      fallbackPhoto: resume.doctorPhoto,
+                      size: 52,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF2B7AE8).withValues(alpha: 0.25),
+                        width: 1.5,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -334,7 +442,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             style: GoogleFonts.lato(
                               fontSize: 15.5,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1E293B),
+                              color: const Color(0xFF1A2228),
                             ),
                           ),
                           const SizedBox(height: 3),
@@ -344,7 +452,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             'Anak: ${resume.childName}',
                             style: GoogleFonts.lato(
                               fontSize: 13,
-                              color: const Color(0xFF475569),
+                              color: const Color(0xFF2C363D),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -354,7 +462,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             'Keluhan: ${resume.complaintShort}',
                             style: GoogleFonts.lato(
                               fontSize: 13,
-                              color: const Color(0xFF475569),
+                              color: const Color(0xFF2C363D),
                               height: 1.3,
                             ),
                           ),
@@ -366,7 +474,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               ),
 
               // Divider tipis
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
 
               // Bagian Bawah: Tanggal & Badge "Selesai"
               Padding(
@@ -380,7 +488,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                         const Icon(
                           Icons.calendar_month_outlined,
                           size: 18,
-                          color: Color(0xFF64748B),
+                          color: Color(0xFF667781),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -388,30 +496,61 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E293B),
+                            color: const Color(0xFF1A2228),
                           ),
                         ),
                       ],
                     ),
 
-                    // Badge Selesai (Hijau Toska)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF26B89D),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        resume.status,
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    // Badge Selesai (Hijau Toska) + Tombol Hapus
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF26B89D),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            resume.status,
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _confirmDeleteResume(resume),
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Container(
+                              width: 32.0,
+                              height: 32.0,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFEBEE),
+                                borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: const Color(0xFFFFCDD2),
+                                  width: 1.0,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Color(0xFFE53935),
+                                size: 18.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -420,14 +559,6 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildDoctorAvatarFallback() {
-    return Container(
-      color: const Color(0xFFEAF5FF),
-      alignment: Alignment.center,
-      child: const Icon(Icons.person, size: 30, color: Color(0xFF2B7AE8)),
     );
   }
 }

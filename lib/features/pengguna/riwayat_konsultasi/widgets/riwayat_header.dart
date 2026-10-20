@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/notification_service.dart';
@@ -43,9 +43,10 @@ class RiwayatHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -58,7 +59,6 @@ class RiwayatHeader extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 1. Tombol Kembali (hanya jika showBackButton = true)
                 if (showBackButton) ...[
                   GestureDetector(
                     onTap: () {
@@ -75,17 +75,15 @@ class RiwayatHeader extends StatelessWidget {
                       width: 36.0,
                       height: 36.0,
                       alignment: Alignment.center,
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back,
                         size: 24.0,
-                        color: Color(0xFF000000),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12.0),
                 ],
-
-                // 2. Judul Halaman
                 Expanded(
                   child: Text(
                     title,
@@ -94,14 +92,11 @@ class RiwayatHeader extends StatelessWidget {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                       letterSpacing: -0.2,
                     ),
                   ),
                 ),
-
-                // 3. Lingkaran Notifikasi (31×31, #FFFFFF, 12dp dari kanan) + badge angka
-                //    Identik dengan tampilan halaman Profil Ibu (menu_profil_page.dart)
                 if (showNotification)
                   ValueListenableBuilder<int>(
                     valueListenable: NotificationService().unreadCountNotifier,
@@ -114,10 +109,10 @@ class RiwayatHeader extends StatelessWidget {
                             Container(
                               width: 31,
                               height: 31,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                 shape: BoxShape.circle,
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Color(0x1F000000),
                                     blurRadius: 4,
@@ -126,13 +121,12 @@ class RiwayatHeader extends StatelessWidget {
                                 ],
                               ),
                               alignment: Alignment.center,
-                              child: const Icon(
+                              child: Icon(
                                 Icons.notifications_none_rounded,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                                 size: 19,
                               ),
                             ),
-                            // Badge angka notifikasi belum dibaca
                             if (unreadCount > 0)
                               Positioned(
                                 top: -4,
@@ -149,7 +143,7 @@ class RiwayatHeader extends StatelessWidget {
                                     color: const Color(0xFFE53E3E),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.white,
+                                      color: isDark ? const Color(0xFF0B1014) : Colors.white,
                                       width: 1,
                                     ),
                                   ),

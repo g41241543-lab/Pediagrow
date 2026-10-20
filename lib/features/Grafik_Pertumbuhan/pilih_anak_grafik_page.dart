@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/services/child_service.dart';
@@ -192,6 +192,8 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -223,7 +225,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
               bottom: 0,
               child: SlideTransition(
                 position: _slideAnimation,
-                child: _buildBottomSheetCard(),
+                child: _buildBottomSheetCard(isDark),
               ),
             ),
           ],
@@ -232,13 +234,14 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
     );
   }
 
-  Widget _buildBottomSheetCard() {
+  Widget _buildBottomSheetCard(bool isDark) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
             blurRadius: 20,
@@ -263,7 +266,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
                   style: GoogleFonts.lato(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -278,9 +281,9 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close,
-                      color: colorTextBlack,
+                      color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                       size: 24,
                     ),
                   ),
@@ -294,45 +297,49 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
               style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
               ),
             ),
 
             const SizedBox(height: 12),
 
-            // Divider setebal 1 dp warna #C5C5C5
+            // Divider setebal 1 dp
             Container(
               width: double.infinity,
               height: 1,
-              color: colorDividerGrey,
+              color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
             ),
 
             const SizedBox(height: 6),
 
             // Daftar Profil Anak Dinamis
-            _buildChildrenList(),
+            _buildChildrenList(isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildChildrenList() {
+  Widget _buildChildrenList(bool isDark) {
     if (_childList.isEmpty) {
       return const SizedBox.shrink();
     }
 
     if (_childList.length == 1) {
-      return _buildChildRow(_childList.first);
+      return _buildChildRow(_childList.first, isDark);
     }
 
     if (_childList.length == 2) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildChildRow(_childList[0]),
-          Container(width: double.infinity, height: 1, color: colorDividerGrey),
-          _buildChildRow(_childList[1]),
+          _buildChildRow(_childList[0], isDark),
+          Container(
+            width: double.infinity,
+            height: 1,
+            color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
+          ),
+          _buildChildRow(_childList[1], isDark),
         ],
       );
     }
@@ -347,16 +354,16 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
         separatorBuilder: (context, index) => Container(
           width: double.infinity,
           height: 1,
-          color: colorDividerGrey,
+          color: isDark ? const Color(0xFF2C363D) : colorDividerGrey,
         ),
         itemBuilder: (context, index) {
-          return _buildChildRow(_childList[index]);
+          return _buildChildRow(_childList[index], isDark);
         },
       ),
     );
   }
 
-  Widget _buildChildRow(ChildModel child) {
+  Widget _buildChildRow(ChildModel child, bool isDark) {
     final isTapped = _tappedChildId == child.id;
     final isGirl = child.gender.toLowerCase().contains('perempuan');
 
@@ -398,7 +405,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
                         style: GoogleFonts.lato(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: colorTextBlack,
+                          color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -409,7 +416,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
                         style: GoogleFonts.lato(
                           fontSize: 15,
                           fontWeight: FontWeight.normal,
-                          color: const Color(0xFF475569),
+                          color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -419,11 +426,11 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
                 ),
 
                 // Ikon panah ">" di ujung kanan tiap item
-                const Padding(
-                  padding: EdgeInsets.only(left: 8.0),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
                   child: Icon(
                     Icons.chevron_right_rounded,
-                    color: Color(0xFF7F7F7F),
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                     size: 26,
                   ),
                 ),

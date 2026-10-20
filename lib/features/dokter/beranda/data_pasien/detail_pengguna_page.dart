@@ -39,17 +39,36 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // Konstanta Warna (konsisten dengan desain superadmin)
   // ──────────────────────────────────────────────────────────────
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
-  static const Color _colorTableBorder = Color(0xFFE2E8F0);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
+  static const Color _colorTableBorder = Color(0xFFE9EDEF);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
 
   // ──────────────────────────────────────────────────────────────
   // BUILD
   // ──────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (_, _, _) => const BerandaDokterPage(),
+                transitionsBuilder: (_, animation, _, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 200),
+              ),
+              (route) => false,
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -111,9 +130,10 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           ],
         ),
       ),
-      bottomNavigationBar: null,
-    );
-  }
+      bottomNavigationBar: _buildFixedNavBar(),
+    ),
+  );
+}
 
   // ──────────────────────────────────────────────────────────────
   // HEADER FIXED 56dp
@@ -128,7 +148,21 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushAndRemoveUntil(
+                  PageRouteBuilder(
+                    pageBuilder: (_, _, _) => const BerandaDokterPage(),
+                    transitionsBuilder: (_, animation, _, child) =>
+                        FadeTransition(opacity: animation, child: child),
+                    transitionDuration: const Duration(milliseconds: 200),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.all(4.0),
@@ -227,7 +261,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           ),
 
           const SizedBox(height: 14),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
           const SizedBox(height: 14),
 
           // Baris-baris Data Key-Value
@@ -393,7 +427,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               ),
 
               const SizedBox(height: 14),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
 
               // List Card Anak
               for (int i = 0; i < children.length; i++) ...[
@@ -401,7 +435,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   const Divider(
                     height: 1,
                     thickness: 1,
-                    color: Color(0xFFF1F5F9),
+                    color: Color(0xFFE9EDEF),
                   ),
                 _buildChildListItem(children[i]),
               ],
@@ -477,7 +511,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               const Icon(
                 Icons.chevron_right_rounded,
                 size: 26,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ],
           ),
@@ -503,7 +537,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           const Icon(
             Icons.child_care_rounded,
             size: 40,
-            color: Color(0xFFCBD5E1),
+            color: Color(0xFFD1D7DB),
           ),
           const SizedBox(height: 10),
           Text(
@@ -545,7 +579,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   width: 30,
                   height: 30,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFE2E8F0),
+                    color: Color(0xFFE9EDEF),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -554,7 +588,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   child: Container(
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -670,11 +704,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return gender;
   }
 
-  String _formatShortDate(DateTime? dt) {
-    if (dt == null) return '-';
-    return '${dt.day}/${dt.month}/${dt.year}';
-  }
-
   String _formatChildAge(ChildModel child) {
     if (child.birthDate != null) {
       final bDate = child.birthDate!;
@@ -754,7 +783,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
-            final isSelected = i == 0; // Tab Beranda aktif
             final item = navItems[i];
 
             return Expanded(
@@ -767,67 +795,28 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
-                              ),
+                      Icon(
+                        item.icon,
+                        size: 24.0,
+                        color: const Color(0xFF9E9E9E),
+                      ),
+                      const SizedBox(height: 3.0),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 11.0,
+                              fontWeight: FontWeight.normal,
+                              color: const Color(0xFF9E9E9E),
                             ),
                           ),
                         ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),

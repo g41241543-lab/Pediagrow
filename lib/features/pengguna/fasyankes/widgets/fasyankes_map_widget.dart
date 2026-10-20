@@ -1,4 +1,4 @@
-import 'dart:ui' as ui;
+﻿import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -157,6 +157,7 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final userLatLng = LatLng(widget.userLat, widget.userLng);
     final isSatellite = _mapType == MapDisplayType.satellite;
 
@@ -286,7 +287,7 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
           Positioned(
             left: 10,
             top: 10,
-            child: _buildMapTypeToggle(),
+            child: _buildMapTypeToggle(isDark),
           ),
 
           // --------------------------------------------------------
@@ -299,20 +300,27 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildControlBox(
+                  isDark: isDark,
                   children: [
-                    _buildIconBtn(Icons.add, _zoomIn, 'Zoom In'),
-                    Container(height: 1, width: 28, color: const Color(0xFFE5E7EB)),
-                    _buildIconBtn(Icons.remove, _zoomOut, 'Zoom Out'),
+                    _buildIconBtn(Icons.add, _zoomIn, 'Zoom In', isDark: isDark),
+                    Container(
+                      height: 1,
+                      width: 28,
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E7EB),
+                    ),
+                    _buildIconBtn(Icons.remove, _zoomOut, 'Zoom Out', isDark: isDark),
                   ],
                 ),
                 const SizedBox(height: 6),
                 _buildControlBox(
+                  isDark: isDark,
                   children: [
                     _buildIconBtn(
                       Icons.my_location_rounded,
                       _locateUser,
                       'Lokasi Saya',
                       color: const Color(0xFF2563EB),
+                      isDark: isDark,
                     ),
                   ],
                 ),
@@ -328,7 +336,7 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
               left: 10,
               right: 58,
               bottom: 10,
-              child: _buildCallout(widget.selectedFasyankes!),
+              child: _buildCallout(widget.selectedFasyankes!, isDark),
             ),
 
           // --------------------------------------------------------
@@ -340,14 +348,16 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.75),
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.7)
+                    : Colors.white.withValues(alpha: 0.75),
                 borderRadius: BorderRadius.circular(3),
               ),
               child: Text(
                 isSatellite ? '© Esri' : '© OpenStreetMap',
                 style: GoogleFonts.lato(
                   fontSize: 8,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ),
@@ -400,15 +410,18 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
     );
   }
 
-  Widget _buildMapTypeToggle() {
+  Widget _buildMapTypeToggle(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFD1D5DB), width: 0.8),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D5DB),
+          width: 0.8,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.14),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -419,26 +432,31 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
         children: [
           _buildToggleBtn('Map', _mapType == MapDisplayType.standard, () {
             setState(() => _mapType = MapDisplayType.standard);
-          }),
-          Container(width: 1, height: 26, color: const Color(0xFFE5E7EB)),
-          _buildToggleBtn('Satellite', _mapType == MapDisplayType.satellite,
-              () {
+          }, isDark),
+          Container(
+            width: 1,
+            height: 26,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E7EB),
+          ),
+          _buildToggleBtn('Satellite', _mapType == MapDisplayType.satellite, () {
             setState(() => _mapType = MapDisplayType.satellite);
-          }),
+          }, isDark),
         ],
       ),
     );
   }
 
   Widget _buildToggleBtn(
-      String label, bool isActive, VoidCallback onTap) {
+      String label, bool isActive, VoidCallback onTap, bool isDark) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         color: isActive
-            ? const Color(0xFFEFF6FF)
+            ? (isDark
+                ? const Color(0xFF2563EB).withValues(alpha: 0.3)
+                : const Color(0xFFEFF6FF))
             : Colors.transparent,
         child: Text(
           label,
@@ -446,23 +464,26 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
             fontSize: 12,
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             color: isActive
-                ? const Color(0xFF1D4ED8)
-                : const Color(0xFF6B7280),
+                ? (isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8))
+                : (isDark ? const Color(0xFF8696A0) : const Color(0xFF6B7280)),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildControlBox({required List<Widget> children}) {
+  Widget _buildControlBox({required List<Widget> children, required bool isDark}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFD1D5DB), width: 0.8),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D5DB),
+          width: 0.8,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.14),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -476,8 +497,11 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
     IconData icon,
     VoidCallback onTap,
     String tooltip, {
-    Color color = const Color(0xFF374151),
+    Color? color,
+    bool isDark = false,
   }) {
+    final effectiveColor =
+        color ?? (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF374151));
     return Tooltip(
       message: tooltip,
       child: InkWell(
@@ -485,13 +509,13 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
         child: SizedBox(
           width: 32,
           height: 32,
-          child: Icon(icon, size: 18, color: color),
+          child: Icon(icon, size: 18, color: effectiveColor),
         ),
       ),
     );
   }
 
-  Widget _buildCallout(FasyankesModel fasyankes) {
+  Widget _buildCallout(FasyankesModel fasyankes, bool isDark) {
     return GestureDetector(
       onTap: () async {
         // Buka di Google Maps dengan nama + koordinat akurat
@@ -503,12 +527,17 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.97),
+          color: isDark
+              ? const Color(0xFF1A2228).withValues(alpha: 0.95)
+              : Colors.white.withValues(alpha: 0.97),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF93C5FD), width: 1.2),
+          border: Border.all(
+            color: isDark ? const Color(0xFF3B82F6) : const Color(0xFF93C5FD),
+            width: 1.2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.14),
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.14),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -520,11 +549,16 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
+                color: isDark
+                    ? const Color(0xFF991B1B).withValues(alpha: 0.3)
+                    : const Color(0xFFFEE2E2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.local_hospital_rounded,
-                  color: Color(0xFFDC2626), size: 20),
+              child: const Icon(
+                Icons.local_hospital_rounded,
+                color: Color(0xFFEF4444),
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -539,7 +573,7 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF111827),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF111827),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -547,7 +581,7 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
                     '${fasyankes.category} • ${fasyankes.formattedDistance}',
                     style: GoogleFonts.lato(
                       fontSize: 11,
-                      color: const Color(0xFF6B7280),
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF6B7280),
                     ),
                   ),
                 ],

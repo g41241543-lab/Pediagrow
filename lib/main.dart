@@ -5,8 +5,11 @@ import 'package:flutter/services.dart';
 import 'features/splash/splash_page.dart';
 
 import 'core/services/local_push_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/services/session_service.dart';
 import 'core/services/staff_auth_service.dart';
+import 'core/services/superadmin_notification_service.dart';
+import 'core/services/theme_service.dart';
 import 'core/services/user_service.dart';
 
 void main() async {
@@ -18,8 +21,13 @@ void main() async {
   await SessionService().init();
   await UserService().init();
 
-  // Inisialisasi notifikasi lokal HP (tanpa Firebase Cloud Messaging)
+  // Inisialisasi notifikasi lokal HP & in-app service
   await LocalPushService().init();
+  await NotificationService().init();
+  await SuperadminNotificationService().init();
+
+  // Inisialisasi preferensi tema aplikasi (Default Sistem / Terang / Gelap)
+  await ThemeService().init();
 
   // Mengatur status bar transparan dan ikon gelap agar menyatu dengan background putih
   SystemChrome.setSystemUIOverlayStyle(
@@ -59,20 +67,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: SessionService.navigatorKey,
-      scaffoldMessengerKey: SessionService.scaffoldMessengerKey,
-      title: 'PediaGrow',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.white,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3985E7),
-          primary: const Color(0xFF3985E7),
-        ),
-      ),
-      home: const SplashPage(),
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        ThemeService().themeModeNotifier,
+        StaffAuthService().currentStaffNotifier,
+      ]),
+      builder: (context, child) {
+        return MaterialApp(
+          navigatorKey: SessionService.navigatorKey,
+          scaffoldMessengerKey: SessionService.scaffoldMessengerKey,
+          title: 'PediaGrow',
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeService().flutterThemeMode,
+          theme: ThemeService.lightTheme,
+          darkTheme: ThemeService.darkTheme,
+          home: const SplashPage(),
+        );
+      },
     );
   }
 }

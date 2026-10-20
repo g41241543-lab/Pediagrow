@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-/// Kategori notifikasi untuk Superadmin.
+/// Kategori notifikasi untuk Superadmin / Staf (Dokter & PMIK).
 enum SuperadminNotificationType {
   artikel,
   resepMpasi,
@@ -8,6 +8,11 @@ enum SuperadminNotificationType {
   pmik,
   unduhDataset,
   pengingatDataset,
+  profil,
+  jadwal,
+  konsultasi,
+  pasien,
+  umum,
 }
 
 /// Jenis aksi sistem / CRUD yang memicu notifikasi.
@@ -17,9 +22,10 @@ enum SuperadminActionType {
   hapus,
   unduh,
   pengingat,
+  info,
 }
 
-/// Model untuk item notifikasi Superadmin PediaGrow.
+/// Model untuk item notifikasi Staf / Superadmin PediaGrow.
 class SuperadminNotificationItem {
   final String id;
   final String title;
@@ -28,6 +34,7 @@ class SuperadminNotificationItem {
   final SuperadminNotificationType type;
   final SuperadminActionType actionType;
   final String? targetName;
+  final String? role; // 'superadmin', 'pmik', 'dokter'
   final bool isRead;
 
   const SuperadminNotificationItem({
@@ -38,6 +45,7 @@ class SuperadminNotificationItem {
     required this.type,
     required this.actionType,
     this.targetName,
+    this.role,
     this.isRead = false,
   });
 
@@ -71,6 +79,7 @@ class SuperadminNotificationItem {
     SuperadminNotificationType? type,
     SuperadminActionType? actionType,
     String? targetName,
+    String? role,
     bool? isRead,
   }) {
     return SuperadminNotificationItem(
@@ -81,6 +90,7 @@ class SuperadminNotificationItem {
       type: type ?? this.type,
       actionType: actionType ?? this.actionType,
       targetName: targetName ?? this.targetName,
+      role: role ?? this.role,
       isRead: isRead ?? this.isRead,
     );
   }
@@ -94,6 +104,7 @@ class SuperadminNotificationItem {
       'type': type.name,
       'actionType': actionType.name,
       'targetName': targetName,
+      'role': role,
       'isRead': isRead,
     };
   }
@@ -108,13 +119,14 @@ class SuperadminNotificationItem {
           : DateTime.now(),
       type: SuperadminNotificationType.values.firstWhere(
         (e) => e.name == map['type'],
-        orElse: () => SuperadminNotificationType.pengingatDataset,
+        orElse: () => SuperadminNotificationType.umum,
       ),
       actionType: SuperadminActionType.values.firstWhere(
         (e) => e.name == map['actionType'],
-        orElse: () => SuperadminActionType.pengingat,
+        orElse: () => SuperadminActionType.info,
       ),
       targetName: map['targetName'] as String?,
+      role: map['role'] as String?,
       isRead: map['isRead'] as bool? ?? false,
     );
   }

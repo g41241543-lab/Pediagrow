@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Halaman Syarat & Ketentuan PediaGrow.
@@ -12,15 +12,27 @@ class TermsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final headerBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final titleColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final headerTitleColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textColor =
+        isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final sectionContentColor =
+        isDark ? const Color(0xFFD1D7DB) : const Color(0xFF667781);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
             // -----------------------------------------------------------------
             // HEADER TETAP BERADA PADA POSISI ATAS (56dp)
             // -----------------------------------------------------------------
-            _buildFixedHeader(context),
+            _buildFixedHeader(context, isDark, headerBg, headerTitleColor),
 
             // -----------------------------------------------------------------
             // KONTEN SYARAT & KETENTUAN YANG DAPAT DI-SCROLL
@@ -40,7 +52,7 @@ class TermsPage extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E293B),
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -49,25 +61,37 @@ class TermsPage extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 15,
                         height: 1.5,
-                        color: const Color(0xFF64748B),
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 16),
                     _buildSection(
                       title: '1. Akun Pengguna',
-                      content: 'Anda wajib memberikan informasi yang akurat dan lengkap saat mendaftar. Keamanan akun dan kata sandi menjadi tanggung jawab pribadi Anda.',
+                      content:
+                          'Anda wajib memberikan informasi yang akurat dan lengkap saat mendaftar. Keamanan akun dan kata sandi menjadi tanggung jawab pribadi Anda.',
+                      titleColor: titleColor,
+                      contentColor: sectionContentColor,
                     ),
                     _buildSection(
                       title: '2. Privasi & Data Anak',
-                      content: 'Data tumbuh kembang anak yang Anda masukkan dilindungi dan digunakan semata-mata untuk keperluan pemantauan status gizi dan pencegahan stunting.',
+                      content:
+                          'Data tumbuh kembang anak yang Anda masukkan dilindungi dan digunakan semata-mata untuk keperluan pemantauan status gizi dan pencegahan stunting.',
+                      titleColor: titleColor,
+                      contentColor: sectionContentColor,
                     ),
                     _buildSection(
                       title: '3. Layanan Konsultasi & Edukasi',
-                      content: 'Informasi dalam aplikasi ini ditujukan sebagai panduan edukasi awal dan pemantauan berkala, bukan pengganti rujukan medis darurat dokter spesialis.',
+                      content:
+                          'Informasi dalam aplikasi ini ditujukan sebagai panduan edukasi awal dan pemantauan berkala, bukan pengganti rujukan medis darurat dokter spesialis.',
+                      titleColor: titleColor,
+                      contentColor: sectionContentColor,
                     ),
                     _buildSection(
                       title: '4. Perubahan Ketentuan',
-                      content: 'Tim PediaGrow berhak memperbarui syarat dan ketentuan ini sewaktu-waktu demi peningkatan layanan dan keamanan sistem aplikasi.',
+                      content:
+                          'Tim PediaGrow berhak memperbarui syarat dan ketentuan ini sewaktu-waktu demi peningkatan layanan dan keamanan sistem aplikasi.',
+                      titleColor: titleColor,
+                      contentColor: sectionContentColor,
                     ),
                     const SizedBox(height: 24),
                     Center(
@@ -106,10 +130,11 @@ class TermsPage extends StatelessWidget {
   }
 
   /// Header yang TETAP BERADA PADA POSISI ATAS (56dp) saat konten di-scroll.
-  Widget _buildFixedHeader(BuildContext context) {
+  Widget _buildFixedHeader(BuildContext context, bool isDark, Color headerBg,
+      Color headerTitleColor) {
     return Container(
       height: 56.0,
-      color: Colors.white,
+      color: headerBg,
       padding: const EdgeInsets.only(left: 12.0, right: 12.0),
       child: Row(
         children: [
@@ -121,9 +146,9 @@ class TermsPage extends StatelessWidget {
                 Navigator.of(context).pop();
               }
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Icon(Icons.arrow_back, color: headerTitleColor, size: 24),
             ),
           ),
           // Nama halaman terletak 12dp setelah button back
@@ -133,7 +158,7 @@ class TermsPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: headerTitleColor,
             ),
           ),
         ],
@@ -141,7 +166,12 @@ class TermsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({required String title, required String content}) {
+  Widget _buildSection({
+    required String title,
+    required String content,
+    required Color titleColor,
+    required Color contentColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14.0),
       child: Column(
@@ -152,7 +182,7 @@ class TermsPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF1E293B),
+              color: titleColor,
             ),
           ),
           const SizedBox(height: 4),
@@ -161,7 +191,7 @@ class TermsPage extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 14,
               height: 1.4,
-              color: const Color(0xFF64748B),
+              color: contentColor,
             ),
           ),
         ],

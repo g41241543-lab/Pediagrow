@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/doctor_service.dart';
@@ -357,7 +355,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       child: Container(
         height: 46.0,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: const Color(0xFFE9EDEF),
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: TextField(
@@ -369,18 +367,18 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           },
           style: GoogleFonts.lato(
             fontSize: 14.0,
-            color: const Color(0xFF0F172A),
+            color: const Color(0xFF0B1014),
           ),
           decoration: InputDecoration(
             isDense: true,
             hintText: 'Cari Dokter',
             hintStyle: GoogleFonts.lato(
               fontSize: 14.0,
-              color: const Color(0xFF94A3B8),
+              color: const Color(0xFF8696A0),
             ),
             prefixIcon: const Icon(
               Icons.search_rounded,
-              color: Color(0xFF94A3B8),
+              color: Color(0xFF8696A0),
               size: 22.0,
             ),
             suffixIcon: _searchQuery.isNotEmpty
@@ -393,7 +391,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     },
                     child: const Icon(
                       Icons.close_rounded,
-                      color: Color(0xFF94A3B8),
+                      color: Color(0xFF8696A0),
                       size: 20.0,
                     ),
                   )
@@ -417,7 +415,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -442,7 +440,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFE2E8F0),
+                      color: const Color(0xFFE9EDEF),
                       width: 1.2,
                     ),
                     color: const Color(0xFFF8FAFC),
@@ -475,7 +473,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                             : 'Spesialis Anak',
                         style: GoogleFonts.lato(
                           fontSize: 13.0,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -489,7 +487,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           const Divider(
             height: 1.0,
             thickness: 0.8,
-            color: Color(0xFFF1F5F9),
+            color: Color(0xFFE9EDEF),
           ),
 
           // Bagian Bawah: Aksi Hapus (Sampah) & Edit (Pensil)
@@ -646,7 +644,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
+                color: const Color(0xFF0B1014),
               ),
             ),
             const SizedBox(height: 6.0),
@@ -657,7 +655,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: const Color(0xFF64748B),
+                color: const Color(0xFF667781),
               ),
             ),
           ],
@@ -750,7 +748,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),

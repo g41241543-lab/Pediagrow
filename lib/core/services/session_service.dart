@@ -8,7 +8,7 @@ import '../../features/auth/auth_choice_page.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/dokter/beranda/beranda_dokter_page.dart';
 import '../../features/pengguna/beranda/beranda_page.dart';
-import '../../features/pmik_admin/beranda_pmik_page.dart';
+import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
 import '../../models/staff_account_model.dart';
 import 'child_service.dart';
@@ -121,8 +121,11 @@ class SessionService {
       await prefs.remove(_keyStaffLastLeftTime);
       _inMemoryStaffLastLeftTime = null;
 
-      // Set role aktif untuk filter push notifikasi
-      LocalPushService().setActiveRole(PushRole.pengguna);
+      // Set role & user aktif untuk filter push notifikasi
+      LocalPushService().setActiveUser(
+        userId: userId,
+        role: PushRole.pengguna,
+      );
 
       debugPrint(
         '[SessionService] Sesi Pengguna disimpan (berlaku 30 hari hingga '
@@ -157,13 +160,16 @@ class SessionService {
       await prefs.remove(_keySessionUserId);
       await prefs.remove(_keySessionLoginTime);
 
-      // Set role aktif untuk filter push notifikasi
+      // Set role & user aktif untuk filter push notifikasi
       final pushRole = roleStr == 'superadmin'
           ? PushRole.superadmin
           : roleStr == 'pmik'
               ? PushRole.pmik
               : PushRole.dokter;
-      LocalPushService().setActiveRole(pushRole);
+      LocalPushService().setActiveUser(
+        userId: staff.id,
+        role: pushRole,
+      );
 
       debugPrint('[SessionService] Sesi Staf ($roleStr) disimpan: ${staff.name}');
     } catch (e) {
@@ -183,8 +189,9 @@ class SessionService {
       await prefs.remove(_keyStaffLastLeftTime);
       _inMemoryStaffLastLeftTime = null;
 
-      // Hapus role aktif push notifikasi
-      LocalPushService().setActiveRole(null);
+      // Hapus role & user aktif push notifikasi serta batalkan alarm terjadwal sesi ini
+      LocalPushService().setActiveUser(userId: null, role: null);
+      await LocalPushService().cancelAll();
 
       debugPrint('[SessionService] Seluruh data sesi dibersihkan.');
     } catch (e) {
@@ -343,23 +350,12 @@ class SessionService {
     });
   }
 
-  /// Menampilkan SnackBar merah informatif saat session kadaluarsa
+  /// Menampilkan notifikasi HP saat session kadaluarsa
   static void showExpiredNotice(String message) {
     try {
-      scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
-      scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
+      LocalPushService().show(
+        title: 'Sesi Berakhir',
+        body: message,
       );
     } catch (e) {
       debugPrint('[SessionService] showExpiredNotice error: $e');
@@ -412,8 +408,11 @@ class SessionService {
         await UserService().init();
         await ChildService().loadChildrenForCurrentUser();
 
-        // Pulihkan role aktif push notifikasi
-        LocalPushService().setActiveRole(PushRole.pengguna);
+        // Pulihkan role & user aktif push notifikasi
+        LocalPushService().setActiveUser(
+          userId: userId,
+          role: PushRole.pengguna,
+        );
 
         debugPrint(
           '[SessionService] Pengguna valid (< 30 hari). Langsung ke beranda.',
@@ -488,13 +487,16 @@ class SessionService {
         await prefs.remove(_keyStaffLastLeftTime);
         _inMemoryStaffLastLeftTime = null;
 
-        // Pulihkan role aktif push notifikasi
+        // Pulihkan role & user aktif push notifikasi
         final pushRole = role == 'superadmin'
             ? PushRole.superadmin
             : role == 'pmik'
                 ? PushRole.pmik
                 : PushRole.dokter;
-        LocalPushService().setActiveRole(pushRole);
+        LocalPushService().setActiveUser(
+          userId: staffId,
+          role: pushRole,
+        );
 
         debugPrint(
           '[SessionService] Sesi staf valid ($role). Langsung ke beranda.',

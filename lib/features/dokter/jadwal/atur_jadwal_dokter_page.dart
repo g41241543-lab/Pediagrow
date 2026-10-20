@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/staff_auth_service.dart';
-import '../../../models/jadwal_praktik_model.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../beranda/beranda_dokter_page.dart';
 
 /// Halaman Atur Jadwal Dokter:
 /// - Saklar aktif/nonaktif per hari (Senin sampai Minggu)
@@ -33,20 +34,20 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
   final JadwalDokterService _jadwalService = JadwalDokterService();
 
   late String _targetDoctorId;
+  String? _targetDoctorName;
   List<JadwalPraktikModel> _currentJadwal = [];
   bool _isLoading = true;
 
   static const Color _primaryBlue = Color(0xFF0284C7);
   static const Color _cardBg = Colors.white;
-  static const Color _borderColor = Color(0xFFE2E8F0);
+  static const Color _borderColor = Color(0xFFE9EDEF);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _targetDoctorId = widget.dokterId ??
-        StaffAuthService().currentStaff?.id ??
-        'dokter_default';
+    _targetDoctorId = widget.dokterId ?? '';
+    _targetDoctorName = widget.doctorName;
     _loadData();
   }
 
@@ -56,11 +57,36 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     super.dispose();
   }
 
-  void _loadData() {
-    setState(() {
-      _currentJadwal = _jadwalService.getJadwalDokter(_targetDoctorId);
-      _isLoading = false;
-    });
+  Future<void> _loadData() async {
+    String resolvedId = widget.dokterId ?? '';
+    String? resolvedName = widget.doctorName;
+
+    if (resolvedId.isEmpty) {
+      final staff = StaffAuthService().currentStaff;
+      if (staff != null) {
+        resolvedName ??= staff.name;
+        final doc = DoctorService().findDoctorForStaff(staff);
+        if (doc != null) {
+          resolvedId = doc.id;
+          resolvedName = doc.name;
+        } else {
+          resolvedId = staff.id;
+        }
+      } else {
+        resolvedId = 'doc_1';
+      }
+    }
+
+    _targetDoctorId = resolvedId;
+    _targetDoctorName = resolvedName;
+    final jadwal = _jadwalService.getJadwalDokter(_targetDoctorId);
+
+    if (mounted) {
+      setState(() {
+        _currentJadwal = List.from(jadwal);
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _saveJadwal() async {
@@ -77,38 +103,56 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       setState(() => _isLoading = false);
       PediaBanner.showSuccess(
         context,
-        message: 'Jadwal praktik berhasil disimpan!',
+        message: 'Jadwal praktik berhasil disimpan dan disinkronkan ke menu konsultasi!',
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.doctorName != null
-        ? 'Jadwal Praktik - ${widget.doctorName}'
+    final docDisplayName = _targetDoctorName ?? widget.doctorName;
+    final title = docDisplayName != null
+        ? 'Jadwal Praktik - $docDisplayName'
         : 'Atur Jadwal Praktik';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1014)),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+                );
+              }
+            },
+          ),
         title: Text(
           title,
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: const Color(0xFF0B1014),
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: _primaryBlue,
-          unselectedLabelColor: const Color(0xFF64748B),
+          unselectedLabelColor: const Color(0xFF667781),
           indicatorColor: _primaryBlue,
           indicatorWeight: 3,
           labelStyle: GoogleFonts.lato(fontWeight: FontWeight.bold),
@@ -165,6 +209,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               ),
             )
           : null,
+      ),
     );
   }
 
@@ -243,7 +288,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       decoration: BoxDecoration(
                         color: isDayActive
                             ? const Color(0xFF16A34A)
-                            : const Color(0xFF94A3B8),
+                            : const Color(0xFF8696A0),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -253,14 +298,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
                 ),
                 Switch(
                   value: isDayActive,
-                  activeColor: _primaryBlue,
+                  activeThumbColor: _primaryBlue,
                   onChanged: (val) {
                     setState(() {
                       if (val) {
@@ -302,7 +347,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             ),
           ),
           if (isDayActive) ...[
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            const Divider(height: 1, color: Color(0xFFE9EDEF)),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -361,7 +406,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE9EDEF)),
       ),
       child: Row(
         children: [
@@ -376,14 +421,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
                 Text(
                   'Durasi slot: ${sesi.durasiSlotMenit} menit',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: const Color(0xFF667781),
                   ),
                 ),
               ],
@@ -512,7 +557,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
-                value: selectedDuration,
+                initialValue: selectedDuration,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   isDense: true,
@@ -632,7 +677,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
+                color: const Color(0xFF0B1014),
               ),
             ),
             const SizedBox(height: 10),
@@ -642,7 +687,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 alignment: Alignment.center,
                 child: Text(
                   'Belum ada jadwal cuti atau libur.',
-                  style: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
+                  style: GoogleFonts.lato(color: const Color(0xFF8696A0)),
                 ),
               )
             else
@@ -695,7 +740,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -712,7 +757,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   'Alasan: ${cuti.alasan}',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: const Color(0xFF667781),
                   ),
                 ),
               ],
@@ -803,7 +848,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       ),
                       Switch(
                         value: isSeharian,
-                        activeColor: _primaryBlue,
+                        activeThumbColor: _primaryBlue,
                         onChanged: (val) => setDialogState(() => isSeharian = val),
                       ),
                     ],
@@ -902,16 +947,17 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   );
 
                   final affectedCount = await _jadwalService.tambahCuti(cuti: newCuti);
-                  if (mounted) {
+                  if (ctx.mounted) {
                     Navigator.of(ctx).pop();
-                    if (affectedCount > 0) {
-                      PediaBanner.showSuccess(
-                        context,
-                        message: 'Cuti disimpan. $affectedCount pasien terdampak telah dibatalkan & diberitahu.',
-                      );
-                    } else {
-                      PediaBanner.showSuccess(context, message: 'Cuti dokter berhasil ditambahkan!');
-                    }
+                  }
+                  if (!mounted) return;
+                  if (affectedCount > 0) {
+                    PediaBanner.showSuccess(
+                      context,
+                      message: 'Cuti disimpan. $affectedCount pasien terdampak telah dibatalkan & diberitahu.',
+                    );
+                  } else {
+                    PediaBanner.showSuccess(context, message: 'Cuti dokter berhasil ditambahkan!');
                   }
                 },
                 child: const Text('Simpan Cuti'),
@@ -936,8 +982,10 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
             onPressed: () async {
               await _jadwalService.hapusCuti(cuti.id);
-              if (mounted) {
+              if (ctx.mounted) {
                 Navigator.of(ctx).pop();
+              }
+              if (mounted) {
                 PediaBanner.showSuccess(context, message: 'Cuti dokter dihapus.');
               }
             },

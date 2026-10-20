@@ -14,8 +14,8 @@ import '../profil_pmik_page.dart';
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
-const Color _colorTextBlack = Color(0xFF1E293B);
-const Color _colorLabelGrey = Color(0xFF64748B);
+const Color _colorTextBlack = Color(0xFF1A2228);
+const Color _colorLabelGrey = Color(0xFF667781);
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk PMIK.
@@ -34,6 +34,7 @@ class _KonsultasiItem {
   final String? complaint;
   final double? weightKg;
   final double? heightCm;
+  final BookingConsultationModel? booking;
 
   const _KonsultasiItem({
     required this.id,
@@ -43,134 +44,22 @@ class _KonsultasiItem {
     this.childPhotoUrl,
     required this.doctorName,
     required this.status,
+    // ignore: unused_element_parameter
     this.scheduledDate,
+    // ignore: unused_element_parameter
     this.scheduledTime,
     this.sessionId,
     this.parentName,
     this.complaint,
     this.weightKg,
     this.heightCm,
+    this.booking,
   });
 }
 
-// ─── Mock data (mirip screenshot desain) ─────────────────────────────────────
-final List<_KonsultasiItem> _mockBerlangsung = [
-  const _KonsultasiItem(
-    id: 'k1',
-    childName: 'Devaro Ramadhan',
-    childAge: '1 tahun 2 bulan 13 hari',
-    childGender: 'Laki-laki',
-    childPhotoUrl: null,
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k2',
-    childName: 'Arfa Zivano Kayfan',
-    childAge: '0 tahun 4 bulan 23 hari',
-    childGender: 'Laki-laki',
-    childPhotoUrl: null,
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k3',
-    childName: 'Naya Seiza Putri',
-    childAge: '0 tahun 8 bulan 20 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k4',
-    childName: 'Zafran Aditya',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k5',
-    childName: 'Aisha Arunika Zahra',
-    childAge: '0 tahun 5 bulan 0 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'berlangsung',
-  ),
-];
-
-final List<_KonsultasiItem> _mockJadwal = [
-  const _KonsultasiItem(
-    id: 'j1',
-    childName: 'Amara Adiratna',
-    childAge: '1 tahun 2 bulan 10 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
-    status: 'jadwal',
-    scheduledDate: 'Senin, 13 Okt 2026',
-    scheduledTime: '09:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j2',
-    childName: 'Kaia Anastasya',
-    childAge: '1 tahun 3 bulan 3 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Selasa, 14 Okt 2026',
-    scheduledTime: '10:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j3',
-    childName: 'Zafran Aditya',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Rabu, 15 Okt 2026',
-    scheduledTime: '08:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j4',
-    childName: 'Arlo Gavindra',
-    childAge: '0 tahun 11 bulan 21 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Devina Marchita I. S., Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Kamis, 16 Okt 2026',
-    scheduledTime: '11:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j5',
-    childName: 'Amara Adiratna',
-    childAge: '1 tahun 10 bulan 09 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Jumat, 17 Okt 2026',
-    scheduledTime: '13:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j6',
-    childName: 'Zalvian Sadewa',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'jadwal',
-    scheduledDate: 'Senin, 20 Okt 2026',
-    scheduledTime: '09:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j7',
-    childName: 'Mahesa Putra',
-    childAge: '1 tahun 1 bulan 16 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Ririn Esterina, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Selasa, 21 Okt 2026',
-    scheduledTime: '15:00',
-  ),
-];
+// ─── Data Konsultasi: 100% Menggunakan Data Asli Firebase Firestore ─────────
+final List<_KonsultasiItem> _mockBerlangsung = [];
+final List<_KonsultasiItem> _mockJadwal = [];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -209,6 +98,49 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     super.dispose();
   }
 
+  /// Returns true jika jadwal mock item ini belum lewat (tanggal & jam masih di depan sekarang).
+  /// Format scheduledDate: "Senin, 20 Okt 2026", scheduledTime: "09:30"
+  bool _isJadwalBelumLewat(_KonsultasiItem item) {
+    final dateStr = item.scheduledDate;
+    final timeStr = item.scheduledTime;
+    if (dateStr == null || dateStr.isEmpty) return false;
+    const bulan = {
+      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'Mei': 5, 'Jun': 6,
+      'Jul': 7, 'Agu': 8, 'Sep': 9, 'Okt': 10, 'Nov': 11, 'Des': 12,
+    };
+    final parts = dateStr.replaceAll(',', '').split(' ');
+    if (parts.length < 4) return false;
+    final day = int.tryParse(parts[1]);
+    final month = bulan[parts[2]];
+    final year = int.tryParse(parts[3]);
+    if (day == null || month == null || year == null) return false;
+    int hour = 23, minute = 59;
+    if (timeStr != null && timeStr.isNotEmpty) {
+      final timeParts = timeStr.split(':');
+      hour = int.tryParse(timeParts[0]) ?? 23;
+      minute = timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 59) : 59;
+    }
+    final scheduledEnd = DateTime(year, month, day, hour, minute)
+        .add(const Duration(minutes: 30));
+    return DateTime.now().isBefore(scheduledEnd);
+  }
+
+  /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
+  bool _isBookingActiveNow(BookingConsultationModel booking) {
+    if (booking.status.toLowerCase().contains('selesai') ||
+        booking.status.toLowerCase().contains('batal') ||
+        booking.isExpired) {
+      return false;
+    }
+    if (booking.isBeforeStart) {
+      return false;
+    }
+    if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
+      return true;
+    }
+    return booking.isInTimeWindow;
+  }
+
   // ─── Navigation ────────────────────────────────────────────────────────────
   void _onBottomNavTap(int index) {
     if (index == _selectedNavIndex) return;
@@ -230,8 +162,8 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, __, ___) => targetPage,
-      transitionsBuilder: (_, animation, __, child) {
+      pageBuilder: (_, _, _) => targetPage,
+      transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -273,7 +205,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
+                color: const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -288,7 +220,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               child: const Icon(
                 Icons.lock_rounded,
                 size: 36,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ),
             const SizedBox(height: 16),
@@ -357,7 +289,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -402,7 +334,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -493,40 +425,95 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         return ValueListenableBuilder<List<BookingConsultationModel>>(
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, userBookings, _) {
-            // PMIK menampilkan seluruh data konsultasi (tanpa filter per dokter):
-            final allBerlangsung = [
-              ...firestoreBerlangsung,
-              ..._mockBerlangsung,
-            ];
+            // Filter mock jadwal yang sudah lewat
+            final validMockJadwal = _mockJadwal
+                .where(_isJadwalBelumLewat)
+                .toList();
+
+            // Filter booking dari Firebase yang sudah expired & hilangkan duplikasi
+            final seenAdmin = <String>{};
+            final validUserBookings = <BookingConsultationModel>[];
+            for (final b in userBookings) {
+              if (b.isExpired) continue;
+              final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+              if (seenAdmin.add(b.id) && seenAdmin.add(slotKey)) {
+                validUserBookings.add(b);
+              }
+            }
+
+            // Pisahkan booking: yang sedang berlangsung masuk ke tab "Sedang Berlangsung",
+            // sedangkan yang masih terjadwal di masa depan tetap di tab "Jadwal Konsultasi"
+            final activeUserBookings = <BookingConsultationModel>[];
+            final scheduledUserBookings = <BookingConsultationModel>[];
+            for (final b in validUserBookings) {
+              if (_isBookingActiveNow(b)) {
+                activeUserBookings.add(b);
+              } else {
+                scheduledUserBookings.add(b);
+              }
+            }
+
+            final userBookingsBerlangsung = activeUserBookings.map((b) => _KonsultasiItem(
+              id: b.id,
+              childName: b.child.name,
+              childAge: b.child.ageDescription,
+              childGender: b.child.gender,
+              childPhotoUrl: b.child.photoUrl,
+              doctorName: b.doctor.name,
+              status: 'berlangsung',
+              sessionId: b.sessionId ?? 'session_${b.id}',
+              parentName: b.userId,
+              complaint: b.complaint,
+              weightKg: b.child.weightKg,
+              heightCm: b.child.heightCm,
+              booking: b,
+            )).toList();
+
+            // Deduplikasi gabungan tab Sedang Berlangsung agar tidak ada pasien ganda antara firestore session dan booking
+            final seenActive = <String>{};
+            final allBerlangsung = <_KonsultasiItem>[];
+            for (final item in [...firestoreBerlangsung, ...userBookingsBerlangsung, ..._mockBerlangsung]) {
+              final key = item.sessionId ?? '${item.childName.toLowerCase()}|${item.doctorName.toLowerCase()}';
+              if (seenActive.add(key)) {
+                allBerlangsung.add(item);
+              }
+            }
 
             final int berlangsungCount = allBerlangsung.length;
-            final int jadwalCount = _mockJadwal.length + userBookings.length;
+            final int jadwalCount = validMockJadwal.length + scheduledUserBookings.length;
 
-            return Scaffold(
-              backgroundColor: Colors.white,
-              appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(56.0),
-                child: _buildHeader(),
-              ),
-              body: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    _buildTabBar(berlangsungCount, jadwalCount),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildBerlangsungTab(allBerlangsung),
-                          _buildJadwalKonsultasiTab(userBookings, _mockJadwal),
-                        ],
-                      ),
-                    ),
-                  ],
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, _) {
+                if (didPop) return;
+                _onBottomNavTap(0);
+              },
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                appBar: PreferredSize(
+                  preferredSize: const Size.fromHeight(56.0),
+                  child: _buildHeader(),
                 ),
+                body: SafeArea(
+                  top: false,
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      _buildTabBar(berlangsungCount, jadwalCount),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildBerlangsungTab(allBerlangsung),
+                            _buildJadwalKonsultasiTab(scheduledUserBookings, validMockJadwal),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                bottomNavigationBar: _buildBottomNavigationBar(),
               ),
-              bottomNavigationBar: _buildBottomNavigationBar(),
             );
           },
         );
@@ -573,7 +560,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -623,7 +610,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
           decoration: BoxDecoration(
             color: isThisTabActive
                 ? _colorPrimaryBlue
-                : const Color(0xFFE2E8F0),
+                : const Color(0xFFE9EDEF),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -682,10 +669,10 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -695,7 +682,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -722,7 +709,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                   'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -826,7 +813,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                   ],
                 ),
               ),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -859,7 +846,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: _colorPrimaryBlue.withOpacity(0.25),
+                              color: _colorPrimaryBlue.withValues(alpha: 0.25),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -954,7 +941,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -999,7 +986,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -1214,7 +1201,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 ),
               ),
               const SizedBox(height: 10),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1249,10 +1236,10 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withOpacity(0.07),
+        color: _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withOpacity(0.22),
+          color: _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -1262,7 +1249,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withOpacity(0.12),
+              color: _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -1289,7 +1276,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                   'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withOpacity(0.8),
+                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -1409,7 +1396,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                       color: const Color(0xFFF0F7FF),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: _colorPrimaryBlue.withOpacity(0.18),
+                        color: _colorPrimaryBlue.withValues(alpha: 0.18),
                         width: 1,
                       ),
                     ),
@@ -1451,7 +1438,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                 ),
                 const SizedBox(height: 10),
               ],
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1521,7 +1508,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
           color: bgColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -1567,7 +1554,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -1672,7 +1659,7 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),
@@ -1741,7 +1728,7 @@ class _BabyFacePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withOpacity(0.4)
+      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final cx = w * 0.5;

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/doctor_service.dart';
+import '../../core/services/local_push_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/doctor_model.dart';
@@ -180,7 +179,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -190,7 +189,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -212,7 +211,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -220,7 +219,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const Divider(height: 1, color: Color(0xFFE9EDEF)),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -239,7 +238,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -266,7 +265,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       if (picked != null) {
         setState(() => _avatarPath = picked.path);
         final persistable =
-            await StorageService.uploadIfLocal(picked.path) ?? picked.path;
+            await StorageService.uploadIfLocal(picked.path);
         final prefs = await SharedPreferences.getInstance();
         if (_dokter?.id != null) {
           await prefs.setString('dokter_avatar_${_dokter!.id}', persistable);
@@ -294,18 +293,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         } catch (_) {}
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Berhasil memperbarui foto profil',
-                style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-              ),
-              backgroundColor: const Color(0xFF16A34A),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          LocalPushService().show(
+            title: 'PediaGrow',
+            body: 'Berhasil memperbarui foto profil',
+            targetRole: PushRole.dokter,
           );
         }
       }
@@ -334,7 +325,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -343,7 +334,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -356,7 +347,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          side: const BorderSide(color: Color(0xFFD1D7DB)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -366,7 +357,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF475569),
+                            color: const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -473,105 +464,103 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: _buildCustomHeader(),
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16.0),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _onBottomNavTap(0);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFBFBFB),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: _buildCustomHeader(),
+        ),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16.0),
 
-              // 1. KARTU PROFIL
-              _buildProfileCard(),
+                // 1. KARTU PROFIL
+                _buildProfileCard(),
 
-              const SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
 
-              // 2. TEMPAT PRAKTIK
-              Text(
-                'Tempat Praktik',
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 12.0),
-              _buildPracticeLocationsCard(),
-
-              const SizedBox(height: 20.0),
-
-              // 3. INFO hanya superadmin yang bisa edit
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFED7AA)),
-                ),
-                child: Row(
+                // 2. TEMPAT PRAKTIK
+                Row(
                   children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      color: Color(0xFFF97316),
-                      size: 20,
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.local_hospital_rounded,
+                        color: Color(0xFF3985E7),
+                        size: 16,
+                      ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Informasi profil hanya dapat diubah oleh Superadmin. '
-                        'Hubungi Superadmin jika perlu pembaruan data.',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: const Color(0xFF92400E),
-                          height: 1.4,
-                        ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tempat Praktik',
+                      style: GoogleFonts.lato(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0B1014),
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 12.0),
+                _buildPracticeLocationsCard(),
 
-              const SizedBox(height: 24.0),
+                const SizedBox(height: 20.0),
 
-              // 4. TOMBOL LOGOUT
-              SizedBox(
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: _showLogoutConfirmationDialog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3985E7),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                // 4. INFORMASI DIUBAH HANYA OLEH SUPERADMIN (Gaya PMIK Admin)
+                _buildSuperadminEditNotice(),
+
+                const SizedBox(height: 24.0),
+
+                // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
+                SizedBox(
+                  height: 50.0,
+                  child: ElevatedButton(
+                    onPressed: _showLogoutConfirmationDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3985E7),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'LOGOUT',
-                    style: GoogleFonts.lato(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                      color: Colors.white,
+                    child: Text(
+                      'LOGOUT',
+                      style: GoogleFonts.lato(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 24.0),
-            ],
+                const SizedBox(height: 24.0),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -585,15 +574,29 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                GestureDetector(
+                  onTap: () => _onBottomNavTap(0),
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.arrow_back,
+                      size: 24.0,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12.0),
                 Text(
-                  'Profil',
+                  'Profil Dokter',
                   style: GoogleFonts.lato(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: const Color(0xFF0F172A),
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -605,7 +608,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── PROFILE CARD ─────────────────────────────────────────────────────────
+  // ─── PROFILE CARD (Default gaya pmik_superadmin) ──────────────────────────
   Widget _buildProfileCard() {
     const double avatarRadius = 46.0;
     final name = _doctorModel?.name.isNotEmpty == true
@@ -616,7 +619,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     final spesialisasi = _doctorModel?.specialization.isNotEmpty == true
         ? _doctorModel!.specialization
         : (_dokter?.additionalInfo?['spesialisasi']?.toString() ??
-            'Spesialis Anak');
+            'Dokter Spesialis Anak');
     final email = _doctorModel?.email?.isNotEmpty == true
         ? _doctorModel!.email!
         : (_dokter?.email ?? '');
@@ -625,6 +628,18 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         _doctorModel?.assetImagePath ??
         _dokter?.avatarPath;
 
+    final experience = _doctorModel != null && _doctorModel!.experienceYears > 0
+        ? '${_doctorModel!.experienceYears} tahun'
+        : (_dokter?.experience != null && _dokter!.experience!.isNotEmpty
+            ? _dokter!.experience!
+            : '5 tahun');
+
+    final strNumber = _doctorModel?.strNumber?.isNotEmpty == true
+        ? _doctorModel!.strNumber!
+        : (_dokter?.strNumber?.isNotEmpty == true
+            ? _dokter!.strNumber!
+            : '3511201402012222');
+
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -632,7 +647,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         // Kartu putih
         Container(
           margin: const EdgeInsets.only(top: avatarRadius),
-          padding: EdgeInsets.only(
+          padding: const EdgeInsets.only(
             top: avatarRadius + 10.0,
             left: 16.0,
             right: 16.0,
@@ -641,7 +656,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -653,14 +668,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
               Text(
                 name,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -670,7 +684,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -680,12 +694,12 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.0,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8696A0),
                   ),
                 ),
               ],
               const SizedBox(height: 18.0),
-              // Pengalaman & STR
+              // Baris Info: Pengalaman & No. STR (Ikon berwarna sama dengan role lain)
               Row(
                 children: [
                   Expanded(
@@ -694,13 +708,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _doctorModel != null &&
-                              _doctorModel!.experienceYears > 0
-                          ? '${_doctorModel!.experienceYears} tahun'
-                          : (_dokter?.experience != null &&
-                                  _dokter!.experience!.isNotEmpty
-                              ? _dokter!.experience!
-                              : '-'),
+                      value: experience,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -710,11 +718,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
-                      value: _doctorModel?.strNumber?.isNotEmpty == true
-                          ? _doctorModel!.strNumber!
-                          : (_dokter?.strNumber?.isNotEmpty == true
-                              ? _dokter!.strNumber!
-                              : '-'),
+                      value: strNumber,
                     ),
                   ),
                 ],
@@ -723,7 +727,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           ),
         ),
 
-        // Avatar melayang dengan badge kamera
+        // Avatar Bulat melayang di posisi atas
         Positioned(
           top: 0,
           child: GestureDetector(
@@ -731,17 +735,37 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundColor: const Color(0xFFE0EEFF),
-                  backgroundImage: _resolveAvatarImage(imagePath),
-                  child: imagePath == null || imagePath.isEmpty
-                      ? Icon(
+                Container(
+                  width: avatarRadius * 2,
+                  height: avatarRadius * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3.5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x1A000000),
+                        blurRadius: 10.0,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: StorageService.buildImageWidget(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorWidget: Container(
+                        color: const Color(0xFFE2E8F0),
+                        alignment: Alignment.center,
+                        child: const Icon(
                           Icons.person_rounded,
-                          size: avatarRadius * 1.1,
-                          color: const Color(0xFF3985E7),
-                        )
-                      : null,
+                          size: 52.0,
+                          color: Color(0xFF72A9F4),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 Positioned(
                   right: 0,
@@ -805,7 +829,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF8696A0),
                 ),
               ),
               Text(
@@ -815,7 +839,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF0B1014),
                 ),
               ),
             ],
@@ -825,8 +849,37 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  ImageProvider? _resolveAvatarImage(String? path) {
-    return StorageService.buildImageProvider(path);
+  // ─── BANNER INFORMASI SUPERADMIN (Gaya PMIK Admin) ────────────────────────
+  Widget _buildSuperadminEditNotice() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFED7AA)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFFF97316),
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Informasi profil hanya dapat diubah oleh Superadmin. '
+              'Hubungi Superadmin jika perlu pembaruan data.',
+              style: GoogleFonts.lato(
+                fontSize: 13,
+                color: const Color(0xFF92400E),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ─── TEMPAT PRAKTIK ───────────────────────────────────────────────────────
@@ -868,7 +921,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+          border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
           boxShadow: const [
             BoxShadow(
               color: Color(0x0A000000),
@@ -890,7 +943,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               child: const Icon(
                 Icons.apartment_rounded,
                 size: 20,
-                color: Color(0xFF94A3B8),
+                color: Color(0xFF8696A0),
               ),
             ),
             const SizedBox(width: 12),
@@ -899,7 +952,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 'Belum ada tempat praktik yang ditambahkan oleh Superadmin.',
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF64748B),
+                  color: const Color(0xFF667781),
                 ),
               ),
             ),
@@ -913,7 +966,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -957,7 +1010,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E293B),
+                          color: const Color(0xFF1A2228),
                         ),
                       ),
                     ),
@@ -969,7 +1022,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   height: 1,
                   thickness: 1,
                   indent: 68,
-                  color: Color(0xFFF1F5F9),
+                  color: Color(0xFFE9EDEF),
                 ),
             ],
           );
@@ -980,13 +1033,24 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
   // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
   Widget _buildBottomNavigationBar() {
+    final navItems = [
+      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
+      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
+      const _NavItem(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
+      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
+    ];
+
     return Container(
+      width: double.infinity,
+      height: 68.0,
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.0)),
+        color: Color(0xFFF2EDED),
         boxShadow: [
           BoxShadow(
-            color: Color(0x0D000000),
+            color: Color(0x18000000),
             blurRadius: 8.0,
             offset: Offset(0, -2),
           ),
@@ -994,60 +1058,98 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 62,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, Icons.home_rounded, 'Beranda'),
-              _buildNavItem(1, Icons.chat_bubble_outline_rounded, 'Konsultasi'),
-              _buildNavItem(
-                2,
-                Icons.receipt_long_rounded,
-                'Riwayat\nKonsultasi',
-              ),
-              _buildNavItem(3, Icons.person_rounded, 'Profil'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: List.generate(navItems.length, (i) {
+            final isSelected = i == _selectedIndex;
+            final item = navItems[i];
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = index == _selectedIndex;
-    return GestureDetector(
-      onTap: () => _onBottomNavTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isSelected
-                  ? const Color(0xFF3985E7)
-                  : const Color(0xFF94A3B8),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              style: GoogleFonts.lato(
-                fontSize: 10.5,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected
-                    ? const Color(0xFF3985E7)
-                    : const Color(0xFF94A3B8),
-                height: 1.2,
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => _onBottomNavTap(i),
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  height: 68.0,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected) ...[
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 4.0,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.icon,
+                            size: 22.0,
+                            color: const Color(0xFF72A9F4),
+                          ),
+                        ),
+                        const SizedBox(height: 2.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF1A2228),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        Icon(
+                          item.icon,
+                          size: 24.0,
+                          color: const Color(0xFF9E9E9E),
+                        ),
+                        const SizedBox(height: 3.0),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.normal,
+                                color: const Color(0xFF9E9E9E),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            );
+          }),
         ),
       ),
     );
   }
+}
+
+class _NavItem {
+  final IconData icon;
+  final String label;
+  const _NavItem({required this.icon, required this.label});
 }

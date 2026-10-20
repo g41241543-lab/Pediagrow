@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Widget baris 2 kartu statistik ringkas berdampingan untuk
@@ -65,15 +65,20 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -90,7 +95,7 @@ class _StatCard extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: iconBgColor,
+                  color: isDark ? iconColor.withValues(alpha: 0.2) : iconBgColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: iconColor, size: 18),
@@ -100,7 +105,7 @@ class _StatCard extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ],
@@ -117,7 +122,7 @@ class _StatCard extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   letterSpacing: -0.5,
                 ),
               ),
@@ -127,7 +132,7 @@ class _StatCard extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF94A3B8),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
                 ),
               ),
             ],

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -54,7 +52,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   static const Color colorTextPrimary = Color(0xFF1A202C);
   static const Color colorTextSecondary = Color(0xFF4A5568);
   static const Color colorTextMuted = Color(0xFF718096);
-  static const Color colorBorder = Color(0xFFE2E8F0);
+  static const Color colorBorder = Color(0xFFE9EDEF);
   static const Color colorGreenSuccess = Color(0xFF48BB78);
   static const Color colorAmberTip = Color(0xFFFFB300);
 
@@ -148,8 +146,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     } else if (args is Map<String, dynamic>) {
       setState(() {
         if (args['namaAnak'] != null) _effectiveName = args['namaAnak'];
-        if (args['jenisKelamin'] != null)
+        if (args['jenisKelamin'] != null) {
           _effectiveGender = args['jenisKelamin'];
+        }
         if (args['usiaAnak'] != null) _effectiveAge = args['usiaAnak'];
       });
     }
@@ -338,9 +337,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         ? currentUser.id
         : 'user-${DateTime.now().millisecondsSinceEpoch}';
 
+    final targetBooking =
+        widget.booking ?? BookingService().activeBookingNotifier.value;
+    final desiredSessionId = targetBooking?.sessionId ?? (targetBooking != null ? 'session_${targetBooking.id}' : null);
+
     String? sessionId;
     try {
       sessionId = await KonsultasiService.instance.buatSesi(
+        customSessionId: desiredSessionId,
         childId: childData.id,
         childName: childData.name,
         userId: userId,
@@ -370,18 +374,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     if (!mounted) return;
 
     // Perbarui data booking aktif jika ada (BB, TB, keluhan tersinkron ke BookingService)
-    final targetBooking =
-        widget.booking ?? BookingService().activeBookingNotifier.value;
     if (targetBooking != null) {
       BookingService().updateBookingForm(
         bookingId: targetBooking.id,
         weightKg: weight,
         heightCm: height,
         complaint: complaint,
+        sessionId: sessionId ?? desiredSessionId,
       );
     }
 
-    final effectiveSessionId = targetBooking?.sessionId ?? sessionId;
+    final effectiveSessionId = sessionId ?? desiredSessionId ?? 'session_${DateTime.now().millisecondsSinceEpoch}';
 
     // Navigasi ke halaman Chat Konsultasi Dokter (pushReplacement agar pengguna tidak bisa kembali ke halaman formulir)
     Navigator.pushReplacement(
@@ -412,21 +415,22 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       // Menutup keyboard ketika pengguna mengetuk di luar input
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
               // ---------------------------------------------------------------
-              // 1. HEADER TETAP (Tinggi 56dp, Tombol Back 12dp dari kiri,
-              //    Judul 12dp setelah tombol back)
+              // 1. HEADER TETAP (Tinggi 56dp)
               // ---------------------------------------------------------------
-              _buildFixedHeader(),
+              _buildFixedHeader(isDark),
 
               // ---------------------------------------------------------------
               // 2. KONTEN SCROLLABLE (Padding horizontal 16dp)
@@ -439,31 +443,31 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Card "Lengkapi Form Konsultasi"
-                      _buildInfoBannerCard(),
+                      _buildInfoBannerCard(isDark),
                       const SizedBox(height: 18),
 
                       // Informasi "Data Anak"
-                      _buildChildInfoSection(),
+                      _buildChildInfoSection(isDark),
                       const SizedBox(height: 18),
 
                       // Card "Berat Badan Saat Ini"
-                      _buildWeightCard(),
+                      _buildWeightCard(isDark),
                       const SizedBox(height: 16),
 
                       // Card "Tinggi Badan Saat Ini"
-                      _buildHeightCard(),
+                      _buildHeightCard(isDark),
                       const SizedBox(height: 16),
 
                       // Card "Keluhan"
-                      _buildComplaintCard(),
+                      _buildComplaintCard(isDark),
                       const SizedBox(height: 16),
 
                       // Card "Tips"
-                      _buildTipsCard(),
+                      _buildTipsCard(isDark),
                       const SizedBox(height: 16),
 
                       // Card "Informasi Penting"
-                      _buildImportantInfoCard(),
+                      _buildImportantInfoCard(isDark),
                       const SizedBox(height: 24),
 
                       // Button "Lanjutkan Chat Dokter"
@@ -471,7 +475,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                       const SizedBox(height: 14),
 
                       // Footer Keamanan "Data Anda aman dan terlindungi"
-                      _buildSecurityFooter(),
+                      _buildSecurityFooter(isDark),
                     ],
                   ),
                 ),
@@ -487,35 +491,33 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 1. HEADER TETAP (56dp)
   // ===========================================================================
 
-  Widget _buildFixedHeader() {
+  Widget _buildFixedHeader(bool isDark) {
     return Container(
       height: 56,
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Tombol back berjarak tepat 12dp dari pinggir kiri layar
           const SizedBox(width: 12),
           Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: _onBackPressed,
-              child: const SizedBox(
+              child: SizedBox(
                 width: 36,
                 height: 36,
                 child: Center(
                   child: Icon(
                     Icons.arrow_back_rounded,
-                    color: colorTextPrimary,
+                    color: isDark ? Colors.white : colorTextPrimary,
                     size: 24,
                   ),
                 ),
               ),
             ),
           ),
-          // Jarak 12dp setelah posisi tombol back menuju judul halaman
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -523,7 +525,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
-                color: colorTextPrimary,
+                color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                 letterSpacing: -0.2,
               ),
               maxLines: 1,
@@ -540,13 +542,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 2. CARD "LENGKAPI FORM KONSULTASI"
   // ===========================================================================
 
-  Widget _buildInfoBannerCard() {
+  Widget _buildInfoBannerCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorSoftBlue,
+        color: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : colorSoftBlue,
         borderRadius: BorderRadius.circular(16),
+        border: isDark ? Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.5)) : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -554,9 +557,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           // Ikon Dokumen Biru
           Container(
             padding: const EdgeInsets.all(2),
-            child: const Icon(
+            child: Icon(
               Icons.description_outlined,
-              color: colorPrimaryBlue,
+              color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
               size: 26,
             ),
           ),
@@ -571,7 +574,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: colorTextPrimary,
+                    color: isDark ? const Color(0xFF93C5FD) : colorTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -579,7 +582,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   'Mohon lengkapi data berikut agar dokter dapat memahami kondisi anak Anda dengan lebih baik.',
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
-                    color: colorTextSecondary,
+                    color: isDark ? const Color(0xFFD1D7DB) : colorTextSecondary,
                     height: 1.35,
                   ),
                 ),
@@ -595,22 +598,54 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 3. INFORMASI "DATA ANAK"
   // ===========================================================================
 
-  Widget _buildChildInfoSection() {
+  Widget _buildChildInfoSection(bool isDark) {
     final hasCustomName =
         _activeChild != null ||
         (widget.namaAnak != null && widget.namaAnak!.trim().isNotEmpty);
-    final allChildren = ChildService().children;
-    final canSwitchChild = allChildren.length > 1;
 
+<<<<<<< HEAD
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Avatar Anak Lingkaran Proporsional (Anti-peyang)
+          _buildChildAvatar(),
+          const SizedBox(width: 14),
+
+          // Teks "Data Anak" dan Subtitle Dinamis
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasCustomName ? 'Data Anak ($_effectiveName)' : 'Data Anak',
+                  style: GoogleFonts.lato(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colorTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$_effectiveGender, $_effectiveAge',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: colorTextSecondary,
+=======
     return InkWell(
-      onTap: canSwitchChild ? _showChildPickerBottomSheet : null,
+      onTap: canSwitchChild ? () => _showChildPickerBottomSheet(isDark) : null,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar Anak Lingkaran Proporsional (Anti-peyang)
+            // Avatar Anak Lingkaran Proporsional
             _buildChildAvatar(),
             const SizedBox(width: 14),
 
@@ -625,7 +660,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: colorTextPrimary,
+                      color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -636,14 +671,21 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
-                      color: colorTextSecondary,
+                      color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+>>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
+<<<<<<< HEAD
+          ),
+        ],
+=======
             if (canSwitchChild)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -651,8 +693,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: colorSoftBlue,
+                  color: isDark ? const Color(0xFF1A2228) : colorSoftBlue,
                   borderRadius: BorderRadius.circular(8),
+                  border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -662,25 +705,28 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                       style: GoogleFonts.lato(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: colorPrimaryBlue,
+                        color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                       ),
                     ),
                     const SizedBox(width: 2),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 16,
-                      color: colorPrimaryBlue,
+                      color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                     ),
                   ],
                 ),
               ),
           ],
         ),
+>>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
       ),
     );
   }
 
-  void _showChildPickerBottomSheet() {
+<<<<<<< HEAD
+=======
+  void _showChildPickerBottomSheet(bool isDark) {
     final allChildren = ChildService().children;
     showModalBottomSheet(
       context: context,
@@ -688,9 +734,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       isScrollControlled: true,
       builder: (ctx) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
@@ -702,7 +748,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -713,7 +759,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: colorTextPrimary,
+                  color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -731,10 +777,16 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSelected ? colorSoftBlue : colorCardBg,
+                      color: isSelected
+                          ? (isDark
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                              : colorSoftBlue)
+                          : (isDark ? const Color(0xFF0B1014) : colorCardBg),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? colorPrimaryBlue : colorBorder,
+                        color: isSelected
+                            ? colorPrimaryBlue
+                            : (isDark ? const Color(0xFF2C363D) : colorBorder),
                         width: isSelected ? 1.5 : 1.0,
                       ),
                     ),
@@ -762,7 +814,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: colorTextPrimary,
+                                  color: isDark
+                                      ? const Color(0xFFE9EDEF)
+                                      : colorTextPrimary,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -770,7 +824,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                                 '${child.gender}, ${child.ageDescription}',
                                 style: GoogleFonts.lato(
                                   fontSize: 12,
-                                  color: colorTextSecondary,
+                                  color: isDark
+                                      ? const Color(0xFF8696A0)
+                                      : colorTextSecondary,
                                 ),
                               ),
                             ],
@@ -795,6 +851,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     );
   }
 
+>>>>>>> 790ee4b74c6d2d9f615385ff40fe94930cf5b234
   Widget _buildChildAvatar() {
     const double size = 48;
     final isGirl = _effectiveGender.toLowerCase().contains('perempuan');
@@ -833,13 +890,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 4. CARD "BERAT BADAN SAAT INI"
   // ===========================================================================
 
-  Widget _buildWeightCard() {
+  Widget _buildWeightCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorCardBg,
+        color: isDark ? const Color(0xFF1A2228) : colorCardBg,
         borderRadius: BorderRadius.circular(16),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -850,7 +908,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
             style: GoogleFonts.lato(
               fontSize: 14.5,
               fontWeight: FontWeight.bold,
-              color: colorTextPrimary,
+              color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -864,20 +922,20 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: colorIconBoxBlue,
+                  color: isDark ? const Color(0xFF0B1014) : colorIconBoxBlue,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.scale_rounded,
-                    color: colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                     size: 26,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Input Field Putih
+              // Input Field
               Expanded(
                 child: TextFormField(
                   controller: _weightController,
@@ -887,17 +945,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   ),
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
-                    color: colorTextPrimary,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                   decoration: InputDecoration(
                     hintText: 'Masukkan berat badan',
                     hintStyle: GoogleFonts.lato(
                       fontSize: 14,
-                      color: const Color(0xFFA0AEC0),
+                      color: isDark ? const Color(0xFF667781) : const Color(0xFFA0AEC0),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: isDark ? const Color(0xFF0B1014) : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 12,
@@ -908,7 +966,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                       borderSide: BorderSide(
                         color: _weightError != null
                             ? const Color(0xFFE53935)
-                            : colorBorder,
+                            : (isDark ? const Color(0xFF2C363D) : colorBorder),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -939,7 +997,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 'kg',
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
-                  color: colorTextMuted,
+                  color: isDark ? const Color(0xFF8696A0) : colorTextMuted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -962,7 +1020,10 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           // Subtext "Contoh: 10.5"
           Text(
             'Contoh: 10.5',
-            style: GoogleFonts.lato(fontSize: 12, color: colorTextMuted),
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF667781) : colorTextMuted,
+            ),
           ),
         ],
       ),
@@ -973,13 +1034,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 5. CARD "TINGGI BADAN SAAT INI"
   // ===========================================================================
 
-  Widget _buildHeightCard() {
+  Widget _buildHeightCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorCardBg,
+        color: isDark ? const Color(0xFF1A2228) : colorCardBg,
         borderRadius: BorderRadius.circular(16),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -990,7 +1052,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
             style: GoogleFonts.lato(
               fontSize: 14.5,
               fontWeight: FontWeight.bold,
-              color: colorTextPrimary,
+              color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -1004,20 +1066,20 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: colorIconBoxBlue,
+                  color: isDark ? const Color(0xFF0B1014) : colorIconBoxBlue,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.straighten_rounded,
-                    color: colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                     size: 26,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Input Field Putih
+              // Input Field
               Expanded(
                 child: TextFormField(
                   controller: _heightController,
@@ -1027,17 +1089,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   ),
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
-                    color: colorTextPrimary,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                   decoration: InputDecoration(
                     hintText: 'Masukkan tinggi badan',
                     hintStyle: GoogleFonts.lato(
                       fontSize: 14,
-                      color: const Color(0xFFA0AEC0),
+                      color: isDark ? const Color(0xFF667781) : const Color(0xFFA0AEC0),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: isDark ? const Color(0xFF0B1014) : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 12,
@@ -1048,7 +1110,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                       borderSide: BorderSide(
                         color: _heightError != null
                             ? const Color(0xFFE53935)
-                            : colorBorder,
+                            : (isDark ? const Color(0xFF2C363D) : colorBorder),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -1079,7 +1141,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 'cm',
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
-                  color: colorTextMuted,
+                  color: isDark ? const Color(0xFF8696A0) : colorTextMuted,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1102,7 +1164,10 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           // Subtext "Contoh: 85.0"
           Text(
             'Contoh: 85.0',
-            style: GoogleFonts.lato(fontSize: 12, color: colorTextMuted),
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF667781) : colorTextMuted,
+            ),
           ),
         ],
       ),
@@ -1113,13 +1178,14 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 6. CARD "KELUHAN"
   // ===========================================================================
 
-  Widget _buildComplaintCard() {
+  Widget _buildComplaintCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorCardBg,
+        color: isDark ? const Color(0xFF1A2228) : colorCardBg,
         borderRadius: BorderRadius.circular(16),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1132,13 +1198,13 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: colorIconBoxBlue,
+                  color: isDark ? const Color(0xFF0B1014) : colorIconBoxBlue,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.chat_bubble_outline_rounded,
-                    color: colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                     size: 22,
                   ),
                 ),
@@ -1153,7 +1219,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                       style: GoogleFonts.lato(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: colorTextPrimary,
+                        color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -1161,7 +1227,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                       'Ceritakan keluhan atau kondisi yang dirasakan anak saat ini.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: colorTextSecondary,
+                        color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                         height: 1.3,
                       ),
                     ),
@@ -1172,15 +1238,15 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           ),
           const SizedBox(height: 14),
 
-          // Textarea Putih dengan Realtime Counter di Kanan Bawah
+          // Textarea dengan Realtime Counter di Kanan Bawah
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF0B1014) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _complaintError != null
                     ? const Color(0xFFE53935)
-                    : colorBorder,
+                    : (isDark ? const Color(0xFF2C363D) : colorBorder),
               ),
             ),
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
@@ -1195,7 +1261,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   minLines: 4,
                   style: GoogleFonts.lato(
                     fontSize: 14,
-                    color: colorTextPrimary,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                     height: 1.4,
                   ),
                   decoration: InputDecoration(
@@ -1205,7 +1271,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                     hintText: 'Tuliskan keluhan secara detail...',
                     hintStyle: GoogleFonts.lato(
                       fontSize: 13.5,
-                      color: const Color(0xFFA0AEC0),
+                      color: isDark ? const Color(0xFF667781) : const Color(0xFFA0AEC0),
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -1217,7 +1283,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: colorTextMuted,
+                    color: isDark ? const Color(0xFF667781) : colorTextMuted,
                   ),
                 ),
               ],
@@ -1244,13 +1310,18 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 7. CARD "TIPS"
   // ===========================================================================
 
-  Widget _buildTipsCard() {
+  Widget _buildTipsCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorSoftBlue,
+        color: isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
+            : colorSoftBlue,
         borderRadius: BorderRadius.circular(16),
+        border: isDark
+            ? Border.all(color: const Color(0xFF1E40AF).withValues(alpha: 0.4))
+            : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1268,7 +1339,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   style: GoogleFonts.lato(
                     fontSize: 14.5,
                     fontWeight: FontWeight.bold,
-                    color: colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF93C5FD) : colorPrimaryBlue,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -1276,7 +1347,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   'Berikan informasi selengkap mungkin agar dokter dapat memberikan saran yang tepat.',
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
-                    color: colorTextSecondary,
+                    color: isDark ? const Color(0xFFD1D7DB) : colorTextSecondary,
                     height: 1.35,
                   ),
                 ),
@@ -1292,14 +1363,16 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 8. CARD "INFORMASI PENTING"
   // ===========================================================================
 
-  Widget _buildImportantInfoCard() {
+  Widget _buildImportantInfoCard(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorBorder),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : colorBorder,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1307,9 +1380,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
           // Header Ikon Gembok / Shield Biru
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.shield_rounded,
-                color: colorPrimaryBlue,
+                color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
                 size: 22,
               ),
               const SizedBox(width: 8),
@@ -1318,7 +1391,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: colorTextPrimary,
+                  color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
                 ),
               ),
             ],
@@ -1340,7 +1413,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   'Data yang anda berikan bersifat rahasia.',
                   style: GoogleFonts.lato(
                     fontSize: 13,
-                    color: colorTextSecondary,
+                    color: isDark ? const Color(0xFFD1D7DB) : colorTextSecondary,
                   ),
                 ),
               ),
@@ -1363,7 +1436,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
                   'Pastikan data yang diisi sudah benar.',
                   style: GoogleFonts.lato(
                     fontSize: 13,
-                    color: colorTextSecondary,
+                    color: isDark ? const Color(0xFFD1D7DB) : colorTextSecondary,
                   ),
                 ),
               ),
@@ -1419,24 +1492,24 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   // 10. FOOTER KEAMANAN
   // ===========================================================================
 
-  Widget _buildSecurityFooter() {
+  Widget _buildSecurityFooter(bool isDark) {
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.lock_outline_rounded,
             size: 16,
-            color: colorTextMuted,
+            color: isDark ? const Color(0xFF667781) : colorTextMuted,
           ),
           const SizedBox(width: 6),
           Text(
             'Data Anda aman dan terlindungi',
             style: GoogleFonts.lato(
               fontSize: 12.5,
-              color: colorTextMuted,
+              color: isDark ? const Color(0xFF667781) : colorTextMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1446,78 +1519,3 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
   }
 }
 
-/// Custom Painter untuk avatar muka anak imut yang bulat, simetris, dan proporsional (anti-peyang)
-class _CuteBabyFacePainter extends CustomPainter {
-  final bool isGirl;
-
-  _CuteBabyFacePainter({required this.isGirl});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final blushPaint = Paint()
-      ..color = isGirl
-          ? const Color(0xFFFB7185).withValues(alpha: 0.5)
-          : const Color(0xFF60A5FA).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final fillEyePaint = Paint()
-      ..color = const Color(0xFF1E293B)
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    // Lingkaran kepala simetris di tengah
-    final headCenter = Offset(w * 0.5, h * 0.52);
-    final headRadius = w * 0.38;
-
-    // Telinga Kiri & Kanan simetris
-    canvas.drawCircle(Offset(w * 0.12, h * 0.52), 3.8, strokePaint);
-    canvas.drawCircle(Offset(w * 0.88, h * 0.52), 3.8, strokePaint);
-
-    // Garis Kepala Bulat Sempurna
-    canvas.drawCircle(headCenter, headRadius, strokePaint);
-
-    // Rambut Bayi
-    final hairPath = Path()
-      ..moveTo(w * 0.38, h * 0.20)
-      ..cubicTo(w * 0.42, h * 0.08, w * 0.58, h * 0.08, w * 0.62, h * 0.20);
-    canvas.drawPath(hairPath, strokePaint);
-
-    // Mata Kiri & Kanan (Lengkungan senyum ramah)
-    final leftEye = Path()
-      ..moveTo(w * 0.33, h * 0.47)
-      ..quadraticBezierTo(w * 0.38, h * 0.42, w * 0.43, h * 0.47);
-    canvas.drawPath(leftEye, strokePaint..strokeWidth = 2.0);
-
-    final rightEye = Path()
-      ..moveTo(w * 0.57, h * 0.47)
-      ..quadraticBezierTo(w * 0.62, h * 0.42, w * 0.67, h * 0.47);
-    canvas.drawPath(rightEye, strokePaint);
-
-    strokePaint.strokeWidth = 1.8;
-
-    // Pipi Merah Merona
-    canvas.drawCircle(Offset(w * 0.29, h * 0.56), 3.2, blushPaint);
-    canvas.drawCircle(Offset(w * 0.71, h * 0.56), 3.2, blushPaint);
-
-    // Hidung mungil
-    canvas.drawCircle(Offset(w * 0.5, h * 0.54), 1.2, fillEyePaint);
-
-    // Senyuman Ceria Melengkung Manis
-    final smilePath = Path()
-      ..moveTo(w * 0.41, h * 0.64)
-      ..quadraticBezierTo(w * 0.50, h * 0.74, w * 0.59, h * 0.64);
-    canvas.drawPath(smilePath, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

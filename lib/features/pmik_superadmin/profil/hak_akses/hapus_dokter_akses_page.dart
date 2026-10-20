@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/doctor_service.dart';
+import '../../../../core/services/local_push_service.dart';
 import '../../../../models/doctor_model.dart';
 
 /// Halaman / Dialog Konfirmasi Hapus Dokter untuk Superadmin PediaGrow.
@@ -55,35 +56,13 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
       widget.onDeleted?.call();
 
       Navigator.of(context).pop(true);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Dokter ${widget.doctor.name} berhasil dihapus.',
-            style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFF16A34A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
     } catch (e) {
       if (mounted) {
         setState(() => _isDeleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menghapus dokter: $e',
-              style: GoogleFonts.lato(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: const Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        LocalPushService().show(
+          title: 'Peringatan',
+          body: 'Gagal menghapus dokter: $e',
+          targetRole: PushRole.superadmin,
         );
       }
     }
@@ -122,7 +101,7 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 14.0,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF1A2228),
                 height: 1.45,
               ),
             ),
@@ -139,7 +118,7 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
                       onPressed: _isDeleting ? null : _handleDelete,
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(
-                          color: Color(0xFFCBD5E1),
+                          color: Color(0xFFD1D7DB),
                           width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(

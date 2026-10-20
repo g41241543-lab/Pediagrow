@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
@@ -46,16 +46,17 @@ class PreviewHasilCekStuntingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isNormal = result.status == StuntingStatus.normal;
     final String statusText = isNormal ? 'TIDAK STUNTING' : 'STUNTING';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         child: Column(
           children: [
             // Fixed Header 56 dp
-            _buildFixedHeader(context),
+            _buildFixedHeader(context, isDark),
 
             // Area PDF Preview interaktif
             Expanded(
@@ -67,8 +68,8 @@ class PreviewHasilCekStuntingPage extends StatelessWidget {
                 canChangePageFormat: false,
                 canDebug: false,
                 useActions: true,
-                scrollViewDecoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9),
+                scrollViewDecoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
                 ),
                 loadingWidget: const Center(
                   child: CircularProgressIndicator(
@@ -85,15 +86,18 @@ class PreviewHasilCekStuntingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFixedHeader(BuildContext context) {
+  Widget _buildFixedHeader(BuildContext context, bool isDark) {
     return Container(
       height: 56,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0B1014) : Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1.0,
+          ),
         ),
       ),
       child: Row(
@@ -104,11 +108,15 @@ class PreviewHasilCekStuntingPage extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () => Navigator.of(context).pop(),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 36,
                 height: 36,
                 child: Center(
-                  child: Icon(Icons.arrow_back, color: colorTextBlack, size: 24),
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
@@ -138,7 +146,7 @@ class PreviewHasilCekStuntingPage extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextBlack,
                   ),
                 ),
               ],

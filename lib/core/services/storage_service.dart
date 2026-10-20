@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -161,8 +161,8 @@ class StorageService {
         Container(
           width: width,
           height: height,
-          color: const Color(0xFFF1F5F9),
-          child: const Icon(Icons.image_outlined, color: Color(0xFF94A3B8)),
+          color: const Color(0xFFE9EDEF),
+          child: const Icon(Icons.image_outlined, color: Color(0xFF8696A0)),
         );
 
     if (urlOrPath == null || urlOrPath.isEmpty) return fallback;

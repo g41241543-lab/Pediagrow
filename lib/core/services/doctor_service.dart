@@ -125,14 +125,86 @@ class DoctorService {
     return _doctorsNotifier;
   }
 
+  /// Dokter default untuk fallback demonstrasi atau saat belum ada dokter di Firestore.
+  static const List<DoctorModel> defaultDoctors = [
+    DoctorModel(
+      id: 'doc-reny',
+      name: 'dr. Reny, Sp.A',
+      specialization: 'Spesialis Anak',
+      experienceYears: 8,
+      isOnline: true,
+      strNumber: 'STR-33.1.1.100.2.20.123456',
+      placesOfPractice: ['RSIA PediaGrow', 'Praktek Mandiri'],
+      hospital: 'RSIA PediaGrow',
+      email: 'reny@pediagrow.com',
+      consultationFee: 35000,
+    ),
+    DoctorModel(
+      id: 'doc-zaskia',
+      name: 'dr. Zaskia, Sp.A',
+      specialization: 'Spesialis Anak',
+      experienceYears: 6,
+      isOnline: true,
+      strNumber: 'STR-33.1.1.100.2.20.654321',
+      placesOfPractice: ['RSIA PediaGrow', 'Klinik Tumbuh Kembang'],
+      hospital: 'RSIA PediaGrow',
+      email: 'zaskia@pediagrow.com',
+      consultationFee: 35000,
+    ),
+  ];
+
   /// Mengambil daftar dokter yang saat ini tersedia.
   ///
-  /// Data berasal dari Firestore.
-  /// Tidak ada dokter dummy/default.
+  /// Data berasal dari Firestore dengan fallback ke defaultDoctors jika kosong.
   List<DoctorModel> get currentDoctors {
     _startListening();
 
-    return List<DoctorModel>.unmodifiable(_doctorsNotifier.value);
+    if (_doctorsNotifier.value.isNotEmpty) {
+      return List<DoctorModel>.unmodifiable(_doctorsNotifier.value);
+    }
+    return defaultDoctors;
+  }
+
+  /// Menemukan profil DoctorModel yang berpasangan dengan akun StaffAccount yang login.
+  DoctorModel? findDoctorForStaff(StaffAccount? staff) {
+    if (staff == null) return null;
+    final staffId = staff.id;
+    final email = staff.email.trim().toLowerCase();
+    final name = staff.name.trim().toLowerCase();
+    final list = currentDoctors;
+
+    if (staffId.isNotEmpty) {
+      final match = list.where((d) => d.staffAccountId == staffId).firstOrNull;
+      if (match != null) return match;
+    }
+    if (email.isNotEmpty) {
+      final match = list
+          .where((d) => (d.email ?? '').trim().toLowerCase() == email)
+          .firstOrNull;
+      if (match != null) return match;
+    }
+    if (name.isNotEmpty) {
+      final match = list
+          .where((d) => d.name.trim().toLowerCase() == name)
+          .firstOrNull;
+      if (match != null) return match;
+    }
+    return null;
+  }
+
+  /// Mencari dokter berdasarkan ID, StaffAccountId, atau Email
+  DoctorModel? findDoctorByIdOrStaffOrEmail(String identifier) {
+    final clean = identifier.trim().toLowerCase();
+    if (clean.isEmpty) return null;
+    for (final d in currentDoctors) {
+      if (d.id == identifier ||
+          d.staffAccountId == identifier ||
+          (d.email != null && d.email!.trim().toLowerCase() == clean) ||
+          d.name.trim().toLowerCase() == clean) {
+        return d;
+      }
+    }
+    return null;
   }
 
   /// Mengambil daftar dokter.
@@ -340,12 +412,11 @@ class DoctorService {
       await db.collection(_collection).doc(doctorToSave.id).update(data);
 
       // Sinkronkan juga avatar ke staff_accounts jika staffAccountId ada
-      if (doctorToSave.staffAccountId != null &&
-          doctorToSave.staffAccountId!.isNotEmpty &&
+      if (doctorToSave.staffAccountId.isNotEmpty &&
           persistableAvatar != null) {
         try {
           await StaffAuthService().updateStaffAccount(
-            doctorToSave.staffAccountId!,
+            doctorToSave.staffAccountId,
             avatarPath: persistableAvatar,
           );
         } catch (_) {}

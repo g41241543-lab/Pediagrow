@@ -1,9 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
+import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/booking_consultation_model.dart';
@@ -15,12 +14,13 @@ import '../beranda/data_pasien/detail_anak_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../beranda/beranda_dokter_page.dart';
 import '../profil_dokter_page.dart';
+import '../../../shared/widgets/child_avatar.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
-const Color _colorTextBlack = Color(0xFF1E293B);
-const Color _colorLabelGrey = Color(0xFF64748B);
+const Color _colorTextBlack = Color(0xFF1A2228);
+const Color _colorLabelGrey = Color(0xFF667781);
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk dokter.
@@ -39,6 +39,7 @@ class _KonsultasiItem {
   final String? complaint;
   final double? weightKg;
   final double? heightCm;
+  final BookingConsultationModel? booking;
 
   const _KonsultasiItem({
     required this.id,
@@ -48,135 +49,22 @@ class _KonsultasiItem {
     this.childPhotoUrl,
     required this.doctorName,
     required this.status,
+    // ignore: unused_element_parameter
     this.scheduledDate,
+    // ignore: unused_element_parameter
     this.scheduledTime,
     this.sessionId,
     this.parentName,
     this.complaint,
     this.weightKg,
     this.heightCm,
+    this.booking,
   });
 }
 
-// ─── Mock data Sedang Berlangsung ───────────────────────────────────────────
-final List<_KonsultasiItem> _mockBerlangsung = [
-  const _KonsultasiItem(
-    id: 'k1',
-    childName: 'Devaro Ramadhan',
-    childAge: '1 tahun 2 bulan 13 hari',
-    childGender: 'Laki-laki',
-    childPhotoUrl: null,
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k2',
-    childName: 'Arfa Zivano Kayfan',
-    childAge: '0 tahun 4 bulan 23 hari',
-    childGender: 'Laki-laki',
-    childPhotoUrl: null,
-    doctorName: 'dr. Reny, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k3',
-    childName: 'Naya Seiza Putri',
-    childAge: '0 tahun 8 bulan 20 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Kia, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k4',
-    childName: 'Zafran Aditya',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'berlangsung',
-  ),
-  const _KonsultasiItem(
-    id: 'k5',
-    childName: 'Aisha Arunika Zahra',
-    childAge: '0 tahun 5 bulan 0 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Reny, Sp.A',
-    status: 'berlangsung',
-  ),
-];
-
-// ─── Mock data Jadwal Konsultasi ─────────────────────────────────────────────
-final List<_KonsultasiItem> _mockJadwal = [
-  const _KonsultasiItem(
-    id: 'j_kia_1',
-    childName: 'Runy',
-    childAge: '1 tahun 2 bulan 10 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Kia, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Senin, 13 Okt 2026',
-    scheduledTime: '09:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j_kia_2',
-    childName: 'Zulfa',
-    childAge: '0 tahun 8 bulan 14 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Kia, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Selasa, 14 Okt 2026',
-    scheduledTime: '10:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j_reny_1',
-    childName: 'Anita',
-    childAge: '1 tahun 4 bulan 05 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Reny, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Rabu, 15 Okt 2026',
-    scheduledTime: '08:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j_nuri_1',
-    childName: 'Amara Adiratna',
-    childAge: '1 tahun 2 bulan 10 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'jadwal',
-    scheduledDate: 'Kamis, 16 Okt 2026',
-    scheduledTime: '09:00',
-  ),
-  const _KonsultasiItem(
-    id: 'j_nuri_2',
-    childName: 'Zalvian Sadewa',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. Ahmad Nuri, Sp. A',
-    status: 'jadwal',
-    scheduledDate: 'Senin, 20 Okt 2026',
-    scheduledTime: '09:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j_ali_1',
-    childName: 'Kaia Anastasya',
-    childAge: '1 tahun 3 bulan 3 hari',
-    childGender: 'Perempuan',
-    doctorName: 'dr. M. Ali Shodikin, Sp.A, M.Kes',
-    status: 'jadwal',
-    scheduledDate: 'Selasa, 21 Okt 2026',
-    scheduledTime: '10:30',
-  ),
-  const _KonsultasiItem(
-    id: 'j_gebyar_1',
-    childName: 'Zafran Aditya',
-    childAge: '0 tahun 9 bulan 26 hari',
-    childGender: 'Laki-laki',
-    doctorName: 'dr. B. Gebyar Tri Baskoro, Sp.A',
-    status: 'jadwal',
-    scheduledDate: 'Rabu, 22 Okt 2026',
-    scheduledTime: '08:00',
-  ),
-];
+// ─── Data Konsultasi: 100% Menggunakan Data Asli Firebase Firestore ─────────
+final List<_KonsultasiItem> _mockBerlangsung = [];
+final List<_KonsultasiItem> _mockJadwal = [];
 
 /// Halaman Konsultasi untuk POV DOKTER.
 ///
@@ -217,32 +105,83 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
     super.dispose();
   }
 
+  /// Returns true jika jadwal mock item ini belum lewat (tanggal & jam masih di depan sekarang).
+  /// Format scheduledDate: "Senin, 20 Okt 2026", scheduledTime: "09:30"
+  bool _isJadwalBelumLewat(_KonsultasiItem item) {
+    final dateStr = item.scheduledDate;
+    final timeStr = item.scheduledTime;
+    if (dateStr == null || dateStr.isEmpty) return false;
+    // Map bulan singkat Indonesia ke nomor
+    const bulan = {
+      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'Mei': 5, 'Jun': 6,
+      'Jul': 7, 'Agu': 8, 'Sep': 9, 'Okt': 10, 'Nov': 11, 'Des': 12,
+    };
+    // Contoh: "Senin, 20 Okt 2026"
+    final parts = dateStr.replaceAll(',', '').split(' ');
+    if (parts.length < 4) return false;
+    final day = int.tryParse(parts[1]);
+    final month = bulan[parts[2]];
+    final year = int.tryParse(parts[3]);
+    if (day == null || month == null || year == null) return false;
+
+    int hour = 23, minute = 59;
+    if (timeStr != null && timeStr.isNotEmpty) {
+      final timeParts = timeStr.split(':');
+      hour = int.tryParse(timeParts[0]) ?? 23;
+      minute = timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 59) : 59;
+    }
+    // Anggap jadwal berakhir 30 menit setelah waktu mulai
+    final scheduledEnd = DateTime(year, month, day, hour, minute)
+        .add(const Duration(minutes: 30));
+    return DateTime.now().isBefore(scheduledEnd);
+  }
+
+  /// Mengecek apakah suatu booking konsultasi sedang berlangsung pada saat ini
+  bool _isBookingActiveNow(BookingConsultationModel booking) {
+    if (booking.status == 'Selesai' ||
+        booking.status == 'Dibatalkan' ||
+        booking.isExpired) {
+      return false;
+    }
+    if (booking.isBeforeStart) {
+      return false;
+    }
+    if (booking.status == 'Sedang Berlangsung' && !booking.isExpired) {
+      return true;
+    }
+    return booking.isInTimeWindow;
+  }
+
   /// Masuk langsung ke halaman ruang obrolan data pasien anak tersebut
   void _openChatRoom(_KonsultasiItem item) {
-    if (item.sessionId != null && item.sessionId!.isNotEmpty) {
+    final isBefore = item.booking?.isBeforeStart ?? false;
+    if (item.sessionId != null && item.sessionId!.isNotEmpty && !isBefore) {
       KonsultasiService.instance.mulaiSesi(item.sessionId!);
     }
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => DetailAnakPage(
-          child: ChildModel(
-            id: item.id,
-            ownerId: '',
-            name: item.childName,
-            gender: item.childGender,
-            birthDate: DateTime.now().subtract(const Duration(days: 365)),
-            ageDescription: item.childAge,
-            weightKg: item.weightKg,
-            heightCm: item.heightCm,
-            photoUrl: item.childPhotoUrl,
-          ),
+          child: item.booking?.child ??
+              ChildModel(
+                id: item.id,
+                ownerId: '',
+                name: item.childName,
+                gender: item.childGender,
+                birthDate: DateTime.now().subtract(const Duration(days: 365)),
+                ageDescription: item.childAge,
+                weightKg: item.weightKg,
+                heightCm: item.heightCm,
+                photoUrl: item.childPhotoUrl,
+              ),
           user: UserModel(
-            id: '',
+            id: item.booking?.userId ?? '',
             name: item.parentName ?? 'Orang Tua ${item.childName}',
             email: '',
           ),
           initialTabIndex: 1, // Masuk langsung ke tab Ruang Obrolan pada menu data pasien
+          sessionId: item.sessionId,
+          booking: item.booking,
         ),
       ),
     );
@@ -250,16 +189,22 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
 
   /// Masuk ke halaman ruang obrolan data pasien dari objek booking
   void _openChatRoomFromBooking(BookingConsultationModel booking) {
+    final effSessionId = booking.sessionId ?? 'session_${booking.id}';
+    if (!booking.isBeforeStart) {
+      KonsultasiService.instance.mulaiSesi(effSessionId);
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => DetailAnakPage(
           child: booking.child,
           user: UserModel(
-            id: '',
+            id: booking.userId ?? '',
             name: 'Orang Tua ${booking.child.name}',
             email: '',
           ),
           initialTabIndex: 1, // Masuk langsung ke tab Ruang Obrolan pada menu data pasien
+          sessionId: effSessionId,
+          booking: booking,
         ),
       ),
     );
@@ -326,7 +271,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -371,7 +316,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -483,7 +428,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
+                  color: const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -528,7 +473,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -659,63 +604,152 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                   return _isDoctorMatch(item.doctorName, loggedInDoctorName);
                 }).toList();
 
-                final filteredBerlangsung = [
-                  ...firestoreBerlangsung,
-                  ...filteredMockBerlangsung,
-                ];
-
                 // Filter jadwal booking untuk dokter yang sedang login
+                // + otomatis filter jadwal yang sudah lewat (_isJadwalBelumLewat)
                 final filteredMockJadwal = _mockJadwal.where((item) {
-                  return _isDoctorMatch(item.doctorName, loggedInDoctorName);
+                  return _isDoctorMatch(item.doctorName, loggedInDoctorName) &&
+                      _isJadwalBelumLewat(item);
                 }).toList();
 
-                final filteredUserBookings = userBookings.where((b) {
-                  return _isDoctorMatch(b.doctor.name, loggedInDoctorName);
+                final doctorAliases = currentStaff != null
+                    ? JadwalDokterService().getDoctorIdAliases(currentStaff.id)
+                    : <String>{};
+
+                final rawUserBookings = userBookings.where((b) {
+                  if (b.isExpired) return false;
+                  return _isDoctorMatch(b.doctor.name, loggedInDoctorName) ||
+                      doctorAliases.contains(b.doctor.id) ||
+                      (currentStaff != null && b.doctor.id == currentStaff.id);
                 }).toList();
+
+                // Deduplikasi aman untuk dokter
+                final seenDoctorBookings = <String>{};
+                final filteredUserBookings = <BookingConsultationModel>[];
+                for (final b in rawUserBookings) {
+                  final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
+                  if (seenDoctorBookings.add(b.id) && seenDoctorBookings.add(slotKey)) {
+                    filteredUserBookings.add(b);
+                  }
+                }
+
+                // Pisahkan booking: yang sedang berlangsung masuk ke tab "Sedang Berlangsung",
+                // sisanya (yang akan datang) tetap berada di tab "Jadwal Konsultasi".
+                final activeUserBookings = <BookingConsultationModel>[];
+                final scheduledUserBookings = <BookingConsultationModel>[];
+                for (final b in filteredUserBookings) {
+                  if (_isBookingActiveNow(b)) {
+                    activeUserBookings.add(b);
+                  } else {
+                    scheduledUserBookings.add(b);
+                  }
+                }
+
+                final userBookingsBerlangsung = activeUserBookings.map((b) {
+                  final matchingSession = activeSessions.cast<KonsultasiSessionModel?>().firstWhere(
+                    (s) => s != null && (s.childId == b.child.id || s.childName.toLowerCase().trim() == b.child.name.toLowerCase().trim()),
+                    orElse: () => null,
+                  );
+                  final effSessionId = b.sessionId ??
+                      (matchingSession != null && matchingSession.id.isNotEmpty
+                          ? matchingSession.id
+                          : 'session_${b.id}');
+                  return _KonsultasiItem(
+                    id: b.child.id.isNotEmpty ? b.child.id : b.id,
+                    childName: b.child.name,
+                    childAge: b.child.ageDescription,
+                    childGender: b.child.gender,
+                    childPhotoUrl: b.child.photoUrl,
+                    doctorName: b.doctor.name,
+                    status: 'berlangsung',
+                    sessionId: effSessionId,
+                    parentName: 'Orang Tua ${b.child.name}',
+                    complaint: b.complaint,
+                    weightKg: b.weightKg ?? b.child.weightKg,
+                    heightCm: b.heightCm ?? b.child.heightCm,
+                    booking: b,
+                  );
+                }).toList();
+
+                // Deduplikasi gabungan tab Sedang Berlangsung
+                final seenBerlangsungChild = <String>{};
+                final filteredBerlangsung = <_KonsultasiItem>[];
+                for (final item in firestoreBerlangsung) {
+                  final key = item.childName.toLowerCase().trim();
+                  if (seenBerlangsungChild.add(key)) {
+                    filteredBerlangsung.add(item);
+                  }
+                }
+                for (final item in userBookingsBerlangsung) {
+                  final key = item.childName.toLowerCase().trim();
+                  if (seenBerlangsungChild.add(key)) {
+                    filteredBerlangsung.add(item);
+                  }
+                }
+                for (final item in filteredMockBerlangsung) {
+                  final key = item.childName.toLowerCase().trim();
+                  if (seenBerlangsungChild.add(key)) {
+                    filteredBerlangsung.add(item);
+                  }
+                }
 
                 final int berlangsungCount = filteredBerlangsung.length;
                 final int jadwalCount =
-                    filteredMockJadwal.length + filteredUserBookings.length;
+                    filteredMockJadwal.length + scheduledUserBookings.length;
 
-            return Scaffold(
-              backgroundColor: Colors.white,
-              appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(56.0),
-                child: _buildHeader(),
-              ),
-              body: SafeArea(
-                top: false,
-                bottom: false,
-                child: Column(
-                  children: [
-                    _buildTabBar(berlangsungCount, jadwalCount),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
+                return PopScope(
+                  canPop: false,
+                  onPopInvokedWithResult: (didPop, _) {
+                    if (didPop) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      PageRouteBuilder(
+                        pageBuilder: (ctx, anim, anim2) => const BerandaDokterPage(),
+                        transitionsBuilder: (ctx, animation, secAnim, child) =>
+                            FadeTransition(opacity: animation, child: child),
+                        transitionDuration: const Duration(milliseconds: 200),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                  child: Scaffold(
+                    backgroundColor: Colors.white,
+                    appBar: PreferredSize(
+                      preferredSize: const Size.fromHeight(56.0),
+                      child: _buildHeader(),
+                    ),
+                    body: SafeArea(
+                      top: false,
+                      bottom: false,
+                      child: Column(
                         children: [
-                          _buildSedangBerlangsungTab(
-                            filteredBerlangsung,
-                            loggedInDoctorName,
-                          ),
-                          _buildJadwalKonsultasiTab(
-                            filteredMockJadwal,
-                            filteredUserBookings,
-                            loggedInDoctorName,
+                          _buildTabBar(berlangsungCount, jadwalCount),
+                          Expanded(
+                            child: TabBarView(
+                              controller: _tabController,
+                              children: [
+                                _buildSedangBerlangsungTab(
+                                  filteredBerlangsung,
+                                  loggedInDoctorName,
+                                ),
+                                _buildJadwalKonsultasiTab(
+                                  filteredMockJadwal,
+                                  scheduledUserBookings,
+                                  loggedInDoctorName,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              bottomNavigationBar: _buildBottomNav(),
+                    bottomNavigationBar: _buildBottomNav(),
+                  ),
+                );
+              },
             );
           },
         );
       },
     );
-  },
-);
   }
 
   // ─── HEADER (Format PMIK: 56dp tanpa back button) ─────────────────────────
@@ -757,7 +791,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        dividerColor: const Color(0xFFE2E8F0),
+        dividerColor: const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -805,7 +839,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE2E8F0),
+            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE9EDEF),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -1029,7 +1063,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                   ],
                 ),
               ),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1236,7 +1270,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
           child: Icon(
             icon,
             size: 36,
-            color: const Color(0xFF94A3B8),
+            color: const Color(0xFF8696A0),
           ),
         ),
         const SizedBox(height: 16),
@@ -1414,7 +1448,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 ),
                 const SizedBox(height: 10),
               ],
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1593,7 +1627,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 ),
               ),
               const SizedBox(height: 10),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
@@ -1648,8 +1682,10 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
     required bool isFemale,
     required double size,
   }) {
-    final bgColor =
-        isFemale ? const Color(0xFFFFE4E6) : const Color(0xFFDBEAFE);
+    final fallback = ChildAvatar(
+      isGirl: isFemale,
+      size: size,
+    );
 
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
@@ -1657,7 +1693,6 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -1675,7 +1710,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
           loadingBuilder: (ctx, child, progress) {
             if (progress == null) return child;
             return Container(
-              color: bgColor,
+              color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
               child: Center(
                 child: SizedBox(
                   width: size * 0.4,
@@ -1690,32 +1725,12 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
               ),
             );
           },
-          errorBuilder: (ctx, error, stack) => Container(
-            color: bgColor,
-            child: CustomPaint(
-              painter: _BabyFacePainter(isGirl: isFemale),
-            ),
-          ),
+          errorBuilder: (ctx, error, stack) => fallback,
         ),
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-    );
+    return fallback;
   }
 
   // ─── FOOTER ILLUSTRATION (Format PMIK: Gambar Lanskap) ───────────────────
@@ -1752,7 +1767,6 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
 
     return Container(
       width: double.infinity,
-      height: 68.0,
       decoration: const BoxDecoration(
         color: _colorNavBg,
         boxShadow: [
@@ -1765,26 +1779,26 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedNavIndex;
-            final item = navItems[i];
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
+        child: SizedBox(
+          height: 60.0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(navItems.length, (i) {
+              final isSelected = i == _selectedNavIndex;
+              final item = navItems[i];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => _onNavTap(i),
+                  behavior: HitTestBehavior.opaque,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (isSelected) ...[
                         Container(
-                          width: 36.0,
-                          height: 36.0,
+                          width: 32.0,
+                          height: 32.0,
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -1799,7 +1813,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                           alignment: Alignment.center,
                           child: Icon(
                             item.icon,
-                            size: 22.0,
+                            size: 19.0,
                             color: const Color(0xFF72A9F4),
                           ),
                         ),
@@ -1811,9 +1825,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                               item.label,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.lato(
-                                fontSize: 11.0,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFF1A2228),
                               ),
                             ),
                           ),
@@ -1821,7 +1835,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                       ] else ...[
                         Icon(
                           item.icon,
-                          size: 24.0,
+                          size: 21.0,
                           color: const Color(0xFF9E9E9E),
                         ),
                         const SizedBox(height: 3.0),
@@ -1834,7 +1848,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.lato(
-                                fontSize: 11.0,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.normal,
                                 color: const Color(0xFF9E9E9E),
                               ),
@@ -1845,9 +1859,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                     ],
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -1873,8 +1887,8 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
     final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
     final route = PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, _, _) => targetPage,
-      transitionsBuilder: (_, animation, _, child) {
+      pageBuilder: (ctx, anim, anim2) => targetPage,
+      transitionsBuilder: (ctx, animation, secAnim, child) {
         final curved = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
@@ -1906,103 +1920,3 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-/// Painter wajah bayi lucu — fallback jika foto profil anak tidak tersedia.
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    // Lingkaran kepala
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
-
-    // Poni rambut
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    // Mata
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    // Pipi kemerahan
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    // Senyuman
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(
-      cx,
-      cy + r * 0.62,
-      cx + r * 0.35,
-      cy + r * 0.18,
-    );
-    canvas.drawPath(smilePath, strokePaint);
-
-    // Hiasan pita untuk anak perempuan
-    if (isGirl) {
-      final bowPaint = Paint()
-        ..color = const Color(0xFFFF6B9D)
-        ..style = PaintingStyle.fill;
-      final bowPath = Path();
-      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.4, cy - r * 1.15, cx - r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.1, cy - r * 1.05, cx + r * 0.25, cy - r * 0.75);
-      bowPath.quadraticBezierTo(
-          cx + r * 0.4, cy - r * 1.15, cx + r * 0.1, cy - r * 0.85);
-      canvas.drawPath(bowPath, bowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

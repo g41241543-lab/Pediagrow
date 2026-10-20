@@ -5,6 +5,7 @@ import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
+import '../../../../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Detail Resume Medis versi Dokter.
 ///
@@ -17,12 +18,14 @@ class DetailResumeMedisPage extends StatefulWidget {
   final ResumeMedisModel resume;
   final ChildModel? child;
   final UserModel? parentUser;
+  final String? initialSuccessMessage;
 
   const DetailResumeMedisPage({
     super.key,
     required this.resume,
     this.child,
     this.parentUser,
+    this.initialSuccessMessage,
   });
 
   @override
@@ -31,12 +34,12 @@ class DetailResumeMedisPage extends StatefulWidget {
 
 class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
-  static const Color _colorLabelGrey = Color(0xFF64748B);
-  static const Color _colorBorder = Color(0xFFE2E8F0);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorBorder = Color(0xFFE9EDEF);
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
   static const Color _colorReadOnlyBg = Color(0xFFF8FAFC);
-  static const Color _colorReadOnlyBorder = Color(0xFFE2E8F0);
+  static const Color _colorReadOnlyBorder = Color(0xFFE9EDEF);
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -53,6 +56,17 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
     super.initState();
     _resume = widget.resume;
     _initControllers();
+    if (widget.initialSuccessMessage != null &&
+        widget.initialSuccessMessage!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          PediaBanner.showSuccess(
+            context,
+            message: widget.initialSuccessMessage!,
+          );
+        }
+      });
+    }
   }
 
   void _initControllers() {
@@ -129,32 +143,142 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Resume medis berhasil diperbarui',
-              style: GoogleFonts.lato(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-          ),
+        PediaBanner.showSuccess(
+          context,
+          message: 'Berhasil Memperbarui Resume Medis',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menyimpan perubahan: $e',
-              style: GoogleFonts.lato(color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-          ),
+        PediaBanner.showError(
+          context,
+          message: 'Gagal memperbarui resume medis: $e',
         );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _confirmDeleteResume() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.54),
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 8,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Hapus Data',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Mohon pastikan ulang sebelum menghapus resume medis. Apakah anda yakin ingin menghapus?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 14,
+                    color: const Color(0xFF7F7F7F),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(dialogCtx).pop(true),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(
+                              color: Color(0xFFC5C5C5),
+                              width: 1.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Ya',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(dialogCtx).pop(false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3985E7),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: Text(
+                            'Tidak',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await ResumeMedisService().deleteResumeMedis(_resume.id);
+        if (mounted) {
+          final nav = Navigator.of(context);
+          nav.pop('deleted');
+          PediaBanner.showSuccess(
+            nav.context,
+            message: 'Berhasil Menghapus Resume Medis',
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          PediaBanner.showError(
+            context,
+            message: 'Gagal menghapus resume medis: $e',
+          );
+        }
+      }
     }
   }
 
@@ -184,13 +308,13 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
 
     final bbVal = _resume.bbSaatIni > 0
         ? _formatNum(_resume.bbSaatIni)
-        : (widget.child?.birthWeightKg != null
-            ? _formatNum(widget.child!.birthWeightKg!)
+        : (widget.child?.weightKg != null
+            ? _formatNum(widget.child!.weightKg!)
             : '-');
     final tbVal = _resume.tbSaatIni > 0
         ? _formatNum(_resume.tbSaatIni)
-        : (widget.child?.birthHeightCm != null
-            ? _formatNum(widget.child!.birthHeightCm!)
+        : (widget.child?.heightCm != null
+            ? _formatNum(widget.child!.heightCm!)
             : '-');
 
     return Scaffold(
@@ -211,6 +335,14 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFE53935)),
+            tooltip: 'Hapus Resume Medis',
+            onPressed: _confirmDeleteResume,
+          ),
+          const SizedBox(width: 4),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: _colorBorder, height: 1),
@@ -519,7 +651,7 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             if (isLocked) ...[
               const SizedBox(width: 4),
               const Icon(Icons.lock_outline_rounded,
-                  size: 13, color: Color(0xFF94A3B8)),
+                  size: 13, color: Color(0xFF8696A0)),
             ],
           ],
         ),
@@ -820,8 +952,8 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             child: ElevatedButton(
               onPressed: _isSaving ? null : _cancelEdit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF1F5F9),
-                foregroundColor: const Color(0xFF64748B),
+                backgroundColor: const Color(0xFFE9EDEF),
+                foregroundColor: const Color(0xFF667781),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

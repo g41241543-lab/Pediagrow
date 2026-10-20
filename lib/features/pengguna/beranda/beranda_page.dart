@@ -31,6 +31,7 @@ import 'widgets/youtube_player_sheet.dart';
 import 'widgets/full_page_sky_background.dart';
 import 'widgets/header_sky_illustration.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -184,8 +185,11 @@ class _BerandaPageState extends State<BerandaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       resizeToAvoidBottomInset: false,
       body: Stack(
         clipBehavior: Clip.none,
@@ -287,14 +291,19 @@ class _BerandaPageState extends State<BerandaPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      'Silahkan lengkapi profil ibu',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFFFFFFF),
+                    Expanded(
+                      child: Text(
+                        'Silahkan lengkapi profil ibu',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFFFFFF),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       width: 28,
                       height: 28,
@@ -323,6 +332,7 @@ class _BerandaPageState extends State<BerandaPage> {
   // ===================================================================
   Widget _buildSeamlessBlueArea(BuildContext context) {
     final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
@@ -331,12 +341,14 @@ class _BerandaPageState extends State<BerandaPage> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isNight
-              ? HeaderSkyIllustration.nightGradientColors
-              : HeaderSkyIllustration.dayGradientColors,
-          stops: isNight
-              ? HeaderSkyIllustration.nightGradientStops
-              : HeaderSkyIllustration.dayGradientStops,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
         ),
       ),
       child: Stack(
@@ -389,7 +401,7 @@ class _BerandaPageState extends State<BerandaPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Lingkaran Notifikasi (31×31, #FFFFFF, 12dp dari kanan) + badge angka
+                        // Lingkaran Notifikasi (31×31) + badge angka
                         ValueListenableBuilder<int>(
                           valueListenable:
                               NotificationService().unreadCountNotifier,
@@ -402,10 +414,11 @@ class _BerandaPageState extends State<BerandaPage> {
                                   Container(
                                     width: 31,
                                     height: 31,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                       shape: BoxShape.circle,
-                                      boxShadow: [
+                                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                                      boxShadow: const [
                                         BoxShadow(
                                           color: Color(0x1F000000),
                                           blurRadius: 4,
@@ -414,9 +427,9 @@ class _BerandaPageState extends State<BerandaPage> {
                                       ],
                                     ),
                                     alignment: Alignment.center,
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.notifications_none_rounded,
-                                      color: Color(0xFF1E293B),
+                                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                                       size: 19,
                                     ),
                                   ),
@@ -492,7 +505,7 @@ class _BerandaPageState extends State<BerandaPage> {
                 builder: (context, children, _) {
                   if (children.isEmpty) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: _buildMomDadCard(context),
                     );
                   }
@@ -514,15 +527,18 @@ class _BerandaPageState extends State<BerandaPage> {
   // Dimensi: lebar penuh sejajar margin 12dp x height 120, warna #FFFFFF, corner radius 15
   // ===================================================================
   Widget _buildMomDadCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       height: 120,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -555,11 +571,11 @@ class _BerandaPageState extends State<BerandaPage> {
               children: [
                 // "Mom Dad belum punya profil anak" (Lato Regular 15, #7F7F7F)
                 Text(
-                  'Mom and Dad belum punya profil anak',
+                  'Mom Dad belum punya profil anak',
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF7F7F7F),
+                    color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF7F7F7F),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -645,17 +661,18 @@ class _BerandaPageState extends State<BerandaPage> {
     ChildModel child,
     bool isActive,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final imageProvider = StorageService.buildImageProvider(child.photoUrl);
     final hasPhoto = imageProvider != null;
     final isMale = child.gender.toLowerCase().contains('laki');
 
     // Warna Banner & Avatar berdasarkan Jenis Kelamin
-    final bannerColor = isMale
-        ? const Color(0xFFDDF0FF)
-        : const Color(0xFFFDE8E4);
-    final avatarBgColor = isMale
-        ? const Color(0xFFCFE8FF)
-        : const Color(0xFFFFDFD9);
+    final bannerColor = isDark
+        ? (isMale ? const Color(0xFF1E3A8A) : const Color(0xFF831843))
+        : (isMale ? const Color(0xFFDDF0FF) : const Color(0xFFFDE8E4));
+    final avatarBgColor = isDark
+        ? (isMale ? const Color(0xFF172554) : const Color(0xFF701A75))
+        : (isMale ? const Color(0xFFCFE8FF) : const Color(0xFFFFDFD9));
 
     // Gambar avatar bawaan sesuai jenis kelamin
     final defaultAvatarAsset = isMale
@@ -666,7 +683,7 @@ class _BerandaPageState extends State<BerandaPage> {
       width: 200,
       height: 128,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: isActive
             ? Border.all(
@@ -675,10 +692,10 @@ class _BerandaPageState extends State<BerandaPage> {
                     : const Color(0xFFF472B6),
                 width: 1.5,
               )
-            : null,
+            : (isDark ? Border.all(color: const Color(0xFF2C363D)) : null),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.07),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -755,7 +772,7 @@ class _BerandaPageState extends State<BerandaPage> {
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => const CustomPaint(
                                 painter: _BabyFacePainter(
-                                  outlineColor: Color(0xFF1E293B),
+                                  outlineColor: Color(0xFF1A2228),
                                 ),
                               ),
                             ),
@@ -764,7 +781,7 @@ class _BerandaPageState extends State<BerandaPage> {
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => const CustomPaint(
                                 painter: _BabyFacePainter(
-                                  outlineColor: Color(0xFF1E293B),
+                                  outlineColor: Color(0xFF1A2228),
                                 ),
                               ),
                             ),
@@ -790,7 +807,9 @@ class _BerandaPageState extends State<BerandaPage> {
                         style: GoogleFonts.lato(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: isDark
+                              ? const Color(0xFFE9EDEF)
+                              : const Color(0xFF0B1014),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -808,7 +827,9 @@ class _BerandaPageState extends State<BerandaPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF334155),
+                                color: isDark
+                                    ? const Color(0xFF8696A0)
+                                    : const Color(0xFF2C363D),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -818,9 +839,11 @@ class _BerandaPageState extends State<BerandaPage> {
                           Container(
                             width: 22,
                             height: 22,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Color(0xFFCBD5E1),
+                              color: isDark
+                                  ? const Color(0xFF2C363D)
+                                  : const Color(0xFFD1D7DB),
                             ),
                             child: const Center(
                               child: Icon(
@@ -955,15 +978,17 @@ class _BerandaPageState extends State<BerandaPage> {
 
   /// Card untuk menambahkan profil anak baru di akhir list
   Widget _buildAddChildCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 160,
       height: 128,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(18),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.07),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -983,8 +1008,10 @@ class _BerandaPageState extends State<BerandaPage> {
                   Container(
                     width: 50,
                     height: 50,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFEBF5FF),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0B1014)
+                          : const Color(0xFFEBF5FF),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -1010,7 +1037,9 @@ class _BerandaPageState extends State<BerandaPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF8696A0)
+                          : const Color(0xFF667781),
                       height: 1.25,
                     ),
                   ),
@@ -1070,7 +1099,7 @@ class _BerandaPageState extends State<BerandaPage> {
         children: [
           // 6 Card Menu (lebar penuh sejajar margin 12dp)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: _build6MenuGrid(context),
           ),
 
@@ -1078,7 +1107,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
           // Card PediaGrow (lebar penuh identik dengan Card MomDad & Menu, margin 12dp)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: _buildPediaGrowCard(),
           ),
 
@@ -1174,11 +1203,11 @@ class _BerandaPageState extends State<BerandaPage> {
     required String title,
     required String imageAsset,
     required VoidCallback onTap,
-    double cardInset =
-        6, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
+    double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
     double imageSize = 40, // ukuran logo, dikecilkan mengikuti card
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -1193,11 +1222,17 @@ class _BerandaPageState extends State<BerandaPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECF6FF),
+                  color:
+                      isDark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF),
                   borderRadius: BorderRadius.circular(10),
+                  border: isDark
+                      ? Border.all(color: const Color(0xFF2C363D))
+                      : null,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.25)
+                          : const Color(0xFF3985E7).withValues(alpha: 0.06),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -1229,14 +1264,16 @@ class _BerandaPageState extends State<BerandaPage> {
             ),
           ),
           const SizedBox(height: 8),
-          // Judul Menu (Lato Regular 14, #000000)
+          // Judul Menu (Lato Regular 14)
           Text(
             title,
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.normal,
-              color: const Color(0xFF000000),
+              color: isDark
+                  ? const Color(0xFFE9EDEF)
+                  : const Color(0xFF000000),
               height: 1.25,
             ),
           ),
@@ -1252,15 +1289,19 @@ class _BerandaPageState extends State<BerandaPage> {
   // Sisi kanan: "PediaGrow" + Tagline
   // ===================================================================
   Widget _buildPediaGrowCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: const Color(0xFFECF6FF),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF),
         borderRadius: BorderRadius.circular(10),
+        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3985E7).withValues(alpha: 0.07),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color(0xFF3985E7).withValues(alpha: 0.07),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1315,13 +1356,15 @@ class _BerandaPageState extends State<BerandaPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Tagline "Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan" (Lato Regular 16, #000000)
+                // Tagline "Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan"
                 Text(
                   'Pantau Pertumbuhan,\nCegah Stunting untuk Masa Depan',
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF000000),
+                    color: isDark
+                        ? const Color(0xFFD1D7DB)
+                        : const Color(0xFF000000),
                     height: 1.25,
                   ),
                 ),
@@ -1338,6 +1381,7 @@ class _BerandaPageState extends State<BerandaPage> {
   // Menampilkan artikel kesehatan terbaru dari ArtikelService
   // ===================================================================
   Widget _buildLatestArticlesSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1348,12 +1392,17 @@ class _BerandaPageState extends State<BerandaPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Artikel Terbaru',
-                style: GoogleFonts.lato(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+              Flexible(
+                child: Text(
+                  'Artikel Terbaru',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0B1014),
+                  ),
                 ),
               ),
               InkWell(
@@ -1416,6 +1465,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   /// Kartu item artikel kesehatan dalam carousel
   Widget _buildArticleCard(BuildContext context, ArtikelModel artikel) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasImage =
         artikel.displayImage != null && artikel.displayImage!.isNotEmpty;
     final isAsset = artikel.isAssetImage;
@@ -1433,12 +1483,15 @@ class _BerandaPageState extends State<BerandaPage> {
     return Container(
       width: 220,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1503,7 +1556,9 @@ class _BerandaPageState extends State<BerandaPage> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFECF6FF),
+                                    color: isDark
+                                        ? const Color(0xFF0B1014)
+                                        : const Color(0xFFECF6FF),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -1511,7 +1566,9 @@ class _BerandaPageState extends State<BerandaPage> {
                                     style: GoogleFonts.lato(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF2563EB),
+                                      color: isDark
+                                          ? const Color(0xFF60A5FA)
+                                          : const Color(0xFF2563EB),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -1525,14 +1582,16 @@ class _BerandaPageState extends State<BerandaPage> {
                                   const Icon(
                                     Icons.access_time_rounded,
                                     size: 11,
-                                    color: Color(0xFF94A3B8),
+                                    color: Color(0xFF8696A0),
                                   ),
                                   const SizedBox(width: 3),
                                   Text(
                                     '$readTimeMinutes mnt',
                                     style: GoogleFonts.lato(
                                       fontSize: 10.5,
-                                      color: const Color(0xFF64748B),
+                                      color: isDark
+                                          ? const Color(0xFF8696A0)
+                                          : const Color(0xFF667781),
                                     ),
                                   ),
                                 ],
@@ -1546,7 +1605,9 @@ class _BerandaPageState extends State<BerandaPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : const Color(0xFF0B1014),
                               height: 1.25,
                             ),
                             maxLines: 2,
@@ -1559,7 +1620,7 @@ class _BerandaPageState extends State<BerandaPage> {
                         artikel.tanggal,
                         style: GoogleFonts.lato(
                           fontSize: 10.5,
-                          color: const Color(0xFF94A3B8),
+                          color: const Color(0xFF8696A0),
                         ),
                       ),
                     ],
@@ -1574,6 +1635,7 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   Widget _buildArticleSkeletonList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
@@ -1583,17 +1645,22 @@ class _BerandaPageState extends State<BerandaPage> {
       itemBuilder: (_, _) => Container(
         width: 220,
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          ),
         ),
         child: Column(
           children: [
             Container(
               height: 102,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(13)),
               ),
             ),
             Padding(
@@ -1605,7 +1672,9 @@ class _BerandaPageState extends State<BerandaPage> {
                     width: 65,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF2C363D)
+                          : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1614,7 +1683,9 @@ class _BerandaPageState extends State<BerandaPage> {
                     width: double.infinity,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF2C363D)
+                          : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1628,26 +1699,33 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   Widget _buildEmptyArticleState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        ),
       ),
       child: Center(
         child: Text(
           'Belum ada artikel terbaru saat ini',
-          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+          style: GoogleFonts.lato(
+            fontSize: 13,
+            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildFallbackArticleImage() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFEBF5FF),
+      color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEBF5FF),
       alignment: Alignment.center,
       child: const Icon(
         Icons.article_rounded,
@@ -1678,6 +1756,7 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   Widget _buildEducationalVideosSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1688,17 +1767,18 @@ class _BerandaPageState extends State<BerandaPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Video Edukasi Anak',
-                    style: GoogleFonts.lato(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
-                    ),
+              Flexible(
+                child: Text(
+                  'Video Edukasi Anak',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0B1014),
                   ),
-                ],
+                ),
               ),
               InkWell(
                 onTap: _launchYoutubeApp,
@@ -1760,15 +1840,19 @@ class _BerandaPageState extends State<BerandaPage> {
 
   /// Kartu item video YouTube
   Widget _buildVideoCard(BuildContext context, YoutubeVideoModel video) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 220,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1797,11 +1881,13 @@ class _BerandaPageState extends State<BerandaPage> {
                         video.thumbnailUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (_, _, _) => Container(
-                          color: const Color(0xFFE2E8F0),
+                          color: isDark
+                              ? const Color(0xFF0B1014)
+                              : const Color(0xFFE9EDEF),
                           child: const Center(
                             child: Icon(
                               Icons.videocam_rounded,
-                              color: Color(0xFF94A3B8),
+                              color: Color(0xFF8696A0),
                               size: 36,
                             ),
                           ),
@@ -1865,7 +1951,9 @@ class _BerandaPageState extends State<BerandaPage> {
                         style: GoogleFonts.lato(
                           fontSize: 12.5,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: isDark
+                              ? const Color(0xFFE9EDEF)
+                              : const Color(0xFF0B1014),
                           height: 1.25,
                         ),
                         maxLines: 2,
@@ -1884,7 +1972,9 @@ class _BerandaPageState extends State<BerandaPage> {
                               video.channelTitle,
                               style: GoogleFonts.lato(
                                 fontSize: 11,
-                                color: const Color(0xFF64748B),
+                                color: isDark
+                                    ? const Color(0xFF8696A0)
+                                    : const Color(0xFF667781),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1904,6 +1994,7 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   Widget _buildVideoSkeletonList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
@@ -1913,17 +2004,22 @@ class _BerandaPageState extends State<BerandaPage> {
       itemBuilder: (_, _) => Container(
         width: 220,
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          ),
         ),
         child: Column(
           children: [
             Container(
               height: 110,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(13)),
               ),
             ),
             Padding(
@@ -1935,7 +2031,9 @@ class _BerandaPageState extends State<BerandaPage> {
                     width: double.infinity,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF2C363D)
+                          : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1944,7 +2042,9 @@ class _BerandaPageState extends State<BerandaPage> {
                     width: 80,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF2C363D)
+                          : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1958,18 +2058,24 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   Widget _buildEmptyVideoState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+        ),
       ),
       child: Center(
         child: Text(
           'Belum ada video edukasi saat ini',
-          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF64748B)),
+          style: GoogleFonts.lato(
+            fontSize: 13,
+            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+          ),
         ),
       ),
     );
@@ -2182,25 +2288,7 @@ class _BerandaPageState extends State<BerandaPage> {
   // 100% width layar, tanpa margin/padding, menempel langsung ke Nav Bar
   // ===================================================================
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // ===================================================================
@@ -2220,7 +2308,7 @@ class _BerandaPageState extends State<BerandaPage> {
 /// CustomPainter untuk menggambar ilustrasi wajah bayi seperti pada desain kartu
 class _BabyFacePainter extends CustomPainter {
   final Color outlineColor;
-  const _BabyFacePainter({this.outlineColor = const Color(0xFF1E293B)});
+  const _BabyFacePainter({this.outlineColor = const Color(0xFF1A2228)});
 
   @override
   void paint(Canvas canvas, Size size) {

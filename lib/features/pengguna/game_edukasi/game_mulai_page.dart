@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/local_push_service.dart';
 import '../../../models/soal_model.dart';
 import 'widgets/game_forest_silhouette_footer.dart';
 import 'game_controller.dart';
@@ -49,11 +50,10 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal memuat soal: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
+      LocalPushService().show(
+        title: 'Peringatan',
+        body: 'Gagal memuat soal: $e',
+        targetRole: PushRole.pengguna,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -65,20 +65,27 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
   // ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Stack(
         children: [
-          // ── Background Gradient Biru (Figma) ──────────────────────
+          // ── Background Gradient Biru (Figma) / Night Sky (Dark Mode) ──
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF5B9BF5),
-                    Color(0xFF6FA8E8),
-                  ],
+                  colors: isDark
+                      ? [
+                          const Color(0xFF0B1014),
+                          const Color(0xFF1A2228),
+                        ]
+                      : [
+                          const Color(0xFF5B9BF5),
+                          const Color(0xFF6FA8E8),
+                        ],
                 ),
               ),
             ),
@@ -311,6 +318,9 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
   // TOMBOL MULAI KUIS
   // ──────────────────────────────────────────────────────────────────
   Widget _buildMulaiButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color(0xFF3985E7);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: SizedBox(
@@ -319,9 +329,11 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
         child: ElevatedButton(
           onPressed: _isLoading ? null : _mulaiKuis,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF3985E7),
-            disabledBackgroundColor: Colors.white.withValues(alpha: 0.6),
+            backgroundColor: isDark ? primaryColor : Colors.white,
+            foregroundColor: isDark ? Colors.white : primaryColor,
+            disabledBackgroundColor: isDark
+                ? primaryColor.withValues(alpha: 0.6)
+                : Colors.white.withValues(alpha: 0.6),
             elevation: 6,
             shadowColor: Colors.black.withValues(alpha: 0.25),
             shape: RoundedRectangleBorder(
@@ -329,21 +341,21 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
             ),
           ),
           child: _isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 22,
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: Color(0xFF3985E7),
+                    color: isDark ? Colors.white : primaryColor,
                   ),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.play_arrow_rounded,
                       size: 22,
-                      color: Color(0xFF3985E7),
+                      color: isDark ? Colors.white : primaryColor,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -351,7 +363,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3985E7),
+                        color: isDark ? Colors.white : primaryColor,
                       ),
                     ),
                   ],

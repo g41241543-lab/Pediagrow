@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/booking_consultation_model.dart';
 
@@ -11,7 +12,7 @@ import '../../models/booking_consultation_model.dart';
 /// - Menyinkronkan event jadwal booking ke Google Calendar API secara otomatis di background.
 /// - Menyetel alarm pengingat Google Kalender (popup reminder 0 menit saat jadwal tiba dan 15 menit sebelumnya),
 ///   sehingga notifikasi muncul di HP pengguna langsung dari aplikasi Google Kalender bawaan perangkat.
-/// - Berjalan senyap di latar belakang tanpa membuka aplikasi Google Kalender atau mengalihkan layar pengguna.
+/// - Menyediakan fungsi [openGoogleCalendarEvent] untuk membuka aplikasi Google Kalender bawaan di HP secara langsung.
 class GoogleCalendarService {
   static final GoogleCalendarService _instance =
       GoogleCalendarService._internal();
@@ -26,6 +27,54 @@ class GoogleCalendarService {
     scopes: ['email', _calendarScope],
   );
 
+  /// Membuka aplikasi Google Kalender di HP pengguna dengan formulir kegiatan terisi lengkap
+  Future<bool> openGoogleCalendarEvent(BookingConsultationModel booking) async {
+    try {
+      final url = booking.googleCalendarUrl ?? generateCalendarUrl(booking);
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // Coba buka dengan mode default jika externalApplication gagal
+        return await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint('[GoogleCalendarService] Gagal membuka Google Kalender: $e');
+      return false;
+    }
+  }
+
+  /// Menghasilkan URL Google Calendar template untuk booking
+  String generateCalendarUrl(BookingConsultationModel booking) {
+    final startUtc = booking.scheduledStartDateTime.toUtc();
+    final endUtc = booking.scheduledEndDateTime.toUtc();
+
+    String formatUtc(DateTime dt) {
+      final y = dt.year.toString().padLeft(4, '0');
+      final m = dt.month.toString().padLeft(2, '0');
+      final d = dt.day.toString().padLeft(2, '0');
+      final h = dt.hour.toString().padLeft(2, '0');
+      final min = dt.minute.toString().padLeft(2, '0');
+      final s = dt.second.toString().padLeft(2, '0');
+      return '$y$m${d}T$h$min${s}Z';
+    }
+
+    final datesParam = '${formatUtc(startUtc)}/${formatUtc(endUtc)}';
+    final title = 'Konsultasi Dokter: ${booking.doctor.name} - PediaGrow';
+    final details =
+        'Jadwal konsultasi kesehatan anak (${booking.child.name}) '
+        'bersama ${booking.doctor.name} (${booking.doctor.specialization}) '
+        'melalui sesi chat aplikasi PediaGrow.';
+    const location = 'Aplikasi PediaGrow (Ruang Konsultasi Online)';
+
+    return 'https://calendar.google.com/calendar/render?'
+        'action=TEMPLATE&'
+        'text=${Uri.encodeComponent(title)}&'
+        'dates=$datesParam&'
+        'details=${Uri.encodeComponent(details)}&'
+        'location=${Uri.encodeComponent(location)}';
+  }
+
   /// Menyinkronkan event jadwal booking secara otomatis ke Google Kalender pengguna
   Future<bool> syncBookingToGoogleCalendar(
       BookingConsultationModel booking) async {
@@ -37,16 +86,7 @@ class GoogleCalendarService {
       GoogleSignInAccount? account = _googleCalendarSignIn.currentUser;
       account ??= await _googleCalendarSignIn.signInSilently();
 
-      // 2. Jika belum ada sesi silent, coba login native (dialog bawaan OS, bukan web browser)
-      if (account == null) {
-        try {
-          account = await _googleCalendarSignIn.signIn();
-        } catch (e) {
-          debugPrint('[GoogleCalendarService] Info sign-in native kalender: $e');
-        }
-      }
-
-      // 3. Jika akun terautentikasi dan memiliki token, kirim event langsung ke API Google Kalender
+      // 2. Jika akun terautentikasi dan memiliki token, kirim event langsung ke API Google Kalender
       if (account != null) {
         try {
           final hasScope = await _googleCalendarSignIn.canAccessScopes([_calendarScope]);
@@ -71,9 +111,9 @@ class GoogleCalendarService {
         }
       }
 
-      // 4. Jadwal pengingat otomatis tetap aktif di sistem PediaGrow
+      // 3. Fallback pendaftaran background
       debugPrint(
-          '[GoogleCalendarService] Event & pengingat jadwal Google Kalender berhasil didaftarkan di background.');
+          '[GoogleCalendarService] Event & pengingat jadwal Google Kalender siap.');
       return true;
     } catch (e) {
       debugPrint(
