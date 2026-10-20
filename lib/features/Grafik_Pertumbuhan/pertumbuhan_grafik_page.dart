@@ -479,14 +479,16 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Konsultasikan dengan dokter',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
-                    decoration: TextDecoration.underline,
-                    decorationColor: statusColor,
+                Flexible(
+                  child: Text(
+                    'Konsultasikan dengan dokter',
+                    style: GoogleFonts.lato(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                      decoration: TextDecoration.underline,
+                      decorationColor: statusColor,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 4),

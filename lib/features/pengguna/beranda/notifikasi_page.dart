@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/child_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../models/notification_model.dart';
+import '../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
 import '../artikel/artikel_kesehatan_page.dart';
 import '../cek_stunting/pilih_anak_page.dart';
 import '../mpasi/daftar_resep_page.dart';
 import '../profil/menu_profil_page.dart';
+import '../profil/profil_ibu_page.dart';
+import '../profil/ubah_password_page.dart';
+import '../profil_anak/ubah_anak_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import '../../../shared/widgets/konfirmasi_hapus_notifikasi_dialog.dart';
 import '../../../shared/widgets/swipeable_notification_tile.dart';
@@ -54,59 +59,113 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   }
 
   void _onNotificationTap(NotificationItem item) {
-    switch (item.type) {
-      case NotificationType.stunting:
-        // Terhubung langsung ke halaman Pilih Anak untuk cek stunting
-        PilihAnakPage.show(context);
-        break;
-      case NotificationType.consultation:
-        // Terhubung langsung ke halaman Riwayat Konsultasi
+    final lower = '${item.title} ${item.message}'.toLowerCase();
+
+    // 1. Batas input data pertumbuhan / Grafik Pertumbuhan
+    if (lower.contains('pertumbuhan') ||
+        lower.contains('grafik') ||
+        lower.contains('batas input')) {
+      final child = ChildService().activeChild;
+      if (child != null) {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+          MaterialPageRoute(builder: (_) => PertumbuhanGrafikPage(child: child)),
         );
-        break;
-      case NotificationType.profile:
+      } else {
+        PilihAnakPage.show(context);
+      }
+      return;
+    }
+
+    // 2. Cek Stunting / Batas Cek Stunting
+    if (item.type == NotificationType.stunting ||
+        lower.contains('stunting') ||
+        lower.contains('pemeriksaan')) {
+      PilihAnakPage.show(context);
+      return;
+    }
+
+    // 3. Kata Sandi
+    if (lower.contains('sandi') || lower.contains('password')) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const UbahPasswordPage()),
+      );
+      return;
+    }
+
+    // 4. Data Profil Anak (Ubah / Tambah / Hapus Profil Anak)
+    if (item.type == NotificationType.child ||
+        (lower.contains('anak') &&
+            (lower.contains('profil') ||
+                lower.contains('tambah') ||
+                lower.contains('ubah') ||
+                lower.contains('hapus') ||
+                lower.contains('data anak')))) {
+      if (lower.contains('hapus')) {
+        // Jika data anak baru saja dihapus, buka Menu Profil
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const MenuProfilPage()),
         );
-        break;
-      case NotificationType.article:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ArtikelKesehatanPage()),
-        );
-        break;
-      case NotificationType.recipe:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DaftarResepPage()),
-        );
-        break;
-      case NotificationType.system:
-        final lower = '${item.title} ${item.message}'.toLowerCase();
-        if (lower.contains('profil') ||
-            lower.contains('ibu') ||
-            lower.contains('anak')) {
+      } else {
+        final child = ChildService().activeChild;
+        if (child != null) {
+          // Buka langsung halaman Ubah Data Profil Anak yang bersangkutan
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
+          );
+        } else {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const MenuProfilPage()),
           );
-        } else if (lower.contains('artikel')) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ArtikelKesehatanPage()),
-          );
-        } else if (lower.contains('resep') || lower.contains('mpasi')) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const DaftarResepPage()),
-          );
-        } else if (lower.contains('stunting') || lower.contains('cek')) {
-          PilihAnakPage.show(context);
-        } else if (lower.contains('konsultasi') ||
-            lower.contains('booking') ||
-            lower.contains('chat')) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-          );
         }
-        break;
+      }
+      return;
     }
+
+    // 5. Profil Ibu / Orang Tua
+    if (item.type == NotificationType.profile ||
+        lower.contains('profil') ||
+        lower.contains('ibu') ||
+        lower.contains('orang tua') ||
+        lower.contains('foto')) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProfilIbuPage()),
+      );
+      return;
+    }
+
+    // 6. Konsultasi / Riwayat Konsultasi
+    if (item.type == NotificationType.consultation ||
+        lower.contains('konsultasi') ||
+        lower.contains('booking') ||
+        lower.contains('chat')) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
+      );
+      return;
+    }
+
+    // 7. Artikel Kesehatan
+    if (item.type == NotificationType.article || lower.contains('artikel')) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ArtikelKesehatanPage()),
+      );
+      return;
+    }
+
+    // 8. Resep MPASI
+    if (item.type == NotificationType.recipe ||
+        lower.contains('resep') ||
+        lower.contains('mpasi')) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const DaftarResepPage()),
+      );
+      return;
+    }
+
+    // Fallback: Beranda
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const BerandaPage()),
+    );
   }
 
   @override

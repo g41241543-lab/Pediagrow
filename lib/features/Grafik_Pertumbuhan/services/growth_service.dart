@@ -38,7 +38,14 @@ class GrowthService {
   }
 
   static const String _collection = 'growth_records';
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  FirebaseFirestore? get _db {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// State riwayat pertumbuhan per child ID
   final ValueNotifier<Map<String, List<GrowthRecordModel>>> recordsNotifier =
@@ -297,7 +304,9 @@ class GrowthService {
   /// Menyimpan satu catatan pertumbuhan ke Firestore secara background.
   Future<void> _saveRecordToFirestore(GrowthRecordModel record) async {
     try {
-      await _db.collection(_collection).add(record.toMap());
+      final db = _db;
+      if (db == null) return;
+      await db.collection(_collection).add(record.toMap());
     } catch (e) {
       debugPrint('[GrowthService] _saveRecordToFirestore error: $e');
     }
@@ -309,7 +318,20 @@ class GrowthService {
   /// supaya grafik tidak kosong total.
   Future<void> loadRecordsFromFirestore(ChildModel child) async {
     try {
-      final query = await _db
+      final db = _db;
+      if (db == null) {
+        final currentMap = Map<String, List<GrowthRecordModel>>.from(
+          recordsNotifier.value,
+        );
+        if (!currentMap.containsKey(child.id) ||
+            currentMap[child.id]!.isEmpty) {
+          currentMap[child.id] = _generateInitialRecordsForChild(child);
+          recordsNotifier.value = currentMap;
+        }
+        return;
+      }
+
+      final query = await db
           .collection(_collection)
           .where('child_id', isEqualTo: child.id)
           .get();
