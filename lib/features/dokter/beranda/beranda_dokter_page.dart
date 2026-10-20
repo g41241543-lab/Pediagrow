@@ -321,27 +321,60 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Pe',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF4B83D6),
-                        ),
+                Row(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Pe',
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF4B83D6),
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Go',
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF3CC3A6),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextSpan(
-                        text: 'Go',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF3CC3A6),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    ValueListenableBuilder<StaffAccount?>(
+                      valueListenable: StaffAuthService().currentStaffNotifier,
+                      builder: (context, staff, _) {
+                        final roleText = (staff?.isDokter == true ||
+                                staff?.role == StaffRole.dokter)
+                            ? 'Dokter'
+                            : (staff?.role.label ?? 'Dokter');
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                          ),
+                          child: Text(
+                            roleText,
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2563EB),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
