@@ -116,12 +116,14 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
                                       color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                                     ),
                                     const SizedBox(width: 5),
-                                    Text(
-                                      'Terakhir diupdate: $lastUpdatedText',
-                                      style: GoogleFonts.lato(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
+                                    Expanded(
+                                      child: Text(
+                                        'Terakhir diupdate: $lastUpdatedText',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -434,14 +436,16 @@ class _PertumbuhanGrafikPageState extends State<PertumbuhanGrafikPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Konsultasikan dengan dokter',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
-                    decoration: TextDecoration.underline,
-                    decorationColor: statusColor,
+                Flexible(
+                  child: Text(
+                    'Konsultasikan dengan dokter',
+                    style: GoogleFonts.lato(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                      decoration: TextDecoration.underline,
+                      decorationColor: statusColor,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 4),
