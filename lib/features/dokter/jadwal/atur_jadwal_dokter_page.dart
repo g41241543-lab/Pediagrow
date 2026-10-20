@@ -782,7 +782,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) {
+        builder: (dialogCtx, setDialogState) {
           // Hitung pasien terdampak secara langsung untuk preview
           final affected = _jadwalService.cariBookingTerdampak(
             dokterId: _targetDoctorId,
@@ -931,7 +931,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue),
                 onPressed: () async {
                   if (alasanCtrl.text.trim().isEmpty) {
-                    PediaBanner.showError(context, message: 'Harap isi alasan cuti!');
+                    PediaBanner.showError(dialogCtx, message: 'Harap isi alasan cuti!');
                     return;
                   }
 

@@ -335,9 +335,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
                                               doctorOptions.toList()),
 
                                       // 2. Chip status dokter aktif (mode admin saja)
-                                      if (!_isDoctorMode)
+                                      if (!_isDoctorMode &&
+                                          _filterDoctor != 'Semua Dokter') ...[
                                         _buildActiveDoctorFilterChip(),
-                                      const SizedBox(height: 10.0),
+                                        const SizedBox(height: 6.0),
+                                      ],
+                                      const SizedBox(height: 8.0),
 
                                       // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
                                       if (isLoading)
@@ -877,6 +880,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
   Widget _buildConsultationList(List<RiwayatKonsultasiAdminItem> items) {
     return ListView.separated(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: items.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12.0),

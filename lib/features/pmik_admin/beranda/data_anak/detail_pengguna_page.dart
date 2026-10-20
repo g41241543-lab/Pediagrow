@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,15 +10,6 @@ import '../../../../shared/widgets/child_avatar.dart';
 import '../../../../models/user_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 
-import '../../../../core/services/staff_auth_service.dart';
-import '../../../../models/staff_account_model.dart';
-import '../../../dokter/beranda/beranda_dokter_page.dart';
-import '../../../dokter/konsultasi/konsultasi_dokter_page.dart';
-import '../../../dokter/profil_dokter_page.dart';
-import '../beranda_pmik_page.dart';
-import '../../konsultasi/konsultasi_pmik_admin_page.dart';
-import '../../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import '../../profil_pmik_page.dart';
 import 'detail_anak_page.dart';
 
 /// Halaman Detail Pengguna untuk POV Superadmin.
@@ -675,10 +666,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return gender;
   }
 
-  String _formatShortDate(DateTime? dt) {
-    if (dt == null) return '-';
-    return '${dt.day}/${dt.month}/${dt.year}';
-  }
 
   String _formatChildAge(ChildModel child) {
     if (child.birthDate != null) {
@@ -728,178 +715,12 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     }
   }
 
-  // =========================================================================
-  // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
-  // Warna #F2EDED, tinggi 68dp, identik dengan halaman Beranda Superadmin
-  // =========================================================================
-  Widget _buildFixedNavBar() {
-    const navItems = [
-      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
 
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == 0; // Tab Beranda aktif
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  void _onNavTap(int index) {
-    final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
-
-    if (index == 0) {
-      // Kembali ke Beranda
-      Navigator.of(context).pushAndRemoveUntil(
-        PageRouteBuilder(
-          pageBuilder: (_, _, _) =>
-              isDokter ? const BerandaDokterPage() : const BerandaPmikPage(),
-          transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
-        ),
-        (route) => false,
-      );
-      return;
-    }
-
-    Widget targetPage;
-    switch (index) {
-      case 1:
-        targetPage = isDokter
-            ? const KonsultasiDokterPage()
-            : const KonsultasiPmikAdminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      case 3:
-        targetPage =
-            isDokter ? const ProfilDokterPage() : const ProfilPmikPage();
-        break;
-      default:
-        return;
-    }
-
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) => targetPage,
-        transitionsBuilder: (_, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper classes
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
-}
 
 class _TableRow {
   final String label;
