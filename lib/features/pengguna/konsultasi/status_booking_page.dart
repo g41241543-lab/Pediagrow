@@ -263,7 +263,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         _handleNavigateBack();
       },
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         body: SafeArea(
           child: Column(
             children: [
@@ -321,16 +321,21 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: _handleNavigateBack,
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 36.0,
-              height: 36.0,
-              child: Icon(
-                Icons.arrow_back,
-                color: isDark ? Colors.white : _kTextDark,
-                size: 24.0,
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20.0),
+            child: InkWell(
+              onTap: _handleNavigateBack,
+              borderRadius: BorderRadius.circular(20.0),
+              hoverColor: isDark ? Colors.white12 : const Color(0x12000000),
+              child: SizedBox(
+                width: 38.0,
+                height: 38.0,
+                child: Icon(
+                  Icons.arrow_back,
+                  color: isDark ? Colors.white : _kTextDark,
+                  size: 24.0,
+                ),
               ),
             ),
           ),
@@ -983,14 +988,12 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           _buildFlowStep(
             number: '1',
             title: 'Pilih Dokter & Booking Jadwal',
-            subtitle: 'Jadwal janji temu berhasil dipesan & terhubung ke Google Kalender.',
             isDone: true,
             isDark: isDark,
           ),
           _buildFlowStep(
             number: '2',
             title: 'Masuk Waktu Konsultasi & Isi Formulir',
-            subtitle: 'Lengkapi berat badan, tinggi badan, dan keluhan anak saat jadwal tiba.',
             isDone: hasFilled,
             isActive: isInWindow && !hasFilled,
             isDark: isDark,
@@ -998,7 +1001,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           _buildFlowStep(
             number: '3',
             title: 'Mulai Chat dengan Dokter',
-            subtitle: 'Konsultasi interaktif langsung bersama dokter spesialis selama rentang booking.',
             isDone: isDone,
             isActive: isInWindow && hasFilled,
             isDark: isDark,
@@ -1012,20 +1014,20 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
   Widget _buildFlowStep({
     required String number,
     required String title,
-    required String subtitle,
     bool isDone = false,
     bool isActive = false,
     bool isDark = false,
     bool isLast = false,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 24.0,
-              height: 24.0,
+              width: 26.0,
+              height: 26.0,
               decoration: BoxDecoration(
                 color: isDone
                     ? _kGreenSuccess
@@ -1038,7 +1040,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               ),
               alignment: Alignment.center,
               child: isDone
-                  ? const Icon(Icons.check, size: 14.0, color: Colors.white)
+                  ? const Icon(Icons.check, size: 15.0, color: Colors.white)
                   : Text(
                       number,
                       style: GoogleFonts.lato(
@@ -1053,38 +1055,24 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
             if (!isLast)
               Container(
                 width: 2.0,
-                height: 32.0,
+                height: 16.0,
                 color: isDone
                     ? const Color(0xFFBBF7D0)
                     : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
           ],
         ),
-        const SizedBox(width: 12.0),
+        const SizedBox(width: 14.0),
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
-                  ),
-                ),
-                const SizedBox(height: 3.0),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.lato(
-                    fontSize: 12.0,
-                    height: 1.35,
-                    color: isDark ? const Color(0xFF94A3B8) : _kTextMuted,
-                  ),
-                ),
-              ],
+            child: Text(
+              title,
+              style: GoogleFonts.lato(
+                fontSize: 14.0,
+                fontWeight: FontWeight.bold,
+                color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
+              ),
             ),
           ),
         ),
