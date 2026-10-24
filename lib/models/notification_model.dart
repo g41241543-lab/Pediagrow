@@ -2,6 +2,7 @@ enum NotificationType {
   stunting,
   consultation,
   profile,
+  child,
   article,
   recipe,
   system,

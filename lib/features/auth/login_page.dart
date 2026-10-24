@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -294,11 +294,28 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final inputTextColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final dividerColor =
+        isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5);
+    final orTextColor =
+        isDark ? const Color(0xFF8696A0) : const Color(0xFFC5C5C5);
+    final googleButtonBg =
+        isDark ? const Color(0xFF1A2228) : Colors.white;
+    final googleButtonBorder =
+        isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D5DB);
+    final googleButtonText =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final footerTextColor =
+        isDark ? const Color(0xFFD1D7DB) : const Color(0xFF000000);
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: bgColor,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: Column(
@@ -306,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
               // ---------------------------------------------------------------
               // HEADER TETAP BERADA PADA POSISI ATAS (56dp)
               // ---------------------------------------------------------------
-              _buildFixedHeader(context),
+              _buildFixedHeader(context, isDark),
 
               // ---------------------------------------------------------------
               // KONTEN YANG DAPAT DI-SCROLL (keyboard-aware)
@@ -329,19 +346,25 @@ class _LoginPageState extends State<LoginPage> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEF2F2),
+                              color: isDark
+                                  ? const Color(0xFF2A1515)
+                                  : const Color(0xFFFEF2F2),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: const Color(0xFFFCA5A5),
+                                color: isDark
+                                    ? const Color(0xFF7F1D1D)
+                                    : const Color(0xFFFCA5A5),
                                 width: 1,
                               ),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.info_outline,
-                                  color: Color(0xFFDC2626),
+                                  color: isDark
+                                      ? const Color(0xFFEF4444)
+                                      : const Color(0xFFDC2626),
                                   size: 20,
                                 ),
                                 const SizedBox(width: 10),
@@ -350,7 +373,9 @@ class _LoginPageState extends State<LoginPage> {
                                     widget.sessionExpiredMessage!,
                                     style: GoogleFonts.lato(
                                       fontSize: 13,
-                                      color: const Color(0xFF991B1B),
+                                      color: isDark
+                                          ? const Color(0xFFFCA5A5)
+                                          : const Color(0xFF991B1B),
                                       fontWeight: FontWeight.w600,
                                       height: 1.4,
                                     ),
@@ -364,18 +389,21 @@ class _LoginPageState extends State<LoginPage> {
 
                         // 1. Ilustrasi Login (width: 291, height: 163)
                         Center(
-                          child: SizedBox(
-                            width: 291,
-                            height: 163,
-                            child: Image.asset(
-                              'assets/images/login_illustration.jpg',
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/family_illustration.png',
-                                  fit: BoxFit.contain,
-                                );
-                              },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: SizedBox(
+                              width: 291,
+                              height: 163,
+                              child: Image.asset(
+                                'assets/images/login_illustration.jpg',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/family_illustration.png',
+                                    fit: BoxFit.contain,
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -383,20 +411,22 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 24),
 
                         // 2. Field: Email
-                        _buildFieldTitle('Email'),
+                        _buildFieldTitle('Email', isDark),
                         TextFormField(
                           key: const Key('login_email_field'),
                           controller: _emailController,
                           focusNode: _emailFocus,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
+                          cursorColor: const Color(0xFF3985E7),
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1A2228),
+                            color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Masukkan email aktif anda',
+                            isDark: isDark,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -418,7 +448,7 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 18),
 
                         // 3. Field: Kata Sandi
-                        _buildFieldTitle('Kata Sandi'),
+                        _buildFieldTitle('Kata Sandi', isDark),
                         TextFormField(
                           key: const Key('login_password_field'),
                           controller: _passwordController,
@@ -426,13 +456,15 @@ class _LoginPageState extends State<LoginPage> {
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _handleLogin(),
+                          cursorColor: const Color(0xFF3985E7),
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1A2228),
+                            color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Kata Sandi min. 6 karakter',
+                            isDark: isDark,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -506,9 +538,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             child: Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Divider(
-                                    color: Color(0xFFC5C5C5),
+                                    color: dividerColor,
                                     thickness: 1.0,
                                   ),
                                 ),
@@ -521,13 +553,13 @@ class _LoginPageState extends State<LoginPage> {
                                     style: GoogleFonts.lato(
                                       fontSize: 16,
                                       fontWeight: FontWeight.normal,
-                                      color: const Color(0xFFC5C5C5),
+                                      color: orTextColor,
                                     ),
                                   ),
                                 ),
-                                const Expanded(
+                                Expanded(
                                   child: Divider(
-                                    color: Color(0xFFC5C5C5),
+                                    color: dividerColor,
                                     thickness: 1.0,
                                   ),
                                 ),
@@ -556,10 +588,10 @@ class _LoginPageState extends State<LoginPage> {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
                                 ),
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF000000),
-                                side: const BorderSide(
-                                  color: Color(0xFFD1D5DB),
+                                backgroundColor: googleButtonBg,
+                                foregroundColor: googleButtonText,
+                                side: BorderSide(
+                                  color: googleButtonBorder,
                                   width: 1.0,
                                 ),
                                 elevation: 0,
@@ -593,7 +625,7 @@ class _LoginPageState extends State<LoginPage> {
                                             style: GoogleFonts.lato(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: const Color(0xFF000000),
+                                              color: googleButtonText,
                                             ),
                                           ),
                                         ],
@@ -613,7 +645,7 @@ class _LoginPageState extends State<LoginPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 14,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF000000),
+                                color: footerTextColor,
                               ),
                               children: [
                                 const TextSpan(text: 'Belum memiliki Akun? '),
@@ -652,10 +684,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   /// Header yang TETAP BERADA PADA POSISI ATAS (56dp) saat konten di-scroll.
-  Widget _buildFixedHeader(BuildContext context) {
+  Widget _buildFixedHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final headerTextColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       height: 56.0,
-      color: Colors.white,
+      color: headerBg,
       padding: const EdgeInsets.only(left: 12.0, right: 12.0),
       child: Row(
         children: [
@@ -670,9 +706,9 @@ class _LoginPageState extends State<LoginPage> {
                 );
               }
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Icon(Icons.arrow_back, color: headerTextColor, size: 24),
             ),
           ),
           // Nama halaman: 12dp setelah tombol back
@@ -682,7 +718,7 @@ class _LoginPageState extends State<LoginPage> {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: headerTextColor,
             ),
           ),
         ],
@@ -691,7 +727,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   /// Judul setiap TextFormField (Lato reguler 16 #7F7F7F) + bintang merah (#B13535).
-  Widget _buildFieldTitle(String label) {
+  Widget _buildFieldTitle(String label, bool isDark) {
+    final titleColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: RichText(
@@ -700,7 +739,7 @@ class _LoginPageState extends State<LoginPage> {
           style: GoogleFonts.lato(
             fontSize: 16,
             fontWeight: FontWeight.normal,
-            color: const Color(0xFF000000),
+            color: titleColor,
           ),
           children: [
             TextSpan(
@@ -719,16 +758,21 @@ class _LoginPageState extends State<LoginPage> {
 
   /// Dekorasi TextFormField:
   /// - Bentuk: Kotak (OutlineInputBorder) dengan radius 10dp
-  /// - Normal: border abu-abu (#CBD5E1)
+  /// - Normal: border abu-abu (#CBD5E1 / #2C363D di dark mode)
   /// - Fokus: border biru (#3985E7)
   /// - Error: border merah (#B13535)
   InputDecoration _buildInputDecoration({
     required String hintText,
+    required bool isDark,
     Widget? suffixIcon,
   }) {
+    final fillColor = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor =
+        isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+
     return InputDecoration(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       hintText: hintText,
       hintStyle: GoogleFonts.lato(
@@ -740,11 +784,11 @@ class _LoginPageState extends State<LoginPage> {
       // Border normal (kotak dengan corner radius 10)
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFD1D7DB)),
+        borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFD1D7DB)),
+        borderSide: BorderSide(color: borderColor),
       ),
       // Border saat fokus (biru #3985E7)
       focusedBorder: OutlineInputBorder(

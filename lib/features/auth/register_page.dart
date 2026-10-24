@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -217,12 +217,29 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final inputTextColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final dividerColor =
+        isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5);
+    final orTextColor =
+        isDark ? const Color(0xFF8696A0) : const Color(0xFFC5C5C5);
+    final googleButtonBg =
+        isDark ? const Color(0xFF1A2228) : Colors.white;
+    final googleButtonBorder =
+        isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D5DB);
+    final googleButtonText =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final footerTextColor =
+        isDark ? const Color(0xFFD1D7DB) : const Color(0xFF000000);
+
     // Scaffold dengan resizeToAvoidBottomInset: true agar terdorong keyboard
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: bgColor,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: Column(
@@ -230,7 +247,7 @@ class _RegisterPageState extends State<RegisterPage> {
               // ---------------------------------------------------------------
               // HEADER TETAP BERADA PADA POSISI ATAS (56dp)
               // ---------------------------------------------------------------
-              _buildFixedHeader(context),
+              _buildFixedHeader(context, isDark),
 
               // ---------------------------------------------------------------
               // KONTEN FORMULIR YANG DAPAT DI-SCROLL
@@ -249,18 +266,21 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         // 1. Gambar Ilustrasi Keluarga (weight/width 247, height 155)
                         Center(
-                          child: SizedBox(
-                            width: 247,
-                            height: 155,
-                            child: Image.asset(
-                              'assets/images/register_family.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/family_illustration.png',
-                                  fit: BoxFit.contain,
-                                );
-                              },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: SizedBox(
+                              width: 247,
+                              height: 155,
+                              child: Image.asset(
+                                'assets/images/register_family.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/family_illustration.png',
+                                    fit: BoxFit.contain,
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -268,20 +288,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 20),
 
                         // 2. Field: Nama Pengguna
-                        _buildFieldTitle('Nama Pengguna'),
+                        _buildFieldTitle('Nama Pengguna', isDark),
                         TextFormField(
                           key: const Key('name_field'),
                           controller: _nameController,
                           focusNode: _nameFocus,
                           keyboardType: TextInputType.name,
                           textInputAction: TextInputAction.next,
+                          cursorColor: const Color(0xFF3985E7),
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1A2228),
+                            color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Masukkan nama lengkap anda',
+                            isDark: isDark,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -299,20 +321,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 18),
 
                         // 3. Field: Email
-                        _buildFieldTitle('Email'),
+                        _buildFieldTitle('Email', isDark),
                         TextFormField(
                           key: const Key('email_field'),
                           controller: _emailController,
                           focusNode: _emailFocus,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
+                          cursorColor: const Color(0xFF3985E7),
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1A2228),
+                            color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Masukkan email aktif anda',
+                            isDark: isDark,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -333,20 +357,22 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 18),
 
                         // 4. Field: Kata Sandi
-                        _buildFieldTitle('Kata Sandi'),
+                        _buildFieldTitle('Kata Sandi', isDark),
                         TextFormField(
                           key: const Key('password_field'),
                           controller: _passwordController,
                           focusNode: _passwordFocus,
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.next,
+                          cursorColor: const Color(0xFF3985E7),
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1A2228),
+                            color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Kata Sandi min. 6 karakter',
+                            isDark: isDark,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -386,7 +412,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 18),
 
                         // 5. Field: Konfirmasi Kata Sandi
-                        _buildFieldTitle('Konfirmasi Kata Sandi'),
+                        _buildFieldTitle('Konfirmasi Kata Sandi', isDark),
                         TextFormField(
                           key: const Key('confirm_password_field'),
                           controller: _confirmPasswordController,
@@ -394,13 +420,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           obscureText: _obscureConfirmPassword,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _handleRegister(),
+                          cursorColor: const Color(0xFF3985E7),
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF1A2228),
+                            color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
                             hintText: 'Ulangi kata sandi yang dimasukkan',
+                            isDark: isDark,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirmPassword
@@ -475,9 +503,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             child: Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Divider(
-                                    color: Color(0xFFC5C5C5),
+                                    color: dividerColor,
                                     thickness: 1.0,
                                   ),
                                 ),
@@ -490,13 +518,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                     style: GoogleFonts.lato(
                                       fontSize: 16,
                                       fontWeight: FontWeight.normal,
-                                      color: const Color(0xFFC5C5C5),
+                                      color: orTextColor,
                                     ),
                                   ),
                                 ),
-                                const Expanded(
+                                Expanded(
                                   child: Divider(
-                                    color: Color(0xFFC5C5C5),
+                                    color: dividerColor,
                                     thickness: 1.0,
                                   ),
                                 ),
@@ -525,10 +553,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
                                 ),
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF000000),
-                                side: const BorderSide(
-                                  color: Color(0xFFD1D5DB),
+                                backgroundColor: googleButtonBg,
+                                foregroundColor: googleButtonText,
+                                side: BorderSide(
+                                  color: googleButtonBorder,
                                   width: 1.0,
                                 ),
                                 elevation: 0,
@@ -562,7 +590,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                             style: GoogleFonts.lato(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: const Color(0xFF000000),
+                                              color: googleButtonText,
                                             ),
                                           ),
                                         ],
@@ -587,7 +615,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   fontSize: 14,
                                   height: 1.4,
                                   fontWeight: FontWeight.normal,
-                                  color: const Color(0xFF000000),
+                                  color: footerTextColor,
                                 ),
                                 children: [
                                   const TextSpan(
@@ -626,7 +654,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 14,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF000000),
+                                color: footerTextColor,
                               ),
                               children: [
                                 const TextSpan(text: 'Sudah memiliki Akun? '),
@@ -665,10 +693,14 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   /// Header yang TETAP BERADA PADA POSISI ATAS (56dp) saat konten di-scroll.
-  Widget _buildFixedHeader(BuildContext context) {
+  Widget _buildFixedHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final headerTextColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       height: 56.0,
-      color: Colors.white,
+      color: headerBg,
       padding: const EdgeInsets.only(left: 12.0, right: 12.0),
       child: Row(
         children: [
@@ -683,9 +715,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 );
               }
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Icon(Icons.arrow_back, color: headerTextColor, size: 24),
             ),
           ),
           // Nama halaman terletak 12dp setelah button back
@@ -695,7 +727,7 @@ class _RegisterPageState extends State<RegisterPage> {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: headerTextColor,
             ),
           ),
         ],
@@ -704,7 +736,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   /// Judul setiap TextFormField (Lato reguler 16 #7F7F7F) + bintang merah (#B13535).
-  Widget _buildFieldTitle(String label) {
+  Widget _buildFieldTitle(String label, bool isDark) {
+    final titleColor =
+        isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: RichText(
@@ -713,7 +748,7 @@ class _RegisterPageState extends State<RegisterPage> {
           style: GoogleFonts.lato(
             fontSize: 16,
             fontWeight: FontWeight.normal,
-            color: const Color(0xFF000000),
+            color: titleColor,
           ),
           children: [
             TextSpan(
@@ -732,16 +767,21 @@ class _RegisterPageState extends State<RegisterPage> {
 
   /// Dekorasi TextFormField:
   /// - Bentuk: Kotak (OutlineInputBorder) dengan radius 10dp
-  /// - Normal: border abu-abu (#CBD5E1)
+  /// - Normal: border abu-abu (#CBD5E1 / #2C363D di dark mode)
   /// - Fokus: border biru (#3985E7)
   /// - Error: border merah (#B13535) + pesan error #B13535
   InputDecoration _buildInputDecoration({
     required String hintText,
+    required bool isDark,
     Widget? suffixIcon,
   }) {
+    final fillColor = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor =
+        isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+
     return InputDecoration(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       hintText: hintText,
       hintStyle: GoogleFonts.lato(
@@ -753,11 +793,11 @@ class _RegisterPageState extends State<RegisterPage> {
       // Border normal (kotak dengan corner radius 10)
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFD1D7DB)),
+        borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Color(0xFFD1D7DB)),
+        borderSide: BorderSide(color: borderColor),
       ),
       // Border saat fokus (biru #3985E7)
       focusedBorder: OutlineInputBorder(

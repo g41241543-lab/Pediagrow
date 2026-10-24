@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -13,9 +13,22 @@ void showGoogleAuthErrorDialog(
   required String errorMessage,
   int? statusCode,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final dialogBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+  final titleTextColor =
+      isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+  final bodyTextColor =
+      isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D);
+  final boxBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF);
+  final boxTitleColor =
+      isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+  final boxBodyColor =
+      isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
+      backgroundColor: dialogBg,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
       contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
@@ -24,7 +37,7 @@ void showGoogleAuthErrorDialog(
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
+              color: isDark ? const Color(0xFF3B1818) : const Color(0xFFFEF2F2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
@@ -42,7 +55,7 @@ void showGoogleAuthErrorDialog(
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A2228),
+                color: titleTextColor,
               ),
             ),
           ),
@@ -60,7 +73,7 @@ void showGoogleAuthErrorDialog(
                   : errorMessage,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFF2C363D),
+                color: bodyTextColor,
                 height: 1.4,
               ),
             ),
@@ -70,18 +83,20 @@ void showGoogleAuthErrorDialog(
                 context,
                 title: 'Package Name',
                 value: GoogleAuthConfig.androidPackageName,
+                isDark: isDark,
               ),
               const SizedBox(height: 8),
               _buildInfoTile(
                 context,
                 title: 'SHA-1 Fingerprint',
                 value: GoogleAuthConfig.debugSha1,
+                isDark: isDark,
               ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE9EDEF),
+                  color: boxBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -92,7 +107,7 @@ void showGoogleAuthErrorDialog(
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2C363D),
+                        color: boxTitleColor,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -103,7 +118,7 @@ void showGoogleAuthErrorDialog(
                       '4. Pilih Android, lalu masukkan Package Name & SHA-1 di atas.',
                       style: GoogleFonts.lato(
                         fontSize: 11,
-                        color: const Color(0xFF667781),
+                        color: boxBodyColor,
                         height: 1.4,
                       ),
                     ),
@@ -173,13 +188,20 @@ Widget _buildInfoTile(
   BuildContext context, {
   required String title,
   required String value,
+  bool isDark = false,
 }) {
+  final tileBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC);
+  final tileBorder =
+      isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  final valueColor =
+      isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
     decoration: BoxDecoration(
-      color: const Color(0xFFF8FAFC),
+      color: tileBg,
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFE9EDEF)),
+      border: Border.all(color: tileBorder),
     ),
     child: Row(
       children: [
@@ -201,7 +223,7 @@ Widget _buildInfoTile(
                 style: GoogleFonts.robotoMono(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A2228),
+                  color: valueColor,
                 ),
               ),
             ],
