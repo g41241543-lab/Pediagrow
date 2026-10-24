@@ -6,6 +6,7 @@ import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/hover_lift.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
@@ -1058,7 +1059,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
   Widget _buildConsultationCard(RiwayatKonsultasiAdminItem item) {
     final ageText = item.calculatedAge;
 
-    return Container(
+    return HoverLift(
+      borderRadius: BorderRadius.circular(16.0),
+      cursor: SystemMouseCursors.click,
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
@@ -1199,7 +1203,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           ),
         ),
       ),
-    );
+    ));
   }
 
   // ─── STATUS BADGE ─────────────────────────────────────────────────────────
