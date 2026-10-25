@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pediagrow/core/services/child_service.dart';
 import 'package:pediagrow/core/services/notification_service.dart';
+import 'package:pediagrow/features/Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
 import 'package:pediagrow/features/pengguna/beranda/notifikasi_page.dart';
+import 'package:pediagrow/features/pengguna/profil/profil_ibu_page.dart';
+import 'package:pediagrow/features/pengguna/profil/ubah_password_page.dart';
+import 'package:pediagrow/features/pengguna/profil_anak/ubah_anak_page.dart';
+import 'package:pediagrow/models/child_model.dart';
 import 'package:pediagrow/models/notification_model.dart';
+import 'package:pediagrow/shared/widgets/pedia_banner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     NotificationService().clearNotifications();
     NotificationService().resetStuntingCheckedStatus();
   });
@@ -154,5 +163,249 @@ void main() {
       service.notifications.first.message.toLowerCase(),
       contains('waktu konsultasi telah tiba'),
     );
+  });
+
+  test('NotificationService prevents duplicate notification content within 2 seconds', () {
+    final service = NotificationService();
+    service.clearNotifications();
+
+    final item1 = NotificationItem(
+      id: 'item_1',
+      title: 'Berhasil Mengubah Data Anak',
+      message: 'Data profil anak berhasil diperbarui',
+      date: DateTime.now(),
+      type: NotificationType.child,
+    );
+    final item2 = NotificationItem(
+      id: 'item_2',
+      title: 'Berhasil Mengubah Data Anak',
+      message: 'Data profil anak berhasil diperbarui',
+      date: DateTime.now(),
+      type: NotificationType.child,
+    );
+
+    service.addNotification(item1);
+    service.addNotification(item2); // Should be ignored by deduplication
+
+    expect(service.notifications.length, equals(1));
+  });
+
+  test('resolveActionTitle resolves descriptive action titles based on user actions', () {
+    // Ubah data
+    expect(
+      resolveActionTitle('Data profil anak berhasil diperbarui'),
+      equals('Berhasil Mengubah Data Anak'),
+    );
+    expect(
+      resolveActionTitle('Berhasil Memperbarui Profil'),
+      equals('Berhasil Mengubah Profil'),
+    );
+    expect(
+      resolveActionTitle('Kata sandi berhasil diperbarui'),
+      equals('Berhasil Mengubah Kata Sandi'),
+    );
+
+    // Tambah data
+    expect(
+      resolveActionTitle('Profil anak berhasil ditambahkan'),
+      equals('Berhasil Menambahkan Data Anak'),
+    );
+    expect(
+      resolveActionTitle('Artikel berhasil ditambahkan'),
+      equals('Berhasil Menambahkan Artikel'),
+    );
+    expect(
+      resolveActionTitle('Resep MPASI berhasil ditambahkan'),
+      equals('Berhasil Menambahkan Resep MPASI'),
+    );
+
+    // Hapus data
+    expect(
+      resolveActionTitle('Data anak berhasil dihapus'),
+      equals('Berhasil Menghapus Data Anak'),
+    );
+    expect(
+      resolveActionTitle('Artikel telah dihapus dari sistem'),
+      equals('Berhasil Menghapus Artikel'),
+    );
+  });
+
+  test('NotificationService detectType detects correct NotificationType', () {
+    final service = NotificationService();
+
+    expect(
+      service.detectType('Berhasil Mengubah Data Anak', 'Data profil anak berhasil diperbarui'),
+      equals(NotificationType.child),
+    );
+    expect(
+      service.detectType('Berhasil Mengubah Profil', 'Profil ibu berhasil diperbarui'),
+      equals(NotificationType.profile),
+    );
+    expect(
+      service.detectType('Pemeriksaan Stunting', 'Status stunting anak'),
+      equals(NotificationType.stunting),
+    );
+    expect(
+      service.detectType('Booking Konsultasi Berhasil', 'Booking konsultasi dokter'),
+      equals(NotificationType.consultation),
+    );
+    expect(
+      service.detectType('Berhasil Menambahkan Artikel', 'Artikel kesehatan anak'),
+      equals(NotificationType.article),
+    );
+    expect(
+      service.detectType('Berhasil Menambahkan Resep MPASI', 'Resep puree pisang'),
+      equals(NotificationType.recipe),
+    );
+  });
+
+  testWidgets('Tapping child notification navigates to UbahAnakPage when child exists', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final mockChild = ChildModel(
+      id: 'child_1',
+      ownerId: 'user_1',
+      name: 'Baby Anita',
+      gender: 'Perempuan',
+      birthDate: DateTime(2025, 1, 1),
+      birthWeightKg: 3.2,
+      birthHeightCm: 49.0,
+      headCircumferenceCm: 33.0,
+      isPremature: false,
+    );
+    ChildService().childrenNotifier.value = [mockChild];
+    ChildService().activeChildNotifier.value = mockChild;
+
+    NotificationService().addNotification(
+      NotificationItem(
+        id: 'child_edit_1',
+        title: 'Berhasil Mengubah Data Anak',
+        message: 'Data profil anak berhasil diperbarui',
+        date: DateTime.now(),
+        type: NotificationType.child,
+      ),
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: NotifikasiPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Berhasil Mengubah Data Anak'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UbahAnakPage), findsOneWidget);
+  });
+
+  testWidgets('Tapping profile notification navigates to ProfilIbuPage', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    NotificationService().addNotification(
+      NotificationItem(
+        id: 'profil_edit_1',
+        title: 'Berhasil Mengubah Profil',
+        message: 'Berhasil Memperbarui Profil',
+        date: DateTime.now(),
+        type: NotificationType.profile,
+      ),
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: NotifikasiPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Berhasil Mengubah Profil'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProfilIbuPage), findsOneWidget);
+  });
+
+  testWidgets('Tapping password notification navigates to UbahPasswordPage', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    NotificationService().addNotification(
+      NotificationItem(
+        id: 'password_edit_1',
+        title: 'Berhasil Mengubah Kata Sandi',
+        message: 'Kata sandi berhasil diperbarui',
+        date: DateTime.now(),
+        type: NotificationType.profile,
+      ),
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: NotifikasiPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Berhasil Mengubah Kata Sandi'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(UbahPasswordPage), findsOneWidget);
+  });
+
+  testWidgets('Tapping growth limit notification navigates to PertumbuhanGrafikPage', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final mockChild = ChildModel(
+      id: 'child_1',
+      ownerId: 'user_1',
+      name: 'Baby Anita',
+      gender: 'Perempuan',
+      birthDate: DateTime(2025, 1, 1),
+      birthWeightKg: 3.2,
+      birthHeightCm: 49.0,
+      headCircumferenceCm: 33.0,
+      isPremature: false,
+    );
+    ChildService().childrenNotifier.value = [mockChild];
+    ChildService().activeChildNotifier.value = mockChild;
+
+    final title = resolveActionTitle(
+      'Batas input data pertumbuhan 2x per bulan sudah tercapai untuk anak ini. Coba lagi bulan depan.',
+      isError: true,
+    );
+    expect(title, equals('Batas Input Data Pertumbuhan'));
+
+    NotificationService().addNotification(
+      NotificationItem(
+        id: 'growth_limit_1',
+        title: title,
+        message: 'Batas input data pertumbuhan 2x per bulan sudah tercapai untuk anak ini. Coba lagi bulan depan.',
+        date: DateTime.now(),
+        type: NotificationType.stunting,
+      ),
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: NotifikasiPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Batas Input Data Pertumbuhan'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PertumbuhanGrafikPage), findsOneWidget);
   });
 }

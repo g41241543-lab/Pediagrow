@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/services/storage_service.dart';
 import '../../models/child_model.dart';
 
 /// Reusable Widget Avatar Anak Resmi PediaGrow
@@ -11,10 +12,14 @@ import '../../models/child_model.dart';
 /// - Jika Laki-laki / Default:
 ///   * Menggunakan ikon anak laki-laki (rambut hitam rapi, tanpa rona merah di pipi)
 ///   * Latar belakang Soft Blue / Biru Muda (#EBF5FF)
+/// - Jika anak memiliki foto profil khusus (photoUrl):
+///   * Menampilkan foto profil tersebut
+///   * Otomatis fallback ke ikon resmi di atas jika foto kosong atau gagal dimuat
 class ChildAvatar extends StatelessWidget {
   final String? gender;
   final bool? isGirl;
   final ChildModel? child;
+  final String? photoUrl;
   final double size;
   final BoxShape shape;
   final BorderRadius? borderRadius;
@@ -27,6 +32,7 @@ class ChildAvatar extends StatelessWidget {
     this.gender,
     this.isGirl,
     this.child,
+    this.photoUrl,
     this.size = 40.0,
     this.shape = BoxShape.circle,
     this.borderRadius,
@@ -83,7 +89,7 @@ class ChildAvatar extends StatelessWidget {
 
     final effectivePadding = padding ?? EdgeInsets.all(size * 0.12);
 
-    return Container(
+    final defaultAvatar = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -120,5 +126,32 @@ class ChildAvatar extends StatelessWidget {
         ),
       ),
     );
+
+    final effectivePhotoUrl = (photoUrl ?? child?.photoUrl)?.trim();
+    if (effectivePhotoUrl != null && effectivePhotoUrl.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: effectiveBgColor,
+          shape: shape,
+          borderRadius: shape == BoxShape.circle
+              ? null
+              : (borderRadius ?? BorderRadius.circular(size * 0.25)),
+          border: border,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: StorageService.buildImageWidget(
+          effectivePhotoUrl,
+          fit: BoxFit.cover,
+          width: size,
+          height: size,
+          placeholder: defaultAvatar,
+          errorWidget: defaultAvatar,
+        ),
+      );
+    }
+
+    return defaultAvatar;
   }
 }

@@ -1,12 +1,12 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/konsultasi_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/konsultasi_session_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../beranda/beranda_pmik_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil_pmik_page.dart';
@@ -1489,15 +1489,16 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
 
   // ─── CHILD AVATAR ─────────────────────────────────────────────────────────
   /// Menampilkan foto profil anak dari Firebase jika tersedia (field photo_url),
-  /// atau fallback ke avatar wajah bayi bergambar lucu.
+  /// atau fallback ke avatar profil anak resmi PediaGrow (ChildAvatar).
   Widget _buildChildAvatar({
     required String? photoUrl,
     required bool isFemale,
     required double size,
   }) {
-    final bgColor = isFemale
-        ? const Color(0xFFFFE4E6)
-        : const Color(0xFFDBEAFE);
+    final fallback = ChildAvatar(
+      isGirl: isFemale,
+      size: size,
+    );
 
     if (photoUrl != null && photoUrl.isNotEmpty) {
       return Container(
@@ -1505,7 +1506,6 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: bgColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -1515,53 +1515,17 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Image.network(
+        child: StorageService.buildImageWidget(
           photoUrl,
           fit: BoxFit.cover,
           width: size,
           height: size,
-          loadingBuilder: (ctx, child, progress) {
-            if (progress == null) return child;
-            return Container(
-              color: bgColor,
-              child: Center(
-                child: SizedBox(
-                  width: size * 0.4,
-                  height: size * 0.4,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: isFemale
-                        ? const Color(0xFFEC4899)
-                        : _colorPrimaryBlue,
-                  ),
-                ),
-              ),
-            );
-          },
-          errorBuilder: (ctx, error, stack) => Container(
-            color: bgColor,
-            child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-          ),
+          errorWidget: fallback,
         ),
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
-    );
+    return fallback;
   }
 
   // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
@@ -1707,115 +1671,3 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-/// Painter wajah bayi lucu — fallback jika foto profil anak tidak tersedia.
-/// Anak perempuan mendapat hiasan pita merah muda di atas kepala.
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    // Lingkaran kepala
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
-
-    // Poni rambut
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    // Mata
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    // Pipi kemerahan
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    // Senyuman
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(
-      cx,
-      cy + r * 0.62,
-      cx + r * 0.35,
-      cy + r * 0.18,
-    );
-    canvas.drawPath(smilePath, strokePaint);
-
-    // Hiasan pita untuk anak perempuan
-    if (isGirl) {
-      final bowPaint = Paint()
-        ..color = const Color(0xFFFF6B9D)
-        ..style = PaintingStyle.fill;
-      final bowPath = Path();
-      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-        cx - r * 0.4,
-        cy - r * 1.15,
-        cx - r * 0.25,
-        cy - r * 0.75,
-      );
-      bowPath.quadraticBezierTo(cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-        cx + r * 0.1,
-        cy - r * 1.05,
-        cx + r * 0.25,
-        cy - r * 0.75,
-      );
-      bowPath.quadraticBezierTo(
-        cx + r * 0.4,
-        cy - r * 1.15,
-        cx + r * 0.1,
-        cy - r * 0.85,
-      );
-      canvas.drawPath(bowPath, bowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

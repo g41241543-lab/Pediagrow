@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,6 +35,11 @@ class AuthChoicePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final taglineColor = isDark ? const Color(0xFFD1D7DB) : colorTextDark;
+    final secondaryBtnBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+
     final mediaQuery = MediaQuery.of(context);
     final size = mediaQuery.size;
     final topPadding = mediaQuery.padding.top;
@@ -57,7 +62,7 @@ class AuthChoicePage extends StatelessWidget {
     final double buttonWidth = math.min(350.0, screenW - 32.0);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: Stack(
         children: [
           // -------------------------------------------------------------------
@@ -102,7 +107,7 @@ class AuthChoicePage extends StatelessWidget {
                     fontSize: isCompact ? 15.5 : 18.0,
                     fontWeight: FontWeight.normal,
                     height: 1.35,
-                    color: colorTextDark,
+                    color: taglineColor,
                   ),
                 ),
               ),
@@ -150,7 +155,7 @@ class AuthChoicePage extends StatelessWidget {
                 height: 52.0,
                 borderColor: colorButtonPrimary,
                 textColor: colorButtonPrimary,
-                backgroundColor: Colors.white,
+                backgroundColor: secondaryBtnBg,
                 onPressed: () {
                   if (onRegisterPressed != null) {
                     onRegisterPressed!();

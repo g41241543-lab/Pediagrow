@@ -232,13 +232,28 @@ class NotificationService {
   // MANAJEMEN NOTIFIKASI
   // ---------------------------------------------------------------------------
 
-  /// Menambahkan notifikasi baru ke dalam daftar (duplikasi ID dicegah).
+  /// Menambahkan notifikasi baru ke dalam daftar (duplikasi ID dan duplikasi konten dicegah).
   /// Notifikasi baru muncul di posisi paling atas.
   /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
   void addNotification(NotificationItem item, {bool showPush = true}) {
     final currentList = List<NotificationItem>.from(notificationsNotifier.value);
-    // Hindari duplikasi ID
+    // 1. Hindari duplikasi ID
     currentList.removeWhere((element) => element.id == item.id);
+
+    // 2. Cegah duplikasi notifikasi (title & message sama dalam 2 detik)
+    final now = item.date;
+    final isDuplicate = currentList.any((element) {
+      final sameText = element.title.trim() == item.title.trim() &&
+          element.message.trim() == item.message.trim();
+      final diffSeconds = (element.date.difference(now)).inSeconds.abs();
+      return sameText && diffSeconds <= 2;
+    });
+
+    if (isDuplicate) {
+      debugPrint('[NotificationService] Notifikasi duplikat diabaikan: "${item.title}"');
+      return;
+    }
+
     currentList.insert(0, item);
     notificationsNotifier.value = currentList;
     // Tambah unread count jika notifikasi baru belum dibaca
@@ -266,7 +281,7 @@ class NotificationService {
     NotificationType? type,
   }) {
     final now = DateTime.now();
-    final detectedType = type ?? _detectType(title, message);
+    final detectedType = type ?? detectType(title, message);
     final newItem = NotificationItem(
       id: 'user_push_${now.millisecondsSinceEpoch}',
       title: title,
@@ -277,18 +292,34 @@ class NotificationService {
     addNotification(newItem, showPush: false);
   }
 
-  NotificationType _detectType(String title, String message) {
+  /// Mendeteksi kategori [NotificationType] berdasarkan judul dan pesan notifikasi
+  NotificationType detectType(String title, String message) {
     final lower = '${title.toLowerCase()} ${message.toLowerCase()}';
-    if (lower.contains('stunting')) return NotificationType.stunting;
-    if (lower.contains('booking') || lower.contains('konsultasi')) {
-      return NotificationType.consultation;
+    if (lower.contains('stunting') ||
+        lower.contains('pemeriksaan') ||
+        lower.contains('pertumbuhan') ||
+        lower.contains('grafik') ||
+        lower.contains('batas input')) {
+      return NotificationType.stunting;
     }
-    if (lower.contains('profil') || lower.contains('anak') || lower.contains('ibu')) {
-      return NotificationType.profile;
+    if (lower.contains('booking') ||
+        lower.contains('konsultasi') ||
+        lower.contains('janji')) {
+      return NotificationType.consultation;
     }
     if (lower.contains('artikel')) return NotificationType.article;
     if (lower.contains('resep') || lower.contains('mpasi')) {
       return NotificationType.recipe;
+    }
+    if (lower.contains('anak')) {
+      return NotificationType.child;
+    }
+    if (lower.contains('profil') ||
+        lower.contains('ibu') ||
+        lower.contains('orang tua') ||
+        lower.contains('sandi') ||
+        lower.contains('password')) {
+      return NotificationType.profile;
     }
     return NotificationType.system;
   }

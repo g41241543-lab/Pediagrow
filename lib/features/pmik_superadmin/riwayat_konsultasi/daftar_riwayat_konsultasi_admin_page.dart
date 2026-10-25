@@ -6,6 +6,7 @@ import '../../../core/services/staff_auth_service.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/hover_lift.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
@@ -65,7 +66,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _filterDoctor = 'Semua Dokter';
+  String _selectedDoctorChild = 'Semua';
 
+  late final Stream<List<RiwayatKonsultasiAdminItem>> _streamRiwayat;
   List<DoctorModel> _doctorList = [];
 
   /// Nama dokter efektif: jika di-pass via widget dipakai, jika tidak namun yang login adalah role dokter, ambil nama dari StaffAuthService
@@ -84,12 +87,23 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return null;
   }
 
-  /// true jika halaman ini dipakai untuk role dokter (filter by doctor name)
-  bool get _isDoctorMode => _effectiveDoctorName != null;
+  /// ID dokter yang sedang login (jika role dokter)
+  String? get _effectiveDoctorId {
+    final staff = StaffAuthService().currentStaff;
+    if (staff != null && staff.role == StaffRole.dokter) {
+      final doc = DoctorService().findDoctorForStaff(staff);
+      return doc?.id ?? staff.id;
+    }
+    return null;
+  }
+
+  /// true jika halaman ini dipakai untuk role dokter (filter by doctor)
+  bool get _isDoctorMode => _effectiveDoctorName != null || _effectiveDoctorId != null;
 
   @override
   void initState() {
     super.initState();
+    _streamRiwayat = RiwayatKonsultasiAdminService().streamRiwayatKonsultasi();
     DoctorService().doctorsNotifier.addListener(_onDoctorsUpdated);
     _doctorList = List.from(DoctorService().currentDoctors);
 
@@ -199,10 +213,24 @@ class _DaftarRiwayatKonsultasiAdminPageState
         return false;
       }
 
-      // Mode Dokter: filter otomatis berdasarkan nama dokter login (fuzzy match)
+      // Mode Dokter: filter otomatis hanya konsultasi yang ditangani dokter login
+      // (cocokkan via doctorId atau nama dokter)
       if (_isDoctorMode) {
-        if (!_isDoctorNameMatch(item.doctorName, _effectiveDoctorName!)) {
+        final matchesId = _effectiveDoctorId != null &&
+            item.doctorId.isNotEmpty &&
+            (item.doctorId == _effectiveDoctorId ||
+                item.doctorId == StaffAuthService().currentStaff?.id);
+        final matchesName = _effectiveDoctorName != null &&
+            _isDoctorNameMatch(item.doctorName, _effectiveDoctorName!);
+
+        if (!matchesId && !matchesName) {
           return false;
+        }
+        if (_selectedDoctorChild != 'Semua') {
+          if (item.childName.trim().toLowerCase() !=
+              _selectedDoctorChild.trim().toLowerCase()) {
+            return false;
+          }
         }
       } else {
         // Mode Admin/Superadmin: Filter Dokter jika dipilih selain 'Semua Dokter'
@@ -279,7 +307,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
       child: Scaffold(
         backgroundColor: Colors.white,
         body: StreamBuilder<List<RiwayatKonsultasiAdminItem>>(
-          stream: RiwayatKonsultasiAdminService().streamRiwayatKonsultasi(),
+          stream: _streamRiwayat,
           builder: (context, snapshot) {
             final isLoading =
                 snapshot.connectionState == ConnectionState.waiting &&
@@ -288,7 +316,26 @@ class _DaftarRiwayatKonsultasiAdminPageState
             final allData = snapshot.data ?? [];
             final filtered = _applyFilters(allData);
 
-            // Kumpulkan daftar opsi nama dokter untuk modal filter
+            // Kumpulkan daftar nama anak yang ditangani dokter ini (untuk filter kapsul mirip MPASI)
+            final List<String> doctorHandledChildren = [];
+            if (_isDoctorMode) {
+              for (final item in allData) {
+                if (!item.isCompleted) continue;
+                final matchesId = _effectiveDoctorId != null &&
+                    item.doctorId.isNotEmpty &&
+                    (item.doctorId == _effectiveDoctorId ||
+                        item.doctorId == StaffAuthService().currentStaff?.id);
+                final matchesName = _effectiveDoctorName != null &&
+                    _isDoctorNameMatch(item.doctorName, _effectiveDoctorName!);
+                if (!matchesId && !matchesName) continue;
+                final name = item.childName.trim();
+                if (name.isNotEmpty && !doctorHandledChildren.contains(name)) {
+                  doctorHandledChildren.add(name);
+                }
+              }
+            }
+
+            // Kumpulkan daftar opsi nama dokter untuk modal filter (mode admin/superadmin)
             final Set<String> doctorOptions = {'Semua Dokter'};
             for (final d in _doctorList) {
               doctorOptions.add(d.name);
@@ -327,10 +374,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
                                     children: [
                                       const SizedBox(height: 10.0),
 
-                                      // 1. Baris Search Bar berdampingan dengan Tombol Filter Estetik
-                                      // (mode dokter: hanya search bar, tanpa tombol filter)
+                                      // 1. Search Bar & Filter Kapsul (mode dokter: bentuk searchbar dan filter sama seperti pengguna / resep MPASI)
                                       _isDoctorMode
-                                          ? _buildSearchBarOnly()
+                                          ? _buildDoctorSearchBarAndFilter(
+                                              doctorHandledChildren)
                                           : _buildSearchAndFilterRow(
                                               doctorOptions.toList()),
 
@@ -635,9 +682,149 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── SEARCH BAR KHUSUS DOKTER (HINT: CARI NAMA PASIEN...) ─────────────────
-  Widget _buildSearchBarOnly() {
-    return _buildSearchBar(hintText: 'Cari nama pasien...');
+  // ─── SEARCH BAR & FILTER KHUSUS DOKTER (IDENTIK DENGAN PENGGUNA / RESEP MPASI) ─────
+  Widget _buildDoctorSearchBarAndFilter(List<String> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Search Bar kapsul mirip Pengguna / Resep MPASI
+        Container(
+          height: 48.0,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F4F7),
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.search_rounded,
+                size: 22.0,
+                color: Color(0xFF9E9E9E),
+              ),
+              const SizedBox(width: 10.0),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    color: _colorTextBlack,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Cari riwayat konsultasi pasien...',
+                    hintStyle: GoogleFonts.lato(
+                      fontSize: 14.0,
+                      color: const Color(0xFF9E9E9E),
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+              if (_searchQuery.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 18.0,
+                      color: Color(0xFF9E9E9E),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10.0),
+
+        // 2. Filter Kapsul Anak yang Ditangani Dokter (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : (MediaQuery.of(context).size.width - 32.0);
+            // 2 jarak celah antar 3 filter @ 8dp (total 16)
+            final chipWidth = (availableWidth - 16.0) / 3;
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildDoctorChildChip(
+                    label: 'Semua',
+                    isSelected: _selectedDoctorChild == 'Semua',
+                    onTap: () => setState(() => _selectedDoctorChild = 'Semua'),
+                    width: chipWidth,
+                  ),
+                  ...children.map((childName) {
+                    final isSelected = _selectedDoctorChild == childName;
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: _buildDoctorChildChip(
+                        label: childName,
+                        isSelected: isSelected,
+                        onTap: () => setState(() => _selectedDoctorChild = childName),
+                        width: chipWidth,
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDoctorChildChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required double width,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 7.0,
+        ),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF3985E7)
+                : const Color(0xFFE2E8F0),
+            width: 1.2,
+          ),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.lato(
+            fontSize: 13.0,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected
+                ? const Color(0xFF3985E7)
+                : const Color(0xFF7F7F7F),
+          ),
+        ),
+      ),
+    );
   }
 
   // ─── SEARCH BAR (mode admin: cari pasien atau dokter) ────────────────────
@@ -895,7 +1082,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
   Widget _buildConsultationCard(RiwayatKonsultasiAdminItem item) {
     final ageText = item.calculatedAge;
 
-    return Container(
+    return HoverLift(
+      borderRadius: BorderRadius.circular(16.0),
+      cursor: SystemMouseCursors.click,
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
@@ -922,6 +1112,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
               ),
             );
           },
+          hoverColor: const Color(0xFFF1F5F9),
+          splashColor: const Color(0xFF72A9F4).withValues(alpha: 0.12),
+          highlightColor: const Color(0xFF72A9F4).withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16.0),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -1033,7 +1226,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
           ),
         ),
       ),
-    );
+    ));
   }
 
   // ─── STATUS BADGE ─────────────────────────────────────────────────────────

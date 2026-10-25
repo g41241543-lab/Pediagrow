@@ -223,6 +223,123 @@ class LocalPushService {
   ///                 digenerate secara acak.
   /// [recordInApp]  — Jika true, notifikasi juga otomatis dicatat ke daftar
   ///                 menu notifikasi di dalam aplikasi (sesuai role).
+  String _resolveActionTitle(String message, String defaultTitle) {
+    if (defaultTitle.isNotEmpty &&
+        defaultTitle != 'PediaGrow' &&
+        defaultTitle != 'Peringatan') {
+      return defaultTitle;
+    }
+
+    final lower = message.toLowerCase();
+
+    // 0. Aksi: BATAS KUOTA / LIMIT
+    if (lower.contains('batas') &&
+        (lower.contains('pertumbuhan') || lower.contains('input'))) {
+      return 'Batas Input Data Pertumbuhan';
+    }
+    if (lower.contains('batas') && lower.contains('stunting')) {
+      return 'Batas Cek Stunting';
+    }
+
+    // 1. Aksi: HAPUS
+    if (lower.contains('hapus') || lower.contains('dihapus')) {
+      if (lower.contains('anak')) return 'Berhasil Menghapus Data Anak';
+      if (lower.contains('artikel')) return 'Berhasil Menghapus Artikel';
+      if (lower.contains('resep') || lower.contains('mpasi')) {
+        return 'Berhasil Menghapus Resep MPASI';
+      }
+      if (lower.contains('dokter')) return 'Berhasil Menghapus Data Dokter';
+      if (lower.contains('pmik') || lower.contains('staf')) {
+        return 'Berhasil Menghapus Akses PMIK';
+      }
+      if (lower.contains('cuti')) return 'Cuti Dokter Dihapus';
+      if (lower.contains('notifikasi')) return 'Berhasil Menghapus Notifikasi';
+      return 'Berhasil Menghapus Data';
+    }
+
+    // 2. Aksi: UBAH / PERBARUI / EDIT
+    if (lower.contains('ubah') ||
+        lower.contains('perbarui') ||
+        lower.contains('diperbarui') ||
+        lower.contains('edit')) {
+      if (lower.contains('anak')) return 'Berhasil Mengubah Data Anak';
+      if (lower.contains('sandi') || lower.contains('password')) {
+        return 'Berhasil Mengubah Kata Sandi';
+      }
+      if (lower.contains('profil') ||
+          lower.contains('ibu') ||
+          lower.contains('foto')) {
+        return 'Berhasil Mengubah Profil';
+      }
+      if (lower.contains('artikel')) return 'Berhasil Mengubah Artikel';
+      if (lower.contains('resep') || lower.contains('mpasi')) {
+        return 'Berhasil Mengubah Resep MPASI';
+      }
+      if (lower.contains('dokter')) return 'Berhasil Mengubah Data Dokter';
+      if (lower.contains('pmik') || lower.contains('staf')) {
+        return 'Berhasil Mengubah Akses PMIK';
+      }
+      if (lower.contains('jadwal')) return 'Berhasil Mengubah Jadwal';
+      return 'Berhasil Mengubah Data';
+    }
+
+    // 3. Aksi: TAMBAH / BUAT / SIMPAN
+    if (lower.contains('tambah') ||
+        lower.contains('ditambahkan') ||
+        lower.contains('buat') ||
+        lower.contains('simpan') ||
+        lower.contains('tersimpan')) {
+      if (lower.contains('anak')) return 'Berhasil Menambahkan Data Anak';
+      if (lower.contains('booking') ||
+          lower.contains('konsultasi') ||
+          lower.contains('janji')) {
+        return 'Berhasil Membuat Janji Konsultasi';
+      }
+      if (lower.contains('artikel')) return 'Berhasil Menambahkan Artikel';
+      if (lower.contains('resep') || lower.contains('mpasi')) {
+        return 'Berhasil Menambahkan Resep MPASI';
+      }
+      if (lower.contains('dokter')) return 'Berhasil Menambahkan Data Dokter';
+      if (lower.contains('pmik') || lower.contains('staf')) {
+        return 'Berhasil Menambahkan Akses PMIK';
+      }
+      if (lower.contains('cuti')) return 'Cuti Dokter Berhasil Ditambahkan';
+      if (lower.contains('resume')) return 'Resume Medis Disimpan';
+      return 'Berhasil Menambahkan Data';
+    }
+
+    // 4. Aksi: UNDUH / DOWNLOAD
+    if (lower.contains('unduh') || lower.contains('download')) {
+      return 'Berhasil Mengunduh Data';
+    }
+
+    // 5. Konteks: STUNTING
+    if (lower.contains('stunting') || lower.contains('pemeriksaan')) {
+      return 'Pemeriksaan Stunting';
+    }
+
+    // 6. Konteks: KONSULTASI
+    if (lower.contains('konsultasi') || lower.contains('booking')) {
+      return 'Konsultasi Dokter';
+    }
+
+    if (defaultTitle.isNotEmpty) return defaultTitle;
+    return 'PediaGrow';
+  }
+
+  /// Menampilkan notifikasi di system tray perangkat.
+  ///
+  /// [title]        — Judul notifikasi.
+  /// [body]         — Isi pesan notifikasi.
+  /// [targetRole]   — Role yang berhak menerima notifikasi ini. Jika berbeda
+  ///                 dengan [_activeRole], notifikasi **tidak** ditampilkan di HP.
+  /// [targetUserId] — User ID yang berhak menerima notifikasi ini. Jika berbeda
+  ///                 dengan akun yang sedang login, notifikasi tidak ditampilkan di HP
+  ///                 dan tidak dicatat di menu notifikasi in-app.
+  /// [id]           — ID notifikasi unik (opsional). Jika tidak diisi, akan
+  ///                 digenerate secara acak.
+  /// [recordInApp]  — Jika true, notifikasi juga otomatis dicatat ke daftar
+  ///                 menu notifikasi di dalam aplikasi (sesuai role).
   Future<void> show({
     required String title,
     required String body,
@@ -231,6 +348,8 @@ class LocalPushService {
     int? id,
     bool recordInApp = true,
   }) async {
+    final effectiveTitle = _resolveActionTitle(body, title);
+
     // Pastikan notifikasi hanya masuk jika sesuai akun pengguna yang aktif
     if (targetUserId != null) {
       final currentUserId = _activeUserId ?? UserService().currentUser.id;
@@ -254,7 +373,7 @@ class LocalPushService {
     // Selalu pastikan notifikasi tercatat di menu aplikasi jika recordInApp == true
     if (recordInApp) {
       _recordNotificationInApp(
-        title: title,
+        title: effectiveTitle,
         body: body,
         targetRole: targetRole,
       );
@@ -274,7 +393,7 @@ class LocalPushService {
     final BigTextStyleInformation bigTextStyle = BigTextStyleInformation(
       body,
       htmlFormatBigText: false,
-      contentTitle: title,
+      contentTitle: effectiveTitle,
       htmlFormatContentTitle: false,
       summaryText: null,
       htmlFormatSummaryText: false,
@@ -304,10 +423,10 @@ class LocalPushService {
     );
 
     try {
-      await _plugin.show(notifId, title, body, details);
+      await _plugin.show(notifId, effectiveTitle, body, details);
       debugPrint(
         '[LocalPushService] Notifikasi ditampilkan: id=$notifId, '
-        'title="$title", targetRole=$targetRole, targetUserId=$targetUserId',
+        'title="$effectiveTitle", targetRole=$targetRole, targetUserId=$targetUserId',
       );
     } catch (e) {
       debugPrint('[LocalPushService] show() error: $e');

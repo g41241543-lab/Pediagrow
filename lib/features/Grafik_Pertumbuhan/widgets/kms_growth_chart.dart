@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/growth_record_model.dart';
 import '../services/zscore_calculator.dart';
@@ -177,27 +177,26 @@ class _KmsGrowthChartState extends State<KmsGrowthChart> {
 
   /// Keterangan Pita Warna KMS Balita
   Widget _buildKmsLegend(bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 14,
+      runSpacing: 4,
       children: [
         _buildLegendItem(
           color: const Color(0xFF4ADE80), // Hijau normal
           label: 'Normal',
           isDark: isDark,
         ),
-        const SizedBox(width: 14),
         _buildLegendItem(
           color: const Color(0xFFFBBF24), // Kuning waspada
           label: 'Waspada',
           isDark: isDark,
         ),
-        const SizedBox(width: 14),
         _buildLegendItem(
           color: const Color(0xFFF87171), // Merah gizi buruk / BGM
           label: 'Gizi Buruk',
           isDark: isDark,
         ),
-        const SizedBox(width: 14),
         _buildLegendItem(
           color: widget.isGirl
               ? const Color(0xFFEC4899)

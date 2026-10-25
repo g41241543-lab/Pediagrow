@@ -18,6 +18,7 @@ import '../../../models/child_model.dart';
 import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/resume_medis_model.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import 'konfirmasi_selesai_dialog.dart';
 import 'konsultasi_selesai_dialog.dart';
 import '../../../shared/widgets/pedia_banner.dart';
@@ -1364,14 +1365,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Lingkaran Foto Avatar Dokter dengan Border Putih Bersih
+        // Lingkaran Foto Avatar Dokter Real-Time dengan Border Putih Bersih
         Container(
-          width: avatarSize,
-          height: avatarSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFFE9EDEF),
-            border: Border.all(color: colorWhite, width: 2.0),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.12),
@@ -1380,8 +1377,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               ),
             ],
           ),
-          child: ClipOval(
-            child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 44),
+          child: DoctorLiveAvatar(
+            doctorId: widget.doctor?.id ?? widget.consultation?.doctor.id,
+            doctorName: _effectiveDoctorName,
+            fallbackPhoto: _effectiveDoctorPhoto,
+            size: avatarSize,
+            shape: BoxShape.circle,
+            border: Border.all(color: colorWhite, width: 2.0),
           ),
         ),
 

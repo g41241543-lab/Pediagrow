@@ -197,6 +197,7 @@ class SuperadminNotificationService {
   }
 
   /// Menambahkan notifikasi baru ke daftar (di posisi paling atas).
+  /// Menambahkan notifikasi baru ke daftar (di posisi paling atas).
   /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
   Future<void> addNotification(
     SuperadminNotificationItem item, {
@@ -204,8 +205,23 @@ class SuperadminNotificationService {
   }) async {
     final currentList =
         List<SuperadminNotificationItem>.from(notificationsNotifier.value);
-    // Hapus jika ada duplikasi ID yang sama
+    // 1. Hapus jika ada duplikasi ID yang sama
     currentList.removeWhere((element) => element.id == item.id);
+
+    // 2. Cegah duplikasi notifikasi (title & message sama dalam 2 detik)
+    final now = item.date;
+    final isDuplicate = currentList.any((element) {
+      final sameText = element.title.trim() == item.title.trim() &&
+          element.message.trim() == item.message.trim();
+      final diffSeconds = (element.date.difference(now)).inSeconds.abs();
+      return sameText && diffSeconds <= 2;
+    });
+
+    if (isDuplicate) {
+      debugPrint('[SuperadminNotificationService] Notifikasi duplikat diabaikan: "${item.title}"');
+      return;
+    }
+
     currentList.insert(0, item);
     notificationsNotifier.value = currentList;
 
@@ -233,7 +249,7 @@ class SuperadminNotificationService {
     SuperadminNotificationType? type,
   }) async {
     final now = DateTime.now();
-    final detectedType = type ?? _detectType(title, message);
+    final detectedType = type ?? detectType(title, message);
     final item = SuperadminNotificationItem(
       id: 'staff_push_${now.millisecondsSinceEpoch}',
       title: title,
@@ -246,14 +262,16 @@ class SuperadminNotificationService {
     await addNotification(item, showPush: false);
   }
 
-  SuperadminNotificationType _detectType(String title, String message) {
+  SuperadminNotificationType detectType(String title, String message) {
     final lower = '${title.toLowerCase()} ${message.toLowerCase()}';
     if (lower.contains('artikel')) return SuperadminNotificationType.artikel;
     if (lower.contains('resep') || lower.contains('mpasi')) {
       return SuperadminNotificationType.resepMpasi;
     }
     if (lower.contains('dokter')) return SuperadminNotificationType.dokter;
-    if (lower.contains('pmik')) return SuperadminNotificationType.pmik;
+    if (lower.contains('pmik') || lower.contains('staf')) {
+      return SuperadminNotificationType.pmik;
+    }
     if (lower.contains('dataset') ||
         lower.contains('unduh') ||
         lower.contains('rekapitulasi')) {
@@ -287,7 +305,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'artikel_tambah_${now.millisecondsSinceEpoch}',
-      title: 'Artikel Ditambahkan',
+      title: 'Berhasil Menambahkan Artikel',
       message: 'Artikel "$judul" berhasil ditambahkan ke dalam sistem.',
       date: now,
       type: SuperadminNotificationType.artikel,
@@ -301,7 +319,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'artikel_ubah_${now.millisecondsSinceEpoch}',
-      title: 'Artikel Diperbarui',
+      title: 'Berhasil Mengubah Artikel',
       message: 'Artikel "$judul" berhasil diperbarui.',
       date: now,
       type: SuperadminNotificationType.artikel,
@@ -315,7 +333,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'artikel_hapus_${now.millisecondsSinceEpoch}',
-      title: 'Artikel Dihapus',
+      title: 'Berhasil Menghapus Artikel',
       message: 'Artikel "$judul" telah dihapus dari sistem.',
       date: now,
       type: SuperadminNotificationType.artikel,
@@ -333,7 +351,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'resep_tambah_${now.millisecondsSinceEpoch}',
-      title: 'Resep MPASI Ditambahkan',
+      title: 'Berhasil Menambahkan Resep MPASI',
       message: 'Resep MPASI "$judul" berhasil ditambahkan ke dalam sistem.',
       date: now,
       type: SuperadminNotificationType.resepMpasi,
@@ -347,7 +365,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'resep_ubah_${now.millisecondsSinceEpoch}',
-      title: 'Resep MPASI Diperbarui',
+      title: 'Berhasil Mengubah Resep MPASI',
       message: 'Resep MPASI "$judul" berhasil diperbarui.',
       date: now,
       type: SuperadminNotificationType.resepMpasi,
@@ -361,7 +379,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'resep_hapus_${now.millisecondsSinceEpoch}',
-      title: 'Resep MPASI Dihapus',
+      title: 'Berhasil Menghapus Resep MPASI',
       message: 'Resep MPASI "$judul" telah dihapus dari sistem.',
       date: now,
       type: SuperadminNotificationType.resepMpasi,
@@ -379,7 +397,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'dokter_tambah_${now.millisecondsSinceEpoch}',
-      title: 'Data Dokter Ditambahkan',
+      title: 'Berhasil Menambahkan Data Dokter',
       message:
           'Akun dan data dokter "$namaDokter" berhasil ditambahkan ke dalam sistem.',
       date: now,
@@ -394,7 +412,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'dokter_ubah_${now.millisecondsSinceEpoch}',
-      title: 'Data Dokter Diperbarui',
+      title: 'Berhasil Mengubah Data Dokter',
       message: 'Data profil dokter "$namaDokter" berhasil diperbarui.',
       date: now,
       type: SuperadminNotificationType.dokter,
@@ -408,7 +426,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'dokter_hapus_${now.millisecondsSinceEpoch}',
-      title: 'Dokter Dihapus',
+      title: 'Berhasil Menghapus Data Dokter',
       message: 'Data dan akun dokter "$namaDokter" telah dihapus dari sistem.',
       date: now,
       type: SuperadminNotificationType.dokter,
@@ -426,7 +444,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'pmik_tambah_${now.millisecondsSinceEpoch}',
-      title: 'Akses PMIK Ditambahkan',
+      title: 'Berhasil Menambahkan Akses PMIK',
       message: 'Akun staf PMIK "$namaStaf" berhasil ditambahkan ke dalam sistem.',
       date: now,
       type: SuperadminNotificationType.pmik,
@@ -440,7 +458,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'pmik_ubah_${now.millisecondsSinceEpoch}',
-      title: 'Akses PMIK Diperbarui',
+      title: 'Berhasil Mengubah Akses PMIK',
       message: 'Data staf PMIK "$namaStaf" berhasil diperbarui.',
       date: now,
       type: SuperadminNotificationType.pmik,
@@ -454,7 +472,7 @@ class SuperadminNotificationService {
     final now = DateTime.now();
     final item = SuperadminNotificationItem(
       id: 'pmik_hapus_${now.millisecondsSinceEpoch}',
-      title: 'Akses PMIK Dihapus',
+      title: 'Berhasil Menghapus Akses PMIK',
       message: 'Akses staf PMIK "$namaStaf" telah dihapus dari sistem.',
       date: now,
       type: SuperadminNotificationType.pmik,
@@ -473,7 +491,7 @@ class SuperadminNotificationService {
     final bulanStr = bulan != null && bulan.isNotEmpty ? ' bulan $bulan' : '';
     final item = SuperadminNotificationItem(
       id: 'dataset_unduh_${now.millisecondsSinceEpoch}',
-      title: 'Unduh Dataset Berhasil',
+      title: 'Berhasil Mengunduh Dataset',
       message:
           'Dataset hasil cek stunting$bulanStr berhasil diunduh sebagai laporan penggunaan aplikasi atau laporan kasus.',
       date: now,

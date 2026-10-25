@@ -15,6 +15,7 @@ import '../../../models/doctor_model.dart';
 import 'daftar_dokter_page.dart';
 import 'pilih_anak_page.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 
 /// Halaman formulir booking dokter anak oleh pengguna.
 ///
@@ -648,18 +649,12 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B1014) : const Color(0xFFECF6FF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.person_rounded,
-              color: isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue,
-              size: 28,
-            ),
+          DoctorLiveAvatar(
+            doctorId: _doctor.id,
+            doctorName: _doctor.name,
+            fallbackPhoto: _doctor.avatarUrl ?? _doctor.assetImagePath,
+            size: 50.0,
+            borderRadius: BorderRadius.circular(12.0),
           ),
           const SizedBox(width: 12),
           Expanded(

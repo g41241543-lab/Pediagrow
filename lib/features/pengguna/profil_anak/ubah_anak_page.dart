@@ -522,7 +522,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                           path,
                           fit: BoxFit.contain,
                           placeholder: Image.asset(
-                            'assets/images/default_baby_avatar.png',
+                            ChildAvatar.assetPathFor(gender: _selectedGender),
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -762,15 +762,17 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              'Ubah Data Profil',
-              style: GoogleFonts.lato(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF0B1014),
+            Expanded(
+              child: Text(
+                'Ubah Data Profil',
+                style: GoogleFonts.lato(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0B1014),
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Spacer(),
             // Tombol 'Hapus' teks merah di kanan
             GestureDetector(
               onTap: _showDeleteConfirmationDialog,
@@ -1676,19 +1678,22 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
               width: 64,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     item.icon,
-                    size: 24,
+                    size: 22,
                     color: isSelected
                         ? const Color(0xFF3985E7)
                         : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.lato(
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.w500,
                       color: isSelected

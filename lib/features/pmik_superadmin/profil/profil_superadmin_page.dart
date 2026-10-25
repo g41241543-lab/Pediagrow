@@ -359,6 +359,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     }
     if (index == 2 &&
         staff != null &&
+        !staff.isSuperAdmin &&
         !staff.hasPermission('riwayat_konsultasi')) {
       LocalPushService().show(
         title: 'Akses Terbatas',

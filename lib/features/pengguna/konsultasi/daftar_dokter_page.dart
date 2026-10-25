@@ -1,5 +1,3 @@
-﻿import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,6 +10,8 @@ import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda/beranda_page.dart';
@@ -625,24 +625,18 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Avatar Dokter
-                    Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
+                    DoctorLiveAvatar(
+                      doctorId: doctor.id,
+                      doctorName: doctor.name,
+                      fallbackPhoto: doctor.avatarUrl ?? doctor.assetImagePath,
+                      size: 58,
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: isDark
-                            ? const Color(0xFF0B1014)
-                            : const Color(0xFFECF6FF),
-                        shape: BoxShape
-                            .circle, // ← ganti borderRadius menjadi circle
-                        border: Border.all(
-                          color: isDark
-                              ? const Color(0xFF3985E7).withValues(alpha: 0.4)
-                              : _colorPrimaryBlue.withValues(alpha: 0.15),
-                          width: 1.5,
-                        ),
+                            ? const Color(0xFF3985E7).withValues(alpha: 0.4)
+                            : _colorPrimaryBlue.withValues(alpha: 0.15),
+                        width: 1.5,
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _buildAvatar(doctor),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -1378,69 +1372,34 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     );
   }
 
-  Widget _buildAvatar(DoctorModel doctor) {
-    // Prioritaskan avatarUrl (foto yang diperbarui dokter secara real-time)
-    final url = doctor.avatarUrl;
-    if (url != null && url.isNotEmpty) {
-      return StorageService.buildImageWidget(
-        url,
-        fit: BoxFit.cover,
-        placeholder: _fallbackAvatar(),
-        errorWidget: _fallbackAvatar(),
-      );
-    }
-    // Fallback ke assetImagePath bawaan jika avatarUrl kosong
-    if (doctor.assetImagePath != null && doctor.assetImagePath!.isNotEmpty) {
-      return StorageService.buildImageWidget(
-        doctor.assetImagePath,
-        fit: BoxFit.cover,
-        placeholder: _fallbackAvatar(),
-        errorWidget: _fallbackAvatar(),
-      );
-    }
-    return _fallbackAvatar();
-  }
-
-  Widget _fallbackAvatar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      color: isDark ? const Color(0xFF0B1014) : const Color(0xFFECF6FF),
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.person_rounded,
-        size: 30,
-        color: _colorPrimaryBlue,
-      ),
-    );
-  }
 
   Widget _buildChildAvatar({
     required String? photoUrl,
     required bool isFemale,
     required double size,
   }) {
-    final bgColor = isFemale
-        ? const Color(0xFFFFE4E6)
-        : const Color(0xFFDBEAFE);
+    final fallback = ChildAvatar(isGirl: isFemale, size: size);
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: bgColor),
-      clipBehavior: Clip.antiAlias,
-      child: StorageService.buildImageWidget(
-        photoUrl,
-        fit: BoxFit.cover,
-        placeholder: Container(
-          color: bgColor,
-          child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isFemale ? const Color(0xFFFFEEF0) : const Color(0xFFEBF5FF),
         ),
-        errorWidget: Container(
-          color: bgColor,
-          child: CustomPaint(painter: _BabyFacePainter(isGirl: isFemale)),
+        clipBehavior: Clip.antiAlias,
+        child: StorageService.buildImageWidget(
+          photoUrl,
+          fit: BoxFit.cover,
+          width: size,
+          height: size,
+          errorWidget: fallback,
         ),
-      ),
-    );
+      );
+    }
+
+    return fallback;
   }
 
   Widget _buildEmptyState() {
@@ -1524,107 +1483,3 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   }
 }
 
-class _BabyFacePainter extends CustomPainter {
-  final bool isGirl;
-  const _BabyFacePainter({this.isGirl = true});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final strokePaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.05
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF222222)
-      ..style = PaintingStyle.fill;
-
-    final blushPaint = Paint()
-      ..color = const Color(0xFFFF8FA3).withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-
-    final cx = w * 0.5;
-    final cy = h * 0.52;
-    final r = w * 0.36;
-
-    final headRect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-    canvas.drawArc(headRect, 0, math.pi * 2, false, strokePaint);
-
-    final hairPath = Path();
-    hairPath.moveTo(cx - r * 0.85, cy - r * 0.3);
-    hairPath.quadraticBezierTo(cx - r * 0.35, cy - r * 0.9, cx, cy - r * 0.4);
-    hairPath.quadraticBezierTo(
-      cx + r * 0.35,
-      cy - r * 0.9,
-      cx + r * 0.85,
-      cy - r * 0.3,
-    );
-    canvas.drawPath(hairPath, strokePaint);
-
-    canvas.drawCircle(
-      Offset(cx - r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.38, cy - r * 0.05),
-      w * 0.045,
-      fillPaint,
-    );
-
-    canvas.drawCircle(
-      Offset(cx - r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-    canvas.drawCircle(
-      Offset(cx + r * 0.55, cy + r * 0.15),
-      w * 0.065,
-      blushPaint,
-    );
-
-    final smilePath = Path();
-    smilePath.moveTo(cx - r * 0.35, cy + r * 0.18);
-    smilePath.quadraticBezierTo(
-      cx,
-      cy + r * 0.62,
-      cx + r * 0.35,
-      cy + r * 0.18,
-    );
-    canvas.drawPath(smilePath, strokePaint);
-
-    if (isGirl) {
-      final bowPaint = Paint()
-        ..color = const Color(0xFFFF6B9D)
-        ..style = PaintingStyle.fill;
-      final bowPath = Path();
-      bowPath.moveTo(cx - r * 0.1, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-        cx - r * 0.4,
-        cy - r * 1.15,
-        cx - r * 0.25,
-        cy - r * 0.75,
-      );
-      bowPath.quadraticBezierTo(cx - r * 0.1, cy - r * 1.05, cx, cy - r * 0.85);
-      bowPath.quadraticBezierTo(
-        cx + r * 0.1,
-        cy - r * 1.05,
-        cx + r * 0.25,
-        cy - r * 0.75,
-      );
-      bowPath.quadraticBezierTo(
-        cx + r * 0.4,
-        cy - r * 1.15,
-        cx + r * 0.1,
-        cy - r * 0.85,
-      );
-      canvas.drawPath(bowPath, bowPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

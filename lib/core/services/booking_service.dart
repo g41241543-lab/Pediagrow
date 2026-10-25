@@ -113,6 +113,7 @@ class BookingService {
     final result = <BookingConsultationModel>[];
 
     for (final b in list) {
+      // Hanya skip jika benar-benar expired (bukan selesai)
       if (b.isExpired) continue;
 
       // 1. Cek duplikasi ID dokumen
@@ -142,7 +143,8 @@ class BookingService {
     });
   }
 
-  /// Menghapus booking yang telah lewat jadwalnya dari memori dan Firestore
+  /// Menghapus booking yang telah lewat jadwalnya dari memori dan Firestore.
+  /// Booking berstatus 'Selesai' TIDAK dihapus karena digunakan sebagai riwayat.
   Future<void> _cleanupExpiredBookings() async {
     final current = bookingsNotifier.value;
     if (current.isEmpty) {
@@ -150,6 +152,7 @@ class BookingService {
       _cleanupTimer = null;
       return;
     }
+    // Hanya hapus yang benar-benar expired (bukan selesai)
     final expired = current.where((b) => b.isExpired).toList();
     if (expired.isEmpty) return;
 
