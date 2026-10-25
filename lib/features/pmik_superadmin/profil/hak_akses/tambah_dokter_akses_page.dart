@@ -47,6 +47,9 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   final List<TextEditingController> _tempatPraktikCtrls = [
     TextEditingController(),
   ];
+  final List<TextEditingController> _pendidikanCtrls = [
+    TextEditingController(),
+  ];
 
   late Map<String, bool> _permissions;
   String? _avatarPath;
@@ -70,7 +73,28 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
     for (final c in _tempatPraktikCtrls) {
       c.dispose();
     }
+    for (final c in _pendidikanCtrls) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  void _addPendidikan() {
+    setState(() {
+      _pendidikanCtrls.add(TextEditingController());
+    });
+  }
+
+  void _removePendidikan(int index) {
+    if (_pendidikanCtrls.length > 1) {
+      setState(() {
+        final removed = _pendidikanCtrls.removeAt(index);
+        removed.dispose();
+      });
+    } else {
+      _pendidikanCtrls.first.clear();
+      setState(() {});
+    }
   }
 
   void _addTempatPraktik() {
@@ -226,6 +250,11 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
           .where((p) => p.isNotEmpty)
           .toList();
 
+      final edus = _pendidikanCtrls
+          .map((c) => c.text.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
       final newDoctor = DoctorModel(
         id: '',
         name: _namaCtrl.text.trim(),
@@ -237,6 +266,8 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
         strNumber: _strCtrl.text.trim(),
         placesOfPractice: places,
         hospital: places.isNotEmpty ? places.first : null,
+        educations: edus,
+        education: edus.isNotEmpty ? edus.first : null,
         avatarUrl: _avatarPath,
         permissions: _permissions,
         isOnline: true,
@@ -304,7 +335,11 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 _buildPasswordCard(),
                 const SizedBox(height: 20.0),
 
-                // 3. SECTION TEMPAT PRAKTIK
+                // 3. SECTION PENDIDIKAN
+                _buildPendidikanSection(),
+                const SizedBox(height: 20.0),
+
+                // 4. SECTION TEMPAT PRAKTIK
                 _buildTempatPraktikSection(),
                 const SizedBox(height: 20.0),
 
@@ -781,6 +816,114 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
           color: Color(0xFF8696A0),
         ),
       ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // SECTION PENDIDIKAN
+  // ---------------------------------------------------------------------------
+  Widget _buildPendidikanSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Pendidikan',
+              style: GoogleFonts.lato(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF000000),
+              ),
+            ),
+            IconButton(
+              onPressed: _addPendidikan,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: const Icon(
+                Icons.add_circle_outline_rounded,
+                color: Color(0xFF3985E7),
+                size: 26.0,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE9EDEF)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 10.0,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            children: List.generate(_pendidikanCtrls.length, (idx) {
+              final ctrl = _pendidikanCtrls[idx];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.school_outlined,
+                      size: 22.0,
+                      color: Color(0xFF8696A0),
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: ctrl,
+                            style: GoogleFonts.lato(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF2C363D),
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              border: InputBorder.none,
+                              hintText: 'Riwayat Pendidikan (Gelar / Univ)',
+                              hintStyle: GoogleFonts.lato(
+                                fontSize: 14.0,
+                                color: const Color(0xFF8696A0),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const _DottedLine(),
+                        ],
+                      ),
+                    ),
+                    if (_pendidikanCtrls.length > 1)
+                      GestureDetector(
+                        onTap: () => _removePendidikan(idx),
+                        child: const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Icon(
+                            Icons.remove_circle_outline_rounded,
+                            size: 20.0,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
     );
   }
 
