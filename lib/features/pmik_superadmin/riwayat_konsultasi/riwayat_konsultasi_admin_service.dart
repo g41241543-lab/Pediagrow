@@ -69,6 +69,8 @@ class RiwayatKonsultasiAdminService {
               (r['child_name'] ?? r['childName'] ?? 'Anak').toString();
           final childId =
               (r['child_id'] ?? r['childId'] ?? '').toString();
+          final doctorId =
+              (r['doctor_id'] ?? r['doctorId'] ?? '').toString();
           final doctorName = (r['doctor_name'] ??
                   r['doctorName'] ??
                   'Dokter Spesialis Anak')
@@ -119,6 +121,7 @@ class RiwayatKonsultasiAdminService {
                 childGender: gender,
                 childBirthDate: birthDate,
                 childAge: r['child_age_at_consultation']?.toString(),
+                doctorId: doctorId,
                 doctorName: doctorName,
                 consultationDate: parsedDate,
                 formattedDate: formattedDate,
@@ -152,6 +155,8 @@ class RiwayatKonsultasiAdminService {
               (childMap['name'] ?? b['child_name'] ?? 'Anak').toString();
           final childId =
               (childMap['id'] ?? b['child_id'] ?? '').toString();
+          final doctorId =
+              (doctorMap['id'] ?? b['doctor_id'] ?? '').toString();
           final doctorName = (doctorMap['name'] ??
                   b['doctor_name'] ??
                   'Dokter Spesialis Anak')
@@ -192,6 +197,7 @@ class RiwayatKonsultasiAdminService {
                 childName: childName,
                 childGender: gender,
                 childBirthDate: birthDate,
+                doctorId: doctorId,
                 doctorName: doctorName,
                 consultationDate: parsedDate,
                 formattedDate: formattedDate,
@@ -221,6 +227,9 @@ class RiwayatKonsultasiAdminService {
               data['child_name'] ?? data['child']?['name'] ?? 'Anak';
           final childId = data['child_id']?.toString() ??
               data['child']?['id']?.toString() ??
+              '';
+          final doctorId = data['doctor_id']?.toString() ??
+              data['doctor']?['id']?.toString() ??
               '';
           final doctorName =
               data['doctor_name'] ?? data['doctor']?['name'] ?? 'Dokter';
@@ -257,6 +266,7 @@ class RiwayatKonsultasiAdminService {
                 childGender: gender,
                 childBirthDate: birthDate,
                 childAge: data['child_age']?.toString(),
+                doctorId: doctorId,
                 doctorName: doctorName.toString(),
                 consultationDate: parsedDate,
                 formattedDate: formattedDate,

@@ -5,8 +5,9 @@ import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
+import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
@@ -18,12 +19,12 @@ class ProfilDokterPage extends StatelessWidget {
 
   const ProfilDokterPage({super.key, required this.doctor, this.child});
 
-  void _onBookingDokterPressed(BuildContext context) {
+  void _onBookingDokterPressed(BuildContext context, DoctorModel targetDoctor) {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             BookingKonsultasiPage(
-              doctor: doctor,
+              doctor: targetDoctor,
               initialChild: child ?? ChildService().activeChild,
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -49,6 +50,8 @@ class ProfilDokterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // Bungkus dengan ValueListenableBuilder agar foto dokter
     // otomatis sinkron saat dokter memperbarui foto profilnya.
     return ValueListenableBuilder<List<DoctorModel>>(
@@ -58,8 +61,7 @@ class ProfilDokterPage extends StatelessWidget {
         final liveDoctor = doctors.firstWhere(
           (d) =>
               d.id == doctor.id ||
-              (d.staffAccountId != null &&
-                  d.staffAccountId == doctor.staffAccountId) ||
+              d.staffAccountId == doctor.staffAccountId ||
               d.name.trim().toLowerCase() ==
                   doctor.name.trim().toLowerCase(),
           orElse: () => doctor,
@@ -122,7 +124,7 @@ class ProfilDokterPage extends StatelessWidget {
                     const SizedBox(height: 12),
 
                         // Kartu Utama Dokter
-                        _buildDoctorProfileCard(liveDoctor),
+                        _buildDoctorProfileCard(liveDoctor, isDark),
 
                     const SizedBox(height: 28),
 
@@ -131,17 +133,17 @@ class ProfilDokterPage extends StatelessWidget {
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF000000),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                           ),
                         ),
 
                         const SizedBox(height: 14),
 
-                        _buildPracticeLocationsCard(),
+                        _buildPracticeLocationsCard(liveDoctor, isDark),
 
                         const SizedBox(height: 28),
 
-                        _buildJadwalPraktikSection(context),
+                        _buildJadwalPraktikSection(context, liveDoctor, isDark),
 
                         const SizedBox(height: 32),
                       ],
@@ -152,7 +154,7 @@ class ProfilDokterPage extends StatelessWidget {
                 // ---------------------------------------------------------
                 // 3. BOTTOM BAR
                 // ---------------------------------------------------------
-                _buildBottomActionBar(context),
+                _buildBottomActionBar(context, liveDoctor, isDark),
               ],
             ),
           ),
@@ -162,7 +164,7 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Kartu utama profil dokter dengan foto bundar overlapping di atas
-  Widget _buildDoctorProfileCard(DoctorModel liveDoctor) {
+  Widget _buildDoctorProfileCard(DoctorModel liveDoctor, bool isDark) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -191,7 +193,7 @@ class ProfilDokterPage extends StatelessWidget {
             children: [
               // Nama Dokter (Lato Bold 18, Center)
               Text(
-                doctor.name,
+                liveDoctor.name,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 17,
@@ -204,7 +206,7 @@ class ProfilDokterPage extends StatelessWidget {
 
               // Spesialisasi (Lato 14, Center)
               Text(
-                doctor.specialization,
+                liveDoctor.specialization,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
@@ -251,7 +253,7 @@ class ProfilDokterPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${doctor.experienceYears} tahun',
+                                '${liveDoctor.experienceYears} tahun',
                                 style: GoogleFonts.lato(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -298,7 +300,7 @@ class ProfilDokterPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                doctor.strNumber ?? '3511201402016252',
+                                liveDoctor.strNumber ?? '3511201402016252',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
@@ -340,7 +342,13 @@ class ProfilDokterPage extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipOval(child: _buildAvatarImage(doctor)),
+            child: DoctorLiveAvatar(
+              doctorId: liveDoctor.id,
+              doctorName: liveDoctor.name,
+              fallbackPhoto: liveDoctor.avatarUrl ?? liveDoctor.assetImagePath,
+              size: 80,
+              shape: BoxShape.circle,
+            ),
           ),
         ),
       ],
@@ -348,8 +356,8 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Kartu tempat praktik dengan daftar lokasi & divider horizontal
-  Widget _buildPracticeLocationsCard(bool isDark) {
-    final places = doctor.daftarTempatPraktik;
+  Widget _buildPracticeLocationsCard(DoctorModel liveDoctor, bool isDark) {
+    final places = liveDoctor.daftarTempatPraktik;
 
     if (places.isEmpty) {
       return Container(
@@ -475,7 +483,11 @@ class ProfilDokterPage extends StatelessWidget {
   }
 
   /// Bottom Bar dengan Tombol "Chat Dokter" di sisi kanan
-  Widget _buildBottomActionBar(BuildContext context, bool isDark) {
+  Widget _buildBottomActionBar(
+    BuildContext context,
+    DoctorModel liveDoctor,
+    bool isDark,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -502,7 +514,7 @@ class ProfilDokterPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             ElevatedButton(
-              onPressed: () => _onBookingDokterPressed(context),
+              onPressed: () => _onBookingDokterPressed(context, liveDoctor),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3985E7),
                 elevation: 0,
@@ -541,46 +553,12 @@ class ProfilDokterPage extends StatelessWidget {
     );
   }
 
-  /// Menampilkan foto dokter dari data live (DoctorService).
-  /// Mendukung Base64 Data URI, URL jaringan, dan path asset.
-  Widget _buildAvatarImage(DoctorModel liveDoctor) {
-    // Prioritaskan avatarUrl (diperbarui saat dokter mengganti foto profil)
-    final url = liveDoctor.avatarUrl;
-    if (url != null && url.isNotEmpty) {
-      return StorageService.buildImageWidget(
-        url,
-        fit: BoxFit.cover,
-        placeholder: _fallbackAvatar(),
-        errorWidget: _fallbackAvatar(),
-      );
-    }
-    // Fallback ke assetImagePath jika avatarUrl belum diatur
-    if (liveDoctor.assetImagePath != null &&
-        liveDoctor.assetImagePath!.isNotEmpty) {
-      return StorageService.buildImageWidget(
-        liveDoctor.assetImagePath,
-        fit: BoxFit.cover,
-        placeholder: _fallbackAvatar(),
-        errorWidget: _fallbackAvatar(),
-      );
-    }
-    return _fallbackAvatar();
-  }
-
-  Widget _fallbackAvatar() {
-    return Container(
-      color: const Color(0xFFECF6FF),
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.person_rounded,
-        size: 42,
-        color: Color(0xFF3985E7),
-      ),
-    );
-  }
-
   /// Bagian Jadwal Praktik Dokter Terintegrasi secara Real-Time dengan role dokter
-  Widget _buildJadwalPraktikSection(BuildContext context, bool isDark) {
+  Widget _buildJadwalPraktikSection(
+    BuildContext context,
+    DoctorModel liveDoctor,
+    bool isDark,
+  ) {
     return AnimatedBuilder(
       animation: Listenable.merge([
         JadwalDokterService().jadwalListNotifier,
@@ -588,9 +566,9 @@ class ProfilDokterPage extends StatelessWidget {
         BookingService().bookingsNotifier,
       ]),
       builder: (context, _) {
-        final badge = JadwalDokterService().getDoctorBadge(doctor.id);
-        final cutis = JadwalDokterService().getCutiDokter(doctor.id);
-        final jadwalMingguan = JadwalDokterService().getJadwalDokter(doctor.id);
+        final badge = JadwalDokterService().getDoctorBadge(liveDoctor.id);
+        final cutis = JadwalDokterService().getCutiDokter(liveDoctor.id);
+        final jadwalMingguan = JadwalDokterService().getJadwalDokter(liveDoctor.id);
 
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);

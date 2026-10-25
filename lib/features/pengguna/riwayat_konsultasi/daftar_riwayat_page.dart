@@ -109,6 +109,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     if (!mounted) return;
 
     final registeredChildren = ChildService().children;
+    final userChildIds = registeredChildren.map((c) => c.id).where((id) => id.isNotEmpty).toSet();
+    final userChildNames = registeredChildren.map((c) => c.name.trim().toLowerCase()).where((name) => name.isNotEmpty).toSet();
+
     if (!_showAllChildren && _activeChild == null && registeredChildren.isNotEmpty) {
       _activeChild = ChildService().activeChild ?? registeredChildren.first;
     }
@@ -143,19 +146,27 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       (resumes) {
         if (!mounted) return;
 
-        // 1. Filter resume medis secara akurat sesuai anak yang dipilih dan berstatus selesai
+        // 1. Filter resume medis secara akurat: hanya yang statusnya Selesai dan milik anak pengguna ini
         final filteredResumes = resumes.where((r) {
           final isCompleted = r.status.toLowerCase().trim() == 'selesai';
           if (!isCompleted) return false;
 
-          if (targetChild == null) return true;
-          final matchesId = r.childId.isNotEmpty && r.childId == targetChild.id;
-          final matchesName =
-              r.childName.trim().toLowerCase() == targetChild.name.trim().toLowerCase();
-          return matchesId || matchesName;
+          if (targetChild != null) {
+            final matchesId = r.childId.isNotEmpty && r.childId == targetChild.id;
+            final matchesName =
+                r.childName.trim().toLowerCase() == targetChild.name.trim().toLowerCase();
+            return matchesId || matchesName;
+          }
+
+          // targetChild == null ("Semua Anak"): HANYA anak yang didaftarkan pengguna ini
+          if (registeredChildren.isEmpty) return false;
+          final matchesId = r.childId.isNotEmpty && userChildIds.contains(r.childId);
+          final matchesName = userChildNames.contains(r.childName.trim().toLowerCase());
+          final matchesUser = userId.isNotEmpty && r.userId.isNotEmpty && r.userId == userId;
+          return matchesId || matchesName || matchesUser;
         }).toList();
 
-        // 2. Ambil data dari BookingService untuk anak yang bersangkutan (hanya yang statusnya selesai)
+        // 2. Ambil data dari BookingService untuk anak yang bersangkutan (hanya yang statusnya selesai dan milik anak pengguna ini)
         final allBookings = BookingService().bookingsNotifier.value;
         final filteredBookings = allBookings.where((b) {
           final isCompleted = b.status.toLowerCase().trim() == 'selesai';
@@ -166,9 +177,15 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                 b.child.id.isNotEmpty && b.child.id == targetChild.id;
             final matchesName = b.child.name.trim().toLowerCase() ==
                 targetChild.name.trim().toLowerCase();
-            if (!matchesId && !matchesName) return false;
+            return matchesId || matchesName;
           }
-          return true;
+
+          // targetChild == null ("Semua Anak"): HANYA anak yang didaftarkan pengguna ini
+          if (registeredChildren.isEmpty) return false;
+          final matchesId = b.child.id.isNotEmpty && userChildIds.contains(b.child.id);
+          final matchesName = userChildNames.contains(b.child.name.trim().toLowerCase());
+          final matchesUser = userId.isNotEmpty && b.userId != null && b.userId == userId;
+          return matchesId || matchesName || matchesUser;
         }).toList();
 
         // 3. Konversi dan gabungkan, prioritaskan resume jika ada
@@ -256,6 +273,13 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
   /// Konversi [ResumeMedisModel] ke [RiwayatKonsultasiModel] untuk tampilan kartu.
   RiwayatKonsultasiModel _toRiwayat(ResumeMedisModel r) {
+    final matchedChild = ChildService().children.firstWhere(
+      (c) =>
+          (r.childId.isNotEmpty && c.id == r.childId) ||
+          c.name.trim().toLowerCase() == r.childName.trim().toLowerCase(),
+      orElse: () => const ChildModel(id: '', name: '', gender: 'Perempuan'),
+    );
+
     return RiwayatKonsultasiModel(
       id: r.id,
       doctorId: r.doctorId,
@@ -264,7 +288,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       doctorPhoto: r.doctorPhoto,
       childName: r.childName,
       childAge: r.childAgeAtConsultation,
-      childGender: 'unknown',
+      childGender: matchedChild.gender.isNotEmpty ? matchedChild.gender : 'Perempuan',
       consultationDate: r.createdAt ?? DateTime.now(),
       formattedDate: r.consultationDate,
       status: r.status,

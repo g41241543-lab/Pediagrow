@@ -14,6 +14,7 @@ import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/user_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import 'buat_resume_medis_dokter_page.dart';
 
 /// Halaman Ruang Obrolan Konsultasi dari POV DOKTER.
@@ -964,16 +965,14 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                         ? Image.network(
                             widget.child!.photoUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const Icon(
-                              Icons.face_rounded,
-                              color: colorPrimaryBlue,
-                              size: 26,
+                            errorBuilder: (_, _, _) => ChildAvatar(
+                              child: widget.child,
+                              size: 44,
                             ),
                           )
-                        : const Icon(
-                            Icons.face_rounded,
-                            color: colorPrimaryBlue,
-                            size: 26,
+                        : ChildAvatar(
+                            child: widget.child,
+                            size: 44,
                           ),
                   ),
                   Positioned(

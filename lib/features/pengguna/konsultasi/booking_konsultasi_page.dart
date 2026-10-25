@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,6 +10,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import '../profil_anak/tambah_anak_page.dart';
 import 'status_booking_page.dart';
 
@@ -794,35 +793,13 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
       child: Row(
         children: [
           // Avatar Dokter
-          ClipRRect(
+          DoctorLiveAvatar(
+            doctorId: widget.doctor.id,
+            doctorName: widget.doctor.name,
+            fallbackPhoto:
+                widget.doctor.avatarUrl ?? widget.doctor.assetImagePath,
+            size: 54.0,
             borderRadius: BorderRadius.circular(12.0),
-            child: Container(
-              width: 54.0,
-              height: 54.0,
-              color: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
-              child:
-                  widget.doctor.avatarUrl != null &&
-                      widget.doctor.avatarUrl!.isNotEmpty
-                  ? (widget.doctor.avatarUrl!.startsWith('http')
-                        ? Image.network(
-                            widget.doctor.avatarUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const Icon(Icons.person, color: _kTextMuted),
-                          )
-                        : Image.file(
-                            File(widget.doctor.avatarUrl!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const Icon(Icons.person, color: _kTextMuted),
-                          ))
-                  : (widget.doctor.assetImagePath != null
-                        ? Image.asset(
-                            widget.doctor.assetImagePath!,
-                            fit: BoxFit.cover,
-                          )
-                        : const Icon(Icons.person, color: _kTextMuted)),
-            ),
           ),
           const SizedBox(width: 12.0),
 

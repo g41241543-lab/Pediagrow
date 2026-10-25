@@ -87,8 +87,18 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return null;
   }
 
-  /// true jika halaman ini dipakai untuk role dokter (filter by doctor name)
-  bool get _isDoctorMode => _effectiveDoctorName != null;
+  /// ID dokter yang sedang login (jika role dokter)
+  String? get _effectiveDoctorId {
+    final staff = StaffAuthService().currentStaff;
+    if (staff != null && staff.role == StaffRole.dokter) {
+      final doc = DoctorService().findDoctorForStaff(staff);
+      return doc?.id ?? staff.id;
+    }
+    return null;
+  }
+
+  /// true jika halaman ini dipakai untuk role dokter (filter by doctor)
+  bool get _isDoctorMode => _effectiveDoctorName != null || _effectiveDoctorId != null;
 
   @override
   void initState() {
@@ -203,10 +213,17 @@ class _DaftarRiwayatKonsultasiAdminPageState
         return false;
       }
 
-      // Mode Dokter: filter otomatis berdasarkan nama dokter login (fuzzy match)
-      // dan filter anak yang ditangani dokter tersebut sesuai pilihan filter
+      // Mode Dokter: filter otomatis hanya konsultasi yang ditangani dokter login
+      // (cocokkan via doctorId atau nama dokter)
       if (_isDoctorMode) {
-        if (!_isDoctorNameMatch(item.doctorName, _effectiveDoctorName!)) {
+        final matchesId = _effectiveDoctorId != null &&
+            item.doctorId.isNotEmpty &&
+            (item.doctorId == _effectiveDoctorId ||
+                item.doctorId == StaffAuthService().currentStaff?.id);
+        final matchesName = _effectiveDoctorName != null &&
+            _isDoctorNameMatch(item.doctorName, _effectiveDoctorName!);
+
+        if (!matchesId && !matchesName) {
           return false;
         }
         if (_selectedDoctorChild != 'Semua') {
@@ -304,7 +321,13 @@ class _DaftarRiwayatKonsultasiAdminPageState
             if (_isDoctorMode) {
               for (final item in allData) {
                 if (!item.isCompleted) continue;
-                if (!_isDoctorNameMatch(item.doctorName, _effectiveDoctorName!)) continue;
+                final matchesId = _effectiveDoctorId != null &&
+                    item.doctorId.isNotEmpty &&
+                    (item.doctorId == _effectiveDoctorId ||
+                        item.doctorId == StaffAuthService().currentStaff?.id);
+                final matchesName = _effectiveDoctorName != null &&
+                    _isDoctorNameMatch(item.doctorName, _effectiveDoctorName!);
+                if (!matchesId && !matchesName) continue;
                 final name = item.childName.trim();
                 if (name.isNotEmpty && !doctorHandledChildren.contains(name)) {
                   doctorHandledChildren.add(name);

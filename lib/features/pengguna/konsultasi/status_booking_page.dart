@@ -7,6 +7,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../models/booking_consultation_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
 import '../../../shared/widgets/hover_lift.dart';
 import 'chat_konsultasi_page.dart';
@@ -794,24 +795,46 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                               color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
                             ),
                           ),
-                          const SizedBox(height: 4.0),
-                          Text(
-                            child.name,
-                            style: GoogleFonts.lato(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
-                            ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          Text(
-                            child.ageDescription.isNotEmpty
-                                ? child.ageDescription
-                                : child.gender,
-                            style: GoogleFonts.lato(
-                              fontSize: 12.5,
-                              color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
-                            ),
+                          const SizedBox(height: 6.0),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ChildAvatar(
+                                gender: child.gender,
+                                child: child,
+                                size: 36.0,
+                              ),
+                              const SizedBox(width: 8.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      child.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2.0),
+                                    Text(
+                                      child.ageDescription.isNotEmpty
+                                          ? child.ageDescription
+                                          : child.gender,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
