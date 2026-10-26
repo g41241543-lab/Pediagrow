@@ -282,6 +282,20 @@ class UserService {
       return UserAuthResult.success();
     } catch (e) {
       debugPrint('[UserService] loginWithEmail error: $e');
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('permission-denied') ||
+          errorStr.contains('permission denied') ||
+          errorStr.contains('caller does not have permission')) {
+        return UserAuthResult.failure(
+          'Akses ditolak. Firestore Security Rules perlu diperbarui.\n'
+          'Hubungi administrator aplikasi.',
+        );
+      }
+      if (errorStr.contains('unavailable') || errorStr.contains('network')) {
+        return UserAuthResult.failure(
+          'Gagal terhubung ke server. Periksa koneksi internet Anda.',
+        );
+      }
       return UserAuthResult.failure('Gagal masuk: $e');
     }
   }
@@ -307,8 +321,10 @@ class UserService {
           .get();
 
       if (query.docs.isEmpty) {
-        final displayName =
-            account.displayName ?? normalizedEmail.split('@').first;
+        final displayName = (account.displayName != null &&
+                account.displayName!.trim().isNotEmpty)
+            ? account.displayName!.trim()
+            : normalizedEmail.split('@').first;
         final newUser = UserModel(
           id: '',
           name: displayName,
@@ -326,7 +342,31 @@ class UserService {
         _startListeningToUser(docRef.id);
       } else {
         final doc = query.docs.first;
-        final user = UserModel.fromMap({...doc.data(), 'id': doc.id});
+        var user = UserModel.fromMap({...doc.data(), 'id': doc.id});
+        // Perbarui nama dari Google jika sebelumnya kosong
+        final googleName = (account.displayName != null &&
+                account.displayName!.trim().isNotEmpty)
+            ? account.displayName!.trim()
+            : null;
+        if (googleName != null &&
+            (user.name.trim().isEmpty ||
+                user.name.trim().toLowerCase() == 'tamu')) {
+          user = user.copyWith(name: googleName, username: googleName);
+          await db
+              .collection(_collection)
+              .doc(doc.id)
+              .update({'name': googleName, 'username': googleName});
+        }
+        // Update avatar jika tersedia dari Google
+        if (account.photoUrl != null &&
+            account.photoUrl!.isNotEmpty &&
+            (user.avatarPath == null || user.avatarPath!.isEmpty)) {
+          user = user.copyWith(avatarPath: account.photoUrl);
+          await db
+              .collection(_collection)
+              .doc(doc.id)
+              .update({'avatarPath': account.photoUrl});
+        }
         currentUserNotifier.value = user;
         await _saveSession(doc.id);
         _startListeningToUser(doc.id);
