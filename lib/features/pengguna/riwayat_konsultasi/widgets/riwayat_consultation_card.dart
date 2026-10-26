@@ -193,8 +193,41 @@ class RiwayatConsultationCard extends StatelessWidget {
                     ],
                   ),
 
-                  // Ringkasan / Keluhan jika ada
-                  if (riwayat.complaint.isNotEmpty) ...[
+                  // Ringkasan Konsultasi atau Keluhan
+                  if (riwayat.summary.isNotEmpty) ...[
+                    const SizedBox(height: 8.0),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical: 6.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1E293B).withValues(alpha: 0.5)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Text(
+                        'Ringkasan: ${riwayat.summary}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.0,
+                          color: isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF334155),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ] else if (riwayat.complaint.isNotEmpty) ...[
                     const SizedBox(height: 8.0),
                     Text(
                       'Keluhan: ${riwayat.complaint}',

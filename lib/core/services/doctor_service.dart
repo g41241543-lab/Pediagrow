@@ -136,6 +136,11 @@ class DoctorService {
       strNumber: 'STR-33.1.1.100.2.20.123456',
       placesOfPractice: ['RSIA PediaGrow', 'Praktek Mandiri'],
       hospital: 'RSIA PediaGrow',
+      educations: [
+        'Universitas Airlangga - Pendidikan Dokter (S.Ked)',
+        'Universitas Indonesia - Spesialis Ilmu Kesehatan Anak (Sp.A)',
+      ],
+      education: 'Universitas Indonesia - Spesialis Ilmu Kesehatan Anak (Sp.A)',
       email: 'reny@pediagrow.com',
       consultationFee: 35000,
     ),
@@ -148,6 +153,11 @@ class DoctorService {
       strNumber: 'STR-33.1.1.100.2.20.654321',
       placesOfPractice: ['RSIA PediaGrow', 'Klinik Tumbuh Kembang'],
       hospital: 'RSIA PediaGrow',
+      educations: [
+        'Universitas Gadjah Mada - Pendidikan Dokter (S.Ked)',
+        'Universitas Gadjah Mada - Spesialis Ilmu Kesehatan Anak (Sp.A)',
+      ],
+      education: 'Universitas Gadjah Mada - Spesialis Ilmu Kesehatan Anak (Sp.A)',
       email: 'zaskia@pediagrow.com',
       consultationFee: 35000,
     ),

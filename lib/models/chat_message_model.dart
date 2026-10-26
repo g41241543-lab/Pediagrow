@@ -21,6 +21,10 @@ class ChatMessageModel {
   final MessageType type;
   final DateTime timestamp;
   final bool isRead;
+  final String? replyToId;
+  final String? replyToSender;
+  final String? replyToText;
+  final String? replyToType;
 
   const ChatMessageModel({
     required this.id,
@@ -31,6 +35,10 @@ class ChatMessageModel {
     this.type = MessageType.text,
     required this.timestamp,
     this.isRead = false,
+    this.replyToId,
+    this.replyToSender,
+    this.replyToText,
+    this.replyToType,
   });
 
   /// Parsing dari dokumen Firestore.
@@ -55,12 +63,16 @@ class ChatMessageModel {
       type: _parseType(data['type'] as String? ?? 'text'),
       timestamp: parsedTs,
       isRead: data['isRead'] as bool? ?? false,
+      replyToId: data['replyToId'] as String?,
+      replyToSender: data['replyToSender'] as String?,
+      replyToText: data['replyToText'] as String?,
+      replyToType: data['replyToType'] as String?,
     );
   }
 
   /// Konversi ke Map untuk disimpan ke Firestore.
   Map<String, dynamic> toMap() {
-    return {
+    final map = <String, dynamic>{
       'senderId': senderId,
       'senderRole': senderRole.name,
       'text': text,
@@ -70,6 +82,11 @@ class ChatMessageModel {
       'serverTimestamp': FieldValue.serverTimestamp(),
       'isRead': isRead,
     };
+    if (replyToId != null) map['replyToId'] = replyToId;
+    if (replyToSender != null) map['replyToSender'] = replyToSender;
+    if (replyToText != null) map['replyToText'] = replyToText;
+    if (replyToType != null) map['replyToType'] = replyToType;
+    return map;
   }
 
   static MessageSender _parseSender(String raw) {

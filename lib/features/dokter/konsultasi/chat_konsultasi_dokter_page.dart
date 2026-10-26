@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -14,6 +15,7 @@ import '../../../models/chat_message_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/user_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import 'buat_resume_medis_dokter_page.dart';
 
 /// Halaman Ruang Obrolan Konsultasi dari POV DOKTER.
@@ -86,12 +88,14 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   static const Color colorEndRed = Color(0xFFE53E3E);
 
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _inputFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
   late AnimationController _typingAnimController;
 
   bool _isParentTyping = false;
+  Map<String, dynamic>? _replyingTo;
   late String _effectiveChildName;
   late String _effectiveChildAge;
   late String _effectiveChildGender;
@@ -128,33 +132,39 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       _sessionSub = KonsultasiService.instance
           .streamSesi(widget.sessionId!)
           .listen((sesi) {
-        if (!mounted) return;
-        if (sesi != null) {
-          bool updated = false;
-          if (sesi.weightKg != null && sesi.weightKg! > 0 && _liveWeightKg != sesi.weightKg) {
-            _liveWeightKg = sesi.weightKg;
-            updated = true;
-          }
-          if (sesi.heightCm != null && sesi.heightCm! > 0 && _liveHeightCm != sesi.heightCm) {
-            _liveHeightCm = sesi.heightCm;
-            updated = true;
-          }
-          if (sesi.keluhanAwal != null && sesi.keluhanAwal!.trim().isNotEmpty && _liveComplaint != sesi.keluhanAwal!.trim()) {
-            _liveComplaint = sesi.keluhanAwal!.trim();
-            updated = true;
-          }
-          if (updated) {
-            setState(() {});
-          }
-        }
-        if (_sessionEndedByUs) return; // kita yang mengakhiri, abaikan
-        if (sesi != null && sesi.isSelesai) {
-          // Pengguna mengakhiri konsultasi → dokter langsung ke buat resume
-          _sessionEndedByUs = true;
-          _sessionSub?.cancel();
-          _navigateToBuatResume();
-        }
-      });
+            if (!mounted) return;
+            if (sesi != null) {
+              bool updated = false;
+              if (sesi.weightKg != null &&
+                  sesi.weightKg! > 0 &&
+                  _liveWeightKg != sesi.weightKg) {
+                _liveWeightKg = sesi.weightKg;
+                updated = true;
+              }
+              if (sesi.heightCm != null &&
+                  sesi.heightCm! > 0 &&
+                  _liveHeightCm != sesi.heightCm) {
+                _liveHeightCm = sesi.heightCm;
+                updated = true;
+              }
+              if (sesi.keluhanAwal != null &&
+                  sesi.keluhanAwal!.trim().isNotEmpty &&
+                  _liveComplaint != sesi.keluhanAwal!.trim()) {
+                _liveComplaint = sesi.keluhanAwal!.trim();
+                updated = true;
+              }
+              if (updated) {
+                setState(() {});
+              }
+            }
+            if (_sessionEndedByUs) return; // kita yang mengakhiri, abaikan
+            if (sesi != null && sesi.isSelesai) {
+              // Pengguna mengakhiri konsultasi → dokter langsung ke buat resume
+              _sessionEndedByUs = true;
+              _sessionSub?.cancel();
+              _navigateToBuatResume();
+            }
+          });
     }
 
     _typingAnimController = AnimationController(
@@ -214,8 +224,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         widget.doctor?.name ??
         'dr. Spesialis Anak';
 
-    _liveWeightKg = widget.weightKg ?? widget.booking?.weightKg ?? widget.child?.weightKg;
-    _liveHeightCm = widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
+    _liveWeightKg =
+        widget.weightKg ?? widget.booking?.weightKg ?? widget.child?.weightKg;
+    _liveHeightCm =
+        widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
     _liveComplaint = widget.complaint ?? widget.booking?.complaint;
   }
 
@@ -229,6 +241,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   void dispose() {
     _sessionSub?.cancel();
     _textController.dispose();
+    _inputFocusNode.dispose();
     _scrollController.dispose();
     _typingAnimController.dispose();
     super.dispose();
@@ -245,9 +258,12 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           parentUser: widget.parentUser,
           parentName: _effectiveParentName,
           doctorName: _effectiveDoctorName,
-          complaint: _liveComplaint ?? widget.complaint ?? widget.booking?.complaint,
-          weightKg: _liveWeightKg ?? widget.weightKg ?? widget.booking?.weightKg,
-          heightCm: _liveHeightCm ?? widget.heightCm ?? widget.booking?.heightCm,
+          complaint:
+              _liveComplaint ?? widget.complaint ?? widget.booking?.complaint,
+          weightKg:
+              _liveWeightKg ?? widget.weightKg ?? widget.booking?.weightKg,
+          heightCm:
+              _liveHeightCm ?? widget.heightCm ?? widget.booking?.heightCm,
           sessionId: widget.sessionId,
           booking: widget.booking,
         ),
@@ -271,6 +287,27 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     final text = customText ?? _textController.text.trim();
     if (text.isEmpty) return;
 
+    final replyTarget = _replyingTo;
+    if (replyTarget != null && customText == null) {
+      setState(() {
+        _replyingTo = null;
+      });
+    }
+
+    final replyId = replyTarget?['id'] as String?;
+    final replySender = replyTarget != null
+        ? (replyTarget['sender'] == 'doctor' ? 'Anda' : _effectiveParentName)
+        : null;
+    final replyType = replyTarget?['type'] as String?;
+    String? replyText = replyTarget?['message'] as String?;
+    if (replyType == 'attachment_image' || replyType == 'user_attachment') {
+      replyText = (replyText != null && replyText.isNotEmpty)
+          ? replyText
+          : '📷 Foto';
+    } else if (replyType == 'attachment') {
+      replyText = '📋 Formulir Keluhan Pasien';
+    }
+
     // Kirim ke Firestore jika sessionId tersedia
     if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
       final staffId = StaffAuthService().currentStaff?.id ?? '';
@@ -279,6 +316,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         senderId: staffId,
         senderRole: MessageSender.dokter,
         text: text,
+        replyToId: replyId,
+        replyToSender: replySender,
+        replyToText: replyText,
+        replyToType: replyType,
       );
       // Tandai pesan user sebagai sudah dibaca
       ChatMessageService.instance.tandaiSudahDibaca(
@@ -301,6 +342,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         'message': text,
         'timestamp': timeStr,
         'isRead': true,
+        'replyToId': replyId,
+        'replyToSender': replySender,
+        'replyToText': replyText,
+        'replyToType': replyType,
       });
       if (customText == null) {
         _textController.clear();
@@ -460,6 +505,29 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       );
 
       if (file != null) {
+        final replyTarget = _replyingTo;
+        if (replyTarget != null) {
+          setState(() {
+            _replyingTo = null;
+          });
+        }
+
+        final replyId = replyTarget?['id'] as String?;
+        final replySender = replyTarget != null
+            ? (replyTarget['sender'] == 'doctor'
+                  ? 'Anda'
+                  : _effectiveParentName)
+            : null;
+        final replyType = replyTarget?['type'] as String?;
+        String? replyText = replyTarget?['message'] as String?;
+        if (replyType == 'attachment_image' || replyType == 'user_attachment') {
+          replyText = (replyText != null && replyText.isNotEmpty)
+              ? replyText
+              : '📷 Foto';
+        } else if (replyType == 'attachment') {
+          replyText = '📋 Formulir Keluhan Pasien';
+        }
+
         if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
           final staffId = StaffAuthService().currentStaff?.id ?? '';
           await ChatMessageService.instance.kirimGambar(
@@ -467,6 +535,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
             senderId: staffId,
             senderRole: MessageSender.dokter,
             imageFile: File(file.path),
+            replyToId: replyId,
+            replyToSender: replySender,
+            replyToText: replyText,
+            replyToType: replyType,
           );
           return;
         }
@@ -479,10 +551,13 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           _messages.add({
             'sender': 'doctor',
             'type': 'attachment_image',
-            'fileName': file.name,
             'filePath': file.path,
             'timestamp': timeStr,
             'isRead': true,
+            'replyToId': replyId,
+            'replyToSender': replySender,
+            'replyToText': replyText,
+            'replyToType': replyType,
           });
         });
 
@@ -493,25 +568,39 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
 
   // Modal Rincian Formulir Keluhan Pasien persis seperti POV Pengguna
   void _showFormulirDetailDialog([String? customComplaint]) {
-    final effectiveWeight = _liveWeightKg ?? widget.weightKg ?? widget.booking?.weightKg ?? widget.child?.weightKg;
+    final effectiveWeight =
+        _liveWeightKg ??
+        widget.weightKg ??
+        widget.booking?.weightKg ??
+        widget.child?.weightKg;
     final String weightStr = (effectiveWeight != null && effectiveWeight > 0)
-        ? (effectiveWeight % 1 == 0 ? '${effectiveWeight.toInt()} kg' : '$effectiveWeight kg')
+        ? (effectiveWeight % 1 == 0
+              ? '${effectiveWeight.toInt()} kg'
+              : '$effectiveWeight kg')
         : '-';
 
-    final effectiveHeight = _liveHeightCm ?? widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
+    final effectiveHeight =
+        _liveHeightCm ??
+        widget.heightCm ??
+        widget.booking?.heightCm ??
+        widget.child?.heightCm;
     final String heightStr = (effectiveHeight != null && effectiveHeight > 0)
-        ? (effectiveHeight % 1 == 0 ? '${effectiveHeight.toInt()} cm' : '$effectiveHeight cm')
+        ? (effectiveHeight % 1 == 0
+              ? '${effectiveHeight.toInt()} cm'
+              : '$effectiveHeight cm')
         : '-';
 
-    final effectiveComp = (customComplaint != null && customComplaint.trim().isNotEmpty)
+    final effectiveComp =
+        (customComplaint != null && customComplaint.trim().isNotEmpty)
         ? customComplaint.trim()
         : ((_liveComplaint != null && _liveComplaint!.trim().isNotEmpty)
-            ? _liveComplaint!.trim()
-            : ((widget.complaint != null && widget.complaint!.trim().isNotEmpty)
-                ? widget.complaint!.trim()
-                : (widget.booking?.complaint?.trim().isNotEmpty == true
-                    ? widget.booking!.complaint!.trim()
-                    : '-')));
+              ? _liveComplaint!.trim()
+              : ((widget.complaint != null &&
+                        widget.complaint!.trim().isNotEmpty)
+                    ? widget.complaint!.trim()
+                    : (widget.booking?.complaint?.trim().isNotEmpty == true
+                          ? widget.booking!.complaint!.trim()
+                          : '-')));
 
     showModalBottomSheet(
       context: context,
@@ -964,17 +1053,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                         ? Image.network(
                             widget.child!.photoUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const Icon(
-                              Icons.face_rounded,
-                              color: colorPrimaryBlue,
-                              size: 26,
-                            ),
+                            errorBuilder: (_, _, _) =>
+                                ChildAvatar(child: widget.child, size: 44),
                           )
-                        : const Icon(
-                            Icons.face_rounded,
-                            color: colorPrimaryBlue,
-                            size: 26,
-                          ),
+                        : ChildAvatar(child: widget.child, size: 44),
                   ),
                   Positioned(
                     right: 0,
@@ -1037,6 +1119,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     final timeStr =
         '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';
     return {
+      'id': msg.id,
       'sender': msg.senderRole == MessageSender.dokter ? 'doctor' : 'user',
       'type': msg.type == MessageType.formulir
           ? 'attachment'
@@ -1047,15 +1130,26 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       // imageUrl diteruskan ke map — dipakai oleh _buildImageBubble
       'imageUrl': msg.imageUrl,
       // filePath diisi hanya jika imageUrl adalah path lokal (bukan base64/URL)
-      'filePath': (msg.imageUrl != null &&
+      'filePath':
+          (msg.imageUrl != null &&
               !msg.imageUrl!.startsWith('data:image/') &&
               !msg.imageUrl!.startsWith('http'))
           ? msg.imageUrl
           : null,
-      'fileName': msg.imageUrl != null ? msg.imageUrl!.split('/').last : '',
+      // Jangan simpan nama potongan base64 sebagai fileName
+      'fileName':
+          (msg.imageUrl != null &&
+              !msg.imageUrl!.startsWith('data:image/') &&
+              !msg.imageUrl!.startsWith('http'))
+          ? msg.imageUrl!.split('/').last
+          : '',
       'title': 'Formulir Keluhan Pasien',
       'timestamp': timeStr,
       'isRead': msg.isRead,
+      'replyToId': msg.replyToId,
+      'replyToSender': msg.replyToSender,
+      'replyToText': msg.replyToText,
+      'replyToType': msg.replyToType,
     };
   }
 
@@ -1193,21 +1287,24 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           final isDoctor = item['sender'] == 'doctor';
           final type = item['type'] ?? 'text';
 
+          Widget bubble;
           if (type == 'attachment') {
-            return _buildFormulirAttachmentBubble(item);
-          }
-
-          if (type == 'attachment_image') {
-            return _buildImageBubble(item, isDoctor);
-          }
-
-          if (isDoctor) {
-            // Pesan Dokter di KANAN (Biru)
-            return _buildDoctorBubble(item);
+            bubble = _buildFormulirAttachmentBubble(item);
+          } else if (type == 'attachment_image') {
+            bubble = _buildImageBubble(item, isDoctor);
+          } else if (isDoctor) {
+            bubble = _buildDoctorBubble(item);
           } else {
-            // Pesan Orang Tua di KIRI (Putih / Soft Grey)
-            return _buildParentBubble(item);
+            bubble = _buildParentBubble(item);
           }
+
+          return _SwipeToReplyWrapper(
+            onReply: () => _setReplyingTo(item),
+            child: GestureDetector(
+              onLongPress: () => _showMessageOptions(item),
+              child: bubble,
+            ),
+          );
         }
 
         // Typing indicator orang tua di sebelah kiri
@@ -1318,6 +1415,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (item['replyToText'] != null &&
+                      (item['replyToText'] as String).isNotEmpty)
+                    _buildQuotedMessagePreview(item, isDocSender: true),
                   Text(
                     item['message'] ?? '',
                     style: GoogleFonts.lato(
@@ -1387,6 +1487,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (item['replyToText'] != null &&
+                        (item['replyToText'] as String).isNotEmpty)
+                      _buildQuotedMessagePreview(item, isDocSender: false),
                     Text(
                       item['message'] ?? '',
                       style: GoogleFonts.lato(
@@ -1428,10 +1531,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     // Tidak ada sumber gambar sama sekali — jangan render
     final bool isBase64Image =
         imageUrl != null && imageUrl.startsWith('data:image/');
-    final bool isNetworkImage = imageUrl != null &&
+    final bool isNetworkImage =
+        imageUrl != null &&
         (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
-    final bool isLocalImage =
-        filePath != null && File(filePath).existsSync();
+    final bool isLocalImage = filePath != null && File(filePath).existsSync();
 
     if (!isBase64Image && !isNetworkImage && !isLocalImage) {
       return const SizedBox.shrink();
@@ -1482,7 +1585,16 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  imageWidget,
+                  if (item['replyToText'] != null &&
+                      (item['replyToText'] as String).isNotEmpty)
+                    _buildQuotedMessagePreview(item, isDocSender: true),
+                  GestureDetector(
+                    onTap: () => _showImagePreviewDialog(
+                      imageUrl: item['imageUrl'] as String?,
+                      filePath: item['filePath'] as String?,
+                    ),
+                    child: imageWidget,
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1500,9 +1612,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                         Icons.done_all,
                         size: 14,
                         // Biru terang jika sudah dibaca, putih jika belum
-                        color: isRead
-                            ? const Color(0xFF93C5FD)
-                            : Colors.white,
+                        color: isRead ? const Color(0xFF93C5FD) : Colors.white,
                       ),
                     ],
                   ),
@@ -1546,7 +1656,16 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  imageWidget,
+                  if (item['replyToText'] != null &&
+                      (item['replyToText'] as String).isNotEmpty)
+                    _buildQuotedMessagePreview(item, isDocSender: false),
+                  GestureDetector(
+                    onTap: () => _showImagePreviewDialog(
+                      imageUrl: item['imageUrl'] as String?,
+                      filePath: item['filePath'] as String?,
+                    ),
+                    child: imageWidget,
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1655,26 +1774,332 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // 1. Tombol [+] Media / Kamera / Galeri di sisi paling kiri
-            _buildAddMediaButton(),
-            const SizedBox(width: 8),
+            if (_replyingTo != null) _buildReplyPreviewBar(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 1. Tombol [+] Media / Kamera / Galeri di sisi paling kiri
+                _buildAddMediaButton(),
+                const SizedBox(width: 8),
 
-            // 2. TextField "Ketik pesan..."
-            Expanded(child: _buildTextField()),
-            const SizedBox(width: 8),
+                // 2. TextField "Ketik pesan..."
+                Expanded(child: _buildTextField()),
+                const SizedBox(width: 8),
 
-            // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri Merah Muda)
-            _buildEndConsultationButton(),
-            const SizedBox(width: 8),
+                // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri Merah Muda)
+                _buildEndConsultationButton(),
+                const SizedBox(width: 8),
 
-            // 4. Tombol Send Lingkaran Biru #2A85FF
-            _buildSendButton(),
+                // 4. Tombol Send Lingkaran Biru #2A85FF
+                _buildSendButton(),
+              ],
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  void _setReplyingTo(Map<String, dynamic> item) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _replyingTo = item;
+    });
+    _inputFocusNode.requestFocus();
+  }
+
+  void _showMessageOptions(Map<String, dynamic> item) {
+    final text = item['message'] as String? ?? '';
+    final isDoctor = item['sender'] == 'doctor';
+    final senderName = isDoctor ? 'Anda' : _effectiveParentName;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.reply_rounded,
+                    color: colorPrimaryBlue,
+                  ),
+                  title: Text(
+                    'Balas Pesan',
+                    style: GoogleFonts.lato(
+                      fontWeight: FontWeight.w600,
+                      color: colorTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Balas pesan dari $senderName',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      color: colorTextSecondary,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _setReplyingTo(item);
+                  },
+                ),
+                if (text.isNotEmpty) ...[
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.copy_rounded,
+                      color: colorTextSecondary,
+                    ),
+                    title: Text(
+                      'Salin Teks',
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w600,
+                        color: colorTextPrimary,
+                      ),
+                    ),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: text));
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Pesan disalin ke clipboard',
+                            style: GoogleFonts.lato(),
+                          ),
+                          duration: const Duration(seconds: 1),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReplyPreviewBar() {
+    if (_replyingTo == null) return const SizedBox.shrink();
+
+    final isDoctor = _replyingTo!['sender'] == 'doctor';
+    final replySender = isDoctor ? 'Anda' : _effectiveParentName;
+    final type = _replyingTo!['type'] as String? ?? 'text';
+    final text = _replyingTo!['message'] as String? ?? '';
+    final hasImage =
+        type == 'attachment_image' ||
+        type == 'user_attachment' ||
+        _replyingTo!['imageUrl'] != null;
+    final isFormulir = type == 'attachment';
+
+    String previewContent = text;
+    if (isFormulir) {
+      previewContent = '📋 Formulir Keluhan Pasien';
+    } else if (hasImage) {
+      previewContent = text.isNotEmpty ? '📷 $text' : '📷 Foto';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4F9),
+        borderRadius: BorderRadius.circular(12),
+        border: const Border(
+          left: BorderSide(color: colorPrimaryBlue, width: 4),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Membalas $replySender',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: colorPrimaryBlue,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  previewContent,
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    color: colorTextSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.close_rounded,
+              size: 18,
+              color: colorTextSecondary,
+            ),
+            splashRadius: 18,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              setState(() {
+                _replyingTo = null;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuotedMessagePreview(
+    Map<String, dynamic> item, {
+    required bool isDocSender,
+  }) {
+    final replySender = item['replyToSender'] as String? ?? 'Pesan';
+    final replyText = item['replyToText'] as String? ?? '';
+    if (replyText.isEmpty) return const SizedBox.shrink();
+
+    final quoteBg = isDocSender
+        ? Colors.black.withValues(alpha: 0.20)
+        : const Color(0xFFF1F5F9);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: quoteBg,
+        borderRadius: BorderRadius.circular(8),
+        border: const Border(
+          left: BorderSide(color: colorPrimaryBlue, width: 3.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            replySender,
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: isDocSender ? Colors.white : colorPrimaryBlue,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 1),
+          Text(
+            replyText,
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              color: isDocSender
+                  ? Colors.white.withValues(alpha: 0.85)
+                  : colorTextSecondary,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImagePreviewDialog({String? imageUrl, String? filePath}) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) {
+        final bool isBase64 =
+            imageUrl != null && imageUrl.startsWith('data:image/');
+        final bool isNetwork =
+            imageUrl != null &&
+            (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
+        Widget imgWidget;
+        if (isBase64) {
+          imgWidget = StorageService.buildImageWidget(
+            imageUrl,
+            fit: BoxFit.contain,
+          );
+        } else if (isNetwork) {
+          imgWidget = Image.network(imageUrl, fit: BoxFit.contain);
+        } else if (filePath != null && File(filePath).existsSync()) {
+          imgWidget = Image.file(File(filePath), fit: BoxFit.contain);
+        } else {
+          imgWidget = const Center(
+            child: Text(
+              'Gambar tidak dapat dimuat',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              InteractiveViewer(
+                clipBehavior: Clip.none,
+                maxScale: 4.0,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: imgWidget,
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 26),
+                  onPressed: () => Navigator.of(ctx).pop(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1791,6 +2216,85 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
             child: Icon(Icons.send_rounded, color: colorWhite, size: 19),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Widget geser ke kanan untuk membalas pesan (WhatsApp-like Swipe-to-Reply)
+class _SwipeToReplyWrapper extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onReply;
+
+  const _SwipeToReplyWrapper({required this.child, required this.onReply});
+
+  @override
+  State<_SwipeToReplyWrapper> createState() => _SwipeToReplyWrapperState();
+}
+
+class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper> {
+  double _dragOffset = 0.0;
+  static const double _threshold = 45.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragUpdate: (details) {
+        if (details.delta.dx > 0 || _dragOffset > 0) {
+          setState(() {
+            _dragOffset = (_dragOffset + details.delta.dx * 0.7).clamp(
+              0.0,
+              65.0,
+            );
+          });
+        }
+      },
+      onHorizontalDragEnd: (details) {
+        if (_dragOffset >= _threshold) {
+          widget.onReply();
+        }
+        setState(() {
+          _dragOffset = 0.0;
+        });
+      },
+      onHorizontalDragCancel: () {
+        setState(() {
+          _dragOffset = 0.0;
+        });
+      },
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          if (_dragOffset > 5)
+            Positioned(
+              left: 4,
+              child: Opacity(
+                opacity: (_dragOffset / _threshold).clamp(0.0, 1.0),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A85FF).withValues(alpha: 0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.reply_rounded,
+                    color: Color(0xFF2A85FF),
+                    size: 19,
+                  ),
+                ),
+              ),
+            ),
+          AnimatedContainer(
+            duration: _dragOffset == 0
+                ? const Duration(milliseconds: 180)
+                : Duration.zero,
+            curve: Curves.easeOutCubic,
+            transform: Matrix4.translationValues(_dragOffset, 0, 0),
+            child: widget.child,
+          ),
+        ],
       ),
     );
   }

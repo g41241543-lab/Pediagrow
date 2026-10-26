@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+/// Widget yang menambahkan efek "terangkat" saat kursor diarahkan (desktop/web)
+/// atau saat ditekan (mobile/touch). Bekerja lintas platform.
 class HoverLift extends StatefulWidget {
   final Widget child;
   final double lift;
@@ -18,33 +21,64 @@ class HoverLift extends StatefulWidget {
   State<HoverLift> createState() => _HoverLiftState();
 }
 
-class _HoverLiftState extends State<HoverLift> {
+class _HoverLiftState extends State<HoverLift>
+    with SingleTickerProviderStateMixin {
   bool _hovered = false;
+  bool _pressed = false;
+
+  bool get _isLifted => _hovered || _pressed;
+
+  // Gunakan mouse hover hanya di platform non-mobile (desktop/web)
+  bool get _useMouseHover =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.linux;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: widget.cursor,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _hovered ? -widget.lift : 0, 0),
-        decoration: BoxDecoration(
-          borderRadius: widget.borderRadius ?? BorderRadius.circular(18.0),
-          boxShadow: _hovered
-              ? const [
-                  BoxShadow(
-                    color: Color(0x26000000),
-                    blurRadius: 18.0,
-                    offset: Offset(0, 8),
-                  ),
-                ]
-              : const [],
-        ),
-        child: widget.child,
+    final radius = widget.borderRadius ?? BorderRadius.circular(18.0);
+
+    Widget content = AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOut,
+      transform: Matrix4.translationValues(0, _isLifted ? -widget.lift : 0, 0),
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: _isLifted
+            ? const [
+                BoxShadow(
+                  color: Color(0x26000000),
+                  blurRadius: 18.0,
+                  offset: Offset(0, 8),
+                ),
+              ]
+            : const [],
       ),
+      child: widget.child,
     );
+
+    // Tambahkan GestureDetector untuk efek tekan di mobile
+    if (!_useMouseHover) {
+      content = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: content,
+      );
+    }
+
+    // Tambahkan MouseRegion untuk hover di desktop/web
+    if (_useMouseHover) {
+      content = MouseRegion(
+        cursor: widget.cursor,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: content,
+      );
+    }
+
+    return content;
   }
 }

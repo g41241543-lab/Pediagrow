@@ -522,7 +522,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                           path,
                           fit: BoxFit.contain,
                           placeholder: Image.asset(
-                            'assets/images/default_baby_avatar.png',
+                            ChildAvatar.assetPathFor(gender: _selectedGender),
                             fit: BoxFit.contain,
                           ),
                         ),

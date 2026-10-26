@@ -32,21 +32,17 @@ class ChatMessageService {
   /// Mendengarkan semua pesan dalam sesi secara real-time.
   /// Pesan diurutkan dari yang terlama ke terbaru.
   Stream<List<ChatMessageModel>> streamPesan(String sessionId) {
-    return _messages(sessionId)
-        .snapshots()
-        .map(
-          (snap) {
-            final list = snap.docs
-                .map(
-                  (d) => ChatMessageModel.fromDoc(
-                    d as DocumentSnapshot<Map<String, dynamic>>,
-                  ),
-                )
-                .toList();
-            list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-            return list;
-          },
-        );
+    return _messages(sessionId).snapshots().map((snap) {
+      final list = snap.docs
+          .map(
+            (d) => ChatMessageModel.fromDoc(
+              d as DocumentSnapshot<Map<String, dynamic>>,
+            ),
+          )
+          .toList();
+      list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      return list;
+    });
   }
 
   // ─── KIRIM PESAN TEKS ───────────────────────────────────────────────────────
@@ -60,6 +56,10 @@ class ChatMessageService {
     required String senderId,
     required MessageSender senderRole,
     required String text,
+    String? replyToId,
+    String? replyToSender,
+    String? replyToText,
+    String? replyToType,
   }) async {
     final ref = _messages(sessionId).doc();
     await ref.set(
@@ -71,6 +71,10 @@ class ChatMessageService {
         type: MessageType.text,
         timestamp: DateTime.now(),
         isRead: false,
+        replyToId: replyToId,
+        replyToSender: replyToSender,
+        replyToText: replyToText,
+        replyToType: replyToType,
       ).toMap(),
     );
   }
@@ -110,6 +114,11 @@ class ChatMessageService {
     required String senderId,
     required MessageSender senderRole,
     required File imageFile,
+    String? caption,
+    String? replyToId,
+    String? replyToSender,
+    String? replyToText,
+    String? replyToType,
   }) async {
     // Konversi ke Base64 agar bisa disimpan di Firestore & dibaca lintas perangkat
     final imageUrl = await StorageService.toPersistableString(imageFile.path);
@@ -123,16 +132,20 @@ class ChatMessageService {
         id: ref.id,
         senderId: senderId,
         senderRole: senderRole,
+        text: caption,
         imageUrl: persistedUrl,
         type: MessageType.image,
         timestamp: DateTime.now(),
         isRead: false,
+        replyToId: replyToId,
+        replyToSender: replyToSender,
+        replyToText: replyToText,
+        replyToType: replyToType,
       ).toMap(),
     );
 
     return persistedUrl;
   }
-
 
   // ─── MARK AS READ ───────────────────────────────────────────────────────────
 
@@ -191,9 +204,12 @@ class ChatMessageService {
 
   /// Menyimpan pesan sesi lokal agar tidak hilang saat pengguna menekan tombol back
   void saveCachedMessages(
-      String sessionId, List<Map<String, dynamic>> messages) {
-    _sessionMessagesCache[sessionId] =
-        List<Map<String, dynamic>>.from(messages);
+    String sessionId,
+    List<Map<String, dynamic>> messages,
+  ) {
+    _sessionMessagesCache[sessionId] = List<Map<String, dynamic>>.from(
+      messages,
+    );
   }
 
   /// Menghapus pesan sesi ketika pengguna memilih mengakhiri percakapan
