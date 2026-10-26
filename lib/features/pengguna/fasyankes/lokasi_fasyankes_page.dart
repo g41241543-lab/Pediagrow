@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../beranda/beranda_page.dart';
@@ -15,16 +16,17 @@ import '../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Lokasi Fasilitas Pelayanan Kesehatan (Fasyankes) PediaGrow
 ///
-/// Fitur:
-/// - Header fixed 56dp (tidak ikut scroll) dengan tombol kembali 12dp dari kiri
-///   dan judul "Lokasi Fasyankes" berjarak 12dp setelahnya.
-/// - Search bar "Cari Lokasi" pill-shaped keyboard-aware.
-/// - Google Maps interaktif dengan switch Map/Satellite dan kontrol zoom in/out.
-/// - Daftar maksimal 10 fasyankes terdekat dengan efek 3D card elevation,
-///   nama Lato 18sp bold, telepon, rating bintang kuning, dan aksi "Buka di Maps".
-/// - Penanganan state komprehensif (loading, empty, error).
-/// - Ilustrasi landscape pepohonan & tenda di footer menempel ke nav bar.
-/// - Bottom Navigation Bar fixed (Beranda, Konsultasi, Riwayat Konsultasi, Profil).
+/// Fitur Lengkap:
+/// - Header fixed 56dp dengan tombol kembali dan judul "Lokasi Fasyankes".
+/// - Search bar "Cari Lokasi Fasyankes" pill-shaped keyboard-aware.
+/// - Status Banner Lokasi Perangkat Real-Time (GPS device tracking).
+/// - Google Maps interaktif dengan switch Map/Satellite dan kontrol zoom.
+/// - Deteksi titik koordinat perangkat HP pengguna secara langsung (bukan hanya default).
+/// - Daftar fasyankes terdekat dari lokasi pengguna, diperkaya data terdaftar di Google Maps:
+///   rating bintang, ulasan pengguna asli, jam operasional, foto fasilitas, nomor telepon, dan Plus Code.
+/// - Load instan 0ms tanpa blocking loading spinner.
+/// - Ilustrasi landscape footer menempel ke nav bar.
+/// - Fixed Bottom Navigation Bar.
 class LokasiFasyankesPage extends StatefulWidget {
   const LokasiFasyankesPage({super.key});
 
@@ -41,40 +43,215 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounceTimer;
 
-  // State Data
+  // Stream Subscription GPS
+  StreamSubscription<Position>? _positionStreamSub;
+
+  // State Data: Langsung siap pada frame pertama tanpa layar loading
   List<FasyankesModel> _fasyankesList = [];
   FasyankesModel? _selectedFasyankes;
-  bool _isLoading = true;
+  final bool _isLoading = false;
   String? _errorMessage;
 
-  // Koordinat pengguna (default: Jember sesuai referensi desain)
+  // Koordinat pengguna: Default Polije Tegalgede, lalu otomatis disinkronkan dengan posisi real perangkat HP
   double _userLat = FasyankesService.defaultLat;
   double _userLng = FasyankesService.defaultLng;
+
+  // Status GPS Perangkat Pengguna
+  bool _isDeviceLocationDetected = false;
+  bool _isLocationServiceEnabled = true;
+  LocationPermission _locationPermission = LocationPermission.unableToDetermine;
+  final bool _autoCenterUser = true;
 
   // Navigasi Bottom Bar — -1 berarti tidak ada tab yang aktif
   final int _selectedNavIndex = -1;
 
   @override
-  void initState() {
-    super.initState();
-    _loadFasyankes();
-  }
-
-  @override
   void dispose() {
+    _positionStreamSub?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     _debounceTimer?.cancel();
     super.dispose();
   }
 
-  /// Memuat data fasyankes dari service
-  Future<void> _loadFasyankes({String query = ''}) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  @override
+  void initState() {
+    super.initState();
+    // 1. Tampilkan data fasyankes terverifikasi secara instan (0ms tanpa blocking loading)
+    _fasyankesList = _service.getLocalFasyankesInstant(
+      userLat: _userLat,
+      userLng: _userLng,
+    );
+    if (_fasyankesList.isNotEmpty) {
+      _selectedFasyankes = _fasyankesList.first;
+    }
 
+    // 2. Ambil titik koordinat terkini pengguna dari sensor GPS perangkat HP
+    _initDeviceLocationTracking();
+
+    // 3. Sinkronisasi online di latar belakang tanpa menghambat UI
+    _syncFasyankesOnlineBackground();
+  }
+
+  /// Inisialisasi pelacakan lokasi fisik perangkat HP pengguna
+  Future<void> _initDeviceLocationTracking() async {
+    // A. Cek status layanan lokasi (GPS) pada perangkat
+    final serviceEnabled = await _service.isLocationServiceEnabled();
+    if (!mounted) return;
+    setState(() => _isLocationServiceEnabled = serviceEnabled);
+
+    if (!serviceEnabled) {
+      debugPrint('LokasiFasyankesPage: Layanan lokasi perangkat tidak aktif');
+      return;
+    }
+
+    // B. Cek & minta izin lokasi
+    var permission = await _service.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await _service.requestPermission();
+    }
+    if (!mounted) return;
+    setState(() => _locationPermission = permission);
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      debugPrint('LokasiFasyankesPage: Izin lokasi ditolak');
+      return;
+    }
+
+    // C. Ambil last known position untuk update instan jika ada
+    try {
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null && mounted) {
+        _updateUserCoordinates(lastKnown.latitude, lastKnown.longitude);
+      }
+    } catch (_) {}
+
+    // D. Dapatkan lokasi real-time presisi tinggi dari sensor GPS
+    try {
+      final currentPos = await _service.getCurrentDeviceLocation(forceHighAccuracy: true);
+      if (currentPos != null && mounted) {
+        _updateUserCoordinates(currentPos.latitude, currentPos.longitude);
+      }
+    } catch (_) {}
+
+    // E. Dengarkan stream posisi GPS perangkat jika pengguna berpindah tempat
+    _positionStreamSub?.cancel();
+    _positionStreamSub = _service.getPositionStream().listen(
+      (position) {
+        if (mounted) {
+          _updateUserCoordinates(position.latitude, position.longitude);
+        }
+      },
+      onError: (err) {
+        debugPrint('Position stream error: $err');
+      },
+    );
+  }
+
+  /// Memperbarui koordinat posisi perangkat pengguna dan menghitung ulang jarak fasyankes
+  void _updateUserCoordinates(double lat, double lng) {
+    setState(() {
+      _userLat = lat;
+      _userLng = lng;
+      _isDeviceLocationDetected = true;
+      _isLocationServiceEnabled = true;
+
+      // Hitung ulang dan urutkan fasyankes terdekat dari lokasi fisik perangkat pengguna
+      _fasyankesList = _service.getLocalFasyankesInstant(
+        userLat: _userLat,
+        userLng: _userLng,
+        query: _searchController.text,
+      );
+
+      if (_fasyankesList.isNotEmpty &&
+          (_selectedFasyankes == null ||
+              !_fasyankesList.any((item) => item.id == _selectedFasyankes?.id))) {
+        _selectedFasyankes = _fasyankesList.first;
+      }
+    });
+  }
+
+  /// Aksi tombol "Lokasi Saya" pada peta untuk memusatkan kembali ke lokasi fisik HP
+  Future<void> _onLocateUserPressed() async {
+    // Pastikan service dan izin aktif
+    final serviceEnabled = await _service.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (!mounted) return;
+      setState(() => _isLocationServiceEnabled = false);
+      _promptEnableLocationService();
+      return;
+    }
+
+    var permission = await _service.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await _service.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
+      setState(() => _locationPermission = permission);
+      _promptLocationPermission();
+      return;
+    }
+
+    final position = await _service.getCurrentDeviceLocation(forceHighAccuracy: true);
+    if (position != null && mounted) {
+      _updateUserCoordinates(position.latitude, position.longitude);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.my_location_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Lokasi Anda terpusat: ${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}',
+                  style: GoogleFonts.lato(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF2B7AE8),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _promptEnableLocationService() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Layanan lokasi (GPS) HP Anda belum aktif.'),
+        action: SnackBarAction(
+          label: 'Nyalakan',
+          textColor: Colors.amber,
+          onPressed: () => _service.openLocationSettings(),
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  void _promptLocationPermission() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Izin akses lokasi diperlukan untuk menentukan fasyankes terdekat.'),
+        action: SnackBarAction(
+          label: 'Buka Pengaturan',
+          textColor: Colors.amber,
+          onPressed: () => _service.openAppSettings(),
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  /// Sinkronisasi online fasyankes di latar belakang tanpa blocking loading
+  Future<void> _syncFasyankesOnlineBackground({String query = ''}) async {
     try {
       final list = await _service.getNearestFasyankes(
         userLat: _userLat,
@@ -83,24 +260,38 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
       );
 
       if (!mounted) return;
-      setState(() {
-        _fasyankesList = list;
-        _isLoading = false;
-        // Pilih item pertama secara default jika ada
-        if (list.isNotEmpty && _selectedFasyankes == null) {
-          _selectedFasyankes = list.first;
-        } else if (list.isNotEmpty &&
-            !list.any((item) => item.id == _selectedFasyankes?.id)) {
-          _selectedFasyankes = list.first;
-        }
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Gagal memuat data fasyankes. Silakan coba lagi.';
-      });
+      if (list.isNotEmpty) {
+        setState(() {
+          _fasyankesList = list;
+          if (_selectedFasyankes == null ||
+              !list.any((item) => item.id == _selectedFasyankes?.id)) {
+            _selectedFasyankes = list.first;
+          }
+        });
+      }
+    } catch (_) {
+      // Tetap gunakan data instan yang sudah tampil
     }
+  }
+
+  /// Memuat / memfilter data fasyankes secara instan tanpa layar loading
+  void _loadFasyankes({String query = ''}) {
+    final list = _service.getLocalFasyankesInstant(
+      userLat: _userLat,
+      userLng: _userLng,
+      query: query,
+    );
+
+    setState(() {
+      _fasyankesList = list;
+      if (list.isNotEmpty &&
+          (_selectedFasyankes == null ||
+              !list.any((item) => item.id == _selectedFasyankes?.id))) {
+        _selectedFasyankes = list.first;
+      }
+    });
+
+    _syncFasyankesOnlineBackground(query: query);
   }
 
   /// Pencarian dengan debounce 350ms agar hemat resource & API request
@@ -164,20 +355,19 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildSearchBarSection(isDark),
+                      // Status Banner Koordinat Pengguna
+                      _buildLocationStatusBanner(isDark),
+                      // Peta Interaktif
                       FasyankesMapWidget(
                         fasyankesList: _fasyankesList,
                         selectedFasyankes: _selectedFasyankes,
                         userLat: _userLat,
                         userLng: _userLng,
+                        autoCenterUserOnLocationChange: _autoCenterUser,
                         onFasyankesSelected: (fasyankes) {
                           setState(() => _selectedFasyankes = fasyankes);
                         },
-                        onLocateUser: () {
-                          setState(() {
-                            _userLat = FasyankesService.defaultLat;
-                            _userLng = FasyankesService.defaultLng;
-                          });
-                        },
+                        onLocateUser: _onLocateUserPressed,
                       ),
                       const SizedBox(height: 14),
                       _buildFasyankesListContent(isDark),
@@ -308,7 +498,192 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   }
 
   // ===========================================================================
-  // 3. LIST CARD FASYANKES / STATE VIEWS
+  // 3. STATUS BANNER KOORDINAT PENGGUNA (GPS Real-Time Device)
+  // ===========================================================================
+  Widget _buildLocationStatusBanner(bool isDark) {
+    // Kasus 1: Layanan lokasi (GPS) mati di HP
+    if (!_isLocationServiceEnabled) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.35) : const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark ? const Color(0xFFDC2626) : const Color(0xFFFECACA),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.location_off_rounded, size: 18, color: Color(0xFFEF4444)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Layanan lokasi belum aktif. Nyalakan GPS agar koordinat sesuai posisi HP Anda.',
+                style: GoogleFonts.lato(
+                  fontSize: 11.5,
+                  color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            InkWell(
+              onTap: () async {
+                await _service.openLocationSettings();
+                _initDeviceLocationTracking();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'Nyalakan',
+                  style: GoogleFonts.lato(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Kasus 2: Izin lokasi ditolak
+    if (_locationPermission == LocationPermission.denied ||
+        _locationPermission == LocationPermission.deniedForever) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.35) : const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark ? const Color(0xFFD97706) : const Color(0xFFFDE68A),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.fmd_bad_rounded, size: 18, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Izin lokasi diperlukan agar koordinat pengguna terdeteksi dari posisi HP Anda.',
+                style: GoogleFonts.lato(
+                  fontSize: 11.5,
+                  color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            InkWell(
+              onTap: () async {
+                if (_locationPermission == LocationPermission.deniedForever) {
+                  await _service.openAppSettings();
+                } else {
+                  await _initDeviceLocationTracking();
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'Izinkan',
+                  style: GoogleFonts.lato(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Kasus 3: Lokasi fisik HP berhasil terdeteksi secara real-time
+    if (_isDeviceLocationDetected) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.my_location_rounded, size: 16, color: Color(0xFF10B981)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Lokasi HP Terdeteksi (${_userLat.toStringAsFixed(4)}, ${_userLng.toStringAsFixed(4)})',
+                style: GoogleFonts.lato(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46),
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: _onLocateUserPressed,
+              child: Text(
+                'Pusatkan',
+                style: GoogleFonts.lato(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF10B981),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Kasus 4: Sedang mencari sinyal GPS
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFF2B7AE8),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Menghubungkan sensor GPS perangkat...',
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // 4. LIST CARD FASYANKES / STATE VIEWS
   // ===========================================================================
   Widget _buildFasyankesListContent(bool isDark) {
     // A. State Loading
@@ -406,7 +781,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
       );
     }
 
-    // D. Daftar Fasyankes (Maksimal 10 Fasyankes Terdekat)
+    // D. Daftar Fasyankes (Maksimal 10 Fasyankes Terdekat dari Lokasi Fisik Pengguna)
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -416,6 +791,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
         final isSelected = _selectedFasyankes?.id == fasyankes.id;
 
         return FasyankesCardItem(
+          key: ValueKey(fasyankes.id),
           fasyankes: fasyankes,
           isSelected: isSelected,
           onTap: () {
@@ -427,14 +803,14 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   }
 
   // ===========================================================================
-  // 4. ILUSTRASI FOOTER LANDSCAPE (Menempel ke Nav Bar)
+  // 5. ILUSTRASI FOOTER LANDSCAPE (Menempel ke Nav Bar)
   // ===========================================================================
   Widget _buildFooterIllustration() {
     return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // ===========================================================================
-  // 5. NAVIGATION BAR FIXED (Tinggi 68dp, #F2EDED)
+  // 6. NAVIGATION BAR FIXED (Tinggi 68dp, #F2EDED)
   // ===========================================================================
   Widget _buildFixedNavBar(bool isDark) {
     final navItems = [
