@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -91,6 +92,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   // Controllers
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _inputFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
@@ -99,6 +101,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
   // State
   bool _isDoctorTyping = false;
+  Map<String, dynamic>? _replyingTo;
 
   // Data Dokter Teresolusi
   late String _effectiveDoctorName;
@@ -167,9 +170,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       _messageStream = ChatMessageService.instance.streamPesan(effSession);
 
       // Dengarkan perubahan status sesi agar tahu jika DOKTER mengakhiri
-      _sessionSub = KonsultasiService.instance
-          .streamSesi(effSession)
-          .listen((sesi) {
+      _sessionSub = KonsultasiService.instance.streamSesi(effSession).listen((
+        sesi,
+      ) {
         if (!mounted) return;
         if (_sessionEndedByUs) return; // kita yang mengakhiri, abaikan
         if (sesi != null && sesi.isSelesai) {
@@ -236,6 +239,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     _doctorResponseTimer?.cancel();
     _doctorResponseTypingTimer?.cancel();
     _textController.dispose();
+    _inputFocusNode.dispose();
     _scrollController.dispose();
     _typingAnimController.dispose();
     super.dispose();
@@ -360,6 +364,27 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     if (text.isEmpty) return;
     _textController.clear();
 
+    final replyTarget = _replyingTo;
+    if (replyTarget != null) {
+      setState(() {
+        _replyingTo = null;
+      });
+    }
+
+    final replyId = replyTarget?['id'] as String?;
+    final replySender = replyTarget != null
+        ? (replyTarget['sender'] == 'user' ? 'Anda' : _effectiveDoctorName)
+        : null;
+    final replyType = replyTarget?['type'] as String?;
+    String? replyText = replyTarget?['message'] as String?;
+    if (replyType == 'user_attachment' || replyType == 'attachment_image') {
+      replyText = (replyText != null && replyText.isNotEmpty)
+          ? replyText
+          : '📷 Foto';
+    } else if (replyType == 'attachment') {
+      replyText = '📋 Formulir Keluhan Pasien';
+    }
+
     // Jika ada sessionId → kirim ke Firestore (real-time, dokter menerima)
     final effSession = _effectiveSessionId;
     if (effSession.isNotEmpty && !effSession.endsWith('default')) {
@@ -369,6 +394,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         senderId: uid,
         senderRole: MessageSender.user,
         text: text,
+        replyToId: replyId,
+        replyToSender: replySender,
+        replyToText: replyText,
+        replyToType: replyType,
       );
       // Tandai pesan dokter sebagai sudah dibaca
       ChatMessageService.instance.tandaiSudahDibaca(
@@ -390,6 +419,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         'message': text,
         'timestamp': timeStr,
         'isRead': true,
+        'replyToId': replyId,
+        'replyToSender': replySender,
+        'replyToText': replyText,
+        'replyToType': replyType,
       });
     });
 
@@ -723,7 +756,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 child: Center(
                   child: Icon(
                     Icons.chat_bubble_outline_rounded,
-                    color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2A85FF),
+                    color: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF2A85FF),
                     size: 28,
                   ),
                 ),
@@ -1043,7 +1078,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                    color: isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1064,7 +1101,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     ),
                     child: Icon(
                       Icons.description_outlined,
-                      color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
+                      color: isDark
+                          ? const Color(0xFF60A5FA)
+                          : colorPrimaryBlue,
                       size: 22,
                     ),
                   ),
@@ -1078,14 +1117,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           style: GoogleFonts.lato(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                            color: isDark
+                                ? const Color(0xFFE9EDEF)
+                                : colorTextPrimary,
                           ),
                         ),
                         Text(
                           'Data yang dikirimkan sebelum konsultasi',
                           style: GoogleFonts.lato(
                             fontSize: 12,
-                            color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
+                            color: isDark
+                                ? const Color(0xFF8696A0)
+                                : colorTextSecondary,
                           ),
                         ),
                       ],
@@ -1095,7 +1138,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     icon: Icon(
                       Icons.close,
                       size: 20,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : const Color(0xFF1A2228),
                     ),
                     onPressed: () => Navigator.pop(ctx),
                   ),
@@ -1104,7 +1149,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               const SizedBox(height: 16),
               Divider(
                 height: 1,
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
               ),
               const SizedBox(height: 16),
 
@@ -1168,7 +1215,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF0B1014)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isDark ? const Color(0xFF2C363D) : colorBorder,
@@ -1224,7 +1273,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   label,
                   style: GoogleFonts.lato(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
+                    color: isDark
+                        ? const Color(0xFF8696A0)
+                        : colorTextSecondary,
                   ),
                 ),
                 Text(
@@ -1464,7 +1515,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2228) : colorSoftBlue,
         borderRadius: BorderRadius.zero,
-        border: isDark ? const Border(bottom: BorderSide(color: Color(0xFF2C363D))) : null,
+        border: isDark
+            ? const Border(bottom: BorderSide(color: Color(0xFF2C363D)))
+            : null,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -1481,7 +1534,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               'Chat ini bersifat konsultasi umum dan bukan pengganti pemeriksaan langsung.',
               style: GoogleFonts.lato(
                 fontSize: 12,
-                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
+                color: isDark
+                    ? const Color(0xFF8696A0)
+                    : const Color(0xFF4A5568),
                 height: 1.35,
               ),
             ),
@@ -1501,6 +1556,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     final timeStr =
         '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';
     return {
+      'id': msg.id,
       'sender': msg.senderRole == MessageSender.dokter ? 'doctor' : 'user',
       'type': msg.type == MessageType.formulir
           ? 'attachment'
@@ -1511,15 +1567,26 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       // imageUrl diteruskan ke map — dipakai oleh _buildUserAttachmentBubble
       'imageUrl': msg.imageUrl,
       // filePath diisi hanya jika imageUrl adalah path lokal (bukan base64/URL)
-      'filePath': (msg.imageUrl != null &&
+      'filePath':
+          (msg.imageUrl != null &&
               !msg.imageUrl!.startsWith('data:image/') &&
               !msg.imageUrl!.startsWith('http'))
           ? msg.imageUrl
           : null,
-      'fileName': msg.imageUrl != null ? msg.imageUrl!.split('/').last : '',
+      // Jangan simpan nama potongan base64 (seperti Z=) sebagai fileName
+      'fileName':
+          (msg.imageUrl != null &&
+              !msg.imageUrl!.startsWith('data:image/') &&
+              !msg.imageUrl!.startsWith('http'))
+          ? msg.imageUrl!.split('/').last
+          : '',
       'title': 'Formulir Keluhan Pasien',
       'timestamp': timeStr,
       'isRead': msg.isRead,
+      'replyToId': msg.replyToId,
+      'replyToSender': msg.replyToSender,
+      'replyToText': msg.replyToText,
+      'replyToType': msg.replyToType,
     };
   }
 
@@ -1573,19 +1640,28 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           final isUser = item['sender'] == 'user';
           final type = item['type'] ?? 'text';
 
+          Widget bubble;
           if (type == 'attachment') {
-            return _buildAttachmentMessage(item, isDark);
-          }
-
-          if (type == 'user_attachment') {
-            return _buildUserAttachmentBubble(item, isDark, isUserSender: isUser);
-          }
-
-          if (isUser) {
-            return _buildUserBubble(item, isDark);
+            bubble = _buildAttachmentMessage(item, isDark);
+          } else if (type == 'user_attachment') {
+            bubble = _buildUserAttachmentBubble(
+              item,
+              isDark,
+              isUserSender: isUser,
+            );
+          } else if (isUser) {
+            bubble = _buildUserBubble(item, isDark);
           } else {
-            return _buildDoctorBubble(item, isDark);
+            bubble = _buildDoctorBubble(item, isDark);
           }
+
+          return _SwipeToReplyWrapper(
+            onReply: () => _setReplyingTo(item),
+            child: GestureDetector(
+              onLongPress: () => _showMessageOptions(item),
+              child: bubble,
+            ),
+          );
         }
 
         // Typing indicator dokter tiga titik (...) bergerak saat dokter berpikir
@@ -1614,7 +1690,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2228) : colorSoftBlue,
                 borderRadius: BorderRadius.circular(16),
-                border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                border: isDark
+                    ? Border.all(color: const Color(0xFF2C363D))
+                    : null,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -1633,7 +1711,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                       Icon(
                         Icons.description_outlined,
                         size: 22,
-                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2D3748),
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF2D3748),
                       ),
                       const SizedBox(width: 8),
                       Flexible(
@@ -1642,7 +1722,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                            color: isDark
+                                ? const Color(0xFFE9EDEF)
+                                : colorTextPrimary,
                           ),
                         ),
                       ),
@@ -1656,7 +1738,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                         item['timestamp'] ?? '15.59',
                         style: GoogleFonts.lato(
                           fontSize: 11,
-                          color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : colorTextSecondary,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -1690,9 +1774,11 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     // Tentukan apakah konten adalah gambar
     final bool isBase64Image =
         imageUrl != null && imageUrl.startsWith('data:image/');
-    final bool isNetworkImage = imageUrl != null &&
+    final bool isNetworkImage =
+        imageUrl != null &&
         (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
-    final bool isLocalImage = filePath != null &&
+    final bool isLocalImage =
+        filePath != null &&
         (filePath.toLowerCase().endsWith('.jpg') ||
             filePath.toLowerCase().endsWith('.jpeg') ||
             filePath.toLowerCase().endsWith('.png') ||
@@ -1706,15 +1792,16 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       decoration: BoxDecoration(
         color: isUserSender
             ? (isDark
-                ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
-                : colorSoftBlue)
+                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                  : colorSoftBlue)
             : (isDark ? const Color(0xFF1A2228) : colorWhite),
         borderRadius: BorderRadius.circular(16),
         border: isUserSender
             ? (isDark
-                ? Border.all(
-                    color: const Color(0xFF1E40AF).withValues(alpha: 0.5))
-                : null)
+                  ? Border.all(
+                      color: const Color(0xFF1E40AF).withValues(alpha: 0.5),
+                    )
+                  : null)
             : Border.all(
                 color: isDark ? const Color(0xFF2C363D) : colorBorder,
                 width: 1.0,
@@ -1728,65 +1815,95 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-            isUserSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isUserSender
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (hasImage) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: isBase64Image
-                  ? StorageService.buildImageWidget(
-                      imageUrl,
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
-                    )
-                  : isNetworkImage
-                  ? Image.network(
-                      imageUrl,
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const SizedBox.shrink(),
-                    )
-                  : Image.file(
-                      File(filePath!),
-                      width: double.infinity,
-                      height: 180,
-                      fit: BoxFit.cover,
-                    ),
+          // Quoted message jika membalas pesan lain
+          if (item['replyToText'] != null &&
+              (item['replyToText'] as String).isNotEmpty)
+            _buildQuotedMessagePreview(
+              item,
+              isDark,
+              isUserSender: isUserSender,
             ),
-            const SizedBox(height: 8),
-          ],
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                hasImage
-                    ? Icons.image_outlined
-                    : Icons.insert_drive_file_outlined,
-                size: 20,
-                color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
+          if (hasImage) ...[
+            GestureDetector(
+              onTap: () => _showImagePreviewDialog(
+                imageUrl: imageUrl,
+                filePath: filePath,
               ),
-              const SizedBox(width: 8),
-              Flexible(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: isBase64Image
+                    ? StorageService.buildImageWidget(
+                        imageUrl,
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                      )
+                    : isNetworkImage
+                    ? Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
+                      )
+                    : Image.file(
+                        File(filePath!),
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            ),
+            if (item['message'] != null &&
+                (item['message'] as String).trim().isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerLeft,
                 child: Text(
-                  fileName.isNotEmpty ? fileName : 'Gambar',
+                  item['message'] as String,
                   style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color:
-                        isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                    fontSize: 14,
+                    color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                    height: 1.35,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 4),
+            const SizedBox(height: 6),
+          ] else if (fileName.isNotEmpty) ...[
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.insert_drive_file_outlined,
+                  size: 20,
+                  color: isDark ? const Color(0xFF60A5FA) : colorPrimaryBlue,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    fileName,
+                    style: GoogleFonts.lato(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : colorTextPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+          ],
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1794,18 +1911,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 item['timestamp'] ?? '',
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: isDark
-                      ? const Color(0xFF8696A0)
-                      : colorTextSecondary,
+                  color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
                 ),
               ),
               if (isUserSender) ...[
                 const SizedBox(width: 4),
-                const Icon(
-                  Icons.done_all,
-                  size: 15,
-                  color: colorPrimaryBlue,
-                ),
+                const Icon(Icons.done_all, size: 15, color: colorPrimaryBlue),
               ],
             ],
           ),
@@ -1822,8 +1933,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           children: [
             CircleAvatar(
               radius: 17,
-              backgroundColor:
-                  isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
+              backgroundColor: isDark
+                  ? const Color(0xFF0B1014)
+                  : const Color(0xFFE9EDEF),
               child: ClipOval(
                 child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
               ),
@@ -1870,18 +1982,29 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     : colorSoftBlue,
                 borderRadius: BorderRadius.circular(16),
                 border: isDark
-                    ? Border.all(color: const Color(0xFF1E40AF).withValues(alpha: 0.5))
+                    ? Border.all(
+                        color: const Color(0xFF1E40AF).withValues(alpha: 0.5),
+                      )
                     : null,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (item['replyToText'] != null &&
+                      (item['replyToText'] as String).isNotEmpty)
+                    _buildQuotedMessagePreview(
+                      item,
+                      isDark,
+                      isUserSender: true,
+                    ),
                   Text(
                     item['message'] ?? '',
                     style: GoogleFonts.lato(
                       fontSize: 14,
-                      color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : colorTextPrimary,
                       height: 1.35,
                     ),
                   ),
@@ -1894,7 +2017,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                         item['timestamp'] ?? '',
                         style: GoogleFonts.lato(
                           fontSize: 10.5,
-                          color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : colorTextSecondary,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -1926,7 +2051,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           // Avatar dokter di sisi kiri bubble
           CircleAvatar(
             radius: 17,
-            backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
+            backgroundColor: isDark
+                ? const Color(0xFF0B1014)
+                : const Color(0xFFE9EDEF),
             child: ClipOval(
               child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
             ),
@@ -1958,11 +2085,20 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (item['replyToText'] != null &&
+                        (item['replyToText'] as String).isNotEmpty)
+                      _buildQuotedMessagePreview(
+                        item,
+                        isDark,
+                        isUserSender: false,
+                      ),
                     Text(
                       item['message'] ?? '',
                       style: GoogleFonts.lato(
                         fontSize: 14,
-                        color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
+                        color: isDark
+                            ? const Color(0xFFE9EDEF)
+                            : colorTextPrimary,
                         height: 1.38,
                       ),
                     ),
@@ -1975,7 +2111,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                           item['timestamp'] ?? '',
                           style: GoogleFonts.lato(
                             fontSize: 10.5,
-                            color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
+                            color: isDark
+                                ? const Color(0xFF8696A0)
+                                : colorTextSecondary,
                           ),
                         ),
                       ],
@@ -1999,7 +2137,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         children: [
           CircleAvatar(
             radius: 17,
-            backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF),
+            backgroundColor: isDark
+                ? const Color(0xFF0B1014)
+                : const Color(0xFFE9EDEF),
             child: ClipOval(
               child: _buildDoctorPhotoWidget(_effectiveDoctorPhoto, 34),
             ),
@@ -2071,7 +2211,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0B1014) : colorWhite,
-        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
+        border: isDark
+            ? const Border(top: BorderSide(color: Color(0xFF2C363D)))
+            : null,
         boxShadow: const [
           BoxShadow(
             color: Color(0x08000000),
@@ -2082,23 +2224,29 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // 1. Tombol [+] Media / Lampiran di sisi paling kiri
-            _buildAddMediaButton(isDark),
-            const SizedBox(width: 8),
+            if (_replyingTo != null) _buildReplyPreviewBar(isDark),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 1. Tombol [+] Media / Lampiran di sisi paling kiri
+                _buildAddMediaButton(isDark),
+                const SizedBox(width: 8),
 
-            // 2. TextField "Ketik pesan..."
-            Expanded(child: _buildTextField(isDark)),
-            const SizedBox(width: 8),
+                // 2. TextField "Ketik pesan..."
+                Expanded(child: _buildTextField(isDark)),
+                const SizedBox(width: 8),
 
-            // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
-            _buildEndConsultationButton(isDark),
-            const SizedBox(width: 8),
+                // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
+                _buildEndConsultationButton(isDark),
+                const SizedBox(width: 8),
 
-            // 4. Tombol Send (Lingkaran Biru #2A85FF)
-            _buildSendButton(),
+                // 4. Tombol Send (Lingkaran Biru #2A85FF)
+                _buildSendButton(),
+              ],
+            ),
           ],
         ),
       ),
@@ -2146,7 +2294,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                    color: isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2156,7 +2306,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -2180,7 +2332,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -2190,7 +2344,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 ),
                 Divider(
                   height: 1,
-                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                  color: isDark
+                      ? const Color(0xFF2C363D)
+                      : const Color(0xFFE9EDEF),
                 ),
                 ListTile(
                   leading: Container(
@@ -2212,7 +2368,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -2238,6 +2396,26 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       );
 
       if (file != null) {
+        final replyTarget = _replyingTo;
+        if (replyTarget != null) {
+          setState(() {
+            _replyingTo = null;
+          });
+        }
+        final replyId = replyTarget?['id'] as String?;
+        final replySender = replyTarget != null
+            ? (replyTarget['sender'] == 'user' ? 'Anda' : _effectiveDoctorName)
+            : null;
+        final replyType = replyTarget?['type'] as String?;
+        String? replyText = replyTarget?['message'] as String?;
+        if (replyType == 'user_attachment' || replyType == 'attachment_image') {
+          replyText = (replyText != null && replyText.isNotEmpty)
+              ? replyText
+              : '📷 Foto';
+        } else if (replyType == 'attachment') {
+          replyText = '📋 Formulir Keluhan Pasien';
+        }
+
         final effSession = _effectiveSessionId;
         if (effSession.isNotEmpty && !effSession.endsWith('default')) {
           final uid = widget.userId ?? UserService().currentUser.id;
@@ -2246,6 +2424,10 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             senderId: uid,
             senderRole: MessageSender.user,
             imageFile: File(file.path),
+            replyToId: replyId,
+            replyToSender: replySender,
+            replyToText: replyText,
+            replyToType: replyType,
           );
           return;
         }
@@ -2258,10 +2440,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           _messages.add({
             'sender': 'user',
             'type': 'user_attachment',
-            'fileName': file.name,
             'filePath': file.path,
             'timestamp': timeStr,
             'isRead': true,
+            'replyToId': replyId,
+            'replyToSender': replySender,
+            'replyToText': replyText,
+            'replyToType': replyType,
           });
         });
 
@@ -2284,8 +2469,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               _messages.add({
                 'sender': 'doctor',
                 'type': 'text',
-                'message':
-                    'Terima kasih Mom’s sudah melampirkan berkas (${file.name}). Saya sudah mencermati lampiran tersebut. Boleh ceritakan lebih lanjut bagaimana gejala atau kondisi yang tampak pada lampiran ini Mom’s?',
+                'message': 'Terima kasih Mom’s sudah melampirkan foto. Saya sudah mencermati lampiran tersebut. Boleh ceritakan lebih lanjut bagaimana kondisi si kecil saat ini Mom’s?',
                 'timestamp': replyTimeStr,
                 'isRead': true,
               });
@@ -2316,6 +2500,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
       alignment: Alignment.center,
       child: TextField(
         controller: _textController,
+        focusNode: _inputFocusNode,
         style: GoogleFonts.lato(
           fontSize: 14,
           color: isDark ? const Color(0xFFE9EDEF) : colorTextPrimary,
@@ -2385,6 +2570,402 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             child: Icon(Icons.send_rounded, color: colorWhite, size: 19),
           ),
         ),
+      ),
+    );
+  }
+
+  void _setReplyingTo(Map<String, dynamic> item) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _replyingTo = item;
+    });
+    _inputFocusNode.requestFocus();
+  }
+
+  void _showMessageOptions(Map<String, dynamic> item) {
+    final text = item['message'] as String? ?? '';
+    final isUser = item['sender'] == 'user';
+    final senderName = isUser ? 'Anda' : _effectiveDoctorName;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2830) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF374151)
+                        : const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.reply_rounded,
+                    color: colorPrimaryBlue,
+                  ),
+                  title: Text(
+                    'Balas Pesan',
+                    style: GoogleFonts.lato(
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : colorTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Balas pesan dari $senderName',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      color: isDark
+                          ? const Color(0xFF8696A0)
+                          : colorTextSecondary,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _setReplyingTo(item);
+                  },
+                ),
+                if (text.isNotEmpty) ...[
+                  Divider(
+                    height: 1,
+                    color: isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFF1F5F9),
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.copy_rounded,
+                      color: colorTextSecondary,
+                    ),
+                    title: Text(
+                      'Salin Teks',
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFE9EDEF)
+                            : colorTextPrimary,
+                      ),
+                    ),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: text));
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Pesan disalin ke clipboard',
+                            style: GoogleFonts.lato(),
+                          ),
+                          duration: const Duration(seconds: 1),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReplyPreviewBar(bool isDark) {
+    if (_replyingTo == null) return const SizedBox.shrink();
+
+    final isUser = _replyingTo!['sender'] == 'user';
+    final replySender = isUser ? 'Anda' : _effectiveDoctorName;
+    final type = _replyingTo!['type'] as String? ?? 'text';
+    final text = _replyingTo!['message'] as String? ?? '';
+    final hasImage =
+        type == 'user_attachment' ||
+        type == 'attachment_image' ||
+        _replyingTo!['imageUrl'] != null;
+    final isFormulir = type == 'attachment';
+
+    String previewContent = text;
+    if (isFormulir) {
+      previewContent = '📋 Formulir Keluhan Pasien';
+    } else if (hasImage) {
+      previewContent = text.isNotEmpty ? '📷 $text' : '📷 Foto';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2830) : const Color(0xFFF0F4F9),
+        borderRadius: BorderRadius.circular(12),
+        border: const Border(
+          left: BorderSide(color: colorPrimaryBlue, width: 4),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Membalas $replySender',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: colorPrimaryBlue,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  previewContent,
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    color: isDark
+                        ? const Color(0xFFB0B8C1)
+                        : colorTextSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.close_rounded,
+              size: 18,
+              color: isDark ? const Color(0xFF8696A0) : colorTextSecondary,
+            ),
+            splashRadius: 18,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              setState(() {
+                _replyingTo = null;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuotedMessagePreview(
+    Map<String, dynamic> item,
+    bool isDark, {
+    required bool isUserSender,
+  }) {
+    final replySender = item['replyToSender'] as String? ?? 'Pesan';
+    final replyText = item['replyToText'] as String? ?? '';
+    if (replyText.isEmpty) return const SizedBox.shrink();
+
+    final quoteBg = isUserSender
+        ? (isDark
+              ? Colors.black.withValues(alpha: 0.25)
+              : colorPrimaryBlue.withValues(alpha: 0.10))
+        : (isDark ? const Color(0xFF232D36) : const Color(0xFFF1F5F9));
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: quoteBg,
+        borderRadius: BorderRadius.circular(8),
+        border: const Border(
+          left: BorderSide(color: colorPrimaryBlue, width: 3.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            replySender,
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: colorPrimaryBlue,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 1),
+          Text(
+            replyText,
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              color: isDark ? const Color(0xFFB0B8C1) : colorTextSecondary,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImagePreviewDialog({String? imageUrl, String? filePath}) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) {
+        final bool isBase64 =
+            imageUrl != null && imageUrl.startsWith('data:image/');
+        final bool isNetwork =
+            imageUrl != null &&
+            (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
+        Widget imgWidget;
+        if (isBase64) {
+          imgWidget = StorageService.buildImageWidget(
+            imageUrl,
+            fit: BoxFit.contain,
+          );
+        } else if (isNetwork) {
+          imgWidget = Image.network(imageUrl, fit: BoxFit.contain);
+        } else if (filePath != null && File(filePath).existsSync()) {
+          imgWidget = Image.file(File(filePath), fit: BoxFit.contain);
+        } else {
+          imgWidget = const Center(
+            child: Text(
+              'Gambar tidak dapat dimuat',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              InteractiveViewer(
+                clipBehavior: Clip.none,
+                maxScale: 4.0,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: imgWidget,
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 26),
+                  onPressed: () => Navigator.of(ctx).pop(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Widget geser ke kanan untuk membalas pesan (WhatsApp-like Swipe-to-Reply)
+class _SwipeToReplyWrapper extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onReply;
+
+  const _SwipeToReplyWrapper({required this.child, required this.onReply});
+
+  @override
+  State<_SwipeToReplyWrapper> createState() => _SwipeToReplyWrapperState();
+}
+
+class _SwipeToReplyWrapperState extends State<_SwipeToReplyWrapper> {
+  double _dragOffset = 0.0;
+  static const double _threshold = 45.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragUpdate: (details) {
+        if (details.delta.dx > 0 || _dragOffset > 0) {
+          setState(() {
+            _dragOffset = (_dragOffset + details.delta.dx * 0.7).clamp(
+              0.0,
+              65.0,
+            );
+          });
+        }
+      },
+      onHorizontalDragEnd: (details) {
+        if (_dragOffset >= _threshold) {
+          widget.onReply();
+        }
+        setState(() {
+          _dragOffset = 0.0;
+        });
+      },
+      onHorizontalDragCancel: () {
+        setState(() {
+          _dragOffset = 0.0;
+        });
+      },
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          if (_dragOffset > 5)
+            Positioned(
+              left: 4,
+              child: Opacity(
+                opacity: (_dragOffset / _threshold).clamp(0.0, 1.0),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A85FF).withValues(alpha: 0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.reply_rounded,
+                    color: Color(0xFF2A85FF),
+                    size: 19,
+                  ),
+                ),
+              ),
+            ),
+          AnimatedContainer(
+            duration: _dragOffset == 0
+                ? const Duration(milliseconds: 180)
+                : Duration.zero,
+            curve: Curves.easeOutCubic,
+            transform: Matrix4.translationValues(_dragOffset, 0, 0),
+            child: widget.child,
+          ),
+        ],
       ),
     );
   }
