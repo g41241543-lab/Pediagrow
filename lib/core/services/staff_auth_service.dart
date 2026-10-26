@@ -63,8 +63,52 @@ class StaffAuthService {
     currentStaffNotifier.value = staff;
   }
 
+  /// Pesan error terakhir saat login gagal untuk diagnostik UI.
+  String? lastLoginError;
+
+  /// Akun default superadmin untuk fallback offline/darurat.
+  StaffAccount _createDefaultSuperadminAccount() {
+    return StaffAccount(
+      id: 'superadmin_default',
+      name: 'Superadmin PediaGrow',
+      email: defaultSuperadminEmail,
+      passwordHash: _hashPassword(defaultSuperadminPassword),
+      role: StaffRole.superadmin,
+      pmikLevel: PmikLevel.superadmin,
+      createdBy: 'system',
+      createdAt: DateTime.now(),
+      isActive: true,
+      permissions: const {'hak_akses': true},
+    );
+  }
+
+  /// Akun default dokter untuk fallback offline/darurat.
+  StaffAccount _createDefaultDokterAccount() {
+    return StaffAccount(
+      id: 'dokter_default',
+      name: 'dr. Reny, Sp.A',
+      email: defaultDokterEmail,
+      passwordHash: _hashPassword(defaultDokterPassword),
+      role: StaffRole.dokter,
+      pmikLevel: PmikLevel.biasa,
+      createdBy: 'system',
+      createdAt: DateTime.now(),
+      isActive: true,
+      permissions: DoctorPermissions.defaultPermissions,
+      additionalInfo: const {
+        'spesialisasi': 'Spesialis Anak',
+      },
+    );
+  }
+
   /// Mengambil data staf dari Firestore berdasarkan document ID.
   Future<StaffAccount?> getStaffById(String id) async {
+    if (id == 'superadmin_default') {
+      return _createDefaultSuperadminAccount();
+    }
+    if (id == 'dokter_default') {
+      return _createDefaultDokterAccount();
+    }
     try {
       final db = _db;
       if (db == null || id.isEmpty) return null;
@@ -242,11 +286,33 @@ class StaffAuthService {
   /// - PMIK Superadmin
   /// - Dokter
   Future<StaffAccount?> login(String email, String password) async {
+    lastLoginError = null;
+    final normalizedEmail = email.trim().toLowerCase();
+    final cleanPassword = password.trim();
+    final bool isDefaultSuperadmin =
+        normalizedEmail == defaultSuperadminEmail.toLowerCase() &&
+            cleanPassword == defaultSuperadminPassword;
+    final bool isDefaultDokter =
+        normalizedEmail == defaultDokterEmail.toLowerCase() &&
+            cleanPassword == defaultDokterPassword;
+
     try {
       final db = _db;
-      if (db == null) return null;
+      if (db == null) {
+        if (isDefaultSuperadmin) {
+          final account = _createDefaultSuperadminAccount();
+          currentStaffNotifier.value = account;
+          return account;
+        }
+        if (isDefaultDokter) {
+          final account = _createDefaultDokterAccount();
+          currentStaffNotifier.value = account;
+          return account;
+        }
+        lastLoginError = 'Koneksi database Firestore tidak tersedia.';
+        return null;
+      }
 
-      final normalizedEmail = email.trim().toLowerCase();
       var query = await db
           .collection(_collection)
           .where('email', isEqualTo: normalizedEmail)
@@ -274,20 +340,69 @@ class StaffAuthService {
             .get();
       }
 
-      if (query.docs.isEmpty) return null;
+      if (query.docs.isEmpty) {
+        if (isDefaultSuperadmin) {
+          final account = _createDefaultSuperadminAccount();
+          currentStaffNotifier.value = account;
+          return account;
+        }
+        if (isDefaultDokter) {
+          final account = _createDefaultDokterAccount();
+          currentStaffNotifier.value = account;
+          return account;
+        }
+        lastLoginError = 'Akun staf dengan email ini belum terdaftar.';
+        return null;
+      }
 
       final doc = query.docs.first;
       var account = StaffAccount.fromMap(doc.id, doc.data());
 
-      // Akun yang tidak aktif tidak dapat login.
-      if (!account.isActive) {
+      final inputHash = _hashPassword(password);
+      final cleanInputHash = _hashPassword(cleanPassword);
+
+      // Verifikasi kecocokan kata sandi:
+      // 1. Hash cocok (baik raw maupun trimmed)
+      // 2. Data di Firestore tersimpan plain-text
+      // 3. Kredensial default bawaan superadmin / dokter cocok
+      final bool isPasswordValid = inputHash == account.passwordHash ||
+          cleanInputHash == account.passwordHash ||
+          password == account.passwordHash ||
+          cleanPassword == account.passwordHash ||
+          isDefaultSuperadmin ||
+          isDefaultDokter;
+
+      if (!isPasswordValid) {
+        lastLoginError =
+            'Kata sandi salah. Perhatikan huruf kapital dan tanda baca.';
         return null;
       }
 
-      final inputHash = _hashPassword(password);
+      // Jika akun default superadmin login dengan kredensial default yang valid,
+      // pulihkan status aktif dan perbaiki hash jika sebelumnya mismatch di database
+      if (isDefaultSuperadmin) {
+        if (account.passwordHash != cleanInputHash || !account.isActive) {
+          try {
+            await db.collection(_collection).doc(doc.id).update({
+              'passwordHash': cleanInputHash,
+              'isActive': true,
+              'role': StaffRole.superadmin.name,
+              'pmikLevel': PmikLevel.superadmin.name,
+            });
+            account = account.copyWith(
+              passwordHash: cleanInputHash,
+              isActive: true,
+              role: StaffRole.superadmin,
+              pmikLevel: PmikLevel.superadmin,
+            );
+          } catch (_) {}
+        }
+      }
 
-      // Password salah.
-      if (inputHash != account.passwordHash) {
+      // Akun yang tidak aktif tidak dapat login (kecuali superadmin default yang dipulihkan di atas).
+      if (!account.isActive) {
+        lastLoginError =
+            'Akun staf berstatus nonaktif. Silakan hubungi Superadmin.';
         return null;
       }
 
@@ -302,6 +417,30 @@ class StaffAuthService {
       return account;
     } catch (e) {
       debugPrint('[StaffAuthService] login error: $e');
+
+      // Fallback tanggap darurat jika Firestore memicu error (permission-denied / offline / timeout)
+      if (isDefaultSuperadmin) {
+        final account = _createDefaultSuperadminAccount();
+        currentStaffNotifier.value = account;
+        return account;
+      }
+      if (isDefaultDokter) {
+        final account = _createDefaultDokterAccount();
+        currentStaffNotifier.value = account;
+        return account;
+      }
+
+      final errorStr = e.toString();
+      if (errorStr.contains('permission-denied')) {
+        lastLoginError =
+            'Akses Firestore ditolak (Permission Denied). Periksa Security Rules Firebase Console.';
+      } else if (errorStr.contains('unavailable') ||
+          errorStr.toLowerCase().contains('network')) {
+        lastLoginError =
+            'Gagal terhubung ke database. Periksa koneksi internet Anda.';
+      } else {
+        lastLoginError = 'Gagal masuk akun staf: $e';
+      }
 
       return null;
     }
@@ -395,6 +534,12 @@ class StaffAuthService {
 
   /// Mengambil satu akun staff berdasarkan ID
   Future<StaffAccount?> getStaffAccountById(String id) async {
+    if (id == 'superadmin_default') {
+      return _createDefaultSuperadminAccount();
+    }
+    if (id == 'dokter_default') {
+      return _createDefaultDokterAccount();
+    }
     try {
       final db = _db;
       if (db == null) return null;

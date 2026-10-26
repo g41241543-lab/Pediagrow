@@ -107,23 +107,26 @@ class _LoginPageState extends State<LoginPage> {
     // Tahap 1: kalau email terdaftar sebagai staf (dokter/PMIK/superadmin),
     // login lewat StaffAuthService dan masuk sesuai role-nya.
     final staffService = StaffAuthService();
-    if (await staffService.isStaffEmail(_emailController.text)) {
+    final emailInput = _emailController.text.trim();
+    final passwordInput = _passwordController.text;
+
+    if (await staffService.isStaffEmail(emailInput)) {
       final staff = await staffService.login(
-        _emailController.text,
-        _passwordController.text,
+        emailInput,
+        passwordInput,
       );
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
       if (staff == null) {
+        final errorMsg = staffService.lastLoginError ??
+            'Email atau kata sandi salah, atau akun staf tidak aktif.';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Email atau kata sandi salah, atau akun staf tidak aktif.',
-            ),
-            backgroundColor: Color(0xFFB13535),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: const Color(0xFFB13535),
+            duration: const Duration(seconds: 3),
           ),
         );
         return;
@@ -156,8 +159,8 @@ class _LoginPageState extends State<LoginPage> {
 
     // Tahap 2: bukan staf, login sebagai pengguna biasa.
     final result = await UserService().loginWithEmail(
-      email: _emailController.text,
-      password: _passwordController.text,
+      email: emailInput,
+      password: passwordInput,
     );
 
     if (!mounted) return;
