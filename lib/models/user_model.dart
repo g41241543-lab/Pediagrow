@@ -44,7 +44,7 @@ class UserModel {
       return email.trim().split('@').first;
     }
     // 4. Fallback default
-    return 'Susanti';
+    return 'Pengguna';
   }
 
   UserModel copyWith({

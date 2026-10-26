@@ -653,6 +653,11 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                       (matchingSession != null && matchingSession.id.isNotEmpty
                           ? matchingSession.id
                           : 'session_${b.id}');
+                  final resolvedParent = (matchingSession != null &&
+                          matchingSession.parentName.isNotEmpty &&
+                          !matchingSession.parentName.toLowerCase().startsWith('orang tua'))
+                      ? matchingSession.parentName
+                      : 'Orang Tua ${b.child.name}';
                   return _KonsultasiItem(
                     id: b.child.id.isNotEmpty ? b.child.id : b.id,
                     childName: b.child.name,
@@ -662,7 +667,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                     doctorName: b.doctor.name,
                     status: 'berlangsung',
                     sessionId: effSessionId,
-                    parentName: 'Orang Tua ${b.child.name}',
+                    parentName: resolvedParent,
                     complaint: b.complaint,
                     weightKg: b.weightKg ?? b.child.weightKg,
                     heightCm: b.heightCm ?? b.child.heightCm,

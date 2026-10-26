@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -68,6 +69,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
   late String _parentName;
 
   bool _isLoading = false;
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void initState() {
@@ -135,10 +137,8 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
 
   Future<void> _fetchSessionDataIfNeeded() async {
     final sessId = widget.sessionId;
-    if (sessId == null || sessId.isEmpty) return;
-
-    if (_bbSaatIni == '-' || _tbSaatIni == '-' || _complaint == '-') {
-      try {
+    try {
+      if (sessId != null && sessId.isNotEmpty) {
         final session = await KonsultasiService.instance.getSesi(sessId);
         if (session != null && mounted) {
           setState(() {
@@ -153,11 +153,45 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
             if (_complaint == '-' && session.keluhanAwal != null && session.keluhanAwal!.trim().isNotEmpty) {
               _complaint = session.keluhanAwal!.trim();
             }
+            if (session.parentName.trim().isNotEmpty &&
+                !session.parentName.toLowerCase().startsWith('orang tua')) {
+              _parentName = session.parentName.trim();
+            }
           });
         }
-      } catch (e) {
-        debugPrint('[BuatResumeMedis] Error fetching session: $e');
       }
+
+      // Jika _parentName masih berformat generik 'Orang Tua ...', cari nama akun dari koleksi 'users'
+      if (_parentName.toLowerCase().startsWith('orang tua')) {
+        final targetUid = widget.parentUser?.id.isNotEmpty == true
+            ? widget.parentUser!.id
+            : (widget.booking?.userId?.isNotEmpty == true
+                ? widget.booking!.userId
+                : (widget.child?.ownerId.isNotEmpty == true
+                    ? widget.child!.ownerId
+                    : null));
+        if (targetUid != null && targetUid.isNotEmpty) {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(targetUid)
+              .get();
+          if (userDoc.exists && userDoc.data() != null && mounted) {
+            final uData = userDoc.data()!;
+            final realName = (uData['name'] as String?)?.trim() ??
+                (uData['displayName'] as String?)?.trim() ??
+                (uData['username'] as String?)?.trim();
+            if (realName != null &&
+                realName.isNotEmpty &&
+                !realName.toLowerCase().startsWith('orang tua')) {
+              setState(() {
+                _parentName = realName;
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[BuatResumeMedis] Error fetching session / parent user: $e');
     }
   }
 
@@ -171,7 +205,15 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
   }
 
   Future<void> _simpanResumeMedis() async {
-    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+
+    if (!_formKey.currentState!.validate()) {
+      // Aktifkan validasi interaktif hanya setelah tombol Simpan diklik
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
+      return;
+    }
     setState(() => _isLoading = true);
 
     try {
@@ -309,6 +351,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
+            autovalidateMode: _autovalidateMode,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -624,6 +667,12 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   color: _colorTextBlack)),
+          if (isRequired)
+            Text(' *',
+                style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFEF4444))),
           if (!isRequired)
             Padding(
               padding: const EdgeInsets.only(left: 6),
@@ -664,11 +713,25 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
               borderSide:
                   const BorderSide(color: _colorPrimaryBlue, width: 1.5),
             ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide:
+                  const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide:
+                  const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+            ),
+            errorStyle: GoogleFonts.lato(
+              fontSize: 12,
+              color: const Color(0xFFEF4444),
+            ),
           ),
           validator: isRequired
               ? (val) {
                   if (val == null || val.trim().isEmpty) {
-                    return '$label tidak boleh kosong';
+                    return '$label wajib diisi';
                   }
                   return null;
                 }

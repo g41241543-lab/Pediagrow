@@ -330,9 +330,17 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
         DoctorModel.defaultDoctor;
 
     final currentUser = UserService().currentUser;
-    final parentName = currentUser.name.isNotEmpty && currentUser.name != 'Tamu'
-        ? currentUser.name
-        : 'Orang Tua $_effectiveName';
+    String parentName = currentUser.name.trim();
+    if (parentName.isEmpty || parentName.toLowerCase() == 'tamu') {
+      if (currentUser.username != null &&
+          currentUser.username!.trim().isNotEmpty) {
+        parentName = currentUser.username!.trim();
+      } else if (currentUser.email.trim().isNotEmpty) {
+        parentName = currentUser.email.trim().split('@').first;
+      } else {
+        parentName = 'Orang Tua $_effectiveName';
+      }
+    }
     final userId = currentUser.id.isNotEmpty
         ? currentUser.id
         : 'user-${DateTime.now().millisecondsSinceEpoch}';
