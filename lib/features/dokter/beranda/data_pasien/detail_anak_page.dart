@@ -92,7 +92,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   Future<void> _fetchData() async {
     final userId = _parentUser?.id.isNotEmpty == true
         ? _parentUser!.id
-        : _currentChild.ownerId;
+        : (_currentChild.ownerId.isNotEmpty
+            ? _currentChild.ownerId
+            : (widget.booking?.userId ?? ''));
 
     if (userId.isNotEmpty) {
       try {
@@ -901,11 +903,19 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             if (matchedSession != null ||
                 matchedBooking != null ||
                 (effectiveSessionId != null && effectiveSessionId.isNotEmpty)) {
-              final parentDisplayName = matchedSession?.parentName.isNotEmpty == true
-                  ? matchedSession!.parentName
-                  : _parentUser?.name.isNotEmpty == true
-                      ? _parentUser!.name
-                      : 'Orang Tua ${_currentChild.name}';
+              final sessParent = matchedSession?.parentName;
+              final userParent = _parentUser?.name;
+              final parentDisplayName = (sessParent != null &&
+                      sessParent.isNotEmpty &&
+                      !sessParent.toLowerCase().startsWith('orang tua'))
+                  ? sessParent
+                  : (userParent != null &&
+                          userParent.isNotEmpty &&
+                          !userParent.toLowerCase().startsWith('orang tua'))
+                      ? userParent
+                      : (userParent != null && userParent.isNotEmpty
+                          ? userParent
+                          : 'Orang Tua ${_currentChild.name}');
 
               // Ruang Obrolan = Ruang Chat langsung tanpa tombol Masuk Ruang Chat lagi.
               // Dokter dapat langsung mengirim pesan & foto saat konsultasi berlangsung.

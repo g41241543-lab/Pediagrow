@@ -372,8 +372,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     }
 
     final replyId = replyTarget?['id'] as String?;
+    final currentUserName = UserService().currentUser.name;
+    final userRealName = (currentUserName.isNotEmpty &&
+            currentUserName.toLowerCase() != 'tamu')
+        ? currentUserName
+        : 'Anda';
     final replySender = replyTarget != null
-        ? (replyTarget['sender'] == 'user' ? 'Anda' : _effectiveDoctorName)
+        ? (replyTarget['sender'] == 'user'
+            ? userRealName
+            : _effectiveDoctorName)
         : null;
     final replyType = replyTarget?['type'] as String?;
     String? replyText = replyTarget?['message'] as String?;
@@ -2403,8 +2410,15 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           });
         }
         final replyId = replyTarget?['id'] as String?;
+        final currentUserName = UserService().currentUser.name;
+        final userRealName = (currentUserName.isNotEmpty &&
+                currentUserName.toLowerCase() != 'tamu')
+            ? currentUserName
+            : 'Anda';
         final replySender = replyTarget != null
-            ? (replyTarget['sender'] == 'user' ? 'Anda' : _effectiveDoctorName)
+            ? (replyTarget['sender'] == 'user'
+                ? userRealName
+                : _effectiveDoctorName)
             : null;
         final replyType = replyTarget?['type'] as String?;
         String? replyText = replyTarget?['message'] as String?;
@@ -2780,9 +2794,18 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     bool isDark, {
     required bool isUserSender,
   }) {
-    final replySender = item['replyToSender'] as String? ?? 'Pesan';
+    String replySender = item['replyToSender'] as String? ?? 'Pesan';
     final replyText = item['replyToText'] as String? ?? '';
     if (replyText.isEmpty) return const SizedBox.shrink();
+
+    final currentUserName = UserService().currentUser.name;
+    // Jika pesan yang dibalas adalah milik pengguna sendiri (atau tersimpan berformat 'Orang Tua ...'):
+    if (replySender.toLowerCase().startsWith('orang tua') ||
+        (currentUserName.isNotEmpty &&
+            currentUserName.toLowerCase() != 'tamu' &&
+            replySender.toLowerCase() == currentUserName.toLowerCase())) {
+      replySender = 'Anda';
+    }
 
     final quoteBg = isUserSender
         ? (isDark

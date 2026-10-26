@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -121,6 +122,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     super.initState();
     _resolveData();
     _initMessages();
+    _resolveParentNameFromFirebase();
 
     // Aktifkan stream Firestore jika sessionId tersedia
     if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
@@ -151,6 +153,12 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   sesi.keluhanAwal!.trim().isNotEmpty &&
                   _liveComplaint != sesi.keluhanAwal!.trim()) {
                 _liveComplaint = sesi.keluhanAwal!.trim();
+                updated = true;
+              }
+              if (sesi.parentName.trim().isNotEmpty &&
+                  !sesi.parentName.toLowerCase().startsWith('orang tua') &&
+                  _effectiveParentName != sesi.parentName.trim()) {
+                _effectiveParentName = sesi.parentName.trim();
                 updated = true;
               }
               if (updated) {
@@ -213,9 +221,12 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         : 'Laki-laki';
 
     final p = widget.parentUser;
-    _effectiveParentName = p?.name.isNotEmpty == true
+    final candidateName = p?.name.isNotEmpty == true
         ? p!.name
-        : widget.parentName ?? 'Susanti Saputri Dewi';
+        : widget.parentName ?? '';
+    _effectiveParentName = candidateName.isNotEmpty
+        ? candidateName
+        : 'Orang Tua Pasien';
 
     final staff = StaffAuthService().currentStaff;
     _effectiveDoctorName =
@@ -229,6 +240,87 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     _liveHeightCm =
         widget.heightCm ?? widget.booking?.heightCm ?? widget.child?.heightCm;
     _liveComplaint = widget.complaint ?? widget.booking?.complaint;
+  }
+
+  /// Sinkronisasi nama asli orang tua langsung dari dokumen akun Firestore `users`
+  Future<void> _resolveParentNameFromFirebase() async {
+    try {
+      // 1. Ambil targetUserId dari berbagai kemungkinan sumber data
+      String? targetUserId = widget.parentUser?.id.isNotEmpty == true
+          ? widget.parentUser!.id
+          : (widget.booking?.userId?.isNotEmpty == true
+              ? widget.booking!.userId
+              : (widget.child?.ownerId.isNotEmpty == true
+                  ? widget.child!.ownerId
+                  : null));
+
+      // 2. Jika belum ada targetUserId tapi ada sessionId, cari dari consultation_sessions
+      if ((targetUserId == null || targetUserId.isEmpty) &&
+          widget.sessionId != null &&
+          widget.sessionId!.isNotEmpty) {
+        final sessDoc = await FirebaseFirestore.instance
+            .collection('consultation_sessions')
+            .doc(widget.sessionId!)
+            .get();
+        if (sessDoc.exists && sessDoc.data() != null) {
+          final data = sessDoc.data()!;
+          final sessUserId = data['userId'] as String?;
+          final sessParentName = data['parentName'] as String?;
+          if (sessUserId != null && sessUserId.isNotEmpty) {
+            targetUserId = sessUserId;
+          }
+          if (sessParentName != null &&
+              sessParentName.trim().isNotEmpty &&
+              !sessParentName.toLowerCase().startsWith('orang tua')) {
+            if (mounted) {
+              setState(() {
+                _effectiveParentName = sessParentName.trim();
+              });
+            }
+          }
+        }
+      }
+
+      // 3. Jika belum ada targetUserId tapi ada child.id, cari ownerId dari children
+      if ((targetUserId == null || targetUserId.isEmpty) &&
+          widget.child != null &&
+          widget.child!.id.isNotEmpty) {
+        final childDoc = await FirebaseFirestore.instance
+            .collection('children')
+            .doc(widget.child!.id)
+            .get();
+        if (childDoc.exists && childDoc.data() != null) {
+          final ownerId = childDoc.data()!['ownerId'] as String?;
+          if (ownerId != null && ownerId.isNotEmpty) {
+            targetUserId = ownerId;
+          }
+        }
+      }
+
+      // 4. Ambil nama akun orang tua dari koleksi 'users'
+      if (targetUserId != null && targetUserId.isNotEmpty) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(targetUserId)
+            .get();
+        if (userDoc.exists && userDoc.data() != null && mounted) {
+          final uData = userDoc.data()!;
+          final realName = (uData['name'] as String?)?.trim() ??
+              (uData['displayName'] as String?)?.trim() ??
+              (uData['username'] as String?)?.trim();
+          if (realName != null &&
+              realName.isNotEmpty &&
+              !realName.toLowerCase().startsWith('orang tua') &&
+              realName.toLowerCase() != 'tamu') {
+            setState(() {
+              _effectiveParentName = realName;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[ChatDokter] Error resolve parent name: $e');
+    }
   }
 
   void _initMessages() {
@@ -1992,9 +2084,17 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     Map<String, dynamic> item, {
     required bool isDocSender,
   }) {
-    final replySender = item['replyToSender'] as String? ?? 'Pesan';
+    String replySender = item['replyToSender'] as String? ?? 'Pesan';
     final replyText = item['replyToText'] as String? ?? '';
     if (replyText.isEmpty) return const SizedBox.shrink();
+
+    // Jika replySender berformat 'Orang Tua ...', ganti otomatis dengan nama asli akun orang tua
+    if (replySender.toLowerCase().startsWith('orang tua')) {
+      replySender = _effectiveParentName;
+    } else if (replySender == 'Anda' && !isDocSender) {
+      // Jika orang tua membalas pesan dirinya sendiri, dokter melihat nama asli orang tua
+      replySender = _effectiveParentName;
+    }
 
     final quoteBg = isDocSender
         ? Colors.black.withValues(alpha: 0.20)
