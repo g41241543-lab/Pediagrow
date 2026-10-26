@@ -32,6 +32,12 @@ class DoctorModel {
   /// Daftar tempat praktik dokter.
   final List<String> placesOfPractice;
 
+  /// Daftar riwayat pendidikan dokter.
+  final List<String> educations;
+
+  /// Riwayat pendidikan utama dokter (string).
+  final String? education;
+
   /// Biaya konsultasi dokter.
   final int consultationFee;
 
@@ -57,12 +63,32 @@ class DoctorModel {
     this.strNumber,
     this.hospital,
     this.placesOfPractice = const [],
+    this.educations = const [],
+    this.education,
     this.consultationFee = 0,
     this.isOnline = true,
     this.staffAccountId = '',
     this.email,
     this.permissions = const {},
   });
+
+  /// Mengambil daftar riwayat pendidikan dokter.
+  ///
+  /// Prioritas:
+  /// 1. educations jika tersedia.
+  /// 2. education jika educations kosong.
+  /// 3. List kosong jika keduanya tidak tersedia.
+  List<String> get daftarPendidikan {
+    if (educations.isNotEmpty) {
+      return educations;
+    }
+
+    if (education != null && education!.trim().isNotEmpty) {
+      return [education!.trim()];
+    }
+
+    return const [];
+  }
 
   /// Mengambil daftar tempat praktik dokter.
   ///
@@ -99,6 +125,25 @@ class DoctorModel {
           .toList();
     }
 
+    List<String> eduList = [];
+    if (map['educations'] is List) {
+      eduList = (map['educations'] as List)
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+    } else if (map['pendidikan'] is List) {
+      eduList = (map['pendidikan'] as List)
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+    } else if (map['education'] != null &&
+        map['education'].toString().trim().isNotEmpty) {
+      eduList = [map['education'].toString().trim()];
+    } else if (map['pendidikan'] != null &&
+        map['pendidikan'].toString().trim().isNotEmpty) {
+      eduList = [map['pendidikan'].toString().trim()];
+    }
+
     Map<String, bool> parsedPermissions = {};
     if (map['permissions'] is Map) {
       parsedPermissions = (map['permissions'] as Map).map(
@@ -112,6 +157,10 @@ class DoctorModel {
       parsedPermissions = DoctorPermissions.defaultPermissions;
     }
 
+    final singleEdu = map['education']?.toString() ??
+        map['pendidikan']?.toString() ??
+        (eduList.isNotEmpty ? eduList.first : null);
+
     return DoctorModel(
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
@@ -122,6 +171,8 @@ class DoctorModel {
       strNumber: map['str_number']?.toString(),
       hospital: map['hospital']?.toString(),
       placesOfPractice: places,
+      educations: eduList,
+      education: singleEdu,
       consultationFee: (map['consultation_fee'] as num?)?.toInt() ?? 0,
       isOnline: map['is_online'] as bool? ?? true,
       staffAccountId: map['staff_account_id']?.toString() ?? '',
@@ -141,6 +192,8 @@ class DoctorModel {
       'str_number': strNumber,
       'hospital': hospital,
       'places_of_practice': placesOfPractice,
+      'educations': educations,
+      'education': education ?? (educations.isNotEmpty ? educations.first : null),
       'consultation_fee': consultationFee,
       'is_online': isOnline,
       'staff_account_id': staffAccountId,
@@ -159,6 +212,8 @@ class DoctorModel {
     String? strNumber,
     String? hospital,
     List<String>? placesOfPractice,
+    List<String>? educations,
+    String? education,
     int? consultationFee,
     bool? isOnline,
     String? staffAccountId,
@@ -175,6 +230,8 @@ class DoctorModel {
       strNumber: strNumber ?? this.strNumber,
       hospital: hospital ?? this.hospital,
       placesOfPractice: placesOfPractice ?? this.placesOfPractice,
+      educations: educations ?? this.educations,
+      education: education ?? this.education,
       consultationFee: consultationFee ?? this.consultationFee,
       isOnline: isOnline ?? this.isOnline,
       staffAccountId: staffAccountId ?? this.staffAccountId,
@@ -196,6 +253,11 @@ class DoctorModel {
       'RSIA PediaGrow',
       'Praktek Mandiri',
     ],
+    educations: [
+      'Universitas Airlangga - Pendidikan Dokter (S.Ked)',
+      'Universitas Indonesia - Spesialis Ilmu Kesehatan Anak (Sp.A)',
+    ],
+    education: 'Universitas Indonesia - Spesialis Ilmu Kesehatan Anak (Sp.A)',
     consultationFee: 35000,
     isOnline: true,
     email: 'reny@pediagrow.com',
