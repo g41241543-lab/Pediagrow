@@ -694,9 +694,9 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                     DoctorLiveAvatar(
                       doctorId: doc.id,
                       doctorName: doc.name,
-                      fallbackPhoto: doc.avatarUrl,
+                      fallbackPhoto: doc.avatarUrl ?? doc.assetImagePath,
                       size: 52.0,
-                      borderRadius: BorderRadius.circular(14.0),
+                      shape: BoxShape.circle,
                     ),
                     const SizedBox(width: 14.0),
                     Expanded(
