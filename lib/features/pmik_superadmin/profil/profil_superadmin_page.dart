@@ -11,6 +11,7 @@ import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../../models/staff_account_model.dart';
+import '../../pengguna/profil/tampilan_page.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
 ///
@@ -252,7 +253,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       context: context,
       builder: (dialogCtx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1A2228)
+            : Colors.white,
         elevation: 8,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
@@ -266,7 +269,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFFE9EDEF)
+                      : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -275,7 +280,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF667781),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -289,7 +296,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD1D7DB)),
+                          side: BorderSide(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF2C363D)
+                                : const Color(0xFFD1D7DB),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -300,7 +311,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C363D),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFFE9EDEF)
+                                : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -428,12 +441,13 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
       // Custom Header permanen 56dp di bagian paling atas layar
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildCustomHeader(),
+        child: _buildCustomHeader(isDark),
       ),
       // Konten utama scrollable anti-overflow
       body: SafeArea(
@@ -448,7 +462,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
               const SizedBox(height: 16.0),
 
               // 1. KARTU PROFIL DENGAN AVATAR MELAYANG
-              _buildProfileCard(),
+              _buildProfileCard(isDark),
 
               const SizedBox(height: 24.0),
 
@@ -458,14 +472,14 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
 
               const SizedBox(height: 12.0),
 
               // 3. KARTU INFORMASI UMUM
-              _buildGeneralInfoCard(),
+              _buildGeneralInfoCard(isDark),
 
               const SizedBox(height: 20.0),
 
@@ -473,9 +487,15 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5),
+                  color: isDark
+                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                      : const Color(0xFFECFDF5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF059669).withValues(alpha: 0.5)
+                        : const Color(0xFFA7F3D0),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -491,7 +511,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         'Pengelolaan hak akses staf dan dokter dapat dilakukan melalui menu Kelola Hak Akses di Beranda.',
                         style: GoogleFonts.lato(
                           fontSize: 13,
-                          color: const Color(0xFF065F46),
+                          color: isDark
+                              ? const Color(0xFF6EE7B7)
+                              : const Color(0xFF065F46),
                           height: 1.4,
                         ),
                       ),
@@ -499,6 +521,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   ],
                 ),
               ),
+
+              const SizedBox(height: 20.0),
+
+              // 4.5 PENGATURAN TAMPILAN
+              _buildTampilanMenuCard(isDark),
 
               const SizedBox(height: 24.0),
 
@@ -538,10 +565,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
   /// Header kustom dengan tinggi tepat 56dp di bawah SafeArea atas.
   /// Judul "Profil" terletak tepat 16dp dari pojok layar kiri (tanpa tombol back).
-  Widget _buildCustomHeader() {
+  Widget _buildCustomHeader(bool isDark) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -557,7 +584,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 20.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -568,8 +595,92 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     );
   }
 
+  // ─── MENU TAMPILAN ─────────────────────────────────────────────────────────
+  Widget _buildTampilanMenuCard(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10.0,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16.0),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const TampilanPage(),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.palette_outlined,
+                    color: Color(0xFF3985E7),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tampilan',
+                        style: GoogleFonts.lato(
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Pilih tema terang, gelap, atau sistem',
+                        style: GoogleFonts.lato(
+                          fontSize: 12.0,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 15,
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Kartu profil dengan avatar bulat melayang di bagian atas kartu
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(bool isDark) {
     const double avatarRadius = 46.0; // Diameter 92dp
 
     return Stack(
@@ -586,14 +697,17 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             bottom: 20.0,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1.0,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0F000000),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
                 blurRadius: 16.0,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -609,7 +723,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
 
@@ -622,7 +736,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
 
@@ -647,6 +761,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 children: [
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.work_rounded,
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
@@ -657,6 +772,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.badge_outlined,
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
@@ -683,7 +799,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   height: avatarRadius * 2,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3.5),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                      width: 3.5,
+                    ),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x1A000000),
@@ -754,6 +873,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   Widget _buildStatChip({
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required Color bgColor,
@@ -766,7 +886,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isDark ? const Color(0xFF2C363D) : bgColor,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -782,7 +902,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF94A3B8),
                 ),
               ),
               Text(
@@ -792,7 +912,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
                 ),
               ),
             ],
@@ -803,17 +923,20 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   /// Kartu Informasi Umum (Tanggal Lahir dan Pendidikan)
-  Widget _buildGeneralInfoCard() {
+  Widget _buildGeneralInfoCard(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -840,7 +963,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0B1014),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -848,7 +971,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         _superadmin?.birthDate ?? '16/07/2006',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: const Color(0xFF667781),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -859,7 +982,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
 
           // Garis pemisah tipis
-          const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFE9EDEF)),
+          Divider(
+            height: 1.0,
+            thickness: 1.0,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          ),
 
           // Item 2: Pendidikan
           Padding(
@@ -882,7 +1009,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0B1014),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -891,7 +1018,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                             'DIV - Manajemen Informasi Kesehatan',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: const Color(0xFF667781),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -920,12 +1047,18 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       _BottomNavItemData(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
+    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
+
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: navBg,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8.0,
@@ -957,10 +1090,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         Container(
                           width: 36.0,
                           height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: activeCircleBg,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4.0,
@@ -985,7 +1118,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
+                                color: activeLabelColor,
                               ),
                             ),
                           ),
@@ -995,7 +1128,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: const Color(0xFF9E9E9E),
+                          color: inactiveColor,
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -1009,7 +1142,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: inactiveColor,
                               ),
                             ),
                           ),

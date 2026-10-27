@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -56,6 +56,13 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
   static const Color _colorDarkGray = Color(0xFF7F7F7F);
   static const Color _colorLightGray = Color(0xFFC5C5C5);
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D5DB);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : Colors.black;
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : _colorDarkGray;
 
   @override
   void initState() {
@@ -187,7 +194,7 @@ Referensi: Kemenkes RI, 2022''';
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: _cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
@@ -205,7 +212,9 @@ Referensi: Kemenkes RI, 2022''';
                   width: 40.0,
                   height: 4.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: _isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2.0),
                   ),
                 ),
@@ -215,7 +224,7 @@ Referensi: Kemenkes RI, 2022''';
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: _textBlack,
                   ),
                 ),
                 const SizedBox(height: 16.0),
@@ -223,7 +232,9 @@ Referensi: Kemenkes RI, 2022''';
                   leading: Container(
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: _isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
@@ -237,7 +248,7 @@ Referensi: Kemenkes RI, 2022''';
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: _textBlack,
                     ),
                   ),
                   onTap: () {
@@ -245,12 +256,19 @@ Referensi: Kemenkes RI, 2022''';
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
+                Divider(
+                  height: 1.0,
+                  color: _isDark
+                      ? const Color(0xFF2C363D)
+                      : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: _isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
@@ -264,7 +282,7 @@ Referensi: Kemenkes RI, 2022''';
                     style: GoogleFonts.lato(
                       fontSize: 15.0,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: _textBlack,
                     ),
                   ),
                   onTap: () {
@@ -459,7 +477,7 @@ Referensi: Kemenkes RI, 2022''';
     final tanggal = _getTanggalArtikel();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _scaffoldBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -511,7 +529,7 @@ Referensi: Kemenkes RI, 2022''';
                         tanggal,
                         style: GoogleFonts.lato(
                           fontSize: 13.0,
-                          color: _colorLightGray,
+                          color: _textGrey,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
@@ -524,7 +542,7 @@ Referensi: Kemenkes RI, 2022''';
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: _textBlack,
                         ),
                       ),
                       const SizedBox(height: 6.0),
@@ -561,7 +579,7 @@ Referensi: Kemenkes RI, 2022''';
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: _textBlack,
                         ),
                       ),
                       const SizedBox(height: 6.0),
@@ -574,10 +592,12 @@ Referensi: Kemenkes RI, 2022''';
                       const SizedBox(height: 20.0),
 
                       // Garis Pemisah Horizontal Tipis
-                      const Divider(
+                      Divider(
                         height: 1.0,
                         thickness: 1.0,
-                        color: Color(0xFFEEEEEE),
+                        color: _isDark
+                            ? const Color(0xFF2C363D)
+                            : const Color(0xFFEEEEEE),
                       ),
 
                       const SizedBox(height: 20.0),
@@ -590,7 +610,7 @@ Referensi: Kemenkes RI, 2022''';
                             style: GoogleFonts.lato(
                               fontSize: 14.0,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: _textBlack,
                             ),
                           ),
                           const SizedBox(width: 4.0),
@@ -686,7 +706,7 @@ Referensi: Kemenkes RI, 2022''';
     return Container(
       height: 56.0,
       width: double.infinity,
-      color: Colors.white,
+      color: _scaffoldBg,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -698,12 +718,12 @@ Referensi: Kemenkes RI, 2022''';
               child: InkWell(
                 onTap: () => Navigator.of(context).maybePop(),
                 borderRadius: BorderRadius.circular(24.0),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
                   child: Icon(
                     Icons.arrow_back,
                     size: 24.0,
-                    color: Colors.black,
+                    color: _textBlack,
                   ),
                 ),
               ),
@@ -720,7 +740,7 @@ Referensi: Kemenkes RI, 2022''';
               style: GoogleFonts.lato(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: _textBlack,
               ),
             ),
           ),
@@ -737,20 +757,20 @@ Referensi: Kemenkes RI, 2022''';
         radius: 12.0,
         height: 200.0,
         width: double.infinity,
-        color: _colorDarkGray,
+        color: _borderColor,
         strokeWidth: 1.2,
         dashWidth: 6.0,
         dashSpace: 4.0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: _isDark ? const Color(0xFF1A2228) : Colors.transparent,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12.0),
           child: _imagePath != null && _imagePath!.isNotEmpty
               ? _buildImageWidget(_imagePath!)
-              : const Center(
+              : Center(
                   child: Icon(
                     Icons.image_outlined,
                     size: 64.0,
-                    color: _colorDarkGray,
+                    color: _textGrey,
                   ),
                 ),
         ),
@@ -771,8 +791,8 @@ Referensi: Kemenkes RI, 2022''';
   }
 
   Widget _buildFallbackPhotoIcon() {
-    return const Center(
-      child: Icon(Icons.image_outlined, size: 64.0, color: _colorDarkGray),
+    return Center(
+      child: Icon(Icons.image_outlined, size: 64.0, color: _textGrey),
     );
   }
 
@@ -787,7 +807,8 @@ Referensi: Kemenkes RI, 2022''';
     return DashedBorderContainer(
       radius: 10.0,
       height: 48.0,
-      color: hasError ? const Color(0xFFE53935) : _colorDarkGray,
+      color: hasError ? const Color(0xFFE53935) : _borderColor,
+      backgroundColor: _isDark ? const Color(0xFF1A2228) : Colors.transparent,
       strokeWidth: 1.0,
       dashWidth: 5.0,
       dashSpace: 3.5,
@@ -797,12 +818,12 @@ Referensi: Kemenkes RI, 2022''';
           controller: controller,
           focusNode: focusNode,
           onChanged: onChanged,
-          style: GoogleFonts.lato(fontSize: 14.0, color: Colors.black),
+          style: GoogleFonts.lato(fontSize: 14.0, color: _textBlack),
           decoration: InputDecoration(
             hintText: placeholder,
             hintStyle: GoogleFonts.lato(
               fontSize: 14.0,
-              color: _colorDarkGray,
+              color: _textGrey,
               fontWeight: FontWeight.normal,
             ),
             border: InputBorder.none,

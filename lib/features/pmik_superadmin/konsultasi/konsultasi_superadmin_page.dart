@@ -196,9 +196,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
 
   /// Superadmin tidak boleh masuk ruang obrolan — tampilkan sheet terkunci.
   void _showLockedChatSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -212,7 +213,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFD1D7DB),
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -220,8 +221,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             Container(
               width: 72,
               height: 72,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEFF6FF),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -236,7 +237,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               style: GoogleFonts.lato(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
             const SizedBox(height: 10),
@@ -245,7 +246,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
-                color: _colorLabelGrey,
+                color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                 height: 1.5,
               ),
             ),
@@ -255,7 +256,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               child: TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFEFF6FF),
+                  backgroundColor: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -278,10 +279,11 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   void _showJadwalDetailModal(_KonsultasiItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isFemale = item.childGender == 'Perempuan';
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -296,7 +298,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD1D7DB),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -319,7 +321,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         style: GoogleFonts.lato(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: _colorTextBlack,
+                          color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -327,7 +329,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         '${item.childGender} • ${item.childAge}',
                         style: GoogleFonts.lato(
                           fontSize: 12.5,
-                          color: _colorLabelGrey,
+                          color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                         ),
                       ),
                     ],
@@ -336,12 +338,12 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 _buildStatusBadge(
                   'Terjadwal',
                   _colorPrimaryBlue,
-                  const Color(0xFFEBF5FF),
+                  isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEBF5FF),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFE9EDEF)),
+            Divider(color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -356,7 +358,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: _colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   ),
                 ),
               ],
@@ -374,7 +376,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   '${item.scheduledDate ?? '-'} • ${item.scheduledTime ?? '-'}',
                   style: GoogleFonts.lato(
                     fontSize: 13,
-                    color: _colorLabelGrey,
+                    color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                   ),
                 ),
               ],
@@ -385,7 +387,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               child: TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFEFF6FF),
+                  backgroundColor: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -492,31 +494,37 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             final int berlangsungCount = allBerlangsung.length;
             final int jadwalCount = validMockJadwal.length + scheduledUserBookings.length;
 
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+
             return Scaffold(
-              backgroundColor: Colors.white,
+              backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
               appBar: PreferredSize(
                 preferredSize: const Size.fromHeight(56.0),
-                child: _buildHeader(),
+                child: _buildHeader(isDark),
               ),
               body: SafeArea(
                 top: false,
                 bottom: false,
                 child: Column(
                   children: [
-                    _buildTabBar(berlangsungCount, jadwalCount),
+                    _buildTabBar(berlangsungCount, jadwalCount, isDark),
                     Expanded(
                       child: TabBarView(
                         controller: _tabController,
                         children: [
-                          _buildBerlangsungTab(allBerlangsung),
-                          _buildJadwalKonsultasiTab(scheduledUserBookings, validMockJadwal),
+                          _buildBerlangsungTab(allBerlangsung, isDark),
+                          _buildJadwalKonsultasiTab(scheduledUserBookings, validMockJadwal, isDark),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
+<<<<<<< HEAD
+              bottomNavigationBar: _buildBottomNavigationBar(isDark),
+=======
               bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
             );
           },
         );
@@ -525,10 +533,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDark) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -542,7 +550,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 style: GoogleFonts.lato(
                   fontSize: 22.0,
                   fontWeight: FontWeight.bold,
-                  color: _colorTextBlack,
+                  color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   letterSpacing: -0.2,
                 ),
               ),
@@ -554,16 +562,16 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── TAB BAR ──────────────────────────────────────────────────────────────
-  Widget _buildTabBar(int berlangsungCount, int jadwalCount) {
+  Widget _buildTabBar(int berlangsungCount, int jadwalCount, bool isDark) {
     return Container(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: TabBar(
         controller: _tabController,
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: const UnderlineTabIndicator(
           borderSide: BorderSide(color: _colorPrimaryBlue, width: 3),
         ),
-        dividerColor: const Color(0xFFE9EDEF),
+        dividerColor: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
         dividerHeight: 1,
         labelPadding: EdgeInsets.zero,
         labelStyle: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.bold),
@@ -571,8 +579,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
-        labelColor: _colorTextBlack,
-        unselectedLabelColor: _colorLabelGrey,
+        labelColor: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+        unselectedLabelColor: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
         tabs: [
           Tab(
             height: 48,
@@ -581,7 +589,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 const Text('Sedang Berlangsung'),
                 const SizedBox(width: 6),
-                _buildTabBadge(berlangsungCount, isFirstTab: true),
+                _buildTabBadge(berlangsungCount, isFirstTab: true, isDark: isDark),
               ],
             ),
           ),
@@ -592,7 +600,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 const Text('Jadwal Konsultasi'),
                 const SizedBox(width: 6),
-                _buildTabBadge(jadwalCount, isFirstTab: false),
+                _buildTabBadge(jadwalCount, isFirstTab: false, isDark: isDark),
               ],
             ),
           ),
@@ -601,7 +609,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildTabBadge(int count, {required bool isFirstTab}) {
+  Widget _buildTabBadge(int count, {required bool isFirstTab, required bool isDark}) {
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, child) {
@@ -611,7 +619,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
-            color: isThisTabActive ? _colorPrimaryBlue : const Color(0xFFE9EDEF),
+            color: isThisTabActive
+                ? _colorPrimaryBlue
+                : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -619,7 +629,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             style: GoogleFonts.lato(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: isThisTabActive ? Colors.white : _colorLabelGrey,
+              color: isThisTabActive
+                  ? Colors.white
+                  : (isDark ? const Color(0xFF8696A0) : _colorLabelGrey),
             ),
           ),
         );
@@ -628,7 +640,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── TAB 1: SEDANG BERLANGSUNG ────────────────────────────────────────────
-  Widget _buildBerlangsungTab(List<_KonsultasiItem> items) {
+  Widget _buildBerlangsungTab(List<_KonsultasiItem> items, bool isDark) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -641,7 +653,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   const SizedBox(height: 14),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildActiveSessionBanner(),
+                    child: _buildActiveSessionBanner(isDark),
                   ),
                   const SizedBox(height: 12),
                   ...items.map(
@@ -650,7 +662,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         horizontal: 16,
                         vertical: 6,
                       ),
-                      child: _buildBerlangsungCard(item),
+                      child: _buildBerlangsungCard(item, isDark),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -665,15 +677,19 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildActiveSessionBanner() {
+  Widget _buildActiveSessionBanner(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _colorPrimaryBlue.withValues(alpha: 0.07),
+        color: isDark
+            ? const Color(0xFF1E3A5F).withValues(alpha: 0.35)
+            : _colorPrimaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withValues(alpha: 0.22),
+          color: isDark
+              ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+              : _colorPrimaryBlue.withValues(alpha: 0.22),
           width: 1,
         ),
       ),
@@ -683,7 +699,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withValues(alpha: 0.12),
+              color: isDark
+                  ? const Color(0xFF2563EB).withValues(alpha: 0.3)
+                  : _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -702,7 +720,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: _colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -710,7 +728,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Ruang obrolan hanya dapat diakses oleh dokter dan pengguna terkait.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
+                    color: isDark
+                        ? const Color(0xFF8696A0)
+                        : _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -722,25 +742,25 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildBerlangsungCard(_KonsultasiItem item) {
+  Widget _buildBerlangsungCard(_KonsultasiItem item, bool isDark) {
     final isFemale = item.childGender == 'Perempuan';
     return Container(
       decoration: BoxDecoration(
-        color: _colorCardBg,
+        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFBFDBFE),
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.02 : 0.08),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 3),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 6,
             spreadRadius: 0,
             offset: const Offset(0, 1),
@@ -780,14 +800,16 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: _colorTextBlack,
+                                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                               ),
                             ),
                           ),
                           _buildStatusBadge(
                             'Berlangsung',
                             const Color(0xFF10B981),
-                            const Color(0xFFD1FAE5),
+                            isDark
+                                ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                                : const Color(0xFFD1FAE5),
                           ),
                         ],
                       ),
@@ -806,7 +828,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                             item.childAge,
                             style: GoogleFonts.lato(
                               fontSize: 12.5,
-                              color: _colorLabelGrey,
+                              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                             ),
                           ),
                         ],
@@ -817,15 +839,15 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               ],
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
+          Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.medical_services_rounded,
                   size: 14,
-                  color: _colorLabelGrey,
+                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -833,7 +855,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                     item.doctorName,
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
-                      color: _colorLabelGrey,
+                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                     ),
                   ),
                 ),
@@ -880,6 +902,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   Widget _buildJadwalKonsultasiTab(
     List<BookingConsultationModel> userBookings,
     List<_KonsultasiItem> mockItems,
+    bool isDark,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -893,7 +916,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   const SizedBox(height: 14),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildScheduleBanner(),
+                    child: _buildScheduleBanner(isDark),
                   ),
                   const SizedBox(height: 12),
                   ...userBookings.map(
@@ -902,7 +925,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         horizontal: 16,
                         vertical: 6,
                       ),
-                      child: _buildUserBookingCard(booking),
+                      child: _buildUserBookingCard(booking, isDark),
                     ),
                   ),
                   ...mockItems.map(
@@ -911,7 +934,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         horizontal: 16,
                         vertical: 6,
                       ),
-                      child: _buildJadwalCard(item),
+                      child: _buildJadwalCard(item, isDark),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -927,10 +950,11 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   void _showBookingDetailModal(BookingConsultationModel booking) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isFemale = booking.child.gender.toLowerCase().contains('perempuan');
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -945,7 +969,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD1D7DB),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -968,7 +992,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         style: GoogleFonts.lato(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: _colorTextBlack,
+                          color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -976,7 +1000,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         '${booking.child.gender} • ${booking.child.ageDescription}',
                         style: GoogleFonts.lato(
                           fontSize: 12.5,
-                          color: _colorLabelGrey,
+                          color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                         ),
                       ),
                     ],
@@ -985,12 +1009,12 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 _buildStatusBadge(
                   booking.status,
                   _colorPrimaryBlue,
-                  const Color(0xFFEBF5FF),
+                  isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEBF5FF),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFFE9EDEF)),
+            Divider(color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -1005,7 +1029,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: _colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   ),
                 ),
               ],
@@ -1023,7 +1047,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   '${booking.formattedDate} • ${booking.scheduledTimeSlot}',
                   style: GoogleFonts.lato(
                     fontSize: 13,
-                    color: _colorLabelGrey,
+                    color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                   ),
                 ),
               ],
@@ -1034,7 +1058,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               child: TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFEFF6FF),
+                  backgroundColor: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1056,25 +1080,25 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildUserBookingCard(BookingConsultationModel booking) {
+  Widget _buildUserBookingCard(BookingConsultationModel booking, bool isDark) {
     final isFemale = booking.child.gender.toLowerCase().contains('perempuan');
     return Container(
       decoration: BoxDecoration(
-        color: _colorCardBg,
+        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFBFDBFE),
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.02 : 0.08),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 3),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 6,
             spreadRadius: 0,
             offset: const Offset(0, 1),
@@ -1116,7 +1140,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                                   style: GoogleFonts.lato(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: _colorTextBlack,
+                                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                                   ),
                                 ),
                               ),
@@ -1124,7 +1148,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               _buildStatusBadge(
                                 booking.status,
                                 _colorPrimaryBlue,
-                                const Color(0xFFEBF5FF),
+                                isDark
+                                    ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                    : const Color(0xFFEBF5FF),
                               ),
                             ],
                           ),
@@ -1143,7 +1169,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                                 '${booking.child.gender} • ${booking.child.ageDescription}',
                                 style: GoogleFonts.lato(
                                   fontSize: 12.5,
-                                  color: _colorLabelGrey,
+                                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                                 ),
                               ),
                             ],
@@ -1161,10 +1187,12 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0F7FF),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F7FF),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: _colorPrimaryBlue.withValues(alpha: 0.18),
+                      color: isDark
+                          ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                          : _colorPrimaryBlue.withValues(alpha: 0.18),
                       width: 1,
                     ),
                   ),
@@ -1205,15 +1233,15 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 ),
               ),
               const SizedBox(height: 10),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
+              Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.medical_services_rounded,
                       size: 14,
-                      color: _colorLabelGrey,
+                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -1221,7 +1249,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         booking.doctor.name,
                         style: GoogleFonts.lato(
                           fontSize: 12.5,
-                          color: _colorLabelGrey,
+                          color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                         ),
                       ),
                     ),
@@ -1235,15 +1263,19 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildScheduleBanner() {
+  Widget _buildScheduleBanner(bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBF5FF),
+        color: isDark
+            ? const Color(0xFF1E3A5F).withValues(alpha: 0.35)
+            : const Color(0xFFEBF5FF),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _colorPrimaryBlue.withValues(alpha: 0.3),
+          color: isDark
+              ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+              : _colorPrimaryBlue.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -1253,7 +1285,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _colorPrimaryBlue.withValues(alpha: 0.12),
+              color: isDark
+                  ? const Color(0xFF2563EB).withValues(alpha: 0.3)
+                  : _colorPrimaryBlue.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -1272,7 +1306,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: _colorPrimaryBlue,
+                    color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1280,7 +1314,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   'Jadwal konsultasi yang telah dipesan langsung oleh pengguna.',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: _colorPrimaryBlue.withValues(alpha: 0.8),
+                    color: isDark
+                        ? const Color(0xFF8696A0)
+                        : _colorPrimaryBlue.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -1292,25 +1328,25 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  Widget _buildJadwalCard(_KonsultasiItem item) {
+  Widget _buildJadwalCard(_KonsultasiItem item, bool isDark) {
     final isFemale = item.childGender == 'Perempuan';
     return Container(
       decoration: BoxDecoration(
-        color: _colorCardBg,
+        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFBFDBFE),
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
+            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.02 : 0.08),
             blurRadius: 10,
             spreadRadius: 0,
             offset: const Offset(0, 3),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 6,
             spreadRadius: 0,
             offset: const Offset(0, 1),
@@ -1352,7 +1388,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: _colorTextBlack,
+                                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                               ),
                             ),
                           ),
@@ -1360,7 +1396,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                           _buildStatusBadge(
                             'Terjadwal',
                             _colorPrimaryBlue,
-                            const Color(0xFFEBF5FF),
+                            isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEBF5FF),
                           ),
                         ],
                       ),
@@ -1379,7 +1417,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                             item.childAge,
                             style: GoogleFonts.lato(
                               fontSize: 12.5,
-                              color: _colorLabelGrey,
+                              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                             ),
                           ),
                         ],
@@ -1398,10 +1436,12 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F7FF),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F7FF),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _colorPrimaryBlue.withValues(alpha: 0.18),
+                    color: isDark
+                        ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                        : _colorPrimaryBlue.withValues(alpha: 0.18),
                     width: 1,
                   ),
                 ),
@@ -1443,15 +1483,15 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             ),
             const SizedBox(height: 10),
           ],
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
+          Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.medical_services_rounded,
                   size: 14,
-                  color: _colorLabelGrey,
+                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -1459,7 +1499,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                     item.doctorName,
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
-                      color: _colorLabelGrey,
+                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                     ),
                   ),
                 ),
@@ -1557,7 +1597,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── BOTTOM NAVIGATION BAR ────────────────────────────────────────────────
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(bool isDark) {
     const navItems = [
       _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -1565,12 +1605,17 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
       _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
+    final navBg = isDark ? const Color(0xFF1A2228) : _colorNavBg;
+    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
+
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: _colorNavBg,
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: navBg,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8.0,
@@ -1600,10 +1645,10 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         Container(
                           width: 36.0,
                           height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: activeCircleBg,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4.0,
@@ -1628,7 +1673,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
+                                color: activeLabelColor,
                               ),
                             ),
                           ),
@@ -1637,7 +1682,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: const Color(0xFF9E9E9E),
+                          color: inactiveColor,
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -1651,7 +1696,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: inactiveColor,
                               ),
                             ),
                           ),

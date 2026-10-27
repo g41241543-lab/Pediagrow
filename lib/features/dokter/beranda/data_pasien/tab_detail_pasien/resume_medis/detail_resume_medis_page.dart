@@ -34,12 +34,19 @@ class DetailResumeMedisPage extends StatefulWidget {
 
 class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorTextBlack = Color(0xFF1A2228);
-  static const Color _colorLabelGrey = Color(0xFF667781);
-  static const Color _colorBorder = Color(0xFFE9EDEF);
-  static const Color _colorSoftBlue = Color(0xFFEBF5FF);
-  static const Color _colorReadOnlyBg = Color(0xFFF8FAFC);
-  static const Color _colorReadOnlyBorder = Color(0xFFE9EDEF);
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _colorTextBlack =>
+      _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+  Color get _colorLabelGrey =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+  Color get _colorBorder =>
+      _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _colorSoftBlue =>
+      _isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF5FF);
+  Color get _colorReadOnlyBg =>
+      _isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+  Color get _colorReadOnlyBorder =>
+      _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -170,7 +177,7 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: _isDark ? const Color(0xFF1A2228) : Colors.white,
           elevation: 8,
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
           child: Padding(
@@ -183,7 +190,9 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: _isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -192,7 +201,9 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 14,
-                    color: const Color(0xFF7F7F7F),
+                    color: _isDark
+                        ? const Color(0xFF8696A0)
+                        : const Color(0xFF7F7F7F),
                     height: 1.4,
                   ),
                 ),
@@ -205,9 +216,13 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(dialogCtx).pop(true),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            side: const BorderSide(
-                              color: Color(0xFFC5C5C5),
+                            backgroundColor: _isDark
+                                ? const Color(0xFF2C363D)
+                                : Colors.white,
+                            side: BorderSide(
+                              color: _isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFC5C5C5),
                               width: 1.0,
                             ),
                             shape: RoundedRectangleBorder(
@@ -220,7 +235,9 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
                             style: GoogleFonts.lato(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF0F172A),
+                              color: _isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
@@ -318,12 +335,12 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             : '-');
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: _colorTextBlack),
+          icon: Icon(Icons.arrow_back, color: _colorTextBlack),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: Text(
@@ -509,15 +526,16 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
       decoration: BoxDecoration(
         color: _colorSoftBlue,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD6E4FF)),
+        border: Border.all(
+            color: _isDark ? const Color(0xFF334155) : const Color(0xFFD6E4FF)),
       ),
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: _isDark ? const Color(0xFF2C363D) : Colors.white,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -726,7 +744,9 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
               hintText: hint,
               hintStyle: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFFB0BEC5),
+                color: _isDark
+                    ? const Color(0xFF667781)
+                    : const Color(0xFFB0BEC5),
               ),
               prefixIcon: Padding(
                 padding: const EdgeInsets.only(top: 2.0),
@@ -735,16 +755,18 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
               prefixIconConstraints:
                   const BoxConstraints(minWidth: 44, minHeight: 44),
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: _isDark
+                  ? const Color(0xFF1A2228)
+                  : const Color(0xFFF8FAFC),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: _colorBorder),
+                borderSide: BorderSide(color: _colorBorder),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: _colorBorder),
+                borderSide: BorderSide(color: _colorBorder),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -813,26 +835,30 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
               hintText: 'Tulis anjuran satu per baris:\n1. Berikan ASI sesering mungkin\n2. Kontrol ulang 2 minggu',
               hintStyle: GoogleFonts.lato(
                 fontSize: 13,
-                color: const Color(0xFFB0BEC5),
+                color: _isDark
+                    ? const Color(0xFF667781)
+                    : const Color(0xFFB0BEC5),
               ),
-              prefixIcon: const Padding(
-                padding: EdgeInsets.only(top: 2.0),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(top: 2.0),
                 child: Icon(Icons.check_circle_outline_rounded,
                     size: 20, color: _colorLabelGrey),
               ),
               prefixIconConstraints:
                   const BoxConstraints(minWidth: 44, minHeight: 44),
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: _isDark
+                  ? const Color(0xFF1A2228)
+                  : const Color(0xFFF8FAFC),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: _colorBorder),
+                borderSide: BorderSide(color: _colorBorder),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: _colorBorder),
+                borderSide: BorderSide(color: _colorBorder),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -860,8 +886,8 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 2.0),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
                   child: Icon(Icons.check_circle_outline_rounded,
                       size: 19, color: _colorLabelGrey),
                 ),
@@ -952,8 +978,12 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             child: ElevatedButton(
               onPressed: _isSaving ? null : _cancelEdit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE9EDEF),
-                foregroundColor: const Color(0xFF667781),
+                backgroundColor: _isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
+                foregroundColor: _isDark
+                    ? const Color(0xFFE9EDEF)
+                    : const Color(0xFF667781),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

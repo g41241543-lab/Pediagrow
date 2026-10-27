@@ -471,12 +471,23 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
   // ══════════════════════════════════════════════════════════════════════════
   // UI BUILD
   // ══════════════════════════════════════════════════════════════════════════
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg =>
+      _isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF);
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor =>
+      _isDark ? const Color(0xFF2C363D) : _colorBorderGrey;
+  Color get _textPrimary =>
+      _isDark ? const Color(0xFFE9EDEF) : _colorTextBlack;
+  Color get _textSecondary =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
   @override
   Widget build(BuildContext context) {
     final isPdf = widget.format == 'pdf';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE9EDEF),
+      backgroundColor: _scaffoldBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -501,10 +512,10 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
       height: 56,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: _cardBg,
         border: Border(
-          bottom: BorderSide(color: _colorBorderGrey, width: 1.0),
+          bottom: BorderSide(color: _borderColor, width: 1.0),
         ),
       ),
       child: Row(
@@ -515,11 +526,11 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () => Navigator.of(context).pop(),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 36,
                 height: 36,
                 child: Center(
-                  child: Icon(Icons.arrow_back, color: _colorTextBlack, size: 24),
+                  child: Icon(Icons.arrow_back, color: _textPrimary, size: 24),
                 ),
               ),
             ),
@@ -549,7 +560,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
+                    color: _textPrimary,
                   ),
                 ),
               ],
@@ -568,8 +579,8 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
       canChangePageFormat: false,
       canDebug: false,
       useActions: false, // Digantikan dengan bottom action bar sesuai instruksi
-      scrollViewDecoration: const BoxDecoration(
-        color: Color(0xFFE9EDEF),
+      scrollViewDecoration: BoxDecoration(
+        color: _scaffoldBg,
       ),
       loadingWidget: const Center(
         child: CircularProgressIndicator(
@@ -600,8 +611,9 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
           constraints: const BoxConstraints(maxWidth: 800),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _cardBg,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _borderColor, width: 1.0),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0F000000),
@@ -648,7 +660,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                         'Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan',
                         style: GoogleFonts.lato(
                           fontSize: 10,
-                          color: const Color(0xFF667781),
+                          color: _textSecondary,
                         ),
                       ),
                     ],
@@ -658,7 +670,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                     style: GoogleFonts.lato(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2C363D),
+                      color: _textSecondary,
                     ),
                   ),
                 ],
@@ -672,7 +684,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
+                    color: _textPrimary,
                   ),
                 ),
               ),
@@ -681,7 +693,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
               // Tabel Dataset Excel Scrollable Horizontal
               Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: _colorBorderGrey),
+                  border: Border.all(color: _borderColor),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: SingleChildScrollView(
@@ -696,10 +708,12 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                       children: [
                         // Header baris (Frozen row)
                         Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFE9EDEF),
+                          decoration: BoxDecoration(
+                            color: _isDark
+                                ? const Color(0xFF2C363D)
+                                : const Color(0xFFE9EDEF),
                             borderRadius:
-                                BorderRadius.vertical(top: Radius.circular(7)),
+                                const BorderRadius.vertical(top: Radius.circular(7)),
                           ),
                           child: Row(
                             children: List.generate(headers.length, (i) {
@@ -708,10 +722,10 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 8),
                                 decoration: i < headers.length - 1
-                                    ? const BoxDecoration(
+                                    ? BoxDecoration(
                                         border: Border(
                                             right: BorderSide(
-                                                color: _colorBorderGrey,
+                                                color: _borderColor,
                                                 width: 0.8)))
                                     : null,
                                 child: Text(
@@ -719,15 +733,15 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF2C363D),
+                                    color: _textPrimary,
                                   ),
                                 ),
                               );
                             }),
                           ),
                         ),
-                        const Divider(
-                            height: 1, thickness: 1, color: _colorBorderGrey),
+                        Divider(
+                            height: 1, thickness: 1, color: _borderColor),
 
                         // Baris Data Pengguna
                         ...List.generate(widget.users.length, (idx) {
@@ -762,17 +776,17 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 8),
                                     decoration: ci < cells.length - 1
-                                        ? const BoxDecoration(
+                                        ? BoxDecoration(
                                             border: Border(
                                                 right: BorderSide(
-                                                    color: _colorBorderGrey,
+                                                    color: _borderColor,
                                                     width: 0.8)))
                                         : null,
                                     child: Text(
                                       cells[ci],
                                       style: GoogleFonts.lato(
                                         fontSize: 11,
-                                        color: const Color(0xFF1A2228),
+                                        color: _textPrimary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -781,10 +795,10 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                                 }),
                               ),
                               if (!isLast)
-                                const Divider(
+                                Divider(
                                     height: 1,
                                     thickness: 0.8,
-                                    color: _colorBorderGrey),
+                                    color: _borderColor),
                             ],
                           );
                         }),
@@ -801,7 +815,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                   'Dokumen dibuat otomatis oleh Aplikasi PediaGrow',
                   style: GoogleFonts.lato(
                     fontSize: 9.5,
-                    color: const Color(0xFF8696A0),
+                    color: _textSecondary,
                   ),
                 ),
               ),
@@ -817,12 +831,12 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
       width: double.infinity,
       height: 68,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: _cardBg,
         border: Border(
-          top: BorderSide(color: _colorBorderGrey, width: 1.0),
+          top: BorderSide(color: _borderColor, width: 1.0),
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Color(0x0C000000),
             blurRadius: 8,
@@ -844,7 +858,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
           Container(
             height: 32,
             width: 1,
-            color: _colorBorderGrey,
+            color: _borderColor,
           ),
 
           // Tombol 2: Ikon Share (Bagikan)
@@ -875,7 +889,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
             children: [
               Icon(
                 icon,
-                color: _colorPrimaryBlue,
+                color: _isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
                 size: 24,
               ),
               const SizedBox(height: 2),
@@ -884,7 +898,7 @@ class _PreviewDatasetPageState extends State<PreviewDatasetPage> {
                 style: GoogleFonts.lato(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: _colorPrimaryBlue,
+                  color: _isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
                 ),
               ),
             ],

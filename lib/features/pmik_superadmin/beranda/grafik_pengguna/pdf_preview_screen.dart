@@ -21,13 +21,18 @@ class PdfPreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC);
+    final appbarBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A202C);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appbarBg,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A202C)),
+          icon: Icon(Icons.arrow_back, color: textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -35,7 +40,7 @@ class PdfPreviewScreen extends StatelessWidget {
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF1A202C),
+            color: textPrimary,
           ),
         ),
       ),
@@ -48,15 +53,20 @@ class PdfPreviewScreen extends StatelessWidget {
         canChangePageFormat: false,
         canDebug: false,
         previewPageMargin: const EdgeInsets.all(12),
-        loadingWidget: const Center(
+        loadingWidget: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
+              const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2A85FF)),
               ),
-              SizedBox(height: 12),
-              Text('Menyiapkan pratinjau dokumen...'),
+              const SizedBox(height: 12),
+              Text(
+                'Menyiapkan pratinjau dokumen...',
+                style: GoogleFonts.lato(
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B),
+                ),
+              ),
             ],
           ),
         ),

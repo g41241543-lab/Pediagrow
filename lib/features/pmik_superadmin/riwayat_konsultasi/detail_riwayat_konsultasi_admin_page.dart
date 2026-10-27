@@ -35,8 +35,11 @@ class DetailRiwayatKonsultasiAdminPage extends StatefulWidget {
 class _DetailRiwayatKonsultasiAdminPageState
     extends State<DetailRiwayatKonsultasiAdminPage> {
   // ─── Color Palette ─────────────────────────────────────────────────────────
-  static const Color _colorSecondaryGrey = Color(0xFF7F7F7F);
-  static const Color _colorTextBlack = Color(0xFF000000);
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _colorSecondaryGrey =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F);
+  Color get _colorTextBlack =>
+      _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
 
   late RiwayatKonsultasiAdminItem _item;
 
@@ -135,7 +138,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     final summaryIsEmpty = _item.summary.trim().isEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
       body: Column(
         children: [
           // ─── HEADER (56dp dari atas layar) ───────────────────────────
@@ -221,7 +224,7 @@ class _DetailRiwayatKonsultasiAdminPageState
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: _isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -231,7 +234,7 @@ class _DetailRiwayatKonsultasiAdminPageState
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               behavior: HitTestBehavior.opaque,
-              child: const SizedBox(
+              child: SizedBox(
                 width: 32.0,
                 height: 32.0,
                 child: Icon(
@@ -268,8 +271,9 @@ class _DetailRiwayatKonsultasiAdminPageState
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
+        border: _isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         boxShadow: const [
           BoxShadow(
             color: Color(0x10000000),
@@ -303,7 +307,7 @@ class _DetailRiwayatKonsultasiAdminPageState
                   style: GoogleFonts.lato(
                     fontSize: 16.5,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2228),
+                    color: _colorTextBlack,
                   ),
                 ),
                 const SizedBox(height: 4.0),
@@ -330,10 +334,10 @@ class _DetailRiwayatKonsultasiAdminPageState
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAF4FE),
+        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEAF4FE),
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: const Color(0xFFBAE6FD),
+          color: _isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD),
           width: 1.0,
         ),
       ),
@@ -359,7 +363,7 @@ class _DetailRiwayatKonsultasiAdminPageState
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.assignment_outlined,
                 size: 20.0,
                 color: _colorSecondaryGrey,
@@ -412,7 +416,7 @@ class _DetailRiwayatKonsultasiAdminPageState
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF1A2228),
+              color: _colorTextBlack,
             ),
           ),
         ),
@@ -463,20 +467,20 @@ class _DetailRiwayatKonsultasiAdminPageState
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F4FD),
+        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F4FD),
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          color: const Color(0xFF72A9F4),
+          color: _isDark ? const Color(0xFF334155) : const Color(0xFF72A9F4),
           width: 1.0,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline_rounded,
             size: 22.0,
-            color: Color(0xFF3985E7),
+            color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF3985E7),
           ),
           const SizedBox(width: 12.0),
           Expanded(
@@ -484,7 +488,7 @@ class _DetailRiwayatKonsultasiAdminPageState
               'Mode nonaktif. Anda tidak dapat membalas atau mengubah riwayat konsultasi.',
               style: GoogleFonts.lato(
                 fontSize: 13.5,
-                color: const Color(0xFF2B7CD6),
+                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF2B7CD6),
                 height: 1.35,
               ),
             ),

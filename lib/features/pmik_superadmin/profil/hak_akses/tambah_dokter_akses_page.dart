@@ -122,9 +122,16 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // IMAGE PICKER (KAMERA & GALERI)
   // ---------------------------------------------------------------------------
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final barColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+    final iconBg = isDark ? const Color(0xFF3985E7).withValues(alpha: 0.15) : const Color(0xFFECF6FF);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -139,7 +146,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: barColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -149,7 +156,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -157,7 +164,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: iconBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -171,7 +178,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: textPrimary,
                     ),
                   ),
                   onTap: () {
@@ -179,12 +186,12 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFE9EDEF)),
+                Divider(height: 1, color: dividerColor),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: iconBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -198,7 +205,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: textPrimary,
                     ),
                   ),
                   onTap: () {
@@ -315,12 +322,16 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: scaffoldBg,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
+        child: _buildHeader(context, isDark),
       ),
       body: SafeArea(
         top: false,
@@ -333,23 +344,23 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // 1. KARTU PROFIL DOKTER
-                _buildDoctorProfileCard(),
+                _buildDoctorProfileCard(isDark),
                 const SizedBox(height: 16.0),
 
                 // 2. KARTU KATA SANDI AKUN LOGIN
-                _buildPasswordCard(),
+                _buildPasswordCard(isDark),
                 const SizedBox(height: 20.0),
 
                 // 3. SECTION PENDIDIKAN
-                _buildPendidikanSection(),
+                _buildPendidikanSection(isDark),
                 const SizedBox(height: 20.0),
 
                 // 4. SECTION TEMPAT PRAKTIK
-                _buildTempatPraktikSection(),
+                _buildTempatPraktikSection(isDark),
                 const SizedBox(height: 20.0),
 
                 // 4. SECTION HAK AKSES
-                _buildHakAksesSection(),
+                _buildHakAksesSection(isDark),
                 const SizedBox(height: 24.0),
 
                 // 5. TOMBOL SIMPAN
@@ -395,10 +406,13 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // HEADER 56DP
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: headerBg,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -415,10 +429,10 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     alignment: Alignment.center,
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -431,7 +445,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -447,18 +461,28 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU PROFIL DOKTER
   // ---------------------------------------------------------------------------
-  Widget _buildDoctorProfileCard() {
+  Widget _buildDoctorProfileCard(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final avatarBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final avatarBg = isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF);
+    final textName = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textVal = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final iconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
+    final verticalLineColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 18.0, 16.0, 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: borderColor),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
             blurRadius: 10.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -473,13 +497,13 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFD1D7DB),
+                  color: avatarBorder,
                   width: 1.5,
                 ),
-                color: const Color(0xFFE9EDEF),
+                color: avatarBg,
               ),
               child: ClipOval(
-                child: _buildAvatarImage(),
+                child: _buildAvatarImage(isDark),
               ),
             ),
           ),
@@ -506,7 +530,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 16.0,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: textName,
             ),
             decoration: InputDecoration(
               isDense: true,
@@ -516,7 +540,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               hintStyle: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: hintColor,
               ),
             ),
             validator: (v) =>
@@ -533,7 +557,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF2C363D),
+              color: textVal,
             ),
             decoration: InputDecoration(
               isDense: true,
@@ -542,7 +566,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               hintText: 'Spesialis',
               hintStyle: GoogleFonts.lato(
                 fontSize: 14.0,
-                color: const Color(0xFF667781),
+                color: hintColor,
               ),
             ),
           ),
@@ -557,7 +581,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.lato(
               fontSize: 13.0,
-              color: const Color(0xFF2C363D),
+              color: textVal,
             ),
             decoration: InputDecoration(
               isDense: true,
@@ -566,7 +590,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               hintText: 'E-mail',
               hintStyle: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: const Color(0xFF667781),
+                color: hintColor,
               ),
             ),
             validator: (v) {
@@ -590,6 +614,14 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Icon(
+                        Icons.work_outline_rounded,
+                        size: 20.0,
+                        color: iconColor,
+=======
                     Container(
                       width: 28.0,
                       height: 28.0,
@@ -601,6 +633,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                         Icons.work_outline_rounded,
                         size: 16.0,
                         color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -612,7 +645,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                             'Pengalaman',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF8696A0),
+                              color: hintColor,
                             ),
                           ),
                           Row(
@@ -627,7 +660,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 13.0,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2C363D),
+                                    color: textVal,
                                   ),
                                   decoration: InputDecoration(
                                     isDense: true,
@@ -637,7 +670,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                                     hintText: 'Isi (Tahun)',
                                     hintStyle: GoogleFonts.lato(
                                       fontSize: 12.0,
-                                      color: const Color(0xFF8696A0),
+                                      color: hintColor,
                                     ),
                                   ),
                                 ),
@@ -648,7 +681,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2C363D),
+                                  color: textVal,
                                 ),
                               ),
                             ],
@@ -666,7 +699,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               Container(
                 width: 1.0,
                 height: 44.0,
-                color: const Color(0xFFE9EDEF),
+                color: verticalLineColor,
                 margin: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
 
@@ -675,6 +708,14 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Icon(
+                        Icons.badge_outlined,
+                        size: 20.0,
+                        color: iconColor,
+=======
                     Container(
                       width: 28.0,
                       height: 28.0,
@@ -686,6 +727,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                         Icons.badge_outlined,
                         size: 16.0,
                         color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -697,7 +739,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                             'No. STR',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF8696A0),
+                              color: hintColor,
                             ),
                           ),
                           TextFormField(
@@ -709,7 +751,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF2C363D),
+                              color: textVal,
                             ),
                             decoration: InputDecoration(
                               isDense: true,
@@ -719,7 +761,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                               hintText: 'No. STR',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 12.0,
-                                color: const Color(0xFF8696A0),
+                                color: hintColor,
                               ),
                             ),
                           ),
@@ -741,18 +783,24 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU KATA SANDI
   // ---------------------------------------------------------------------------
-  Widget _buildPasswordCard() {
+  Widget _buildPasswordCard(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final textVal = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: borderColor),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
             blurRadius: 10.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -764,7 +812,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 13.0,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF2C363D),
+              color: textTitle,
             ),
           ),
           const SizedBox(height: 6.0),
@@ -774,7 +822,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF0B1014),
+              color: textVal,
             ),
             decoration: InputDecoration(
               isDense: true,
@@ -783,7 +831,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               hintText: 'Masukkan kata sandi dokter',
               hintStyle: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: const Color(0xFF8696A0),
+                color: hintColor,
               ),
               suffixIcon: IconButton(
                 padding: EdgeInsets.zero,
@@ -793,7 +841,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
                   size: 20.0,
-                  color: const Color(0xFF8696A0),
+                  color: hintColor,
                 ),
                 onPressed: () {
                   setState(() {
@@ -816,19 +864,30 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
     );
   }
 
-  Widget _buildAvatarImage() {
+  Widget _buildAvatarImage(bool isDark) {
+    final fallbackBg = isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF);
+    final fallbackIcon = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
+
     return StorageService.buildImageWidget(
       _avatarPath,
       fit: BoxFit.cover,
       width: 82.0,
       height: 82.0,
       errorWidget: Container(
+<<<<<<< HEAD
+        color: fallbackBg,
+=======
         color: const Color(0xFFECF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         alignment: Alignment.center,
-        child: const Icon(
+        child: Icon(
           Icons.person_rounded,
           size: 46.0,
+<<<<<<< HEAD
+          color: fallbackIcon,
+=======
           color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         ),
       ),
     );
@@ -837,7 +896,13 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION PENDIDIKAN
   // ---------------------------------------------------------------------------
-  Widget _buildPendidikanSection() {
+  Widget _buildPendidikanSection(bool isDark) {
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textVal = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -849,7 +914,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: titleColor,
               ),
             ),
             IconButton(
@@ -868,18 +933,74 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: borderColor),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Column(
+<<<<<<< HEAD
+            children: List.generate(_pendidikanCtrls.length, (idx) {
+              final ctrl = _pendidikanCtrls[idx];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.school_outlined,
+                      size: 22.0,
+                      color: hintColor,
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: ctrl,
+                            style: GoogleFonts.lato(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w500,
+                              color: textVal,
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              border: InputBorder.none,
+                              hintText: 'Riwayat Pendidikan (Gelar / Univ)',
+                              hintStyle: GoogleFonts.lato(
+                                fontSize: 14.0,
+                                color: hintColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const _DottedLine(),
+                        ],
+                      ),
+                    ),
+                    if (_pendidikanCtrls.length > 1)
+                      GestureDetector(
+                        onTap: () => _removePendidikan(idx),
+                        child: const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Icon(
+                            Icons.remove_circle_outline_rounded,
+                            size: 20.0,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+=======
             children: List.generate(_pendidikanEntries.length, (idx) {
               final entry = _pendidikanEntries[idx];
               return Column(
@@ -896,6 +1017,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                       child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
                     ),
                 ],
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
               );
             }),
           ),
@@ -907,7 +1029,13 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION TEMPAT PRAKTIK
   // ---------------------------------------------------------------------------
-  Widget _buildTempatPraktikSection() {
+  Widget _buildTempatPraktikSection(bool isDark) {
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textVal = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -919,7 +1047,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: titleColor,
               ),
             ),
             IconButton(
@@ -938,14 +1066,14 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: borderColor),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -956,6 +1084,12 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
+<<<<<<< HEAD
+                    Icon(
+                      Icons.apartment_rounded,
+                      size: 22.0,
+                      color: hintColor,
+=======
                     Container(
                       width: 32.0,
                       height: 32.0,
@@ -968,6 +1102,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                         size: 20.0,
                         color: Color(0xFF3985E7),
                       ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
@@ -979,7 +1114,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 14.0,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF2C363D),
+                              color: textVal,
                             ),
                             decoration: InputDecoration(
                               isDense: true,
@@ -989,7 +1124,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                               hintText: 'Nama Tempat Praktik',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 14.0,
-                                color: const Color(0xFF8696A0),
+                                color: hintColor,
                               ),
                             ),
                           ),
@@ -1023,7 +1158,13 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION HAK AKSES (16 TOGGLE)
   // ---------------------------------------------------------------------------
-  Widget _buildHakAksesSection() {
+  Widget _buildHakAksesSection(bool isDark) {
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final labelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1032,20 +1173,20 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
           style: GoogleFonts.lato(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF000000),
+            color: titleColor,
           ),
         ),
         const SizedBox(height: 8.0),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: borderColor),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -1074,7 +1215,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF2C363D),
+                                color: labelColor,
                               ),
                             ),
                           ),
@@ -1083,8 +1224,8 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                             activeThumbColor: const Color(0xFF3985E7),
                             activeTrackColor:
                                 const Color(0xFF3985E7).withValues(alpha: 0.5),
-                            inactiveThumbColor: const Color(0xFFFFFFFF),
-                            inactiveTrackColor: const Color(0xFF8696A0),
+                            inactiveThumbColor: isDark ? const Color(0xFF8696A0) : const Color(0xFFFFFFFF),
+                            inactiveTrackColor: isDark ? const Color(0xFF2C363D) : const Color(0xFF8696A0),
                             onChanged: (val) {
                               setState(() {
                                 _permissions[item.key] = val;
@@ -1095,10 +1236,10 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                       ),
                     ),
                     if (!isLast)
-                      const Divider(
+                      Divider(
                         height: 1.0,
                         thickness: 0.8,
-                        color: Color(0xFFE9EDEF),
+                        color: dividerColor,
                         indent: 16.0,
                         endIndent: 16.0,
                       ),
@@ -1115,15 +1256,19 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
 
 /// Garis putus-putus horizontal sesuai desain
 class _DottedLine extends StatelessWidget {
-  const _DottedLine();
+  final Color? color;
+  const _DottedLine({this.color});
 
-  static const Color _color = Color(0xFFD1D7DB);
+  static const Color _defaultColor = Color(0xFFD1D7DB);
   static const double _height = 1.0;
   static const double _dotWidth = 3.0;
   static const double _spaceWidth = 3.0;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dotColor = color ?? (isDark ? const Color(0xFF2C363D) : _defaultColor);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final boxWidth = constraints.constrainWidth();
@@ -1131,11 +1276,11 @@ class _DottedLine extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(count > 0 ? count : 1, (_) {
-            return const SizedBox(
+            return SizedBox(
               width: _dotWidth,
               height: _height,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: _color),
+                decoration: BoxDecoration(color: dotColor),
               ),
             );
           }),

@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -137,6 +137,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       // Dismiss keyboard saat pengguna mengetuk di luar Search Bar
       onTap: () => FocusScope.of(context).unfocus(),
@@ -153,7 +154,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           }
         },
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
           resizeToAvoidBottomInset: true,
           body: SafeArea(
             bottom: false,
@@ -193,6 +194,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // Warna #F2EDED, tinggi 68dp, identik dengan halaman Beranda
   // =========================================================================
   Widget _buildFixedNavBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final navItems = [
       const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -206,13 +208,21 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : Colors.transparent,
+            width: 1.0,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x18000000),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : const Color(0x18000000),
             blurRadius: 8.0,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -239,14 +249,16 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         Container(
                           width: 36.0,
                           height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF242E35) : Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0x1A000000),
+                                color: isDark
+                                    ? Colors.black.withValues(alpha: 0.3)
+                                    : const Color(0x1A000000),
                                 blurRadius: 4.0,
-                                offset: Offset(0, 1),
+                                offset: const Offset(0, 1),
                               ),
                             ],
                           ),
@@ -254,7 +266,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           child: Icon(
                             item.icon,
                             size: 22.0,
-                            color: const Color(0xFF72A9F4),
+                            color: isDark
+                                ? const Color(0xFF3985E7)
+                                : const Color(0xFF72A9F4),
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -267,7 +281,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
+                                color: isDark
+                                    ? const Color(0xFFE9EDEF)
+                                    : const Color(0xFF1A2228),
                               ),
                             ),
                           ),
@@ -276,7 +292,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: const Color(0xFF9E9E9E),
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF9E9E9E),
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -290,7 +308,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: isDark
+                                    ? const Color(0xFF8696A0)
+                                    : const Color(0xFF9E9E9E),
                               ),
                             ),
                           ),
@@ -312,10 +332,11 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // Tombol Kembali 12dp dari kiri, Judul "Data Pengguna" Lato 20sp Bold
   // ===========================================================================
   Widget _buildFixedHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       height: 56,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(left: 12, right: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -335,16 +356,20 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               }
             },
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: _colorTextBlack, size: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                size: 24,
+              ),
             ),
           ),
 
           // Jarak 12dp setelah tombol kembali
           const SizedBox(width: 12),
 
-          // Judul "Data Pengguna" (Font Lato 20sp Bold, #000000)
+          // Judul "Data Pengguna" (Font Lato 20sp Bold)
           Expanded(
             child: Text(
               'Data Pengguna',
@@ -353,7 +378,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
           ),
@@ -367,23 +392,27 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // Sudut Rounded 14dp, Background Abu-Abu Muda, Ikon Search, Dynamic Filtering
   // ===========================================================================
   Widget _buildFixedSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: _colorSearchBarBg,
+          color: isDark ? const Color(0xFF1A2228) : _colorSearchBarBg,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1.0,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 12),
             // Ikon Pencarian
-            const Icon(
+            Icon(
               Icons.search_rounded,
-              color: Color(0xFF8696A0),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
               size: 22,
             ),
             const SizedBox(width: 8),
@@ -396,7 +425,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: _colorTextBlack,
+                  color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Data Pengguna',
@@ -568,6 +597,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     required List<ChildModel> children,
     required int childrenCount,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Teks keterangan jumlah anak
     final String childInfoText = childrenCount > 0
         ? '$childrenCount Anak Terdaftar'
@@ -576,28 +606,38 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         // Efek border biru halus yang ada di hover card fasyankes
         border: Border.all(
-          color: _colorCardBorder.withValues(alpha: 0.35),
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : _colorCardBorder.withValues(alpha: 0.35),
           width: 1.2,
         ),
-        boxShadow: [
-          // Shadow halus dengan rona biru elegan
-          BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                // Shadow halus dengan rona biru elegan
+                BoxShadow(
+                  color: _colorPrimaryBlue.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 3),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 1),
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -622,7 +662,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Nama Pengguna (Lato Bold, #000000)
+                      // Nama Pengguna
                       Text(
                         user.name.isNotEmpty ? user.name : 'Pengguna',
                         maxLines: 1,
@@ -630,14 +670,14 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         style: GoogleFonts.lato(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: _colorTextBlack,
+                          color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                           height: 1.2,
                         ),
                       ),
 
                       const SizedBox(height: 6),
 
-                      // Status Jumlah Anak (Lato Regular, warna abu-abu #94A3B8)
+                      // Status Jumlah Anak
                       Text(
                         childInfoText,
                         maxLines: 1,
@@ -645,7 +685,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         style: GoogleFonts.lato(
                           fontSize: 13,
                           fontWeight: FontWeight.normal,
-                          color: _colorSubtitleGrey,
+                          color: isDark ? const Color(0xFF8696A0) : _colorSubtitleGrey,
                         ),
                       ),
                     ],
@@ -655,10 +695,10 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                 const SizedBox(width: 12),
 
                 // Button Chevron Right (>) Penanda Klik
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
                   size: 26,
-                  color: _colorTextBlack,
+                  color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                 ),
               ],
             ),
@@ -674,6 +714,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // Tidak menampilkan card pengguna apa pun, ilustrasi alam berada di paling bawah.
   // ===========================================================================
   Widget _buildEmptyDatabaseState(BoxConstraints constraints) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       child: ConstrainedBox(
@@ -693,10 +734,10 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE9EDEF),
+                            color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFFE9EDEF),
+                              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                               width: 1.2,
                             ),
                           ),
@@ -713,7 +754,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2228),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -723,7 +764,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.normal,
-                            color: const Color(0xFF667781),
+                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                             height: 1.4,
                           ),
                         ),
@@ -746,6 +787,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // 7. HASIL PENCARIAN KOSONG STATE
   // ===========================================================================
   Widget _buildNoSearchResultsState(BoxConstraints constraints) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       child: ConstrainedBox(
@@ -773,7 +815,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           style: GoogleFonts.lato(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2228),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -782,7 +824,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 13,
-                            color: const Color(0xFF667781),
+                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                           ),
                         ),
                       ],
@@ -802,6 +844,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // 8. SKELETON / LOADING STATE
   // ===========================================================================
   Widget _buildLoadingSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: 5,
@@ -810,9 +853,12 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
@@ -824,7 +870,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                       width: 160,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE9EDEF),
+                        color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -833,7 +879,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                       width: 100,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE9EDEF),
+                        color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -843,8 +889,8 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               Container(
                 width: 20,
                 height: 20,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE9EDEF),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -859,6 +905,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
   // 9. ERROR STATE
   // ===========================================================================
   Widget _buildErrorState(String error) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -876,7 +923,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A2228),
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
               ),
             ),
             const SizedBox(height: 6),
@@ -885,7 +932,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 12,
-                color: const Color(0xFF667781),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
               ),
             ),
             const SizedBox(height: 16),
