@@ -7,6 +7,8 @@ import '../../../models/doctor_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/hover_lift.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
@@ -54,12 +56,10 @@ class DaftarRiwayatKonsultasiAdminPage extends StatefulWidget {
 class _DaftarRiwayatKonsultasiAdminPageState
     extends State<DaftarRiwayatKonsultasiAdminPage> {
   // ─── Color Palette ─────────────────────────────────────────────────────────
-  static const Color _colorNavBg = Color(0xFFF2EDED);
   static const Color _colorSecondaryGrey = Color(0xFF7F7F7F);
   static const Color _colorBorderLight = Color(0xFFC5C5C5);
   static const Color _colorTextBlack = Color(0xFF1E293B);
   static const Color _colorActiveBlue = Color(0xFF72A9F4);
-  static const Color _colorInactiveNav = Color(0xFF9E9E9E);
   static const Color _colorFilterAccent = Color(0xFF72A9F4); // Biru primer resmi aplikasi PediaGrow
   static const Color _colorFilterLightBg = Color(0xFFEFF6FF);
   static const Color _colorFilterLightBorder = Color(0xFFBFDBFE);
@@ -372,62 +372,65 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       return SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
+                        physics: const ClampingScrollPhysics(),
                         child: ConstrainedBox(
                           constraints:
                               BoxConstraints(minHeight: constraints.maxHeight),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 10.0),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 10.0),
 
-                                    // 1. Search Bar & Filter Kapsul (mode dokter: bentuk searchbar dan filter sama seperti pengguna / resep MPASI)
-                                    _isDoctorMode
-                                        ? _buildDoctorSearchBarAndFilter(
-                                            doctorHandledChildren)
-                                        : _buildSearchAndFilterRow(
-                                            doctorOptions.toList()),
+                                      // 1. Search Bar & Filter Kapsul (mode dokter: bentuk searchbar dan filter sama seperti pengguna / resep MPASI)
+                                      _isDoctorMode
+                                          ? _buildDoctorSearchBarAndFilter(
+                                              doctorHandledChildren)
+                                          : _buildSearchAndFilterRow(
+                                              doctorOptions.toList()),
 
-                                    // 2. Chip status dokter aktif (mode admin saja)
-                                    if (!_isDoctorMode &&
-                                        _filterDoctor != 'Semua Dokter') ...[
-                                      _buildActiveDoctorFilterChip(),
-                                      const SizedBox(height: 6.0),
+                                      // 2. Chip status dokter aktif (mode admin saja)
+                                      if (!_isDoctorMode &&
+                                          _filterDoctor != 'Semua Dokter') ...[
+                                        _buildActiveDoctorFilterChip(),
+                                        const SizedBox(height: 6.0),
+                                      ],
+                                      const SizedBox(height: 8.0),
+
+                                      // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
+                                      if (isLoading)
+                                        _buildLoadingState()
+                                      else if (hasError)
+                                        _buildErrorState(
+                                            snapshot.error.toString())
+                                      else if (filtered.isEmpty)
+                                        _buildEmptyState()
+                                      else
+                                        _buildConsultationList(filtered),
+
+                                      const SizedBox(height: 14.0),
+
+                                      // 4. Banner Keterangan di BAGIAN BAWAH
+                                      _isDoctorMode
+                                          ? _buildDoctorInfoBanner()
+                                          : _buildInfoBanner(),
+                                      const SizedBox(height: 16.0),
                                     ],
-                                    const SizedBox(height: 8.0),
-
-                                    // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
-                                    if (isLoading)
-                                      _buildLoadingState()
-                                    else if (hasError)
-                                      _buildErrorState(
-                                          snapshot.error.toString())
-                                    else if (filtered.isEmpty)
-                                      _buildEmptyState()
-                                    else
-                                      _buildConsultationList(filtered),
-
-                                    const SizedBox(height: 14.0),
-
-                                    // 4. Banner Keterangan di BAGIAN BAWAH
-                                    _isDoctorMode
-                                        ? _buildDoctorInfoBanner()
-                                        : _buildInfoBanner(),
-                                    const SizedBox(height: 16.0),
-                                  ],
+                                  ),
                                 ),
-                              ),
 
-                              _buildFooterIllustration(),
-                            ],
+                                const Spacer(),
+
+                                _buildFooterIllustration(),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -1340,132 +1343,14 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) =>
-            const SizedBox(height: 20.0),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // ─── BOTTOM NAVIGATION BAR (IDENTIK DENGAN BERANDA) ─────────────────────────
   Widget _buildBottomNavigationBar() {
-    const navItems = [
-      _NavData(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: _colorNavBg,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 60.0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(navItems.length, (i) {
-              final isSelected = i == _selectedNavIndex;
-              final item = navItems[i];
-
-              return Expanded(
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => _onBottomNavTap(i),
-                    behavior: HitTestBehavior.opaque,
-                    child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        // Lingkaran putih timbul di belakang ikon aktif biru
-                        Container(
-                          width: 32.0,
-                          height: 32.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 19.0,
-                            color: _colorActiveBlue,
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.normal,
-                                color: _colorTextBlack,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 21.0,
-                          color: _colorInactiveNav,
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.normal,
-                                color: _colorInactiveNav,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-          ),
-        ),
-      ),
+    return PediaBottomNavBar(
+      selectedIndex: 2,
+      onNavTap: _onBottomNavTap,
     );
   }
 }
@@ -1570,12 +1455,6 @@ class _FilterSparklePainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-class _NavData {
-  final IconData icon;
-  final String label;
-  const _NavData({required this.icon, required this.label});
-}
-
 class _HoverDoctorChildChip extends StatefulWidget {
   final String label;
   final bool isSelected;
@@ -1616,10 +1495,23 @@ class _HoverDoctorChildChipState extends State<_HoverDoctorChildChip> {
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
+      onEnter: (_) {
+        if (mounted) setState(() => _hovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _hovered = false);
+      },
       child: GestureDetector(
         onTap: widget.onTap,
+        onTapDown: (_) {
+          if (mounted) setState(() => _hovered = true);
+        },
+        onTapUp: (_) {
+          if (mounted) setState(() => _hovered = false);
+        },
+        onTapCancel: () {
+          if (mounted) setState(() => _hovered = false);
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           width: widget.width,

@@ -133,11 +133,8 @@ class FasyankesModel {
     List<String>? photos,
     List<String>? services,
     List<FasyankesReview>? reviews,
-    // ignore: prefer_initializing_formals
   })  : _photos = photos,
-        // ignore: prefer_initializing_formals
         _services = services,
-        // ignore: prefer_initializing_formals
         _reviews = reviews;
 
   /// Salin objek dengan parameter yang diperbarui (misal: jarak yang dihitung ulang)
