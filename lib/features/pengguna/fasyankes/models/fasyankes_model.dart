@@ -52,6 +52,7 @@ class FasyankesModel {
   final bool isOpenNow;
   final double? distanceKm;
   final String operatingHours;
+  final Map<String, String>? schedule;
   final String? plusCode;
   final String? imageUrl;
   final List<String>? _photos;
@@ -67,6 +68,50 @@ class FasyankesModel {
   /// Daftar ulasan fasilitas (dijamin tidak pernah null)
   List<FasyankesReview> get reviews => _reviews ?? const <FasyankesReview>[];
 
+  /// Jadwal operasional mingguan (Senin s/d Minggu)
+  Map<String, String> get weeklySchedule {
+    if (schedule != null && schedule!.isNotEmpty) {
+      return schedule!;
+    }
+    final lower = operatingHours.toLowerCase();
+    if (lower.contains('24 jam')) {
+      return const {
+        'Senin': 'Buka 24 Jam',
+        'Selasa': 'Buka 24 Jam',
+        'Rabu': 'Buka 24 Jam',
+        'Kamis': 'Buka 24 Jam',
+        'Jumat': 'Buka 24 Jam',
+        'Sabtu': 'Buka 24 Jam',
+        'Minggu': 'Buka 24 Jam',
+      };
+    }
+    return {
+      'Senin': operatingHours,
+      'Selasa': operatingHours,
+      'Rabu': operatingHours,
+      'Kamis': operatingHours,
+      'Jumat': operatingHours,
+      'Sabtu': operatingHours,
+      'Minggu': 'Tutup',
+    };
+  }
+
+  /// Jadwal operasional untuk hari ini
+  String get todaySchedule {
+    const days = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
+    final todayIndex = (DateTime.now().weekday - 1) % 7;
+    final todayName = days[todayIndex];
+    return weeklySchedule[todayName] ?? operatingHours;
+  }
+
   const FasyankesModel({
     required this.id,
     required this.name,
@@ -80,13 +125,17 @@ class FasyankesModel {
     this.isOpenNow = true,
     this.distanceKm,
     this.operatingHours = 'Buka 24 Jam',
+    this.schedule,
     this.plusCode,
     this.imageUrl,
     List<String>? photos,
     List<String>? services,
     List<FasyankesReview>? reviews,
+    // ignore: prefer_initializing_formals
   })  : _photos = photos,
+        // ignore: prefer_initializing_formals
         _services = services,
+        // ignore: prefer_initializing_formals
         _reviews = reviews;
 
   /// Salin objek dengan parameter yang diperbarui (misal: jarak yang dihitung ulang)
@@ -103,6 +152,7 @@ class FasyankesModel {
     bool? isOpenNow,
     double? distanceKm,
     String? operatingHours,
+    Map<String, String>? schedule,
     String? plusCode,
     String? imageUrl,
     List<String>? photos,
@@ -122,6 +172,7 @@ class FasyankesModel {
       isOpenNow: isOpenNow ?? this.isOpenNow,
       distanceKm: distanceKm ?? this.distanceKm,
       operatingHours: operatingHours ?? this.operatingHours,
+      schedule: schedule ?? this.schedule,
       plusCode: plusCode ?? this.plusCode,
       imageUrl: imageUrl ?? this.imageUrl,
       photos: photos ?? this.photos,

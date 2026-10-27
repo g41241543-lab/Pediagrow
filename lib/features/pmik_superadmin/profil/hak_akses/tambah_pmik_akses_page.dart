@@ -8,6 +8,7 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
+import 'widgets/pendidikan_triplet_input.dart';
 
 /// Halaman Tambah Profil PMIK untuk Superadmin PediaGrow.
 ///
@@ -44,7 +45,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _experienceCtrl = TextEditingController();
   final TextEditingController _strCtrl = TextEditingController();
-  final TextEditingController _educationCtrl = TextEditingController();
+  final EducationEntry _educationEntry = EducationEntry();
   final TextEditingController _birthDateCtrl = TextEditingController();
 
   String? _selectedImagePath;
@@ -89,7 +90,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
     _emailCtrl.dispose();
     _experienceCtrl.dispose();
     _strCtrl.dispose();
-    _educationCtrl.dispose();
+    _educationEntry.dispose();
     _birthDateCtrl.dispose();
     super.dispose();
   }
@@ -334,7 +335,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
     final email = _emailCtrl.text.trim().toLowerCase();
     final experience = _experienceCtrl.text.trim();
     final strNumber = _strCtrl.text.trim();
-    final education = _educationCtrl.text.trim();
+    final education = _educationEntry.toEducationString();
     final birthDate = _birthDateCtrl.text.trim();
 
     setState(() => _isSaving = true);
@@ -531,10 +532,14 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        errorWidget: const Icon(
-                          Icons.person,
-                          size: 54.0,
-                          color: Color(0xFF8696A0),
+                        errorWidget: Container(
+                          color: const Color(0xFFECF6FF),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.person_rounded,
+                            size: 54.0,
+                            color: Color(0xFF3985E7),
+                          ),
                         ),
                       ),
                     ),
@@ -885,57 +890,24 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
 
           const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
 
-          // 2. Pendidikan
+          // 2. Pendidikan (Strata, Prodi, Universitas)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36.0,
-                  height: 36.0,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE9EDEF),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: const Icon(
-                    Icons.school_outlined,
-                    size: 20.0,
-                    color: Color(0xFF667781),
+                Text(
+                  'Pendidikan',
+                  style: GoogleFonts.lato(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2228),
                   ),
                 ),
-                const SizedBox(width: 14.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pendidikan',
-                        style: GoogleFonts.lato(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1A2228),
-                        ),
-                      ),
-                      const SizedBox(height: 2.0),
-                      TextFormField(
-                        controller: _educationCtrl,
-                        style: GoogleFonts.lato(
-                          fontSize: 13.5,
-                          color: const Color(0xFF2C363D),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Contoh: DIV - Manajemen Informasi Kesehatan',
-                          hintStyle: GoogleFonts.lato(
-                            fontSize: 13.0,
-                            color: const Color(0xFF8696A0),
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ],
-                  ),
+                PendidikanTripletCard(
+                  entry: _educationEntry,
+                  isDokter: false,
+                  showRemove: false,
                 ),
               ],
             ),

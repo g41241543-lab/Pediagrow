@@ -12,6 +12,7 @@ import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
 import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
+import 'widgets/pendidikan_triplet_input.dart';
 
 /// Halaman Edit Dokter oleh Superadmin PediaGrow.
 ///
@@ -47,7 +48,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   late final TextEditingController _strCtrl;
 
   final List<TextEditingController> _tempatPraktikCtrls = [];
-  final List<TextEditingController> _pendidikanCtrls = [];
+  final List<EducationEntry> _pendidikanEntries = [];
 
   late Map<String, bool> _permissions;
   String? _avatarPath;
@@ -74,19 +75,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
     _avatarPath = d.avatarUrl ?? d.assetImagePath;
 
-    // Inisialisasi daftar pendidikan
+    // Inisialisasi daftar pendidikan triplet (Strata, Prodi, Univ)
     final edus = d.daftarPendidikan;
     if (edus.isNotEmpty) {
       for (final e in edus) {
-        _pendidikanCtrls.add(TextEditingController(text: e));
+        _pendidikanEntries.add(EducationEntry.fromString(e));
       }
     } else if (widget.staffAccount?.education != null &&
         widget.staffAccount!.education!.trim().isNotEmpty) {
-      _pendidikanCtrls.add(
-        TextEditingController(text: widget.staffAccount!.education!.trim()),
+      _pendidikanEntries.add(
+        EducationEntry.fromString(widget.staffAccount!.education!.trim()),
       );
     } else {
-      _pendidikanCtrls.add(TextEditingController(text: ''));
+      _pendidikanEntries.add(EducationEntry());
     }
 
     // Inisialisasi daftar tempat praktik
@@ -119,8 +120,8 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     for (final c in _tempatPraktikCtrls) {
       c.dispose();
     }
-    for (final c in _pendidikanCtrls) {
-      c.dispose();
+    for (final e in _pendidikanEntries) {
+      e.dispose();
     }
     _passwordBaruCtrl.dispose();
     super.dispose();
@@ -128,18 +129,20 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
   void _addPendidikan() {
     setState(() {
-      _pendidikanCtrls.add(TextEditingController());
+      _pendidikanEntries.add(EducationEntry());
     });
   }
 
   void _removePendidikan(int index) {
-    if (_pendidikanCtrls.length > 1) {
+    if (_pendidikanEntries.length > 1) {
       setState(() {
-        final removed = _pendidikanCtrls.removeAt(index);
+        final removed = _pendidikanEntries.removeAt(index);
         removed.dispose();
       });
     } else {
-      _pendidikanCtrls.first.clear();
+      _pendidikanEntries.first.strataCtrl.clear();
+      _pendidikanEntries.first.prodiCtrl.clear();
+      _pendidikanEntries.first.univCtrl.clear();
       setState(() {});
     }
   }
@@ -297,8 +300,8 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           .where((p) => p.isNotEmpty)
           .toList();
 
-      final edus = _pendidikanCtrls
-          .map((c) => c.text.trim())
+      final edus = _pendidikanEntries
+          .map((e) => e.toEducationString())
           .where((e) => e.isNotEmpty)
           .toList();
 
@@ -667,14 +670,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               // Kolom Kiri: Pengalaman (Hanya Angka + Fixed "tahun")
               Expanded(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2.0),
-                      child: Icon(
+                    Container(
+                      width: 28.0,
+                      height: 28.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(
                         Icons.work_outline_rounded,
-                        size: 20.0,
-                        color: Color(0xFF8696A0),
+                        size: 16.0,
+                        color: Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -743,14 +751,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               // Kolom Kanan: No. STR (Hanya Angka)
               Expanded(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2.0),
-                      child: Icon(
+                    Container(
+                      width: 28.0,
+                      height: 28.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(
                         Icons.badge_outlined,
-                        size: 20.0,
-                        color: Color(0xFF8696A0),
+                        size: 16.0,
+                        color: Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -867,60 +880,22 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             ],
           ),
           child: Column(
-            children: List.generate(_pendidikanCtrls.length, (idx) {
-              final ctrl = _pendidikanCtrls[idx];
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.school_outlined,
-                      size: 22.0,
-                      color: Color(0xFF8696A0),
+            children: List.generate(_pendidikanEntries.length, (idx) {
+              final entry = _pendidikanEntries[idx];
+              return Column(
+                children: [
+                  PendidikanTripletCard(
+                    entry: entry,
+                    isDokter: true,
+                    showRemove: _pendidikanEntries.length > 1,
+                    onRemove: () => _removePendidikan(idx),
+                  ),
+                  if (idx < _pendidikanEntries.length - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
                     ),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextFormField(
-                            controller: ctrl,
-                            style: GoogleFonts.lato(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF2C363D),
-                            ),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
-                              border: InputBorder.none,
-                              hintText: 'Riwayat Pendidikan (Gelar / Univ)',
-                              hintStyle: GoogleFonts.lato(
-                                fontSize: 14.0,
-                                color: const Color(0xFF8696A0),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          const _DottedLine(),
-                        ],
-                      ),
-                    ),
-                    if (_pendidikanCtrls.length > 1)
-                      GestureDetector(
-                        onTap: () => _removePendidikan(idx),
-                        child: const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
-                          child: Icon(
-                            Icons.remove_circle_outline_rounded,
-                            size: 20.0,
-                            color: Color(0xFFEF4444),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               );
             }),
           ),
@@ -981,10 +956,18 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.apartment_rounded,
-                      size: 22.0,
-                      color: Color(0xFF8696A0),
+                    Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: const Icon(
+                        Icons.apartment_rounded,
+                        size: 20.0,
+                        color: Color(0xFF3985E7),
+                      ),
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
@@ -1038,7 +1021,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // SECTION JADWAL KONSULTASI STANDAR (SUPERADMIN)
+  // SECTION JADWAL KONSULTASI DOKTER (SUPERADMIN)
   // ---------------------------------------------------------------------------
   Widget _buildJadwalStandarSection() {
     final List<JadwalPraktikModel> jadwalList =
@@ -1048,50 +1031,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Jadwal Konsultasi Standar',
-              style: GoogleFonts.lato(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
-              ),
-            ),
-            GestureDetector(
-              onTap: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => AturJadwalDokterPage(
-                      dokterId: widget.doctor.id,
-                      doctorName: _namaCtrl.text,
-                      isSuperadmin: true,
-                    ),
-                  ),
-                );
-                if (mounted) setState(() {});
-              },
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.edit_calendar_rounded,
-                    color: Color(0xFF0284C7),
-                    size: 18.0,
-                  ),
-                  const SizedBox(width: 4.0),
-                  Text(
-                    'Kelola',
-                    style: GoogleFonts.lato(
-                      fontSize: 13.0,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0284C7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        Text(
+          'Jadwal Konsultasi Dokter',
+          style: GoogleFonts.lato(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF000000),
+          ),
         ),
         const SizedBox(height: 8.0),
         Container(

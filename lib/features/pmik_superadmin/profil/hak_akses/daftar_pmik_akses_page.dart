@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../profil_superadmin_page.dart';
 import '../../beranda/beranda_superadmin_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
@@ -28,9 +29,7 @@ import 'tambah_pmik_akses_page.dart';
 ///    - Nama PMIK & Label "PMIK"
 ///    - Tombol Hapus (sampah merah) & Tombol Edit (pensil biru) di kanan bawah kartu
 ///    - Dialog konfirmasi Hapus Data sesuai gambar referensi
-/// 4. Scaffold.bottomNavigationBar permanen 4 menu:
-///    - Beranda, Konsultasi, Riwayat Konsultasi, Profil
-///    - Visual state aktif jelas pada Profil
+/// 4. Scaffold.bottomNavigationBar permanen 4 menu (tanpa lingkaran aktif)
 class DaftarPmikAksesPage extends StatefulWidget {
   const DaftarPmikAksesPage({super.key});
 
@@ -45,8 +44,6 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
   final List<StaffAccount> _pmikList = [];
   bool _isLoading = false;
   String _searchQuery = '';
-
-  final int _selectedNavIndex = 3; // Menu Profil aktif
 
   @override
   void initState() {
@@ -233,36 +230,6 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
     );
   }
 
-  void _handleBottomNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-
-    Widget targetPage;
-    switch (index) {
-      case 0:
-        targetPage = const BerandaSuperadminPage();
-        break;
-      case 1:
-        targetPage = const KonsultasiSuperadminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      case 3:
-      default:
-        targetPage = const ProfilSuperadminPage();
-        break;
-    }
-
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => targetPage,
-        transitionsBuilder: (context, a, secondaryAnimation, c) =>
-            FadeTransition(opacity: a, child: c),
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -326,7 +293,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
     );
   }
 
@@ -694,96 +661,5 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       ),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // BOTTOM NAVIGATION BAR (Permanen Scaffold 4 Menu)
-  // ---------------------------------------------------------------------------
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(
-            index: 0,
-            icon: Icons.home_rounded,
-            label: 'Beranda',
-            isActive: _selectedNavIndex == 0,
-          ),
-          _buildNavItem(
-            index: 1,
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'Konsultasi',
-            isActive: _selectedNavIndex == 1,
-          ),
-          _buildNavItem(
-            index: 2,
-            icon: Icons.history_rounded,
-            label: 'Riwayat Konsultasi',
-            isActive: _selectedNavIndex == 2,
-          ),
-          _buildNavItem(
-            index: 3,
-            icon: Icons.person_rounded,
-            label: 'Profil',
-            isActive: _selectedNavIndex == 3,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required int index,
-    required IconData icon,
-    required String label,
-    required bool isActive,
-  }) {
-    return GestureDetector(
-      onTap: () => _handleBottomNavTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 76.0,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6.0),
-              decoration: BoxDecoration(
-                color: isActive ? Colors.white : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 24.0,
-                color: isActive ? const Color(0xFF72A9F4) : const Color(0xFF4A4A4A),
-              ),
-            ),
-            const SizedBox(height: 2.0),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 10.5,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? const Color(0xFF72A9F4) : const Color(0xFF4A4A4A),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
+

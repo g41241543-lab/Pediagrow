@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/doctor_service.dart';
@@ -6,6 +6,7 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../profil_superadmin_page.dart';
 import '../../beranda/beranda_superadmin_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
@@ -30,9 +31,7 @@ import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
 ///    - Nama dokter & Spesialisasi
 ///    - Tombol Hapus (sampah merah) & Tombol Edit (pensil biru) di kanan bawah kartu
 ///    - Dialog konfirmasi Hapus Data sesuai gambar referensi
-/// 4. Scaffold.bottomNavigationBar permanen 4 menu:
-///    - Beranda, Konsultasi, Riwayat Konsultasi, Profil
-///    - Visual state aktif jelas pada Profil
+/// 4. Scaffold.bottomNavigationBar permanen 4 menu (tanpa lingkaran aktif)
 class DaftarDokterAksesPage extends StatefulWidget {
   const DaftarDokterAksesPage({super.key});
 
@@ -48,8 +47,6 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
   final Map<String, StaffAccount> _staffCache = {};
   bool _isLoadingStaff = false;
   String _searchQuery = '';
-
-  final int _selectedNavIndex = 3; // Menu Profil aktif
 
   @override
   void initState() {
@@ -161,34 +158,6 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     );
   }
 
-  void _onBottomNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-
-    final Widget destination = switch (index) {
-      0 => const BerandaSuperadminPage(),
-      1 => const KonsultasiSuperadminPage(),
-      2 => const DaftarRiwayatKonsultasiAdminPage(),
-      _ => const ProfilSuperadminPage(),
-    };
-
-    final route = PageRouteBuilder(
-      pageBuilder: (_, _, _) => destination,
-      transitionDuration: const Duration(milliseconds: 220),
-      transitionsBuilder: (_, animation, _, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-    );
-
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (route) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,7 +227,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
     );
   }
 
@@ -663,138 +632,5 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       ),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // BOTTOM NAVIGATION BAR
-  // ---------------------------------------------------------------------------
-  Widget _buildBottomNavigationBar() {
-    final navItems = [
-      const _BottomNavItemData(icon: Icons.home_rounded, label: 'Beranda'),
-      const _BottomNavItemData(
-        icon: Icons.question_answer_rounded,
-        label: 'Konsultasi',
-      ),
-      const _BottomNavItemData(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _BottomNavItemData(
-        icon: Icons.person_rounded,
-        label: 'Profil',
-      ),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedNavIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
 }
 
-class _BottomNavItemData {
-  final IconData icon;
-  final String label;
-
-  const _BottomNavItemData({
-    required this.icon,
-    required this.label,
-  });
-}
