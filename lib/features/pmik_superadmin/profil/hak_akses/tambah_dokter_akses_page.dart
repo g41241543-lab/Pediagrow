@@ -864,8 +864,6 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
     final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
     final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
     final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
-    final textVal = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
-    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

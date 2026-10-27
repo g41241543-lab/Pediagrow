@@ -48,7 +48,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
   // Konstanta warna sesuai panduan desain
   static const Color _colorDarkGray = Color(0xFF7F7F7F);
-  static const Color _colorLightGray = Color(0xFFC5C5C5);
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
@@ -330,14 +329,8 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
         _navigateBack();
       },
       child: Scaffold(
-<<<<<<< HEAD
-        backgroundColor: Colors.white,
-        bottomNavigationBar: _buildBottomNavigationBar(),
-=======
         backgroundColor: _scaffoldBg,
-        // Bottom Navigation Bar hanya untuk Superadmin/PMIK
-        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
->>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
+        bottomNavigationBar: _buildBottomNavigationBar(),
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -569,7 +562,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
         border: Border.all(color: _borderColor, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: _isDark ? Colors.black.withOpacity(0.2) : const Color(0x0A000000),
+            color: _isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
             blurRadius: 8.0,
             offset: const Offset(0, 2),
           ),

@@ -443,11 +443,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-<<<<<<< HEAD
-      backgroundColor: Colors.white,
-=======
       backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
->>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
       // Custom Header permanen 56dp di bagian paling atas layar
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
@@ -998,18 +994,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
 
           // Garis pemisah tipis
-<<<<<<< HEAD
-          const Divider(
-            height: 1.0,
-            thickness: 1.0,
-            color: Color(0xFFE9EDEF),
-            indent: 68.0,
-=======
           Divider(
             height: 1.0,
             thickness: 1.0,
             color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
->>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
+            indent: 68.0,
           ),
 
           // Item 2: Pendidikan
