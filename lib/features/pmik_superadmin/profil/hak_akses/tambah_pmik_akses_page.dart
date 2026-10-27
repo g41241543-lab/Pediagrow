@@ -669,13 +669,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE9EDEF),
+                        color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: const Icon(
                         Icons.work_outline_rounded,
                         size: 18.0,
-                        color: Color(0xFF667781),
+                        color: Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -752,13 +752,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE9EDEF),
+                        color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: const Icon(
                         Icons.badge_outlined,
                         size: 18.0,
-                        color: Color(0xFF667781),
+                        color: Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
