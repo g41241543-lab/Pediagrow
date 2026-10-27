@@ -520,11 +520,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   ],
                 ),
               ),
-<<<<<<< HEAD
-              bottomNavigationBar: _buildBottomNavigationBar(isDark),
-=======
-              bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+              bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(isDark),
             );
           },
         );
