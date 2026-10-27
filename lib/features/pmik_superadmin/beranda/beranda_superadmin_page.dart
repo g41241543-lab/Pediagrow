@@ -163,12 +163,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             ),
           ],
         ),
-<<<<<<< HEAD
-=======
-        bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
       ),
-      bottomNavigationBar: _buildFixedNavBar(),
+      bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
     );
   }
 
