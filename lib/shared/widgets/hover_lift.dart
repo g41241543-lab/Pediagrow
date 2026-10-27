@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Widget yang menambahkan efek "terangkat" saat kursor diarahkan (desktop/web)
@@ -21,26 +20,19 @@ class HoverLift extends StatefulWidget {
   State<HoverLift> createState() => _HoverLiftState();
 }
 
-class _HoverLiftState extends State<HoverLift>
-    with SingleTickerProviderStateMixin {
+class _HoverLiftState extends State<HoverLift> {
   bool _hovered = false;
   bool _pressed = false;
+  Offset? _pointerDownPos;
 
   bool get _isLifted => _hovered || _pressed;
-
-  // Gunakan mouse hover hanya di platform non-mobile (desktop/web)
-  bool get _useMouseHover =>
-      kIsWeb ||
-      defaultTargetPlatform == TargetPlatform.macOS ||
-      defaultTargetPlatform == TargetPlatform.windows ||
-      defaultTargetPlatform == TargetPlatform.linux;
 
   @override
   Widget build(BuildContext context) {
     final radius = widget.borderRadius ?? BorderRadius.circular(18.0);
 
     Widget content = AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
+      duration: const Duration(milliseconds: 140),
       curve: Curves.easeOut,
       transform: Matrix4.translationValues(0, _isLifted ? -widget.lift : 0, 0),
       decoration: BoxDecoration(
@@ -49,8 +41,8 @@ class _HoverLiftState extends State<HoverLift>
             ? const [
                 BoxShadow(
                   color: Color(0x26000000),
-                  blurRadius: 18.0,
-                  offset: Offset(0, 8),
+                  blurRadius: 16.0,
+                  offset: Offset(0, 6),
                 ),
               ]
             : const [],
@@ -58,26 +50,44 @@ class _HoverLiftState extends State<HoverLift>
       child: widget.child,
     );
 
-    // Tambahkan GestureDetector untuk efek tekan di mobile
-    if (!_useMouseHover) {
-      content = GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTapCancel: () => setState(() => _pressed = false),
-        child: content,
-      );
-    }
+    // MouseRegion untuk hover saat menggunakan mouse (web/desktop)
+    content = MouseRegion(
+      cursor: widget.cursor,
+      onEnter: (_) {
+        if (mounted) setState(() => _hovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _hovered = false);
+      },
+      child: content,
+    );
 
-    // Tambahkan MouseRegion untuk hover di desktop/web
-    if (_useMouseHover) {
-      content = MouseRegion(
-        cursor: widget.cursor,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: content,
-      );
-    }
+    // Listener untuk mendeteksi sentuhan di layar HP (touch/mobile)
+    // Listener tidak memblokir InkWell atau gesture arena
+    content = Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (e) {
+        _pointerDownPos = e.position;
+        if (mounted) setState(() => _pressed = true);
+      },
+      onPointerMove: (e) {
+        if (_pointerDownPos != null && _pressed) {
+          final distance = (e.position - _pointerDownPos!).distance;
+          if (distance > 10.0) {
+            if (mounted) setState(() => _pressed = false);
+          }
+        }
+      },
+      onPointerUp: (_) {
+        _pointerDownPos = null;
+        if (mounted) setState(() => _pressed = false);
+      },
+      onPointerCancel: (_) {
+        _pointerDownPos = null;
+        if (mounted) setState(() => _pressed = false);
+      },
+      child: content,
+    );
 
     return content;
   }

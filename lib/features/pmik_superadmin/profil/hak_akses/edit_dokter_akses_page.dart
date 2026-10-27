@@ -12,6 +12,7 @@ import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
 import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
+import 'widgets/pendidikan_triplet_input.dart';
 
 /// Halaman Edit Dokter oleh Superadmin PediaGrow.
 ///
@@ -47,7 +48,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   late final TextEditingController _strCtrl;
 
   final List<TextEditingController> _tempatPraktikCtrls = [];
-  final List<TextEditingController> _pendidikanCtrls = [];
+  final List<EducationEntry> _pendidikanEntries = [];
 
   late Map<String, bool> _permissions;
   String? _avatarPath;
@@ -74,19 +75,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
     _avatarPath = d.avatarUrl ?? d.assetImagePath;
 
-    // Inisialisasi daftar pendidikan
+    // Inisialisasi daftar pendidikan triplet (Strata, Prodi, Univ)
     final edus = d.daftarPendidikan;
     if (edus.isNotEmpty) {
       for (final e in edus) {
-        _pendidikanCtrls.add(TextEditingController(text: e));
+        _pendidikanEntries.add(EducationEntry.fromString(e));
       }
     } else if (widget.staffAccount?.education != null &&
         widget.staffAccount!.education!.trim().isNotEmpty) {
-      _pendidikanCtrls.add(
-        TextEditingController(text: widget.staffAccount!.education!.trim()),
+      _pendidikanEntries.add(
+        EducationEntry.fromString(widget.staffAccount!.education!.trim()),
       );
     } else {
-      _pendidikanCtrls.add(TextEditingController(text: ''));
+      _pendidikanEntries.add(EducationEntry());
     }
 
     // Inisialisasi daftar tempat praktik
@@ -119,8 +120,8 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     for (final c in _tempatPraktikCtrls) {
       c.dispose();
     }
-    for (final c in _pendidikanCtrls) {
-      c.dispose();
+    for (final e in _pendidikanEntries) {
+      e.dispose();
     }
     _passwordBaruCtrl.dispose();
     super.dispose();
@@ -128,18 +129,20 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
   void _addPendidikan() {
     setState(() {
-      _pendidikanCtrls.add(TextEditingController());
+      _pendidikanEntries.add(EducationEntry());
     });
   }
 
   void _removePendidikan(int index) {
-    if (_pendidikanCtrls.length > 1) {
+    if (_pendidikanEntries.length > 1) {
       setState(() {
-        final removed = _pendidikanCtrls.removeAt(index);
+        final removed = _pendidikanEntries.removeAt(index);
         removed.dispose();
       });
     } else {
-      _pendidikanCtrls.first.clear();
+      _pendidikanEntries.first.strataCtrl.clear();
+      _pendidikanEntries.first.prodiCtrl.clear();
+      _pendidikanEntries.first.univCtrl.clear();
       setState(() {});
     }
   }
@@ -304,10 +307,12 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           .where((p) => p.isNotEmpty)
           .toList();
 
-      final edus = _pendidikanCtrls
-          .map((c) => c.text.trim())
+      final edus = _pendidikanEntries
+          .map((e) => e.toEducationString())
           .where((e) => e.isNotEmpty)
           .toList();
+
+      final sanitizedPermissions = DoctorPermissions.sanitize(_permissions);
 
       final updatedDoctor = widget.doctor.copyWith(
         name: _namaCtrl.text.trim(),
@@ -320,7 +325,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
         educations: edus,
         education: edus.isNotEmpty ? edus.first : null,
         avatarUrl: _avatarPath,
-        permissions: _permissions,
+        permissions: sanitizedPermissions,
       );
 
       // Simpan perubahan ke Firestore
@@ -343,7 +348,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           password: _passwordBaruCtrl.text.trim().isNotEmpty
               ? _passwordBaruCtrl.text.trim()
               : null,
-          permissions: _permissions,
+          permissions: sanitizedPermissions,
           avatarPath: _avatarPath,
           experience: _pengalamanCtrl.text.trim().isNotEmpty
               ? '${_pengalamanCtrl.text.trim()} tahun'
@@ -700,14 +705,28 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               // Kolom Kiri: Pengalaman (Hanya Angka + Fixed "tahun")
               Expanded(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 20.0,
                         color: textMuted,
+=======
+                    Container(
+                      width: 28.0,
+                      height: 28.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(
+                        Icons.work_outline_rounded,
+                        size: 16.0,
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -781,14 +800,28 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               // Kolom Kanan: No. STR (Hanya Angka)
               Expanded(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 20.0,
                         color: textMuted,
+=======
+                    Container(
+                      width: 28.0,
+                      height: 28.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(
+                        Icons.badge_outlined,
+                        size: 16.0,
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -916,6 +949,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             ],
           ),
           child: Column(
+<<<<<<< HEAD
             children: List.generate(_pendidikanCtrls.length, (idx) {
               final ctrl = _pendidikanCtrls[idx];
               return Padding(
@@ -970,6 +1004,24 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       ),
                   ],
                 ),
+=======
+            children: List.generate(_pendidikanEntries.length, (idx) {
+              final entry = _pendidikanEntries[idx];
+              return Column(
+                children: [
+                  PendidikanTripletCard(
+                    entry: entry,
+                    isDokter: true,
+                    showRemove: _pendidikanEntries.length > 1,
+                    onRemove: () => _removePendidikan(idx),
+                  ),
+                  if (idx < _pendidikanEntries.length - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
+                    ),
+                ],
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
               );
             }),
           ),
@@ -1036,10 +1088,25 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
+<<<<<<< HEAD
                     Icon(
                       Icons.apartment_rounded,
                       size: 22.0,
                       color: textMuted,
+=======
+                    Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: const Icon(
+                        Icons.apartment_rounded,
+                        size: 20.0,
+                        color: Color(0xFF3985E7),
+                      ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
@@ -1093,7 +1160,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // SECTION JADWAL KONSULTASI STANDAR (SUPERADMIN)
+  // SECTION JADWAL KONSULTASI DOKTER (SUPERADMIN)
   // ---------------------------------------------------------------------------
   Widget _buildJadwalStandarSection(bool isDark) {
     final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
@@ -1109,6 +1176,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+<<<<<<< HEAD
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1153,6 +1221,15 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               ),
             ),
           ],
+=======
+        Text(
+          'Jadwal Konsultasi Dokter',
+          style: GoogleFonts.lato(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF000000),
+          ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         ),
         const SizedBox(height: 8.0),
         Container(

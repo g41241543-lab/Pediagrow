@@ -9,7 +9,7 @@ import '../../core/services/child_service.dart';
 import '../../core/services/google_auth_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/session_service.dart';
-import '../pmik_superadmin/beranda/beranda_superadmin_page.dart';
+import '../pmik_superadmin/superadmin_shell.dart';
 import '../dokter/beranda/beranda_dokter_page.dart';
 import '../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../models/staff_account_model.dart';
@@ -146,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
           destination = const BerandaPmikPage();
           break;
         case StaffRole.superadmin:
-          destination = const BerandaSuperadminPage();
+          destination = const SuperadminShell();
           break;
       }
 

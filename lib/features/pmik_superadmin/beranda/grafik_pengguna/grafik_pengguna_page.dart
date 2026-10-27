@@ -597,10 +597,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return 'Perempuan';
   }
 
+  /// Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna maupun stunting
+  bool get _canDownloadDataset {
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return false;
+    return staff.isPmikSuperadmin;
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // FITUR UNDUH DATASET PENGGUNA (PDF, EXCEL, CSV)
   // ══════════════════════════════════════════════════════════════════════════
   void _showUsersDownloadSheet() {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      return;
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -624,6 +635,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   /// Menampilkan pratinjau PDF Dataset Pengguna sebelum diunduh
   void _downloadUsersPdf() {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      return;
+    }
     final usersSnapshot = List<UserDemographicRow>.from(_userRows);
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -644,6 +659,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
 
   Future<void> _downloadUsersCsv() async {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      return;
+    }
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
 
@@ -687,6 +706,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
   Future<void> _downloadUsersExcel() async {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      return;
+    }
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
 
@@ -763,6 +786,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // FITUR UNDUH DATASET HASIL CEK STUNTING (PDF, CSV, EXCEL)
   // ══════════════════════════════════════════════════════════════════════════
   void _showStuntingDownloadSheet() {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      return;
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -786,6 +813,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   /// Menampilkan pratinjau PDF Rekapitulasi Hasil Cek Stunting sebelum diunduh
   void _downloadStuntingPdf() {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      return;
+    }
     final stuntingSnapshot = List<StuntingRecordRow>.from(_stuntingRows);
     final totalStunting = stuntingSnapshot.where((r) => r.isStunting).length;
     final totalNormal = stuntingSnapshot.length - totalStunting;
@@ -808,6 +839,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
   Future<void> _downloadStuntingCsv() async {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      return;
+    }
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
 
@@ -849,6 +884,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
   Future<void> _downloadStuntingExcel() async {
+    if (!_canDownloadDataset) {
+      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      return;
+    }
     if (_isDownloading) return;
     setState(() => _isDownloading = true);
 
@@ -1812,11 +1851,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ),
               ),
             ),
-            const SizedBox(width: 8.0),
-            _buildDownloadButton(
-              onTap: _showUsersDownloadSheet,
-              isLoading: _isDownloading,
-            ),
+            if (_canDownloadDataset) ...[
+              const SizedBox(width: 8.0),
+              _buildDownloadButton(
+                onTap: _showUsersDownloadSheet,
+                isLoading: _isDownloading,
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 12.0),
@@ -1994,11 +2035,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   ),
                 ),
               ),
-              const SizedBox(width: 8.0),
-              _buildDownloadButton(
-                onTap: _showStuntingDownloadSheet,
-                isLoading: _isDownloading,
-              ),
+              if (_canDownloadDataset) ...[
+                const SizedBox(width: 8.0),
+                _buildDownloadButton(
+                  onTap: _showStuntingDownloadSheet,
+                  isLoading: _isDownloading,
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),

@@ -31,7 +31,12 @@ import '../../pengguna/profil/tampilan_page.dart';
 class ProfilSuperadminPage extends StatefulWidget {
   final VoidCallback? onBackPressed;
 
-  const ProfilSuperadminPage({super.key, this.onBackPressed});
+  /// Ketika [inShell] true, halaman berjalan di dalam [SuperadminShell]:
+  /// - bottomNavigationBar tidak dirender (navbar milik shell).
+  /// - _onBottomNavTap tidak melakukan push/replace (shell yang mengelola tab).
+  final bool inShell;
+
+  const ProfilSuperadminPage({super.key, this.onBackPressed, this.inShell = false});
 
   @override
   State<ProfilSuperadminPage> createState() => _ProfilSuperadminPageState();
@@ -359,6 +364,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   void _onBottomNavTap(int index) {
+    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
+    if (widget.inShell) return;
     if (index == _selectedIndex) return;
 
     final staff = StaffAuthService().currentStaff;
@@ -552,7 +559,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         ),
       ),
       // Scaffold.bottomNavigationBar permanen 4 menu
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
     );
   }
 

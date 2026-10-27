@@ -5,10 +5,8 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../profil_superadmin_page.dart';
-import '../../beranda/beranda_superadmin_page.dart';
-import '../../konsultasi/konsultasi_superadmin_page.dart';
-import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'edit_pmik_akses_page.dart';
 import 'hapus_pmik_akses_page.dart';
 import 'tambah_pmik_akses_page.dart';
@@ -28,9 +26,7 @@ import 'tambah_pmik_akses_page.dart';
 ///    - Nama PMIK & Label "PMIK"
 ///    - Tombol Hapus (sampah merah) & Tombol Edit (pensil biru) di kanan bawah kartu
 ///    - Dialog konfirmasi Hapus Data sesuai gambar referensi
-/// 4. Scaffold.bottomNavigationBar permanen 4 menu:
-///    - Beranda, Konsultasi, Riwayat Konsultasi, Profil
-///    - Visual state aktif jelas pada Profil
+/// 4. Scaffold.bottomNavigationBar permanen 4 menu (tanpa lingkaran aktif)
 class DaftarPmikAksesPage extends StatefulWidget {
   const DaftarPmikAksesPage({super.key});
 
@@ -45,8 +41,6 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
   final List<StaffAccount> _pmikList = [];
   bool _isLoading = false;
   String _searchQuery = '';
-
-  final int _selectedNavIndex = 3; // Menu Profil aktif
 
   @override
   void initState() {
@@ -233,36 +227,6 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
     );
   }
 
-  void _handleBottomNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-
-    Widget targetPage;
-    switch (index) {
-      case 0:
-        targetPage = const BerandaSuperadminPage();
-        break;
-      case 1:
-        targetPage = const KonsultasiSuperadminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      case 3:
-      default:
-        targetPage = const ProfilSuperadminPage();
-        break;
-    }
-
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => targetPage,
-        transitionsBuilder: (context, a, secondaryAnimation, c) =>
-            FadeTransition(opacity: a, child: c),
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -329,7 +293,11 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           ],
         ),
       ),
+<<<<<<< HEAD
       bottomNavigationBar: _buildBottomNavigationBar(isDark),
+=======
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
     );
   }
 
@@ -656,12 +624,21 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
 
   Widget _buildFallbackAvatarIcon(bool isDark) {
     return Container(
+<<<<<<< HEAD
       color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
       alignment: Alignment.center,
       child: Icon(
         Icons.person,
         size: 36.0,
         color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
+=======
+      color: const Color(0xFFECF6FF),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.person_rounded,
+        size: 36.0,
+        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
       ),
     );
   }
@@ -685,14 +662,19 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
               Container(
                 width: 76.0,
                 height: 76.0,
+<<<<<<< HEAD
                 decoration: BoxDecoration(
                   color: circleBg,
+=======
+                decoration: const BoxDecoration(
+                  color: Color(0xFFECF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.person_search_rounded,
                   size: 40.0,
-                  color: Color(0xFF8696A0),
+                  color: Color(0xFF3985E7),
                 ),
               ),
               const SizedBox(height: 16.0),
@@ -723,6 +705,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       ),
     );
   }
+<<<<<<< HEAD
 
   // ---------------------------------------------------------------------------
   // BOTTOM NAVIGATION BAR (Permanen Scaffold 4 Menu)
@@ -825,4 +808,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       ),
     );
   }
+=======
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
 }
+

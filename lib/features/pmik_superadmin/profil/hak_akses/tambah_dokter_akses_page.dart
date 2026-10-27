@@ -9,6 +9,7 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/doctor_permissions.dart';
+import 'widgets/pendidikan_triplet_input.dart';
 
 /// Halaman Tambah Dokter oleh Superadmin PediaGrow.
 ///
@@ -47,8 +48,8 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   final List<TextEditingController> _tempatPraktikCtrls = [
     TextEditingController(),
   ];
-  final List<TextEditingController> _pendidikanCtrls = [
-    TextEditingController(),
+  final List<EducationEntry> _pendidikanEntries = [
+    EducationEntry(),
   ];
 
   late Map<String, bool> _permissions;
@@ -73,26 +74,28 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
     for (final c in _tempatPraktikCtrls) {
       c.dispose();
     }
-    for (final c in _pendidikanCtrls) {
-      c.dispose();
+    for (final e in _pendidikanEntries) {
+      e.dispose();
     }
     super.dispose();
   }
 
   void _addPendidikan() {
     setState(() {
-      _pendidikanCtrls.add(TextEditingController());
+      _pendidikanEntries.add(EducationEntry());
     });
   }
 
   void _removePendidikan(int index) {
-    if (_pendidikanCtrls.length > 1) {
+    if (_pendidikanEntries.length > 1) {
       setState(() {
-        final removed = _pendidikanCtrls.removeAt(index);
+        final removed = _pendidikanEntries.removeAt(index);
         removed.dispose();
       });
     } else {
-      _pendidikanCtrls.first.clear();
+      _pendidikanEntries.first.strataCtrl.clear();
+      _pendidikanEntries.first.prodiCtrl.clear();
+      _pendidikanEntries.first.univCtrl.clear();
       setState(() {});
     }
   }
@@ -257,10 +260,12 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
           .where((p) => p.isNotEmpty)
           .toList();
 
-      final edus = _pendidikanCtrls
-          .map((c) => c.text.trim())
+      final edus = _pendidikanEntries
+          .map((e) => e.toEducationString())
           .where((e) => e.isNotEmpty)
           .toList();
+
+      final sanitizedPermissions = DoctorPermissions.sanitize(_permissions);
 
       final newDoctor = DoctorModel(
         id: '',
@@ -276,7 +281,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
         educations: edus,
         education: edus.isNotEmpty ? edus.first : null,
         avatarUrl: _avatarPath,
-        permissions: _permissions,
+        permissions: sanitizedPermissions,
         isOnline: true,
       );
 
@@ -607,14 +612,28 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               // Kolom Kiri: Pengalaman (Hanya Angka + Fixed "tahun")
               Expanded(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 20.0,
                         color: iconColor,
+=======
+                    Container(
+                      width: 28.0,
+                      height: 28.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(
+                        Icons.work_outline_rounded,
+                        size: 16.0,
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -687,14 +706,28 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
               // Kolom Kanan: No. STR (Hanya Angka)
               Expanded(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 20.0,
                         color: iconColor,
+=======
+                    Container(
+                      width: 28.0,
+                      height: 28.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      child: const Icon(
+                        Icons.badge_outlined,
+                        size: 16.0,
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -841,12 +874,20 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
       width: 82.0,
       height: 82.0,
       errorWidget: Container(
+<<<<<<< HEAD
         color: fallbackBg,
+=======
+        color: const Color(0xFFECF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         alignment: Alignment.center,
         child: Icon(
           Icons.person_rounded,
           size: 46.0,
+<<<<<<< HEAD
           color: fallbackIcon,
+=======
+          color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         ),
       ),
     );
@@ -904,6 +945,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             ],
           ),
           child: Column(
+<<<<<<< HEAD
             children: List.generate(_pendidikanCtrls.length, (idx) {
               final ctrl = _pendidikanCtrls[idx];
               return Padding(
@@ -958,6 +1000,24 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                       ),
                   ],
                 ),
+=======
+            children: List.generate(_pendidikanEntries.length, (idx) {
+              final entry = _pendidikanEntries[idx];
+              return Column(
+                children: [
+                  PendidikanTripletCard(
+                    entry: entry,
+                    isDokter: true,
+                    showRemove: _pendidikanEntries.length > 1,
+                    onRemove: () => _removePendidikan(idx),
+                  ),
+                  if (idx < _pendidikanEntries.length - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
+                    ),
+                ],
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
               );
             }),
           ),
@@ -1024,10 +1084,25 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
+<<<<<<< HEAD
                     Icon(
                       Icons.apartment_rounded,
                       size: 22.0,
                       color: hintColor,
+=======
+                    Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: const Icon(
+                        Icons.apartment_rounded,
+                        size: 20.0,
+                        color: Color(0xFF3985E7),
+                      ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(

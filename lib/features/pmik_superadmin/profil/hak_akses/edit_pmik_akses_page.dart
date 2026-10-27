@@ -9,6 +9,7 @@ import '../../../../core/services/storage_service.dart';
 import '../../../../core/services/superadmin_notification_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
+import 'widgets/pendidikan_triplet_input.dart';
 
 /// Halaman Edit Profil PMIK untuk Superadmin PediaGrow.
 ///
@@ -45,7 +46,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   late TextEditingController _passwordCtrl;
   late TextEditingController _experienceCtrl;
   late TextEditingController _strCtrl;
-  late TextEditingController _educationCtrl;
+  late EducationEntry _educationEntry;
   late TextEditingController _birthDateCtrl;
 
   String? _selectedImagePath;
@@ -70,8 +71,8 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     _experienceCtrl = TextEditingController(text: expDigits);
 
     _strCtrl = TextEditingController(text: staff.strNumber ?? '');
-    _educationCtrl = TextEditingController(
-      text: staff.education ?? 'DIV - Manajemen Informasi Kesehatan',
+    _educationEntry = EducationEntry.fromString(
+      staff.education ?? 'DIV - Manajemen Informasi Kesehatan',
     );
     _birthDateCtrl = TextEditingController(text: staff.birthDate ?? '16/07/2006');
     _selectedImagePath = staff.avatarPath;
@@ -99,7 +100,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     _passwordCtrl.dispose();
     _experienceCtrl.dispose();
     _strCtrl.dispose();
-    _educationCtrl.dispose();
+    _educationEntry.dispose();
     _birthDateCtrl.dispose();
     super.dispose();
   }
@@ -391,7 +392,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     final email = _emailCtrl.text.trim().toLowerCase();
     final experience = _experienceCtrl.text.trim();
     final strNumber = _strCtrl.text.trim();
-    final education = _educationCtrl.text.trim();
+    final education = _educationEntry.toEducationString();
     final birthDate = _birthDateCtrl.text.trim();
 
     setState(() => _isSaving = true);
@@ -765,13 +766,21 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
+<<<<<<< HEAD
                         color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                        color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 18.0,
+<<<<<<< HEAD
                         color: textMuted,
+=======
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -848,13 +857,21 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
+<<<<<<< HEAD
                         color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                        color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 18.0,
+<<<<<<< HEAD
                         color: textMuted,
+=======
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -912,10 +929,21 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
+<<<<<<< HEAD
       errorWidget: Icon(
         Icons.person,
         size: 54.0,
         color: const Color(0xFF8696A0),
+=======
+      errorWidget: Container(
+        color: const Color(0xFFECF6FF),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.person_rounded,
+          size: 54.0,
+          color: Color(0xFF3985E7),
+        ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
       ),
     );
   }
@@ -957,13 +985,21 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
+<<<<<<< HEAD
                       color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                      color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Icon(
                       Icons.calendar_month_outlined,
                       size: 20.0,
+<<<<<<< HEAD
                       color: textMuted,
+=======
+                      color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -995,7 +1031,11 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 20.0,
+<<<<<<< HEAD
                     color: textMuted,
+=======
+                    color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                   ),
                 ],
               ),
@@ -1004,11 +1044,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
 
           Divider(height: 1.0, color: cardBorder),
 
-          // 2. Pendidikan
+          // 2. Pendidikan (Strata, Prodi, Universitas)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+<<<<<<< HEAD
                 Container(
                   width: 36.0,
                   height: 36.0,
@@ -1055,6 +1097,20 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       ),
                     ],
                   ),
+=======
+                Text(
+                  'Pendidikan',
+                  style: GoogleFonts.lato(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2228),
+                  ),
+                ),
+                PendidikanTripletCard(
+                  entry: _educationEntry,
+                  isDokter: false,
+                  showRemove: false,
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                 ),
               ],
             ),
@@ -1071,13 +1127,21 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
+<<<<<<< HEAD
                       color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                      color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20.0,
+<<<<<<< HEAD
                       color: textMuted,
+=======
+                      color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                   ),
                   const SizedBox(width: 14.0),

@@ -8,6 +8,7 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
+import 'widgets/pendidikan_triplet_input.dart';
 
 /// Halaman Tambah Profil PMIK untuk Superadmin PediaGrow.
 ///
@@ -44,7 +45,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _experienceCtrl = TextEditingController();
   final TextEditingController _strCtrl = TextEditingController();
-  final TextEditingController _educationCtrl = TextEditingController();
+  final EducationEntry _educationEntry = EducationEntry();
   final TextEditingController _birthDateCtrl = TextEditingController();
 
   String? _selectedImagePath;
@@ -65,7 +66,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
   void _initDefaultPermissions() {
     _permissions = {
       'rekapitulasi': true,
-      'download_dataset_rekapitulasi': true,
+      'download_dataset_rekapitulasi': false,
       'data_pasien': true,
       'detail_pasien': true,
       'edit_resume_medis': false,
@@ -73,7 +74,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
       'daftar_resep_mpasi': true,
       'daftar_artikel_kesehatan': true,
       'grafik_pengguna': true,
-      'download_dataset_pengguna': true,
+      'download_dataset_pengguna': false,
       'permainan': true,
       'konsultasi': true,
       'konfirmasi_konsultasi': false,
@@ -89,7 +90,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
     _emailCtrl.dispose();
     _experienceCtrl.dispose();
     _strCtrl.dispose();
-    _educationCtrl.dispose();
+    _educationEntry.dispose();
     _birthDateCtrl.dispose();
     super.dispose();
   }
@@ -381,7 +382,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
     final email = _emailCtrl.text.trim().toLowerCase();
     final experience = _experienceCtrl.text.trim();
     final strNumber = _strCtrl.text.trim();
-    final education = _educationCtrl.text.trim();
+    final education = _educationEntry.toEducationString();
     final birthDate = _birthDateCtrl.text.trim();
 
     setState(() => _isSaving = true);
@@ -591,10 +592,21 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
+<<<<<<< HEAD
                         errorWidget: Icon(
                           Icons.person,
                           size: 54.0,
                           color: textMuted,
+=======
+                        errorWidget: Container(
+                          color: const Color(0xFFECF6FF),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.person_rounded,
+                            size: 54.0,
+                            color: Color(0xFF3985E7),
+                          ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                         ),
                       ),
                     ),
@@ -732,13 +744,21 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
+<<<<<<< HEAD
                         color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                        color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 18.0,
+<<<<<<< HEAD
                         color: textMuted,
+=======
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -815,13 +835,21 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
+<<<<<<< HEAD
                         color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                        color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 18.0,
+<<<<<<< HEAD
                         color: textMuted,
+=======
+                        color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -910,13 +938,21 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
+<<<<<<< HEAD
                       color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                      color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Icon(
                       Icons.calendar_month_outlined,
                       size: 20.0,
+<<<<<<< HEAD
                       color: textMuted,
+=======
+                      color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -950,7 +986,11 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 20.0,
+<<<<<<< HEAD
                     color: textMuted,
+=======
+                    color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                   ),
                 ],
               ),
@@ -959,11 +999,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
 
           Divider(height: 1.0, color: cardBorder),
 
-          // 2. Pendidikan
+          // 2. Pendidikan (Strata, Prodi, Universitas)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+<<<<<<< HEAD
                 Container(
                   width: 36.0,
                   height: 36.0,
@@ -1010,6 +1052,20 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                       ),
                     ],
                   ),
+=======
+                Text(
+                  'Pendidikan',
+                  style: GoogleFonts.lato(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1A2228),
+                  ),
+                ),
+                PendidikanTripletCard(
+                  entry: _educationEntry,
+                  isDokter: false,
+                  showRemove: false,
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                 ),
               ],
             ),
@@ -1026,13 +1082,21 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
+<<<<<<< HEAD
                       color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+=======
+                      color: const Color(0xFFEFF6FF),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20.0,
+<<<<<<< HEAD
                       color: textMuted,
+=======
+                      color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                   ),
                   const SizedBox(width: 14.0),

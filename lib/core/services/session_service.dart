@@ -9,7 +9,7 @@ import '../../features/auth/login_page.dart';
 import '../../features/dokter/beranda/beranda_dokter_page.dart';
 import '../../features/pengguna/beranda/beranda_page.dart';
 import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
-import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
+import '../../features/pmik_superadmin/superadmin_shell.dart';
 import '../../models/staff_account_model.dart';
 import 'child_service.dart';
 import 'local_push_service.dart';
@@ -507,7 +507,7 @@ class SessionService {
 
         Widget destination;
         if (role == 'superadmin' || restoredStaff.isSuperAdmin) {
-          destination = const BerandaSuperadminPage();
+          destination = const SuperadminShell();
         } else if (role == 'pmik' || restoredStaff.role == StaffRole.admin) {
           destination = const BerandaPmikPage();
         } else {

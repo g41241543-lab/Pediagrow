@@ -633,44 +633,19 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(18.0, 16.0, 18.0, 14.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.confirmation_number_outlined,
-                      size: 20.0,
-                      color: _kPrimaryBlue,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      'Detail Booking',
-                      style: GoogleFonts.lato(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
-                      ),
-                    ),
-                  ],
+                const Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 20.0,
+                  color: _kPrimaryBlue,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0,
-                    vertical: 4.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF064E3B).withValues(alpha: 0.35)
-                        : const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Text(
-                    'Terkonfirmasi',
-                    style: GoogleFonts.lato(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? const Color(0xFF4ADE80) : _kGreenSuccess,
-                    ),
+                const SizedBox(width: 8.0),
+                Text(
+                  'Detail Booking',
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                   ),
                 ),
               ],
@@ -948,45 +923,51 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           const SizedBox(height: 14.0),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+            child: HoverLift(
+              lift: 2.0,
+              cursor: SystemMouseCursors.click,
+              borderRadius: BorderRadius.circular(10.0),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 11.0),
+                  backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                  foregroundColor: const Color(0xFF1E88E5),
+                ).copyWith(
+                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.hovered) ||
+                        states.contains(WidgetState.pressed)) {
+                      return isDark
+                          ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                          : const Color(0xFFEFF6FF);
+                    }
+                    return null;
+                  }),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 11.0),
-                backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-                foregroundColor: const Color(0xFF1E88E5),
-              ).copyWith(
-                overlayColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.hovered)) {
-                    return isDark
-                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                        : const Color(0xFFEFF6FF);
-                  }
-                  return null;
-                }),
-              ),
-              icon: const Icon(
-                Icons.event_note_rounded,
-                color: Color(0xFF1E88E5),
-                size: 18.0,
-              ),
-              label: Text(
-                'Buka di Google Kalender',
-                style: GoogleFonts.lato(
-                  fontSize: 13.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E88E5),
+                icon: const Icon(
+                  Icons.event_note_rounded,
+                  color: Color(0xFF1E88E5),
+                  size: 18.0,
                 ),
+                label: Text(
+                  'Buka di Google Kalender',
+                  style: GoogleFonts.lato(
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1E88E5),
+                  ),
+                ),
+                onPressed: () {
+                  final url = _currentBooking.googleCalendarUrl ??
+                      GoogleCalendarService().generateCalendarUrl(
+                        _currentBooking,
+                      );
+                  BookingService().launchGoogleCalendar(url);
+                },
               ),
-              onPressed: () {
-                final url = _currentBooking.googleCalendarUrl ??
-                    GoogleCalendarService().generateCalendarUrl(
-                      _currentBooking,
-                    );
-                BookingService().launchGoogleCalendar(url);
-              },
             ),
           ),
         ],
@@ -1177,40 +1158,50 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         SizedBox(
           width: double.infinity,
           height: 48.0,
-          child: ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: buttonBg,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: buttonBg,
-              disabledForegroundColor: isDark
-                  ? const Color(0xFF94A3B8)
-                  : const Color(0xFF64748B),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              elevation: 0,
-            ).copyWith(
-              overlayColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.hovered)) {
-                  return Colors.white.withValues(alpha: 0.15);
-                }
-                return null;
-              }),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(buttonIcon, size: 18.0),
-                const SizedBox(width: 8.0),
-                Text(
-                  buttonText,
-                  style: GoogleFonts.lato(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: HoverLift(
+            lift: 2.0,
+            cursor: onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+            borderRadius: BorderRadius.circular(12.0),
+            child: ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonBg,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: buttonBg,
+                disabledForegroundColor: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
-              ],
+                elevation: 0,
+              ).copyWith(
+                mouseCursor: WidgetStateProperty.resolveWith((states) =>
+                    states.contains(WidgetState.disabled)
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click),
+                overlayColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.hovered) ||
+                      states.contains(WidgetState.pressed)) {
+                    return Colors.white.withValues(alpha: 0.15);
+                  }
+                  return null;
+                }),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(buttonIcon, size: 18.0),
+                  const SizedBox(width: 8.0),
+                  Text(
+                    buttonText,
+                    style: GoogleFonts.lato(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -1218,53 +1209,58 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
         // Tombol Batalkan Konsultasi (Card Button Berkarakter dengan Hover)
         if (canCancel) ...[
           const SizedBox(height: 12.0),
-          Container(
-            width: double.infinity,
-            height: 48.0,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(
-                color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5),
-                width: 1.2,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x08000000),
-                  blurRadius: 6.0,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12.0),
-              child: InkWell(
-                onTap: _showBatalkanDialog,
-                hoverColor: isDark
-                    ? const Color(0xFF7F1D1D).withValues(alpha: 0.25)
-                    : const Color(0xFFFEF2F2),
-                splashColor: const Color(0xFFEF4444).withValues(alpha: 0.12),
-                highlightColor: const Color(0xFFEF4444).withValues(alpha: 0.06),
+          HoverLift(
+            lift: 2.0,
+            cursor: SystemMouseCursors.click,
+            borderRadius: BorderRadius.circular(12.0),
+            child: Container(
+              width: double.infinity,
+              height: 48.0,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.cancel_outlined,
-                      color: Color(0xFFEF4444),
-                      size: 18.0,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      'Batalkan Konsultasi',
-                      style: GoogleFonts.lato(
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFFEF4444),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5),
+                  width: 1.2,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x08000000),
+                    blurRadius: 6.0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12.0),
+                child: InkWell(
+                  onTap: _showBatalkanDialog,
+                  hoverColor: isDark
+                      ? const Color(0xFF7F1D1D).withValues(alpha: 0.25)
+                      : const Color(0xFFFEF2F2),
+                  splashColor: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                  highlightColor: const Color(0xFFEF4444).withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.cancel_outlined,
+                        color: Color(0xFFEF4444),
+                        size: 18.0,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8.0),
+                      Text(
+                        'Batalkan Konsultasi',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFEF4444),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

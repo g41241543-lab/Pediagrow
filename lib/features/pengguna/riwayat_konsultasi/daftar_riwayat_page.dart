@@ -808,10 +808,23 @@ class _HoverChipState extends State<_HoverChip> {
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
+      onEnter: (_) {
+        if (mounted) setState(() => _hovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _hovered = false);
+      },
       child: GestureDetector(
         onTap: widget.onTap,
+        onTapDown: (_) {
+          if (mounted) setState(() => _hovered = true);
+        },
+        onTapUp: (_) {
+          if (mounted) setState(() => _hovered = false);
+        },
+        onTapCancel: () {
+          if (mounted) setState(() => _hovered = false);
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           width: widget.width,

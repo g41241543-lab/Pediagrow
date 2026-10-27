@@ -6,10 +6,8 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../profil_superadmin_page.dart';
-import '../../beranda/beranda_superadmin_page.dart';
-import '../../konsultasi/konsultasi_superadmin_page.dart';
-import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import 'edit_dokter_akses_page.dart';
 import 'hapus_dokter_akses_page.dart';
 import 'tambah_dokter_akses_page.dart';
@@ -30,9 +28,7 @@ import '../../../dokter/jadwal/atur_jadwal_dokter_page.dart';
 ///    - Nama dokter & Spesialisasi
 ///    - Tombol Hapus (sampah merah) & Tombol Edit (pensil biru) di kanan bawah kartu
 ///    - Dialog konfirmasi Hapus Data sesuai gambar referensi
-/// 4. Scaffold.bottomNavigationBar permanen 4 menu:
-///    - Beranda, Konsultasi, Riwayat Konsultasi, Profil
-///    - Visual state aktif jelas pada Profil
+/// 4. Scaffold.bottomNavigationBar permanen 4 menu (tanpa lingkaran aktif)
 class DaftarDokterAksesPage extends StatefulWidget {
   const DaftarDokterAksesPage({super.key});
 
@@ -48,8 +44,6 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
   final Map<String, StaffAccount> _staffCache = {};
   bool _isLoadingStaff = false;
   String _searchQuery = '';
-
-  final int _selectedNavIndex = 3; // Menu Profil aktif
 
   @override
   void initState() {
@@ -161,34 +155,6 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     );
   }
 
-  void _onBottomNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-
-    final Widget destination = switch (index) {
-      0 => const BerandaSuperadminPage(),
-      1 => const KonsultasiSuperadminPage(),
-      2 => const DaftarRiwayatKonsultasiAdminPage(),
-      _ => const ProfilSuperadminPage(),
-    };
-
-    final route = PageRouteBuilder(
-      pageBuilder: (_, _, _) => destination,
-      transitionDuration: const Duration(milliseconds: 220),
-      transitionsBuilder: (_, animation, _, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-    );
-
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (route) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -261,7 +227,11 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           ],
         ),
       ),
+<<<<<<< HEAD
       bottomNavigationBar: _buildBottomNavigationBar(isDark),
+=======
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
     );
   }
 
@@ -702,6 +672,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       ),
     );
   }
+<<<<<<< HEAD
 
   // ---------------------------------------------------------------------------
   // BOTTOM NAVIGATION BAR
@@ -831,14 +802,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       ),
     );
   }
+=======
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
 }
 
-class _BottomNavItemData {
-  final IconData icon;
-  final String label;
-
-  const _BottomNavItemData({
-    required this.icon,
-    required this.label,
-  });
-}

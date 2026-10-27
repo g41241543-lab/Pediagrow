@@ -37,7 +37,12 @@ import '../../../models/staff_account_model.dart';
 /// - 6 menu berbeda (Rekapitulasi, Data Pasien, Daftar Resep MPASI, dll.)
 /// - Card slogan PeGo dengan teks sesuai desain superadmin
 class BerandaSuperadminPage extends StatefulWidget {
-  const BerandaSuperadminPage({super.key});
+  /// Ketika [inShell] true, halaman berjalan di dalam [SuperadminShell]:
+  /// - bottomNavigationBar tidak dirender (navbar milik shell).
+  /// - _onNavTap tidak melakukan push/replace (shell yang mengelola tab).
+  final bool inShell;
+
+  const BerandaSuperadminPage({super.key, this.inShell = false});
 
   @override
   State<BerandaSuperadminPage> createState() => _BerandaSuperadminPageState();
@@ -158,6 +163,10 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             ),
           ],
         ),
+<<<<<<< HEAD
+=======
+        bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
       ),
       bottomNavigationBar: _buildFixedNavBar(),
     );
@@ -1453,6 +1462,8 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   }
 
   void _onNavTap(int index) {
+    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
+    if (widget.inShell) return;
     if (index == _selectedIndex) return;
     switch (index) {
       case 0:
