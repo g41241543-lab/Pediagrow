@@ -239,14 +239,8 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       return;
     }
 
-    // Otomatis jadwalkan notifikasi pengingat kalender
-    NotificationService().addBookingReminderNotification(
-      doctorName: _doctor.name,
-      childName: _child.name,
-      dateFormatted: newBooking.formattedDate,
-      timeSlot: _selectedTimeSlot!,
-      scheduledTime: startDt,
-    );
+    // Pengingat HP + Google Kalender sudah dijadwalkan otomatis oleh BookingService.addBooking()
+    // (tidak perlu dipanggil ulang di sini agar tidak ada duplikasi pengingat)
 
     if (!mounted) return;
     setState(() {

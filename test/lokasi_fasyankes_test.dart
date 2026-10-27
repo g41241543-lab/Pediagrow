@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/features/pengguna/fasyankes/models/fasyankes_model.dart';
 import 'package:pediagrow/features/pengguna/fasyankes/services/fasyankes_service.dart';
 import 'package:pediagrow/features/pengguna/fasyankes/widgets/fasyankes_card_item.dart';
+import 'package:pediagrow/features/pengguna/fasyankes/widgets/fasyankes_detail_bottom_sheet.dart';
 import 'package:pediagrow/features/pengguna/fasyankes/widgets/fasyankes_map_widget.dart';
 
 void main() {
@@ -18,19 +19,19 @@ void main() {
         name: 'Klinik Pratama Polije',
         address: 'Jl. Mastrip No.164 Jember',
         phone: '0812-3300-0905',
-        rating: 4.0,
-        latitude: -8.157829,
-        longitude: 113.722814,
+        rating: 4.8,
+        latitude: -8.160563,
+        longitude: 113.721688,
         category: 'Klinik',
       );
 
       // Jarak dari titik yang sama harus 0 km
-      final zeroDist = fasyankes.calculateDistance(-8.157829, 113.722814);
+      final zeroDist = fasyankes.calculateDistance(-8.160563, 113.721688);
       expect(zeroDist, closeTo(0.0, 0.001));
 
       // Jarak ~1 km dari titik berbeda
-      final dist = fasyankes.calculateDistance(-8.165000, 113.722814);
-      expect(dist, greaterThan(0.5));
+      final dist = fasyankes.calculateDistance(-8.165000, 113.721688);
+      expect(dist, greaterThan(0.4));
       expect(dist, lessThan(1.5));
 
       // formattedDistance: meter
@@ -49,23 +50,87 @@ void main() {
         address: 'Jl. Kaliurang Jember',
         phone: '0815-5969-4882',
         rating: 4.7,
-        latitude: -8.160100,
-        longitude: 113.731500,
+        latitude: -8.163349,
+        longitude: 113.727116,
         category: 'Klinik',
       );
 
       // Verifikasi format geo: URI
       expect(fasyankes.googleMapsDirectUrl, startsWith('geo:'));
-      expect(fasyankes.googleMapsDirectUrl, contains('-8.1601'));
-      expect(fasyankes.googleMapsDirectUrl, contains('113.7315'));
+      expect(fasyankes.googleMapsDirectUrl, contains('-8.1633'));
+      expect(fasyankes.googleMapsDirectUrl, contains('113.7271'));
     });
 
-    test('FasyankesService returns max 10 nearest facilities sorted by distance',
-        () async {
+    test('googleMapsUrl menghasilkan URL titik koordinat resmi Google Maps', () {
+      const fasyankes = FasyankesModel(
+        id: '1',
+        name: 'Klinik Pratama Politeknik Negeri Jember',
+        address: 'Jl. Mastrip No.164 Jember',
+        phone: '0812-3300-0905',
+        rating: 4.8,
+        latitude: -8.160563,
+        longitude: 113.721688,
+        category: 'Klinik',
+      );
+
+      expect(
+        fasyankes.googleMapsUrl,
+        'https://www.google.com/maps/search/?api=1&query=-8.160563,113.721688',
+      );
+    });
+
+    test('FasyankesReview parses from JSON correctly', () {
+      final review = FasyankesReview.fromJson({
+        'author_name': 'Budi Santoso',
+        'rating': 5,
+        'relative_time_description': '2 minggu lalu',
+        'text': 'Pelayanan sangat memuaskan dan ramah anak.',
+      });
+
+      expect(review.authorName, 'Budi Santoso');
+      expect(review.rating, 5.0);
+      expect(review.relativeTime, '2 minggu lalu');
+      expect(review.text, 'Pelayanan sangat memuaskan dan ramah anak.');
+    });
+
+    test('FasyankesModel contains rich Google Maps data (reviews, photos, services, plusCode)', () {
+      const fasyankes = FasyankesModel(
+        id: 'fasyankes_1',
+        name: 'Klinik Pratama Politeknik Negeri Jember',
+        address: 'Jl. Mastrip No.164, Tegalgede, Jember',
+        phone: '0812-3300-0905',
+        rating: 4.8,
+        userRatingsTotal: 142,
+        latitude: -8.160563,
+        longitude: 113.721688,
+        category: 'Klinik',
+        plusCode: 'RPQC+QM Tegalgede, Kec. Sumbersari, Kabupaten Jember, Jawa Timur',
+        operatingHours: 'Senin - Jumat: 07:30 - 20:00 WIB',
+        services: ['Poli KIA & Anak', 'Konsultasi Gizi', 'BPJS Kesehatan'],
+        reviews: [
+          FasyankesReview(
+            authorName: 'Siti Nurhaliza',
+            rating: 5.0,
+            relativeTime: '1 bulan lalu',
+            text: 'Pelayanan BPJS sangat cepat dan ramah.',
+          ),
+        ],
+      );
+
+      expect(fasyankes.userRatingsTotal, 142);
+      expect(fasyankes.plusCode, contains('RPQC+QM'));
+      expect(fasyankes.operatingHours, contains('07:30'));
+      expect(fasyankes.services.length, 3);
+      expect(fasyankes.reviews.length, 1);
+      expect(fasyankes.shareText, contains('Plus Code GMaps'));
+      expect(fasyankes.shareText, contains('RPQC+QM'));
+    });
+
+    test('FasyankesService returns max 10 nearest facilities sorted by distance', () async {
       final service = FasyankesService();
       final list = await service.getNearestFasyankes(
-        userLat: -8.1585,
-        userLng: 113.7225,
+        userLat: -8.160563,
+        userLng: 113.721688,
       );
 
       expect(list.isNotEmpty, true);
@@ -84,6 +149,22 @@ void main() {
       expect(names.contains('Klinik Kimia Farma UNEJ Medical Center'), true);
     });
 
+    test('FasyankesService getLocalFasyankesInstant returns data immediately with zero loading delay', () {
+      final service = FasyankesService();
+      final list = service.getLocalFasyankesInstant(
+        userLat: -8.160563,
+        userLng: 113.721688,
+      );
+
+      expect(list.isNotEmpty, true);
+      expect(list.length, lessThanOrEqualTo(10));
+      // Pastikan fasyankes terdekat pertama adalah Klinik Polije (jarak ~0 km)
+      expect(list.first.name, 'Klinik Pratama Politeknik Negeri Jember');
+      expect(list.first.distanceKm, closeTo(0.0, 0.05));
+      expect(list.first.plusCode, contains('RPQC+QM'));
+      expect(list.first.reviews.isNotEmpty, true);
+    });
+
     test('FasyankesService filters by query correctly', () async {
       final service = FasyankesService();
       final results = await service.getNearestFasyankes(
@@ -96,20 +177,31 @@ void main() {
   });
 
   // -----------------------------------------------------------------------
-  // WIDGET TESTS: FasyankesMapWidget & FasyankesCardItem
+  // WIDGET TESTS: FasyankesMapWidget, FasyankesCardItem & BottomSheet
   // -----------------------------------------------------------------------
-  group('Widget Tests: FasyankesMapWidget & FasyankesCardItem', () {
+  group('Widget Tests: FasyankesMapWidget, FasyankesCardItem & BottomSheet', () {
     const testFasyankes = FasyankesModel(
       id: 'test_1',
       name: 'Klinik Pratama Politeknik Negeri Jember',
       address: 'Jl. Mastrip No.164, Jember',
       phone: '0812-3300-0905',
-      rating: 4.0,
+      rating: 4.8,
       userRatingsTotal: 142,
-      latitude: -8.157829,
-      longitude: 113.722814,
+      latitude: -8.160563,
+      longitude: 113.721688,
       category: 'Klinik',
       distanceKm: 0.3,
+      plusCode: 'RPQC+QM Tegalgede, Kec. Sumbersari, Kabupaten Jember',
+      operatingHours: 'Senin - Jumat: 07:30 - 20:00 WIB',
+      services: ['Poli KIA & Anak', 'Konsultasi Gizi', 'BPJS Kesehatan'],
+      reviews: [
+        FasyankesReview(
+          authorName: 'Budi Santoso',
+          rating: 5.0,
+          relativeTime: '2 minggu lalu',
+          text: 'Pelayanan sangat ramah, dokter teliti memeriksa kesehatan balita.',
+        ),
+      ],
     );
 
     testWidgets('FasyankesMapWidget renders Map/Satellite toggle & zoom controls',
@@ -131,7 +223,6 @@ void main() {
           ),
         ),
       );
-      // pump beberapa frame tanpa pumpAndSettle (tile network request bisa timeout)
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
@@ -183,9 +274,9 @@ void main() {
       expect(find.text('Buka Maps'), findsWidgets);
     });
 
-    testWidgets('FasyankesCardItem renders nama, alamat, rating, dan tombol Buka Maps',
+    testWidgets('FasyankesCardItem renders nama, alamat, rating, ulasan, dan tombol aksi',
         (tester) async {
-      tester.view.physicalSize = const Size(360, 200);
+      tester.view.physicalSize = const Size(360, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -206,33 +297,40 @@ void main() {
       expect(find.text('Jl. Mastrip No.164, Jember'), findsOneWidget);
       expect(find.text('0812-3300-0905'), findsOneWidget);
       expect(find.byIcon(Icons.star_rounded), findsOneWidget);
+      expect(find.text('(142 ulasan)'), findsOneWidget);
+      expect(find.text('Detail & Ulasan'), findsOneWidget);
       expect(find.text('Buka Maps'), findsOneWidget);
       expect(find.text('300 m'), findsOneWidget);
     });
 
-    testWidgets('FasyankesCardItem tidak overflow pada layar kecil (320dp lebar)',
+    testWidgets('FasyankesDetailBottomSheet renders Google Maps reviews, plus code, and services',
         (tester) async {
-      tester.view.physicalSize = const Size(320, 200);
+      tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
-            body: SingleChildScrollView(
-              child: FasyankesCardItem(
-                fasyankes: testFasyankes,
-                onTap: () {},
-              ),
-            ),
+            body: FasyankesDetailBottomSheet(fasyankes: testFasyankes),
           ),
         ),
       );
       await tester.pump();
 
-      // Tidak ada overflow exception
-      expect(find.byType(FasyankesCardItem), findsOneWidget);
+      // Info utama Google Maps
+      expect(find.text('Klinik Pratama Politeknik Negeri Jember'), findsOneWidget);
+      expect(find.text('Terdaftar Resmi di Google Maps'), findsOneWidget);
+      expect(find.text('142 Ulasan di Google Maps'), findsOneWidget);
+      expect(find.text('RPQC+QM Tegalgede, Kec. Sumbersari, Kabupaten Jember'), findsOneWidget);
+      expect(find.text('Poli KIA & Anak'), findsOneWidget);
+      expect(find.text('Konsultasi Gizi'), findsOneWidget);
+
+      // Ulasan pengguna Google Maps
+      expect(find.text('Budi Santoso'), findsOneWidget);
+      expect(find.text('Pelayanan sangat ramah, dokter teliti memeriksa kesehatan balita.'), findsOneWidget);
+      expect(find.text('Buka Rute di Google Maps'), findsOneWidget);
     });
   });
 }

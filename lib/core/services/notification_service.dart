@@ -78,6 +78,8 @@ class NotificationService {
       final newUid = UserService().currentUser.id;
       if (newUid != _lastKnownUserId) {
         _lastKnownUserId = newUid;
+        // Batalkan timer & antrean pengingat akun sebelumnya saat ganti akun / logout
+        cancelAllPendingReminders();
         await _loadFromPrefs();
       }
     });
@@ -111,9 +113,18 @@ class NotificationService {
             debugPrint('[NotificationService] Parse error: $e');
           }
         }
-        notificationsNotifier.value = loaded;
+
+        // Saring hanya notifikasi milik akun aktif (atau akun guest jika belum login)
+        final currentUid = UserService().currentUser.id;
+        final filtered = loaded.where((item) {
+          if (item.recipientId == null || item.recipientId!.isEmpty) return true;
+          if (currentUid.isEmpty) return true;
+          return item.recipientId == currentUid;
+        }).toList();
+
+        notificationsNotifier.value = filtered;
         unreadCountNotifier.value =
-            loaded.where((item) => !item.isRead).length;
+            filtered.where((item) => !item.isRead).length;
       } else {
         notificationsNotifier.value = [];
         unreadCountNotifier.value = 0;
@@ -236,39 +247,49 @@ class NotificationService {
   /// Notifikasi baru muncul di posisi paling atas.
   /// Sekaligus menampilkan notifikasi sistem (status bar HP) via [LocalPushService].
   void addNotification(NotificationItem item, {bool showPush = true}) {
+    final currentUid = UserService().currentUser.id;
+    final itemToSave = item.recipientId == null && currentUid.isNotEmpty
+        ? item.copyWith(recipientId: currentUid)
+        : item;
+
     final currentList = List<NotificationItem>.from(notificationsNotifier.value);
-    // 1. Hindari duplikasi ID
-    currentList.removeWhere((element) => element.id == item.id);
+
+    // 1. Abaikan jika ID sudah pernah tercatat (TUGAS 1: cegah duplikasi per kejadian)
+    if (currentList.any((element) => element.id == itemToSave.id)) {
+      debugPrint('[NotificationService] Notifikasi ID ${itemToSave.id} sudah tercatat, abaikan.');
+      return;
+    }
 
     // 2. Cegah duplikasi notifikasi (title & message sama dalam 2 detik)
-    final now = item.date;
+    final now = itemToSave.date;
     final isDuplicate = currentList.any((element) {
-      final sameText = element.title.trim() == item.title.trim() &&
-          element.message.trim() == item.message.trim();
+      final sameText = element.title.trim() == itemToSave.title.trim() &&
+          element.message.trim() == itemToSave.message.trim();
       final diffSeconds = (element.date.difference(now)).inSeconds.abs();
       return sameText && diffSeconds <= 2;
     });
 
     if (isDuplicate) {
-      debugPrint('[NotificationService] Notifikasi duplikat diabaikan: "${item.title}"');
+      debugPrint('[NotificationService] Notifikasi duplikat diabaikan: "${itemToSave.title}"');
       return;
     }
 
-    currentList.insert(0, item);
+    currentList.insert(0, itemToSave);
     notificationsNotifier.value = currentList;
-    // Tambah unread count jika notifikasi baru belum dibaca
-    if (!item.isRead) {
-      unreadCountNotifier.value = unreadCountNotifier.value + 1;
-    }
+
+    // Jumlah badge belum dibaca selalu sama persis dengan baris belum dibaca (TUGAS 1)
+    unreadCountNotifier.value = currentList.where((i) => !i.isRead).length;
     _saveToPrefs();
 
-    // Tampilkan notifikasi sistem (push lokal) jika diminta
+    // Tampilkan notifikasi sistem (push lokal) jika diminta.
+    // Gunakan itemToSave.title secara eksplisit agar judul di HP selalu konsisten
+    // dengan judul yang tercatat di daftar notifikasi aplikasi.
     if (showPush) {
-      LocalPushService().show(
-        title: item.title,
-        body: item.message,
+      LocalPushService().showWithExactTitle(
+        title: itemToSave.title,
+        body: itemToSave.message,
         targetRole: PushRole.pengguna,
-        targetUserId: UserService().currentUser.id,
+        targetUserId: itemToSave.recipientId ?? (currentUid.isNotEmpty ? currentUid : null),
         recordInApp: false,
       );
     }
@@ -282,12 +303,14 @@ class NotificationService {
   }) {
     final now = DateTime.now();
     final detectedType = type ?? detectType(title, message);
+    final currentUid = UserService().currentUser.id;
     final newItem = NotificationItem(
       id: 'user_push_${now.millisecondsSinceEpoch}',
       title: title,
       message: message,
       date: now,
       type: detectedType,
+      recipientId: currentUid.isNotEmpty ? currentUid : null,
     );
     addNotification(newItem, showPush: false);
   }
@@ -376,9 +399,12 @@ class NotificationService {
   // ---------------------------------------------------------------------------
 
   /// Menambahkan notifikasi saat konsultasi chat dengan dokter telah berakhir.
-  void addConsultationEndedNotification({DateTime? date}) {
+  void addConsultationEndedNotification({DateTime? date, String? consultationId}) {
     final now = date ?? DateTime.now();
-    final id = 'consultation_ended_${now.microsecondsSinceEpoch}';
+    final id = consultationId != null && consultationId.isNotEmpty
+        ? 'consultation_ended_$consultationId'
+        : 'consultation_ended_${now.millisecondsSinceEpoch}';
+    final currentUid = UserService().currentUser.id;
     final newItem = NotificationItem(
       id: id,
       title: 'Konsultasi Selesai',
@@ -386,6 +412,7 @@ class NotificationService {
           'Konsultasi telah berakhir. Ketuk untuk melihat riwayat konsultasi Anda.',
       date: now,
       type: NotificationType.consultation,
+      recipientId: currentUid.isNotEmpty ? currentUid : null,
     );
     addNotification(newItem);
   }
@@ -399,11 +426,14 @@ class NotificationService {
     required String timeSlot,
     DateTime? scheduledTime,
     DateTime? bookingDate,
+    String? bookingId,
   }) {
     final now = DateTime.now();
-    final id =
-        'booking_success_${doctorName.trim()}_${childName.trim()}_${dateFormatted.replaceAll('/', '_')}_${timeSlot.replaceAll(':', '_').replaceAll(' ', '')}_${now.millisecondsSinceEpoch}';
+    final id = bookingId != null && bookingId.isNotEmpty
+        ? 'booking_success_$bookingId'
+        : 'booking_success_${doctorName.trim()}_${childName.trim()}_${dateFormatted.replaceAll('/', '_')}_${timeSlot.replaceAll(':', '_').replaceAll(' ', '')}';
 
+    final currentUid = UserService().currentUser.id;
     final newItem = NotificationItem(
       id: id,
       title: 'Booking Konsultasi Berhasil',
@@ -411,6 +441,7 @@ class NotificationService {
           'Booking konsultasi anak $childName bersama $doctorName pada $dateFormatted ($timeSlot) berhasil dilakukan dan telah tersambung dengan Google Kalender.',
       date: now,
       type: NotificationType.consultation,
+      recipientId: currentUid.isNotEmpty ? currentUid : null,
     );
     addNotification(newItem);
   }
@@ -547,6 +578,49 @@ class NotificationService {
       );
       addNotification(newItem);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PEMBATALAN PENGINGAT BOOKING (untuk saat booking dihapus)
+  // ---------------------------------------------------------------------------
+
+  /// Membatalkan pengingat jadwal konsultasi yang sudah terjadwal di sistem HP
+  /// dan menghapusnya dari antrean pending, sehingga tidak muncul lagi.
+  ///
+  /// Dipanggil saat pengguna membatalkan/menghapus booking konsultasi.
+  void cancelBookingReminder(String bookingId) {
+    final reminderId = 'booking_reminder_$bookingId';
+
+    // 1. Hapus dari antrean pengingat yang belum terpicu
+    _pendingBookingReminders.removeWhere(
+      (r) => r.id == reminderId || r.id.contains(bookingId),
+    );
+
+    // 2. Tandai sebagai sudah-dibatalkan agar tidak terpicu oleh timer
+    _triggeredReminderIds.add(reminderId);
+
+    // 3. Batalkan notifikasi terjadwal di sistem HP
+    final notifIntId = reminderId.hashCode.abs() % 0x7FFFFFFF;
+    LocalPushService().cancel(notifIntId);
+
+    // 4. Hentikan timer jika tidak ada lagi pengingat
+    if (_pendingBookingReminders.isEmpty) {
+      _reminderCheckTimer?.cancel();
+      _reminderCheckTimer = null;
+    }
+
+    debugPrint('[NotificationService] Pengingat booking $bookingId dibatalkan (id=$reminderId).');
+  }
+
+  /// Membatalkan dan mengosongkan seluruh pengingat terjadwal (saat logout atau ganti akun)
+  void cancelAllPendingReminders() {
+    for (final reminder in _pendingBookingReminders) {
+      final notifIntId = reminder.id.hashCode.abs() % 0x7FFFFFFF;
+      LocalPushService().cancel(notifIntId);
+    }
+    _pendingBookingReminders.clear();
+    _reminderCheckTimer?.cancel();
+    _reminderCheckTimer = null;
   }
 
   /// Menghentikan timer pengingat (berguna saat test atau teardown)

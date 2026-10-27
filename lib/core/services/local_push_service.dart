@@ -433,6 +433,93 @@ class LocalPushService {
     }
   }
 
+  /// Menampilkan notifikasi di system tray dengan judul **persis** seperti yang diberikan,
+  /// tanpa diproses oleh [_resolveActionTitle]. Gunakan method ini ketika judul sudah
+  /// ditetapkan oleh pemanggil dan harus konsisten antara HP dan daftar notifikasi in-app.
+  Future<void> showWithExactTitle({
+    required String title,
+    required String body,
+    PushRole? targetRole,
+    String? targetUserId,
+    int? id,
+    bool recordInApp = false,
+  }) async {
+    // Pastikan notifikasi hanya masuk jika sesuai akun pengguna yang aktif
+    if (targetUserId != null) {
+      final currentUserId = _activeUserId ?? UserService().currentUser.id;
+      if (currentUserId.isEmpty || currentUserId != targetUserId) {
+        debugPrint(
+          '[LocalPushService] showWithExactTitle ditolak (targetUserId=$targetUserId != activeUserId=$currentUserId).',
+        );
+        return;
+      }
+    }
+
+    // Filter role aktif
+    if (targetRole != null && _activeRole != null && _activeRole != targetRole) {
+      debugPrint(
+        '[LocalPushService] showWithExactTitle difilter: activeRole=$_activeRole, '
+        'targetRole=$targetRole — tidak ditampilkan.',
+      );
+      return;
+    }
+
+    if (recordInApp) {
+      _recordNotificationInApp(
+        title: title,
+        body: body,
+        targetRole: targetRole,
+      );
+    }
+
+    if (!_initialized) {
+      debugPrint('[LocalPushService] showWithExactTitle dipanggil sebelum init() — abaikan.');
+      return;
+    }
+
+    final int notifId = id ?? Random().nextInt(0x7FFFFFFF);
+
+    final BigTextStyleInformation bigTextStyle = BigTextStyleInformation(
+      body,
+      htmlFormatBigText: false,
+      contentTitle: title,
+      htmlFormatContentTitle: false,
+      summaryText: null,
+      htmlFormatSummaryText: false,
+    );
+
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'pediagrow_channel',
+      'PediaGrow',
+      channelDescription: 'Notifikasi sistem PediaGrow',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      styleInformation: bigTextStyle,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    try {
+      await _plugin.show(notifId, title, body, details);
+      debugPrint(
+        '[LocalPushService] showWithExactTitle: id=$notifId, title="$title", targetRole=$targetRole',
+      );
+    } catch (e) {
+      debugPrint('[LocalPushService] showWithExactTitle() error: $e');
+    }
+  }
+
   // ============================================================
   // MENJADWALKAN NOTIFIKASI
   // ============================================================

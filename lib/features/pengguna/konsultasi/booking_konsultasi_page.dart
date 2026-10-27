@@ -209,19 +209,12 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
         slot: chosenSlot,
       );
 
-      // 2. Sistem otomatis menyambungkan pengingat Google Kalender & notifikasi jadwal tiba
-      NotificationService().addBookingReminderNotification(
-        doctorName: widget.doctor.name,
-        childName: booking.child.name,
-        dateFormatted:
-            '${chosenDate.day}/${chosenDate.month}/${chosenDate.year}',
-        timeSlot: booking.scheduledTimeSlot,
-        scheduledTime: booking.scheduledStartDateTime,
-      );
+      // Pengingat HP + Google Kalender sudah dijadwalkan otomatis oleh BookingService.createBooking()
+      // (tidak perlu dipanggil ulang di sini agar tidak ada duplikasi pengingat)
 
       if (!mounted) return;
 
-      // 3. Tampilkan Pop-Up Berhasil yang estetik dan informatif
+      // 2. Tampilkan Pop-Up Berhasil yang estetik dan informatif
       _showSuccessDialog(booking);
     } catch (e) {
       _showSnackbar('Gagal melakukan booking: $e');
