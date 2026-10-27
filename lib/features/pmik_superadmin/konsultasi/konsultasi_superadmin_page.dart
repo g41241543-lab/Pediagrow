@@ -72,7 +72,12 @@ final List<_KonsultasiItem> _mockJadwal = [];
 /// Superadmin hanya bisa melihat data; tidak dapat masuk ruang chat
 /// sesuai ketentuan akses — hanya dokter dan pengguna terkait yang bisa.
 class KonsultasiSuperadminPage extends StatefulWidget {
-  const KonsultasiSuperadminPage({super.key});
+  /// Ketika [inShell] true, halaman berjalan di dalam [SuperadminShell]:
+  /// - bottomNavigationBar tidak dirender (navbar milik shell).
+  /// - _onBottomNavTap tidak melakukan push/replace (shell yang mengelola tab).
+  final bool inShell;
+
+  const KonsultasiSuperadminPage({super.key, this.inShell = false});
 
   @override
   State<KonsultasiSuperadminPage> createState() =>
@@ -143,6 +148,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
 
   // ─── Navigation ────────────────────────────────────────────────────────────
   void _onBottomNavTap(int index) {
+    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
+    if (widget.inShell) return;
     if (index == _selectedNavIndex) return;
     Widget targetPage;
     switch (index) {
@@ -509,7 +516,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   ],
                 ),
               ),
-              bottomNavigationBar: _buildBottomNavigationBar(),
+              bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
             );
           },
         );
