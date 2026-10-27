@@ -6,7 +6,6 @@ import 'package:pediagrow/core/services/local_push_service.dart';
 import 'package:pediagrow/core/services/user_service.dart';
 import 'package:pediagrow/core/services/staff_auth_service.dart';
 import 'package:pediagrow/models/notification_model.dart';
-import 'package:pediagrow/models/superadmin_notification_model.dart';
 import 'package:pediagrow/models/staff_account_model.dart';
 import 'package:pediagrow/models/user_model.dart';
 

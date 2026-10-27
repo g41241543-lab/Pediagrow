@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'dart:math' as math;
 
 /// Model ulasan pengguna yang terdaftar di Google Maps untuk fasyankes

@@ -41,9 +41,15 @@ class DaftarRiwayatKonsultasiAdminPage extends StatefulWidget {
   /// riwayat konsultasi milik dokter tersebut tanpa tombol filter dokter.
   final String? filterByDoctorName;
 
+  /// Ketika [inShell] true, halaman berjalan di dalam [SuperadminShell]:
+  /// - bottomNavigationBar tidak dirender (navbar milik shell).
+  /// - _onBottomNavTap tidak melakukan push/replace (shell yang mengelola tab).
+  final bool inShell;
+
   const DaftarRiwayatKonsultasiAdminPage({
     super.key,
     this.filterByDoctorName,
+    this.inShell = false,
   });
 
   @override
@@ -153,6 +159,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
   }
 
   void _onBottomNavTap(int index) {
+    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
+    if (widget.inShell) return;
     if (index == _selectedNavIndex) return;
 
     final staff = StaffAuthService().currentStaff;
@@ -344,6 +352,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   doctorHandledChildren.add(name);
                 }
               }
+              if (_selectedDoctorChild != 'Semua' &&
+                  !doctorHandledChildren.contains(_selectedDoctorChild)) {
+                _selectedDoctorChild = 'Semua';
+              }
             }
 
             // Kumpulkan daftar opsi nama dokter untuk modal filter (mode admin/superadmin)
@@ -434,7 +446,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
             );
           },
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
       ),
     );
   }

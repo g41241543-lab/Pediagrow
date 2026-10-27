@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/services/staff_auth_service.dart';
@@ -13,9 +13,7 @@ import '../../features/pengguna/riwayat_konsultasi/daftar_riwayat_page.dart';
 import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../features/pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
 import '../../features/pmik_admin/profil_pmik_page.dart';
-import '../../features/pmik_superadmin/beranda/beranda_superadmin_page.dart';
-import '../../features/pmik_superadmin/konsultasi/konsultasi_superadmin_page.dart';
-import '../../features/pmik_superadmin/profil/profil_superadmin_page.dart';
+import '../../features/pmik_superadmin/superadmin_shell.dart';
 import '../../features/pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 
 /// Navigation Bar terpusat dan reusable untuk aplikasi PediaGrow.
@@ -89,23 +87,10 @@ class PediaBottomNavBar extends StatelessWidget {
             return;
         }
       } else if (staff.role == StaffRole.superadmin) {
-        switch (index) {
-          case 0:
-            targetPage = const BerandaSuperadminPage();
-            removeUntil = true;
-            break;
-          case 1:
-            targetPage = const KonsultasiSuperadminPage();
-            break;
-          case 2:
-            targetPage = const DaftarRiwayatKonsultasiAdminPage();
-            break;
-          case 3:
-            targetPage = const ProfilSuperadminPage();
-            break;
-          default:
-            return;
-        }
+        // Superadmin: semua tab diarahkan kembali ke SuperadminShell dengan
+        // initialIndex yang sesuai — shell mengelola state tab.
+        targetPage = SuperadminShell(initialIndex: index);
+        removeUntil = true;
       } else {
         switch (index) {
           case 0:

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../models/resume_medis_model.dart';
 import 'riwayat_konsultasi_admin_model.dart';
 
 /// Service untuk memuat dan menyinkronkan data Riwayat Konsultasi secara Real-Time
@@ -43,7 +44,7 @@ class RiwayatKonsultasiAdminService {
 
     // Cache lokal untuk menggabungkan stream dari beberapa collections
     Map<String, Map<String, dynamic>> childrenMap = {};
-    List<Map<String, dynamic>> resumeDocs = [];
+    List<ResumeMedisModel> resumeModels = [];
     List<Map<String, dynamic>> bookingDocs = [];
     List<Map<String, dynamic>> riwayatDocs = [];
 
@@ -60,24 +61,12 @@ class RiwayatKonsultasiAdminService {
         final Set<String> processedKeys = {};
 
         // ──────────────────────────────────────────────────────────────────────
-        // SUMBER 1 (UTAMA): resume_medis — ini adalah sumber paling andal karena
-        // consultation_booking dihapus otomatis setelah sesi berakhir.
+        // SUMBER 1 (UTAMA): resume_medis — parsing via ResumeMedisModel.fromFirestore
+        // agar field mapping 100% konsisten dengan yang ditulis oleh BuatResumeMedisDokterPage.
         // ──────────────────────────────────────────────────────────────────────
-        for (final r in resumeDocs) {
-          final id = r['id']?.toString() ?? '';
-          final childName =
-              (r['child_name'] ?? r['childName'] ?? 'Anak').toString();
-          final childId =
-              (r['child_id'] ?? r['childId'] ?? '').toString();
-          final doctorId =
-              (r['doctor_id'] ?? r['doctorId'] ?? '').toString();
-          final doctorName = (r['doctor_name'] ??
-                  r['doctorName'] ??
-                  'Dokter Spesialis Anak')
-              .toString();
-
+        for (final r in resumeModels) {
           // Normalisasi status: hanya tampilkan yang selesai
-          final rawStatus = (r['status'] ?? 'Selesai').toString().toLowerCase();
+          final rawStatus = r.status.toLowerCase();
           if (rawStatus.contains('jadwal') ||
               rawStatus.contains('terjadwal') ||
               rawStatus.contains('booking') ||
@@ -86,51 +75,43 @@ class RiwayatKonsultasiAdminService {
             continue;
           }
 
-          final rawDate = r['consultation_date'] ??
-              r['consultationDate'] ??
-              r['created_at'];
-          final parsedDate = parseAnyDate(rawDate);
+          final parsedDate = parseAnyDate(r.consultationDate);
           final formattedDate = parsedDate != null
               ? formatIndonesianDate(parsedDate)
-              : (r['consultation_date']?.toString() ??
-                  r['consultationDate']?.toString() ??
-                  '');
+              : r.consultationDate;
 
-          final childData = childrenMap[childId] ??
-              childrenMap[childName.toLowerCase().trim()];
-          String gender =
-              childData?['gender'] ?? r['child_gender'] ?? 'Perempuan';
-          DateTime? birthDate = parseAnyDate(
+          // Coba ambil data anak dari childrenMap untuk gender & birth_date
+          final childData = (r.childId.isNotEmpty ? childrenMap[r.childId] : null) ??
+              childrenMap[r.childName.toLowerCase().trim()];
+          final String gender = childData?['gender']?.toString() ?? 'Perempuan';
+          final DateTime? birthDate = parseAnyDate(
             childData?['birth_date'] ?? childData?['tanggal_lahir'],
           );
 
-          final complaint =
-              (r['complaint'] ?? r['complaint_short'] ?? '').toString();
-          final summary = (r['summary'] ?? '').toString();
-          final sessionId = r['session_id']?.toString() ?? r['sessionId']?.toString();
-
           final itemKey =
-              '${childName.toLowerCase().trim()}_${doctorName.toLowerCase().trim()}_$formattedDate';
+              '${r.childName.toLowerCase().trim()}_${r.doctorName.toLowerCase().trim()}_$formattedDate';
           if (!processedKeys.contains(itemKey)) {
             processedKeys.add(itemKey);
             items.add(
               RiwayatKonsultasiAdminItem(
-                id: id.isNotEmpty ? id : 'resume_${items.length}',
-                childId: childId,
-                childName: childName,
+                id: r.id.isNotEmpty ? r.id : 'resume_${items.length}',
+                childId: r.childId,
+                childName: r.childName,
                 childGender: gender,
                 childBirthDate: birthDate,
-                childAge: r['child_age_at_consultation']?.toString(),
-                doctorId: doctorId,
-                doctorName: doctorName,
+                childAge: r.childAgeAtConsultation.isNotEmpty
+                    ? r.childAgeAtConsultation
+                    : null,
+                doctorId: r.doctorId,
+                doctorName: r.doctorName,
                 consultationDate: parsedDate,
                 formattedDate: formattedDate,
                 status: 'Selesai',
-                complaint: complaint,
-                summary: summary,
-                resumeMedisId: id,
-                sessionId: sessionId,
-                createdAt: parseAnyDate(r['created_at']),
+                complaint: r.complaint.isNotEmpty ? r.complaint : r.complaintShort,
+                summary: r.summary,
+                resumeMedisId: r.id,
+                sessionId: r.sessionId,
+                createdAt: r.createdAt,
               ),
             );
           }
@@ -311,10 +292,26 @@ class RiwayatKonsultasiAdminService {
       }, onError: (_) => emitCombined());
 
       // 2. Resume Medis — sumber UTAMA riwayat konsultasi yang sudah selesai
+      // Menggunakan ResumeMedisModel.fromFirestore untuk parsing field yang konsisten
+      // Tidak menggunakan orderBy agar tidak perlu composite index Firestore
       subResumes = db.collection('resume_medis').snapshots().listen((snap) {
-        resumeDocs = snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+        resumeModels = snap.docs
+            .map((d) {
+              try {
+                return ResumeMedisModel.fromFirestore(
+                    d as DocumentSnapshot<Map<String, dynamic>>);
+              } catch (e) {
+                debugPrint('[RiwayatKonsultasiAdminService] parse error doc ${d.id}: $e');
+                return null;
+              }
+            })
+            .whereType<ResumeMedisModel>()
+            .toList();
         emitCombined();
-      }, onError: (_) => emitCombined());
+      }, onError: (e) {
+        debugPrint('[RiwayatKonsultasiAdminService] resume_medis error: $e');
+        emitCombined();
+      });
 
       // 3. Consultation Booking — sumber pendukung (booking berstatus Selesai)
       subBookings = db
