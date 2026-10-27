@@ -169,9 +169,16 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // IMAGE PICKER (KAMERA & GALERI)
   // ---------------------------------------------------------------------------
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final barColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+    final iconBg = isDark ? const Color(0xFF3985E7).withValues(alpha: 0.15) : const Color(0xFFECF6FF);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -186,7 +193,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: barColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -196,7 +203,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -204,7 +211,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: iconBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -218,7 +225,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: textPrimary,
                     ),
                   ),
                   onTap: () {
@@ -226,12 +233,12 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFE9EDEF)),
+                Divider(height: 1, color: dividerColor),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: iconBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -245,7 +252,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: textPrimary,
                     ),
                   ),
                   onTap: () {
@@ -368,11 +375,14 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: scaffoldBg,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
+        child: _buildHeader(context, isDark),
       ),
       body: SafeArea(
         top: false,
@@ -385,23 +395,23 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // 1. KARTU PROFIL DOKTER
-                _buildDoctorProfileCard(),
+                _buildDoctorProfileCard(isDark),
                 const SizedBox(height: 20.0),
 
                 // 2. SECTION PENDIDIKAN
-                _buildPendidikanSection(),
+                _buildPendidikanSection(isDark),
                 const SizedBox(height: 20.0),
 
                 // 3. SECTION TEMPAT PRAKTIK
-                _buildTempatPraktikSection(),
+                _buildTempatPraktikSection(isDark),
                 const SizedBox(height: 20.0),
 
                 // 3. SECTION JADWAL KONSULTASI STANDAR
-                _buildJadwalStandarSection(),
+                _buildJadwalStandarSection(isDark),
                 const SizedBox(height: 20.0),
 
                 // 4. SECTION HAK AKSES
-                _buildHakAksesSection(),
+                _buildHakAksesSection(isDark),
                 const SizedBox(height: 24.0),
 
                 // 4. TOMBOL SIMPAN
@@ -447,10 +457,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // HEADER 56DP
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: headerBg,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -467,10 +480,10 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     alignment: Alignment.center,
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -483,7 +496,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -499,18 +512,24 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU PROFIL DOKTER
   // ---------------------------------------------------------------------------
-  Widget _buildDoctorProfileCard() {
+  Widget _buildDoctorProfileCard(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textSecondary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final textMuted = const Color(0xFF8696A0);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 18.0, 16.0, 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: cardBorder),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
             blurRadius: 10.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -528,13 +547,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFD1D7DB),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                       width: 1.5,
                     ),
-                    color: const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC),
                   ),
                   child: ClipOval(
-                    child: _buildAvatarImage(),
+                    child: _buildAvatarImage(isDark),
                   ),
                 ),
               ],
@@ -563,13 +582,18 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 16.0,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: textPrimary,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 4.0),
+              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
               border: InputBorder.none,
               hintText: 'Nama Dokter',
+              hintStyle: GoogleFonts.lato(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: textMuted,
+              ),
             ),
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
@@ -585,13 +609,18 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 14.0,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF2C363D),
+              color: textSecondary,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 4.0),
+              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
               border: InputBorder.none,
               hintText: 'Spesialis',
+              hintStyle: GoogleFonts.lato(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w500,
+                color: textMuted,
+              ),
             ),
           ),
           const SizedBox(height: 4.0),
@@ -605,13 +634,17 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.lato(
               fontSize: 13.0,
-              color: const Color(0xFF2C363D),
+              color: textSecondary,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 4.0),
+              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
               border: InputBorder.none,
               hintText: 'E-mail',
+              hintStyle: GoogleFonts.lato(
+                fontSize: 13.0,
+                color: textMuted,
+              ),
             ),
           ),
           const SizedBox(height: 4.0),
@@ -626,7 +659,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 13.0,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF2C363D),
+              color: textSecondary,
             ),
             decoration: InputDecoration(
               isDense: true,
@@ -635,7 +668,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               hintText: 'Kata Sandi Baru (Opsional)',
               hintStyle: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: const Color(0xFF8696A0),
+                color: textMuted,
               ),
               suffixIcon: IconButton(
                 padding: EdgeInsets.zero,
@@ -645,7 +678,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
                   size: 18.0,
-                  color: const Color(0xFF8696A0),
+                  color: textMuted,
                 ),
                 onPressed: () {
                   setState(() {
@@ -674,6 +707,14 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Icon(
+                        Icons.work_outline_rounded,
+                        size: 20.0,
+                        color: textMuted,
+=======
                     Container(
                       width: 28.0,
                       height: 28.0,
@@ -685,6 +726,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                         Icons.work_outline_rounded,
                         size: 16.0,
                         color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -696,7 +738,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             'Pengalaman',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF8696A0),
+                              color: textMuted,
                             ),
                           ),
                           Row(
@@ -711,14 +753,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 13.0,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2C363D),
+                                    color: textSecondary,
                                   ),
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     isDense: true,
                                     contentPadding:
-                                        EdgeInsets.symmetric(vertical: 2.0),
+                                        const EdgeInsets.symmetric(vertical: 2.0),
                                     border: InputBorder.none,
                                     hintText: '0',
+                                    hintStyle: GoogleFonts.lato(
+                                      fontSize: 13.0,
+                                      fontWeight: FontWeight.w600,
+                                      color: textMuted,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -728,7 +775,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2C363D),
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
@@ -746,7 +793,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               Container(
                 width: 1.0,
                 height: 44.0,
-                color: const Color(0xFFE9EDEF),
+                color: cardBorder,
                 margin: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
 
@@ -755,6 +802,14 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+<<<<<<< HEAD
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Icon(
+                        Icons.badge_outlined,
+                        size: 20.0,
+                        color: textMuted,
+=======
                     Container(
                       width: 28.0,
                       height: 28.0,
@@ -766,6 +821,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                         Icons.badge_outlined,
                         size: 16.0,
                         color: Color(0xFF3985E7),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -777,7 +833,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             'No. STR',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF8696A0),
+                              color: textMuted,
                             ),
                           ),
                           TextFormField(
@@ -789,14 +845,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF2C363D),
+                              color: textSecondary,
                             ),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               isDense: true,
                               contentPadding:
-                                  EdgeInsets.symmetric(vertical: 2.0),
+                                  const EdgeInsets.symmetric(vertical: 2.0),
                               border: InputBorder.none,
                               hintText: 'No. STR',
+                              hintStyle: GoogleFonts.lato(
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.w600,
+                                color: textMuted,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 2.0),
@@ -814,19 +875,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     );
   }
 
-  Widget _buildAvatarImage() {
+  Widget _buildAvatarImage(bool isDark) {
     return StorageService.buildImageWidget(
       _avatarPath,
       fit: BoxFit.cover,
       width: 82.0,
       height: 82.0,
-      errorWidget: _buildAvatarFallback(),
+      errorWidget: _buildAvatarFallback(isDark),
     );
   }
 
-  Widget _buildAvatarFallback() {
+  Widget _buildAvatarFallback(bool isDark) {
     return Container(
-      color: const Color(0xFFEFF6FF),
+      color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
       alignment: Alignment.center,
       child: const Icon(
         Icons.person_rounded,
@@ -839,7 +900,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION PENDIDIKAN
   // ---------------------------------------------------------------------------
-  Widget _buildPendidikanSection() {
+  Widget _buildPendidikanSection(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textValue = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final textMuted = const Color(0xFF8696A0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -851,7 +918,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: textTitle,
               ),
             ),
             IconButton(
@@ -870,18 +937,74 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: cardBorder),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Column(
+<<<<<<< HEAD
+            children: List.generate(_pendidikanCtrls.length, (idx) {
+              final ctrl = _pendidikanCtrls[idx];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.school_outlined,
+                      size: 22.0,
+                      color: textMuted,
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: ctrl,
+                            style: GoogleFonts.lato(
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w500,
+                              color: textValue,
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              border: InputBorder.none,
+                              hintText: 'Riwayat Pendidikan (Gelar / Univ)',
+                              hintStyle: GoogleFonts.lato(
+                                fontSize: 14.0,
+                                color: textMuted,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const _DottedLine(),
+                        ],
+                      ),
+                    ),
+                    if (_pendidikanCtrls.length > 1)
+                      GestureDetector(
+                        onTap: () => _removePendidikan(idx),
+                        child: const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Icon(
+                            Icons.remove_circle_outline_rounded,
+                            size: 20.0,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+=======
             children: List.generate(_pendidikanEntries.length, (idx) {
               final entry = _pendidikanEntries[idx];
               return Column(
@@ -898,6 +1021,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                       child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
                     ),
                 ],
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
               );
             }),
           ),
@@ -909,7 +1033,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION TEMPAT PRAKTIK
   // ---------------------------------------------------------------------------
-  Widget _buildTempatPraktikSection() {
+  Widget _buildTempatPraktikSection(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textValue = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final textMuted = const Color(0xFF8696A0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -921,7 +1051,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: textTitle,
               ),
             ),
             IconButton(
@@ -940,14 +1070,14 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: cardBorder),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -958,6 +1088,12 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
+<<<<<<< HEAD
+                    Icon(
+                      Icons.apartment_rounded,
+                      size: 22.0,
+                      color: textMuted,
+=======
                     Container(
                       width: 32.0,
                       height: 32.0,
@@ -970,6 +1106,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                         size: 20.0,
                         color: Color(0xFF3985E7),
                       ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
@@ -981,7 +1118,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 14.0,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF2C363D),
+                              color: textValue,
                             ),
                             decoration: InputDecoration(
                               isDense: true,
@@ -991,7 +1128,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               hintText: 'Nama Tempat Praktik',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 14.0,
-                                color: const Color(0xFF8696A0),
+                                color: textMuted,
                               ),
                             ),
                           ),
@@ -1025,7 +1162,13 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION JADWAL KONSULTASI DOKTER (SUPERADMIN)
   // ---------------------------------------------------------------------------
-  Widget _buildJadwalStandarSection() {
+  Widget _buildJadwalStandarSection(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textItemTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final textMuted = const Color(0xFF8696A0);
+
     final List<JadwalPraktikModel> jadwalList =
         JadwalDokterService().getJadwalDokter(widget.doctor.id);
     final activeDays = jadwalList.where((j) => j.aktif).toList();
@@ -1033,6 +1176,52 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+<<<<<<< HEAD
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Jadwal Konsultasi Standar',
+              style: GoogleFonts.lato(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+                color: textTitle,
+              ),
+            ),
+            GestureDetector(
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AturJadwalDokterPage(
+                      dokterId: widget.doctor.id,
+                      doctorName: _namaCtrl.text,
+                      isSuperadmin: true,
+                    ),
+                  ),
+                );
+                if (mounted) setState(() {});
+              },
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.edit_calendar_rounded,
+                    color: Color(0xFF0284C7),
+                    size: 18.0,
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    'Kelola',
+                    style: GoogleFonts.lato(
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0284C7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+=======
         Text(
           'Jadwal Konsultasi Dokter',
           style: GoogleFonts.lato(
@@ -1040,20 +1229,21 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             fontWeight: FontWeight.bold,
             color: const Color(0xFF000000),
           ),
+>>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         ),
         const SizedBox(height: 8.0),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: cardBorder),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -1066,7 +1256,9 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   Container(
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE0F2FE),
+                      color: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.2)
+                          : const Color(0xFFE0F2FE),
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: const Icon(
@@ -1085,7 +1277,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2228),
+                            color: textItemTitle,
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -1095,7 +1287,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               : '${activeDays.length} hari aktif per minggu (${activeDays.map((e) => e.namaHari).join(', ')})',
                           style: GoogleFonts.lato(
                             fontSize: 12.0,
-                            color: const Color(0xFF667781),
+                            color: textMuted,
                           ),
                         ),
                       ],
@@ -1122,9 +1314,15 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0F9FF),
+                    color: isDark
+                        ? const Color(0xFF0284C7).withValues(alpha: 0.15)
+                        : const Color(0xFFF0F9FF),
                     borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(color: const Color(0xFFBAE6FD)),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.3)
+                          : const Color(0xFFBAE6FD),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1157,7 +1355,12 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SECTION HAK AKSES (16 TOGGLE)
   // ---------------------------------------------------------------------------
-  Widget _buildHakAksesSection() {
+  Widget _buildHakAksesSection(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textItem = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1166,20 +1369,20 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           style: GoogleFonts.lato(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF000000),
+            color: textTitle,
           ),
         ),
         const SizedBox(height: 8.0),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
-            boxShadow: const [
+            border: Border.all(color: cardBorder),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
                 blurRadius: 10.0,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -1208,10 +1411,11 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF2C363D),
+                                color: textItem,
                               ),
                             ),
                           ),
+<<<<<<< HEAD
                           Switch(
                             value: isChecked,
                             activeThumbColor: const Color(0xFF3985E7),
@@ -1225,14 +1429,69 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               });
                             },
                           ),
+=======
+                          if (item.key == 'daftar_resep_mpasi' ||
+                              item.key == 'daftar_artikel_kesehatan')
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF2563EB).withValues(alpha: 0.15)
+                                    : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(12.0),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF2563EB).withValues(alpha: 0.3)
+                                      : const Color(0xFFBFDBFE),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.visibility_outlined,
+                                    size: 14.0,
+                                    color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Text(
+                                    'Hanya Lihat',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Switch(
+                              value: isChecked,
+                              activeThumbColor: const Color(0xFF3985E7),
+                              activeTrackColor:
+                                  const Color(0xFF3985E7).withValues(alpha: 0.5),
+                              inactiveThumbColor: const Color(0xFFFFFFFF),
+                              inactiveTrackColor: isDark ? const Color(0xFF334155) : const Color(0xFF8696A0),
+                              onChanged: (val) {
+                                setState(() {
+                                  _permissions[item.key] = val;
+                                });
+                              },
+                            ),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
                         ],
                       ),
                     ),
                     if (!isLast)
-                      const Divider(
+                      Divider(
                         height: 1.0,
                         thickness: 0.8,
-                        color: Color(0xFFE9EDEF),
+                        color: cardBorder,
                         indent: 16.0,
                         endIndent: 16.0,
                       ),
@@ -1249,15 +1508,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
 
 /// Garis putus-putus horizontal sesuai desain
 class _DottedLine extends StatelessWidget {
-  const _DottedLine();
+  final Color? color;
+  const _DottedLine({this.color});
 
-  static const Color _color = Color(0xFFD1D7DB);
+  static const Color _defaultColor = Color(0xFFD1D7DB);
   static const double _height = 1.0;
   static const double _dotWidth = 3.0;
   static const double _spaceWidth = 3.0;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dotColor = color ?? (isDark ? const Color(0xFF2C363D) : _defaultColor);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final boxWidth = constraints.constrainWidth();
@@ -1265,11 +1528,11 @@ class _DottedLine extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(count > 0 ? count : 1, (_) {
-            return const SizedBox(
+            return SizedBox(
               width: _dotWidth,
               height: _height,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: _color),
+                decoration: BoxDecoration(color: dotColor),
               ),
             );
           }),

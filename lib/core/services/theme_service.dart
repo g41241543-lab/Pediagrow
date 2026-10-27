@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'staff_auth_service.dart';
-
 /// Pilihan tema aplikasi PediaGrow.
 enum AppThemeMode {
   /// Mengikuti pengaturan tampilan perangkat.
@@ -18,8 +16,7 @@ enum AppThemeMode {
 /// Service singleton untuk mengelola tema aplikasi PediaGrow.
 ///
 /// Fitur:
-/// - Tiga pilihan tema: System (default), Light, Dark (Khusus role Pengguna).
-/// - Role internal staff (Dokter, PMIK Admin, PMIK Superadmin) selalu dikunci ke Light Mode.
+/// - Tiga pilihan tema: System (default), Light, Dark.
 /// - Pilihan disimpan ke SharedPreferences agar bertahan setelah restart.
 /// - [themeModeNotifier] reaktif — rebuild [MaterialApp] secara otomatis.
 class ThemeService {
@@ -37,11 +34,7 @@ class ThemeService {
   AppThemeMode get currentMode => themeModeNotifier.value;
 
   /// ThemeMode Flutter yang sesuai dengan pilihan pengguna.
-  /// Khusus role staff (Dokter, PMIK Admin, PMIK Superadmin), selalu dikunci ke mode terang.
   ThemeMode get flutterThemeMode {
-    if (StaffAuthService().currentStaff != null) {
-      return ThemeMode.light;
-    }
     switch (currentMode) {
       case AppThemeMode.light:
         return ThemeMode.light;
@@ -118,6 +111,12 @@ class ThemeService {
           backgroundColor: Color(0xFF1A2228),
           surfaceTintColor: Colors.transparent,
         ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0B1014),
+          foregroundColor: Color(0xFFE9EDEF),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+        ),
         cardTheme: const CardThemeData(
           color: Color(0xFF1A2228),
           surfaceTintColor: Colors.transparent,
@@ -163,6 +162,28 @@ class ThemeService {
   static const Color darkTextMuted = Color(0xFF667781);
   static const Color darkInputBg = Color(0xFF1A2228);
   static const Color primaryBlue = Color(0xFF3985E7);
+
+  // Helper getters reaktif berbasis konteks
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color getScaffoldBg(BuildContext context) =>
+      isDark(context) ? darkBg : Colors.white;
+
+  static Color getCardBg(BuildContext context) =>
+      isDark(context) ? darkCard : Colors.white;
+
+  static Color getBorder(BuildContext context) =>
+      isDark(context) ? darkBorder : const Color(0xFFE9EDEF);
+
+  static Color getTextPrimary(BuildContext context) =>
+      isDark(context) ? darkTextPrimary : const Color(0xFF0B1014);
+
+  static Color getTextSecondary(BuildContext context) =>
+      isDark(context) ? darkTextSecondary : const Color(0xFF8696A0);
+
+  static Color getInputBg(BuildContext context) =>
+      isDark(context) ? darkInputBg : Colors.white;
 
   // ---------------------------------------------------------------------------
   // HELPERS

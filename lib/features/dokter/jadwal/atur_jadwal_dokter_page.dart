@@ -39,8 +39,15 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
   bool _isLoading = true;
 
   static const Color _primaryBlue = Color(0xFF0284C7);
-  static const Color _cardBg = Colors.white;
-  static const Color _borderColor = Color(0xFFE9EDEF);
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _cardBg =>
+      _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor =>
+      _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack =>
+      _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+  Color get _textGrey =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
 
   @override
   void initState() {
@@ -125,12 +132,12 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: _isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1014)),
+            icon: Icon(Icons.arrow_back, color: _textBlack),
             onPressed: () {
               if (Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
@@ -146,13 +153,13 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           style: GoogleFonts.lato(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0B1014),
+            color: _textBlack,
           ),
         ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: _primaryBlue,
-          unselectedLabelColor: const Color(0xFF667781),
+          unselectedLabelColor: _textGrey,
           indicatorColor: _primaryBlue,
           indicatorWeight: 3,
           labelStyle: GoogleFonts.lato(fontWeight: FontWeight.bold),
@@ -174,9 +181,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       bottomNavigationBar: _tabController.index == 0
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF1A2228) : Colors.white,
+                boxShadow: const [
                   BoxShadow(
                     color: Color(0x0A000000),
                     blurRadius: 10,
@@ -224,9 +231,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
+            color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFBAE6FD)),
+            border: Border.all(
+              color: _isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD),
+            ),
           ),
           child: Row(
             children: [
@@ -237,7 +246,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   'Aktifkan hari kerja dan atur sesi konsultasi. Pasien hanya dapat memesan slot pada jam yang aktif.',
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
-                    color: const Color(0xFF0369A1),
+                    color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF0369A1),
                   ),
                 ),
               ),
@@ -262,7 +271,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
         color: _cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDayActive ? const Color(0xFFBAE6FD) : _borderColor,
+          color: isDayActive
+              ? (_isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD))
+              : _borderColor,
           width: 1,
         ),
         boxShadow: const [
@@ -298,7 +309,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0B1014),
+                        color: _textBlack,
                       ),
                     ),
                   ],
@@ -336,7 +347,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                         for (int i = 0; i < _currentJadwal.length; i++) {
                           if (_currentJadwal[i].hari == day) {
                             _currentJadwal[i] =
-                                _currentJadwal[i].copyWith(aktif: false);
+                                  _currentJadwal[i].copyWith(aktif: false);
                           }
                         }
                       }
@@ -347,7 +358,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             ),
           ),
           if (isDayActive) ...[
-            const Divider(height: 1, color: Color(0xFFE9EDEF)),
+            Divider(height: 1, color: _borderColor),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -404,9 +415,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: _isDark ? const Color(0xFF222C33) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
+        border: Border.all(color: _borderColor),
       ),
       child: Row(
         children: [
@@ -421,14 +432,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2228),
+                    color: _textBlack,
                   ),
                 ),
                 Text(
                   'Durasi slot: ${sesi.durasiSlotMenit} menit',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: const Color(0xFF667781),
+                    color: _textGrey,
                   ),
                 ),
               ],
@@ -514,10 +525,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: _cardBg,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             currentId == null ? 'Tambah Sesi Kerja' : 'Ubah Sesi Kerja',
-            style: GoogleFonts.lato(fontWeight: FontWeight.bold),
+            style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: _textBlack),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -528,10 +540,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   Expanded(
                     child: TextField(
                       controller: startCtrl,
-                      decoration: const InputDecoration(
+                      style: GoogleFonts.lato(color: _textBlack),
+                      decoration: InputDecoration(
                         labelText: 'Jam Mulai',
+                        labelStyle: GoogleFonts.lato(color: _textGrey),
                         hintText: '08:30',
-                        border: OutlineInputBorder(),
+                        hintStyle: GoogleFonts.lato(color: _textGrey),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
                         isDense: true,
                       ),
                     ),
@@ -540,10 +556,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   Expanded(
                     child: TextField(
                       controller: endCtrl,
-                      decoration: const InputDecoration(
+                      style: GoogleFonts.lato(color: _textBlack),
+                      decoration: InputDecoration(
                         labelText: 'Jam Selesai',
+                        labelStyle: GoogleFonts.lato(color: _textGrey),
                         hintText: '11:30',
-                        border: OutlineInputBorder(),
+                        hintStyle: GoogleFonts.lato(color: _textGrey),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
                         isDense: true,
                       ),
                     ),
@@ -553,20 +573,23 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               const SizedBox(height: 14),
               Text(
                 'Durasi Slot Konsultasi:',
-                style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold),
+                style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold, color: _textBlack),
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
                 initialValue: selectedDuration,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                dropdownColor: _cardBg,
+                style: GoogleFonts.lato(color: _textBlack),
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
                   isDense: true,
                 ),
-                items: const [
-                  DropdownMenuItem(value: 15, child: Text('15 Menit')),
-                  DropdownMenuItem(value: 30, child: Text('30 Menit')),
-                  DropdownMenuItem(value: 45, child: Text('45 Menit')),
-                  DropdownMenuItem(value: 60, child: Text('60 Menit')),
+                items: [
+                  DropdownMenuItem(value: 15, child: Text('15 Menit', style: GoogleFonts.lato(color: _textBlack))),
+                  DropdownMenuItem(value: 30, child: Text('30 Menit', style: GoogleFonts.lato(color: _textBlack))),
+                  DropdownMenuItem(value: 45, child: Text('45 Menit', style: GoogleFonts.lato(color: _textBlack))),
+                  DropdownMenuItem(value: 60, child: Text('60 Menit', style: GoogleFonts.lato(color: _textBlack))),
                 ],
                 onChanged: (val) {
                   if (val != null) setDialogState(() => selectedDuration = val);
@@ -584,7 +607,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Batal'),
+              child: Text('Batal', style: GoogleFonts.lato(color: _textGrey)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue),
@@ -630,9 +653,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFBEB),
+                color: _isDark ? const Color(0xFF2D2305) : const Color(0xFFFFFBEB),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFDE68A)),
+                border: Border.all(
+                  color: _isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                ),
               ),
               child: Row(
                 children: [
@@ -643,7 +668,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       'Tambahkan cuti jika berhalangan praktik. Booking pasien yang bertabrakan akan dibatalkan otomatis dan dikirimi notifikasi untuk menjadwalkan ulang.',
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: const Color(0xFF92400E),
+                        color: _isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                       ),
                     ),
                   ),
@@ -677,7 +702,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0B1014),
+                color: _textBlack,
               ),
             ),
             const SizedBox(height: 10),
@@ -687,7 +712,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 alignment: Alignment.center,
                 child: Text(
                   'Belum ada jadwal cuti atau libur.',
-                  style: GoogleFonts.lato(color: const Color(0xFF8696A0)),
+                  style: GoogleFonts.lato(color: _textGrey),
                 ),
               )
             else
@@ -708,7 +733,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _borderColor),
         boxShadow: const [
@@ -725,7 +750,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
+              color: _isDark ? const Color(0xFF3B1818) : const Color(0xFFFEF2F2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.event_busy, color: Color(0xFFEF4444), size: 20),
@@ -740,7 +765,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: _textBlack,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -757,7 +782,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   'Alasan: ${cuti.alasan}',
                   style: GoogleFonts.lato(
                     fontSize: 12,
-                    color: const Color(0xFF667781),
+                    color: _textGrey,
                   ),
                 ),
               ],
@@ -793,10 +818,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           );
 
           return AlertDialog(
+            backgroundColor: _cardBg,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Text(
               'Tambah Cuti / Libur Dokter',
-              style: GoogleFonts.lato(fontWeight: FontWeight.bold),
+              style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: _textBlack),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -805,7 +831,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 children: [
                   Text(
                     'Pilih Tanggal:',
-                    style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold, color: _textBlack),
                   ),
                   const SizedBox(height: 6),
                   InkWell(
@@ -823,6 +849,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
+                        color: _isDark ? const Color(0xFF222C33) : Colors.transparent,
                         border: Border.all(color: _borderColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -832,7 +859,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                           const SizedBox(width: 8),
                           Text(
                             '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
-                            style: GoogleFonts.lato(fontSize: 14),
+                            style: GoogleFonts.lato(fontSize: 14, color: _textBlack),
                           ),
                         ],
                       ),
@@ -844,7 +871,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     children: [
                       Text(
                         'Libur Seharian:',
-                        style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold, color: _textBlack),
                       ),
                       Switch(
                         value: isSeharian,
@@ -860,10 +887,13 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                         Expanded(
                           child: TextField(
                             controller: jamMulaiCtrl,
-                            decoration: const InputDecoration(
+                            style: GoogleFonts.lato(color: _textBlack),
+                            decoration: InputDecoration(
                               labelText: 'Jam Mulai',
+                              labelStyle: GoogleFonts.lato(color: _textGrey),
                               isDense: true,
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
                             ),
                             onChanged: (_) => setDialogState(() {}),
                           ),
@@ -872,10 +902,13 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                         Expanded(
                           child: TextField(
                             controller: jamSelesaiCtrl,
-                            decoration: const InputDecoration(
+                            style: GoogleFonts.lato(color: _textBlack),
+                            decoration: InputDecoration(
                               labelText: 'Jam Selesai',
+                              labelStyle: GoogleFonts.lato(color: _textGrey),
                               isDense: true,
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
                             ),
                             onChanged: (_) => setDialogState(() {}),
                           ),
@@ -886,10 +919,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   const SizedBox(height: 14),
                   TextField(
                     controller: alasanCtrl,
-                    decoration: const InputDecoration(
+                    style: GoogleFonts.lato(color: _textBlack),
+                    decoration: InputDecoration(
                       labelText: 'Alasan Cuti',
+                      labelStyle: GoogleFonts.lato(color: _textGrey),
                       hintText: 'Contoh: Seminar medis / dinas luar',
-                      border: OutlineInputBorder(),
+                      hintStyle: GoogleFonts.lato(color: _textGrey),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
                       isDense: true,
                     ),
                   ),
@@ -898,9 +935,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
+                        color: _isDark ? const Color(0xFF3B1818) : const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFFECACA)),
+                        border: Border.all(
+                          color: _isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -911,7 +950,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                               'Perhatian: Terdapat ${affected.length} booking pasien terdampak yang akan otomatis dibatalkan.',
                               style: GoogleFonts.lato(
                                 fontSize: 12,
-                                color: const Color(0xFFB91C1C),
+                                color: _isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -925,7 +964,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Batal'),
+                child: Text('Batal', style: GoogleFonts.lato(color: _textGrey)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue),
@@ -973,11 +1012,18 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: _cardBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus Cuti?'),
-        content: const Text('Jadwal dokter pada tanggal ini akan kembali aktif sesuai jadwal mingguan.'),
+        title: Text('Hapus Cuti?', style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: _textBlack)),
+        content: Text(
+          'Jadwal dokter pada tanggal ini akan kembali aktif sesuai jadwal mingguan.',
+          style: GoogleFonts.lato(color: _textBlack),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Batal', style: GoogleFonts.lato(color: _textGrey)),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
             onPressed: () async {

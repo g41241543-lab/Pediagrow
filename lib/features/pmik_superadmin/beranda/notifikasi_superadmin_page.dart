@@ -252,10 +252,20 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
     }
   }
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor =>
+      _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textPrimary =>
+      _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+  Color get _textSecondary =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF374151);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _scaffoldBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -293,7 +303,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
   Widget _buildHeader(BuildContext context) {
     return Container(
       height: 56.0,
-      color: Colors.white,
+      color: _scaffoldBg,
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -323,9 +333,9 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
                 }
               }
             },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: Color(0xFF000000), size: 24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Icon(Icons.arrow_back, color: _textPrimary, size: 24),
             ),
           ),
           // Nama halaman berjarak 12dp setelah tombol back
@@ -336,7 +346,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: _textPrimary,
               ),
             ),
           ),
@@ -398,7 +408,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: const Color(0xFFC4C4C4),
+                color: _isDark ? const Color(0xFF8696A0) : const Color(0xFFC4C4C4),
               ),
             ),
           ],
@@ -412,18 +422,19 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
     return Column(
       children: [
         // Garis pemisah atas (tepat di bawah header)
-        const Divider(color: Color(0xFFE9EDEF), height: 1, thickness: 1),
+        Divider(color: _borderColor, height: 1, thickness: 1),
         Expanded(
           child: ListView.separated(
             physics: const ClampingScrollPhysics(),
             padding: EdgeInsets.zero,
             itemCount: items.length,
             separatorBuilder: (_, _) =>
-                const Divider(color: Color(0xFFE9EDEF), height: 1, thickness: 1),
+                Divider(color: _borderColor, height: 1, thickness: 1),
             itemBuilder: (context, index) {
               final item = items[index];
               return SwipeableNotificationTile(
                 key: ValueKey(item.id),
+                backgroundColor: _scaffoldBg,
                 onTap: () => _onNotificationTap(item),
                 onDelete: () {
                   KonfirmasiHapusNotifikasiDialog.showSingle(
@@ -454,14 +465,14 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
           Container(
             width: 42,
             height: 42,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE9EDEF),
+            decoration: BoxDecoration(
+              color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.mail_outline_rounded,
-              color: Color(0xFF000000),
+              color: _textPrimary,
               size: 22,
             ),
           ),
@@ -478,7 +489,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 15.5,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: _textPrimary,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -489,7 +500,7 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF374151),
+                    color: _textSecondary,
                     height: 1.35,
                   ),
                 ),

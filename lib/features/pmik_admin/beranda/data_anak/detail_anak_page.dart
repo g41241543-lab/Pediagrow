@@ -1,10 +1,8 @@
-﻿import 'dart:convert';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/child_model.dart';
 import '../../../../shared/widgets/child_avatar.dart';
 import '../../../../models/user_model.dart';
@@ -12,7 +10,7 @@ import 'pilih_anak_button_sheet.dart';
 import 'superadmin_grafik_page.dart';
 import 'tab_detail_pasien/resume_medis/daftar_resume_medis_page.dart';
 
-/// Halaman Data Pasien Anak untuk POV Superadmin.
+/// Halaman Data Pasien Anak untuk POV Admin.
 ///
 /// Fitur Utama yang disesuaikan:
 /// - Header fixed putih tanpa perbedaan warna latar belakang:
@@ -148,80 +146,14 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     required double size,
     required Widget fallback,
   }) {
-    if (imagePath == null || imagePath.trim().isEmpty) {
-      return fallback;
-    }
-
-    final trimmed = imagePath.trim();
-
-    // 1. Base64
-    if (trimmed.startsWith('data:image')) {
-      try {
-        final commaIdx = trimmed.indexOf(',');
-        final base64Str = commaIdx != -1
-            ? trimmed.substring(commaIdx + 1)
-            : trimmed;
-        final bytes = base64Decode(base64Str.trim());
-        return Image.memory(
-          bytes,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-
-    if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0KGgo')) {
-      try {
-        final bytes = base64Decode(trimmed);
-        return Image.memory(
-          bytes,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-
-    // 2. URL Jaringan (Network)
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return Image.network(
-        trimmed,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-
-    // 2. Aset Lokal Flutter
-    if (trimmed.startsWith('assets/')) {
-      return Image.asset(
-        trimmed,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-
-    // 3. File Path di Perangkat
-    try {
-      final file = File(trimmed);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      }
-    } catch (_) {}
-
-    return fallback;
+    return StorageService.buildImageWidget(
+      imagePath,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      placeholder: fallback,
+      errorWidget: fallback,
+    );
   }
 
   /// Format tanggal lahir dalam bahasa Indonesia: "Selasa, 12 April 2026"
@@ -274,8 +206,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,19 +240,24 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // 1. APP BAR (PUTIH BERSIH TANPA PERBEDAAN WARNA)
   // ===========================================================================
   Widget _buildAppBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       height: 56,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1A2228) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: _colorTextBlack, size: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -328,7 +266,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
           ),
         ],
@@ -341,6 +279,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // Tanpa icon di sampingnya, font lebih kecil & warna teks abu-abu
   // ===========================================================================
   Widget _buildParentHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final parentName = _parentUser?.name.isNotEmpty == true
         ? _parentUser!.name
         : 'Susanti Saputri Dewi';
@@ -352,16 +291,20 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(
-              color: Color(0xFFD1D7DB),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF242E35) : const Color(0xFFD1D7DB),
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
             child: _buildAvatarImage(
               imagePath: _parentUser?.avatarPath,
               size: 44,
-              fallback: const Center(
-                child: Icon(Icons.person, color: Color(0xFF667781), size: 28),
+              fallback: Center(
+                child: Icon(
+                  Icons.person,
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                  size: 28,
+                ),
               ),
             ),
           ),
@@ -372,7 +315,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
           ),
@@ -385,11 +328,15 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // 3. TAB BAR: "Detail Pasien" & "🔒 Ruang Obrolan"
   // ===========================================================================
   Widget _buildTabBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFE9EDEF), width: 1.0),
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1.0,
+          ),
         ),
       ),
       child: Row(
@@ -416,8 +363,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             ? FontWeight.bold
                             : FontWeight.w500,
                         color: _selectedTabIndex == 0
-                            ? _colorTextBlack
-                            : const Color(0xFF667781),
+                            ? (isDark ? const Color(0xFFE9EDEF) : _colorTextBlack)
+                            : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
                       ),
                     ),
                   ),
@@ -425,7 +372,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     height: 3,
                     decoration: BoxDecoration(
                       color: _selectedTabIndex == 0
-                          ? _colorPrimaryBlue
+                          ? (isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -451,10 +398,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.lock_rounded,
                           size: 15,
-                          color: Color(0xFF8696A0),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -465,8 +412,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                                 ? FontWeight.bold
                                 : FontWeight.w500,
                             color: _selectedTabIndex == 1
-                                ? _colorTextBlack
-                                : const Color(0xFF667781),
+                                ? (isDark ? const Color(0xFFE9EDEF) : _colorTextBlack)
+                                : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
                           ),
                         ),
                       ],
@@ -476,7 +423,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     height: 3,
                     decoration: BoxDecoration(
                       color: _selectedTabIndex == 1
-                          ? _colorPrimaryBlue
+                          ? (isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -494,6 +441,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // 4. KONTEN TAB "DETAIL PASIEN"
   // ===========================================================================
   Widget _buildDetailPasienContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Usia akurat: "0 tahun 4 bulan 14 hari"
     String usiaText = _currentChild.ageDescription;
     if (_currentChild.birthDate != null) {
@@ -541,7 +489,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: _colorTextBlack,
+                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -549,7 +497,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                       usiaText,
                       style: GoogleFonts.lato(
                         fontSize: 13,
-                        color: _colorLabelGrey,
+                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                       ),
                     ),
                   ],
@@ -614,6 +562,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     required String imageAsset,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -628,8 +577,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               width: 82,
               height: 74,
               decoration: BoxDecoration(
-                color: _colorButtonBg,
+                color: isDark ? const Color(0xFF1A2228) : _colorButtonBg,
                 borderRadius: BorderRadius.circular(16),
+                border: isDark ? Border.all(color: const Color(0xFF2C363D), width: 1) : null,
               ),
               alignment: Alignment.center,
               child: Image.asset(
@@ -637,10 +587,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 width: 36,
                 height: 36,
                 fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const Icon(
+                errorBuilder: (_, _, _) => Icon(
                   Icons.insert_chart_outlined,
                   size: 32,
-                  color: _colorPrimaryBlue,
+                  color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
                 ),
               ),
             ),
@@ -653,7 +603,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           style: GoogleFonts.lato(
             fontSize: 11.5,
             fontWeight: FontWeight.w600,
-            color: _colorTextBlack,
+            color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             height: 1.25,
           ),
         ),
@@ -674,6 +624,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // 8. Alergi
   // ===========================================================================
   Widget _buildBiodataAnakCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final child = _currentChild;
 
     final String namaLengkap = child.name.isNotEmpty ? child.name : '-';
@@ -702,10 +653,12 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFBAE6FD).withValues(alpha: 0.8),
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFBAE6FD).withValues(alpha: 0.8),
           width: 1.0,
         ),
       ),
@@ -717,49 +670,49 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: _colorTableHeader,
+            color: isDark ? const Color(0xFF242E35) : _colorTableHeader,
             child: Text(
               'Biodata Anak',
               style: GoogleFonts.lato(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
               ),
             ),
           ),
 
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 1: Nama Lengkap
           _buildTableRow(label: 'Nama Lengkap', value: namaLengkap),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 2: Tanggal Lahir
           _buildTableRow(label: 'Tanggal Lahir', value: tanggalLahir),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 3: Jenis Kelamin
           _buildTableRow(label: 'Jenis Kelamin', value: jenisKelamin),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 4: Prematur
           _buildTableRow(label: 'Prematur', value: prematur),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 5: Berat Badan Saat Lahir (kg)
           _buildTableRow(label: 'Berat Badan Saat Lahir (kg)', value: bbLahir),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 6: Tinggi Badan Saat Lahir (cm)
           _buildTableRow(label: 'Tinggi Badan Saat Lahir (cm)', value: tbLahir),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 7: Lingkar Kepala Saat Lahir (cm)
           _buildTableRow(
             label: 'Lingkar Kepala Saat Lahir (cm)',
             value: lkLahir,
           ),
-          const Divider(height: 1, color: _colorTableBorder),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
           // Baris 8: Alergi
           _buildTableRow(label: 'Alergi', value: alergi),
@@ -772,6 +725,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   /// - Label abu-abu
   /// - Nilai di bawahnya (font semi-bold hitam 14)
   Widget _buildTableRow({required String label, required String value}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Column(
@@ -782,7 +736,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.normal,
-              color: _colorLabelGrey,
+              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
             ),
           ),
           const SizedBox(height: 4),
@@ -791,7 +745,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _colorTextBlack,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
           ),
         ],
@@ -803,6 +757,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // 5. KONTEN TAB "RUANG OBROLAN" (TERKUNCI)
   // ===========================================================================
   Widget _buildRuangObrolanLockedContent() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 28, 32, 80),
       child: Column(
@@ -812,8 +767,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           Container(
             width: 72,
             height: 72,
-            decoration: const BoxDecoration(
-              color: Color(0xFFEFF6FF),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -828,7 +783,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             style: GoogleFonts.lato(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
           ),
           const SizedBox(height: 8),
@@ -837,7 +792,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 13,
-              color: _colorLabelGrey,
+              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
               height: 1.4,
             ),
           ),

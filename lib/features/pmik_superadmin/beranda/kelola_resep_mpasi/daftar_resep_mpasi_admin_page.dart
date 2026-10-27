@@ -60,6 +60,13 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   static const Color _colorDark = Color(0xFF0B1014);
   static const Color _colorMuted = Color(0xFF8696A0);
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
   @override
   void initState() {
     super.initState();
@@ -152,7 +159,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
             borderRadius: BorderRadius.circular(18.0),
           ),
           elevation: 4,
-          backgroundColor: Colors.white,
+          backgroundColor: _cardBg,
           insetPadding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 20.0),
@@ -166,7 +173,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: _colorDark,
+                    color: _textBlack,
                   ),
                 ),
                 const SizedBox(height: 12.0),
@@ -175,7 +182,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
-                    color: const Color(0xFF667781),
+                    color: _textGrey,
                     height: 1.45,
                   ),
                 ),
@@ -189,9 +196,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(dialogCtx).pop(true),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            side: const BorderSide(
-                              color: Color(0xFFD1D7DB),
+                            backgroundColor: _cardBg,
+                            side: BorderSide(
+                              color: _borderColor,
                               width: 1.0,
                             ),
                             shape: RoundedRectangleBorder(
@@ -294,8 +301,13 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         _navigateBack();
       },
       child: Scaffold(
+<<<<<<< HEAD
         backgroundColor: Colors.white,
         bottomNavigationBar: _buildBottomNavigationBar(),
+=======
+        backgroundColor: _scaffoldBg,
+        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
         body: SafeArea(
           child: Column(
             children: [
@@ -324,9 +336,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
             child: InkWell(
               onTap: _navigateBack,
               borderRadius: BorderRadius.circular(24.0),
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
-                child: Icon(Icons.arrow_back, size: 24.0, color: Colors.black),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Icon(Icons.arrow_back, size: 24.0, color: _textBlack),
               ),
             ),
           ),
@@ -337,7 +349,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
               style: GoogleFonts.lato(
                 fontSize: 19.0,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: _textBlack,
               ),
             ),
           ),
@@ -371,27 +383,28 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       child: Container(
         height: 44.0,
         decoration: BoxDecoration(
-          color: const Color(0xFFE9EDEF),
+          color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
           borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(color: _borderColor),
         ),
         child: TextField(
           controller: _searchController,
           focusNode: _searchFocusNode,
-          style: GoogleFonts.lato(fontSize: 14.0, color: _colorDark),
+          style: GoogleFonts.lato(fontSize: 14.0, color: _textBlack),
           decoration: InputDecoration(
             hintText: 'Cari Resep MPASI',
-            hintStyle: GoogleFonts.lato(fontSize: 14.0, color: _colorMuted),
-            prefixIcon: const Icon(
+            hintStyle: GoogleFonts.lato(fontSize: 14.0, color: _textGrey),
+            prefixIcon: Icon(
               Icons.search_rounded,
-              color: Color(0xFF8696A0),
+              color: _textGrey,
               size: 22.0,
             ),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.clear,
                       size: 18.0,
-                      color: Color(0xFF8696A0),
+                      color: _textGrey,
                     ),
                     onPressed: () {
                       _searchController.clear();
@@ -424,12 +437,14 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isSelected
+                    ? (_isDark ? const Color(0xFF1E3A5F) : Colors.white)
+                    : _cardBg,
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
                   color: isSelected
                       ? _colorPrimaryBlue
-                      : const Color(0xFFD1D7DB),
+                      : _borderColor,
                   width: isSelected ? 1.5 : 1.0,
                 ),
               ),
@@ -439,8 +454,8 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                   fontSize: 13.0,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected
-                      ? _colorPrimaryBlue
-                      : const Color(0xFF8696A0),
+                      ? (_isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue)
+                      : _textGrey,
                 ),
               ),
             ),
@@ -475,7 +490,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.lato(color: _colorDark, fontSize: 14.0),
+                style: GoogleFonts.lato(color: _textBlack, fontSize: 14.0),
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
@@ -499,10 +514,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.receipt_long_outlined,
               size: 56.0,
-              color: Color(0xFFD1D7DB),
+              color: _borderColor,
             ),
             const SizedBox(height: 12.0),
             Text(
@@ -510,7 +525,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
               style: GoogleFonts.lato(
                 fontSize: 15.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF667781),
+                color: _textGrey,
               ),
             ),
           ],
@@ -547,9 +562,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+        border: Border.all(color: _borderColor, width: 1.0),
         boxShadow: const [
           BoxShadow(
             color: Color(0x06000000),
@@ -590,17 +605,17 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
-                            color: _colorDark,
+                            color: _textBlack,
                             height: 1.3,
                           ),
                         ),
                         const SizedBox(height: 6.0),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.access_time_rounded,
                               size: 14.0,
-                              color: Color(0xFF8696A0),
+                              color: _textGrey,
                             ),
                             const SizedBox(width: 4.0),
                             Flexible(
@@ -610,7 +625,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
                                   fontSize: 12.0,
-                                  color: const Color(0xFF8696A0),
+                                  color: _textGrey,
                                 ),
                               ),
                             ),
@@ -625,7 +640,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           ),
 
           // Divider pemisah horizontal
-          const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFE9EDEF)),
+          Divider(height: 1.0, thickness: 1.0, color: _borderColor),
 
           // Bagian bawah: Tanggal + Tombol Hapus & Edit
           Padding(
@@ -639,7 +654,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                   resep.tanggal,
                   style: GoogleFonts.lato(
                     fontSize: 12.0,
-                    color: const Color(0xFF8696A0),
+                    color: _textGrey,
                   ),
                 ),
                 if (!isReadOnly) ...[
@@ -651,7 +666,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFECEC),
+                        color: _isDark ? const Color(0xFF3B1818) : const Color(0xFFFFECEC),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       alignment: Alignment.center,
@@ -670,7 +685,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0EFFF),
+                        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE0EFFF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       alignment: Alignment.center,
@@ -694,10 +709,10 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     final img = resep.displayImage;
     if (img == null || img.isEmpty) {
       return Container(
-        color: const Color(0xFFE9EDEF),
-        child: const Icon(
+        color: _isDark ? const Color(0xFF222C33) : const Color(0xFFE9EDEF),
+        child: Icon(
           Icons.restaurant_menu_rounded,
-          color: Color(0xFFD1D7DB),
+          color: _borderColor,
           size: 32.0,
         ),
       );
@@ -707,16 +722,132 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
       img,
       fit: BoxFit.cover,
       errorWidget: Container(
-        color: const Color(0xFFE9EDEF),
-        child: const Icon(
+        color: _isDark ? const Color(0xFF222C33) : const Color(0xFFE9EDEF),
+        child: Icon(
           Icons.restaurant_menu_rounded,
-          color: Color(0xFFD1D7DB),
+          color: _borderColor,
         ),
       ),
     );
   }
 
   Widget _buildBottomNavigationBar() {
+<<<<<<< HEAD
     return const PediaBottomNavBar(selectedIndex: -1);
+=======
+    final navItems = [
+      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
+      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
+      const _NavItem(
+        icon: Icons.manage_search_rounded,
+        label: 'Riwayat Konsultasi',
+      ),
+      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
+    ];
+
+    return Container(
+      width: double.infinity,
+      height: 68.0,
+      decoration: BoxDecoration(
+        color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18000000),
+            blurRadius: 8.0,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: List.generate(navItems.length, (i) {
+            final item = navItems[i];
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => _onNavTap(i),
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  height: 68.0,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        item.icon,
+                        size: 24.0,
+                        color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+                      ),
+                      const SizedBox(height: 3.0),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.label,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 11.0,
+                              fontWeight: FontWeight.normal,
+                              color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  void _onNavTap(int index) {
+    final isPmik = StaffAuthService().currentStaff?.role == StaffRole.admin;
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => isPmik
+                ? const BerandaPmikPage()
+                : const BerandaSuperadminPage(),
+          ),
+          (route) => false,
+        );
+        break;
+      case 1:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => isPmik
+                ? const KonsultasiPmikAdminPage()
+                : const KonsultasiSuperadminPage(),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
+          ),
+        );
+        break;
+      case 3:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => isPmik
+                ? const ProfilPmikPage()
+                : const ProfilSuperadminPage(),
+          ),
+        );
+        break;
+    }
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
   }
 }

@@ -48,6 +48,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // ──────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
@@ -68,7 +69,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -139,10 +140,11 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // HEADER FIXED 56dp
   // ──────────────────────────────────────────────────────────────
   Widget _buildFixedHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       height: 56,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1A2228) : Colors.white,
       padding: const EdgeInsets.only(left: 12, right: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -164,9 +166,13 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               }
             },
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: Colors.black, size: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? const Color(0xFFE9EDEF) : Colors.black,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -178,7 +184,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: isDark ? const Color(0xFFE9EDEF) : Colors.black,
               ),
             ),
           ),
@@ -193,6 +199,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // biru muda di header, divider tipis, dan list key-value tebal.
   // ──────────────────────────────────────────────────────────────
   Widget _buildBiodataTable() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final u = widget.user;
 
     final rows = <_TableRow>[
@@ -215,14 +222,17 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD6E4FF), width: 1.5),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD6E4FF),
+          width: 1.5,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x06000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x06000000),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -237,12 +247,12 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBF3FF),
+                  color: isDark ? const Color(0xFF242E35) : const Color(0xFFEBF3FF),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person_outline_rounded,
-                  color: _colorPrimaryBlue,
+                  color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
                   size: 22,
                 ),
               ),
@@ -253,7 +263,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _colorTextBlack,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                   ),
                 ),
               ),
@@ -261,7 +271,11 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           ),
 
           const SizedBox(height: 14),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          ),
           const SizedBox(height: 14),
 
           // Baris-baris Data Key-Value
@@ -275,6 +289,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   }
 
   Widget _buildKeyValueRow(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -285,7 +300,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: _colorLabelGrey,
+              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
             ),
           ),
         ),
@@ -296,7 +311,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
           ),
         ),
@@ -313,6 +328,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // - Klik card anak menuju ke DetailAnakPage
   // ──────────────────────────────────────────────────────────────
   Widget _buildChildrenTable() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('children').snapshots(),
       builder: (context, snapshot) {
@@ -363,14 +379,17 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFD6E4FF), width: 1.5),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD6E4FF),
+              width: 1.5,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x06000000),
+                color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x06000000),
                 blurRadius: 10,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -385,12 +404,12 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEBF3FF),
+                      color: isDark ? const Color(0xFF242E35) : const Color(0xFFEBF3FF),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.face_rounded,
-                      color: _colorPrimaryBlue,
+                      color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
                       size: 22,
                     ),
                   ),
@@ -401,7 +420,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                       style: GoogleFonts.lato(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: _colorTextBlack,
+                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                       ),
                     ),
                   ),
@@ -411,7 +430,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEBF3FF),
+                      color: isDark ? const Color(0xFF242E35) : const Color(0xFFEBF3FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -419,7 +438,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                       style: GoogleFonts.lato(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: _colorPrimaryBlue,
+                        color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
                       ),
                     ),
                   ),
@@ -427,15 +446,19 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               ),
 
               const SizedBox(height: 14),
-              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              ),
 
               // List Card Anak
               for (int i = 0; i < children.length; i++) ...[
                 if (i > 0)
-                  const Divider(
+                  Divider(
                     height: 1,
                     thickness: 1,
-                    color: Color(0xFFE9EDEF),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                   ),
                 _buildChildListItem(children[i]),
               ],
@@ -447,6 +470,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   }
 
   Widget _buildChildListItem(ChildModel child) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final ageText = _formatChildAge(child);
 
     return Material(
@@ -492,7 +516,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                       style: GoogleFonts.lato(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: _colorTextBlack,
+                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -500,7 +524,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                       ageText,
                       style: GoogleFonts.lato(
                         fontSize: 13,
-                        color: _colorLabelGrey,
+                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                       ),
                     ),
                   ],
@@ -508,10 +532,10 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               ),
 
               // Tanda > di samping kanan
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
                 size: 26,
-                color: Color(0xFF8696A0),
+                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
               ),
             ],
           ),
@@ -524,20 +548,24 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // STATE KOSONG / ERROR / LOADING untuk tabel anak
   // ──────────────────────────────────────────────────────────────
   Widget _buildNoChildrenState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _colorTableBorder, width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
           const Icon(
             Icons.child_care_rounded,
             size: 40,
-            color: Color(0xFFD1D7DB),
+            color: Color(0xFF8696A0),
           ),
           const SizedBox(height: 10),
           Text(
@@ -545,14 +573,17 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
             style: GoogleFonts.lato(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: _colorTextBlack,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Pengguna ini belum mendaftarkan profil anak di aplikasi.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.lato(fontSize: 13, color: _colorLabelGrey),
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+            ),
           ),
         ],
       ),
@@ -560,13 +591,17 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   }
 
   Widget _buildChildrenLoadingSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _colorTableBorder, width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
+          width: 1,
+        ),
       ),
       child: Column(
         children: List.generate(
@@ -578,8 +613,8 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                 Container(
                   width: 30,
                   height: 30,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE9EDEF),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -588,7 +623,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   child: Container(
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE9EDEF),
+                      color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -602,13 +637,17 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   }
 
   Widget _buildChildrenErrorState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _colorTableBorder, width: 1),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -757,6 +796,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   // Warna #F2EDED, tinggi 68dp, identik dengan halaman Beranda Superadmin
   // =========================================================================
   Widget _buildFixedNavBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const navItems = [
       _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -767,13 +807,13 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
         boxShadow: [
           BoxShadow(
-            color: Color(0x18000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.3) : const Color(0x18000000),
             blurRadius: 8.0,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -798,7 +838,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                       Icon(
                         item.icon,
                         size: 24.0,
-                        color: const Color(0xFF9E9E9E),
+                        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                       ),
                       const SizedBox(height: 3.0),
                       Flexible(
@@ -812,7 +852,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                             style: GoogleFonts.lato(
                               fontSize: 11.0,
                               fontWeight: FontWeight.normal,
-                              color: const Color(0xFF9E9E9E),
+                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
                             ),
                           ),
                         ),

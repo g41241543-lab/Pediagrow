@@ -52,6 +52,13 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   String? _errorPertanyaan;
   String? _errorPenjelasan;
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
   @override
   void initState() {
     super.initState();
@@ -147,7 +154,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: _scaffoldBg,
         resizeToAvoidBottomInset: true,
         body: SingleChildScrollView(
           controller: _scrollCtrl,
@@ -309,12 +316,14 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       key: _pertanyaanKey,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+        border: Border.all(color: _borderColor, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: _isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -331,7 +340,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A2228),
+                color: _textBlack,
               ),
             ),
 
@@ -374,7 +383,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A2228),
+                color: _textBlack,
               ),
             ),
 
@@ -396,20 +405,22 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
 
   Widget _buildRadioPill(bool value, String label) {
     final bool isSelected = _jawabanBenar == value;
+    final activeBg = _isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF);
+    final inactiveBg = _isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC);
+    final inactiveBorder = _isDark ? const Color(0xFF334155) : const Color(0xFFD1D7DB);
+    final radioCircleBg = _isDark ? const Color(0xFF1A2228) : Colors.white;
+    final inactiveRadioBorder = _isDark ? const Color(0xFF475569) : const Color(0xFF8696A0);
+
     return GestureDetector(
       onTap: () => setState(() => _jawabanBenar = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         height: 44,
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFEFF6FF)
-              : const Color(0xFFF8FAFC),
+          color: isSelected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF2B7AE8)
-                : const Color(0xFFD1D7DB),
+            color: isSelected ? const Color(0xFF2B7AE8) : inactiveBorder,
             width: isSelected ? 1.8 : 1,
           ),
         ),
@@ -425,10 +436,10 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                 border: Border.all(
                   color: isSelected
                       ? const Color(0xFF2B7AE8)
-                      : const Color(0xFF8696A0),
+                      : inactiveRadioBorder,
                   width: 1.5,
                 ),
-                color: Colors.white,
+                color: radioCircleBg,
               ),
               child: isSelected
                   ? Center(
@@ -449,9 +460,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? const Color(0xFF2B7AE8)
-                    : const Color(0xFF2C363D),
+                color: isSelected ? const Color(0xFF2B7AE8) : _textBlack,
               ),
             ),
           ],
@@ -468,16 +477,16 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFE9EDEF),
+          color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
           borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: const Color(0xFFE9EDEF)),
+          border: Border.all(color: _borderColor),
         ),
         child: Text(
           'Deskripsi Jawaban Benar / Salah',
           style: GoogleFonts.lato(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF667781),
+            color: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF667781),
           ),
         ),
       ),
@@ -492,12 +501,14 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       key: _penjelasanKey,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+        border: Border.all(color: _borderColor, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: _isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -513,7 +524,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A2228),
+                color: _textBlack,
               ),
             ),
 
@@ -551,7 +562,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
               'Penjelasan ini akan ditampilkan kepada pengguna setelah menjawab soal',
               style: GoogleFonts.lato(
                 fontSize: 11,
-                color: const Color(0xFF8696A0),
+                color: _textGrey,
               ),
             ),
           ],
@@ -572,7 +583,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
     required ValueChanged<String> onChanged,
   }) {
     return CustomPaint(
-      painter: _DashedBorderPainter(),
+      painter: _DashedBorderPainter(color: _borderColor),
       child: Padding(
         padding: const EdgeInsets.all(1.5),
         child: TextField(
@@ -585,14 +596,14 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
           onChanged: onChanged,
           style: GoogleFonts.lato(
             fontSize: 14,
-            color: const Color(0xFF1A2228),
+            color: _textBlack,
             height: 1.5,
           ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.lato(
               fontSize: 14,
-              color: const Color(0xFF8696A0),
+              color: _textGrey,
             ),
             border: InputBorder.none,
             contentPadding:
@@ -617,9 +628,9 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
             child: OutlinedButton(
               onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF2C363D),
-                side: const BorderSide(color: Color(0xFFD1D7DB), width: 1.2),
+                backgroundColor: _cardBg,
+                foregroundColor: _textBlack,
+                side: BorderSide(color: _borderColor, width: 1.2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -629,7 +640,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                 style: GoogleFonts.lato(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2C363D),
+                  color: _textBlack,
                 ),
               ),
             ),
@@ -708,6 +719,10 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
 // PAINTER: border putus-putus untuk text field
 // ════════════════════════════════════════════════════════════════════
 class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+
+  const _DashedBorderPainter({this.color = const Color(0xFFD1D7DB)});
+
   @override
   void paint(Canvas canvas, Size size) {
     const dashWidth = 6.0;
@@ -716,7 +731,7 @@ class _DashedBorderPainter extends CustomPainter {
     const radius = 8.0;
 
     final paint = Paint()
-      ..color = const Color(0xFFD1D7DB)
+      ..color = color
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 

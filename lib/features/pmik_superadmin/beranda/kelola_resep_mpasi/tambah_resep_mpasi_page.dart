@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +73,14 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
   // Warna penanda bullet/nomor — sama dengan Detail Resep (#262626)
   static const Color _colorMarker = Color(0xFF262626);
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+  Color get _dashedBorderColor => _isDark ? const Color(0xFF4A5568) : const Color(0xFF7F7F7F);
+
   @override
   void initState() {
     super.initState();
@@ -142,7 +150,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: _cardBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
@@ -160,7 +168,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   width: 40.0,
                   height: 4.0,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: _borderColor,
                     borderRadius: BorderRadius.circular(2.0),
                   ),
                 ),
@@ -170,7 +178,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: _colorDark,
+                    color: _textBlack,
                   ),
                 ),
                 const SizedBox(height: 16.0),
@@ -178,7 +186,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: _isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
@@ -189,7 +197,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   ),
                   title: Text(
                     'Kamera',
-                    style: GoogleFonts.lato(fontSize: 15.0, color: _colorDark),
+                    style: GoogleFonts.lato(fontSize: 15.0, color: _textBlack),
                   ),
                   onTap: () async {
                     Navigator.of(ctx).pop();
@@ -202,12 +210,12 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                     }
                   },
                 ),
-                const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
+                Divider(height: 1.0, color: _borderColor),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: _isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
@@ -218,7 +226,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   ),
                   title: Text(
                     'Galeri',
-                    style: GoogleFonts.lato(fontSize: 15.0, color: _colorDark),
+                    style: GoogleFonts.lato(fontSize: 15.0, color: _textBlack),
                   ),
                   onTap: () async {
                     Navigator.of(ctx).pop();
@@ -316,7 +324,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _scaffoldBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -356,7 +364,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       _tanggal,
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
-                        color: const Color(0xFFC5C5C5),
+                        color: _isDark ? const Color(0xFF8696A0) : const Color(0xFFC5C5C5),
                         fontWeight: FontWeight.normal,
                       ),
                     ),
@@ -367,7 +375,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14.0,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: _textBlack,
                       ),
                     ),
                     const SizedBox(height: 6.0),
@@ -445,7 +453,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
     return Container(
       height: 56.0,
       width: double.infinity,
-      color: Colors.white,
+      color: _scaffoldBg,
       child: Row(
         children: [
           Padding(
@@ -455,12 +463,12 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
               child: InkWell(
                 onTap: () => Navigator.of(context).maybePop(),
                 borderRadius: BorderRadius.circular(24.0),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
                   child: Icon(
                     Icons.arrow_back,
                     size: 24.0,
-                    color: Colors.black,
+                    color: _textBlack,
                   ),
                 ),
               ),
@@ -472,7 +480,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
             style: GoogleFonts.lato(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: _textBlack,
             ),
           ),
         ],
@@ -486,17 +494,17 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
       child: _DashedBorderCard(
         radius: 12.0,
         height: 200.0,
-        color: _colorGray,
+        color: _dashedBorderColor,
         child: _imagePath != null && _imagePath!.isNotEmpty
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(12.0),
                 child: _buildImageWidget(_imagePath!),
               )
-            : const Center(
+            : Center(
                 child: Icon(
                   Icons.image_outlined,
                   size: 64.0,
-                  color: _colorGray,
+                  color: _dashedBorderColor,
                 ),
               ),
       ),
@@ -509,11 +517,11 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      errorWidget: const Center(
+      errorWidget: Center(
         child: Icon(
           Icons.broken_image_outlined,
           size: 64.0,
-          color: _colorGray,
+          color: _dashedBorderColor,
         ),
       ),
     );
@@ -524,7 +532,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
       children: [
         Text(
           'Ditulis oleh ',
-          style: GoogleFonts.lato(fontSize: 13.0, color: _colorMuted),
+          style: GoogleFonts.lato(fontSize: 13.0, color: _textGrey),
         ),
         Expanded(
           child: TextField(
@@ -532,7 +540,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
             style: GoogleFonts.lato(
               fontSize: 13.0,
               fontWeight: FontWeight.w600,
-              color: _colorDark,
+              color: _textBlack,
             ),
             decoration: const InputDecoration(
               isDense: true,
@@ -556,7 +564,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
     return _DashedBorderContainer(
       radius: 10.0,
       height: 48.0,
-      color: hasError ? const Color(0xFFE53935) : _colorGray,
+      color: hasError ? const Color(0xFFE53935) : _dashedBorderColor,
       strokeWidth: 1.0,
       dashWidth: 5.0,
       dashSpace: 3.5,
@@ -567,12 +575,12 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           focusNode: focusNode,
           onChanged: onChanged,
           keyboardType: keyboardType,
-          style: GoogleFonts.lato(fontSize: 14.0, color: Colors.black),
+          style: GoogleFonts.lato(fontSize: 14.0, color: _textBlack),
           decoration: InputDecoration(
             hintText: placeholder,
             hintStyle: GoogleFonts.lato(
               fontSize: 14.0,
-              color: _colorGray,
+              color: _textGrey,
               fontWeight: FontWeight.normal,
             ),
             border: InputBorder.none,
@@ -652,7 +660,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 12.5,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: _textBlack,
               ),
             ),
           ],
@@ -661,7 +669,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
         _DashedBorderContainer(
           radius: 10.0,
           height: 44.0,
-          color: _colorGray,
+          color: _dashedBorderColor,
           strokeWidth: 1.0,
           dashWidth: 5.0,
           dashSpace: 3.5,
@@ -675,13 +683,13 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 14.0,
                 fontWeight: FontWeight.bold,
-                color: _colorDark,
+                color: _textBlack,
               ),
               decoration: InputDecoration(
                 hintText: '0',
                 hintStyle: GoogleFonts.lato(
                   fontSize: 14.0,
-                  color: const Color(0xFFD1D7DB),
+                  color: _textGrey,
                   fontWeight: FontWeight.bold,
                 ),
                 border: InputBorder.none,
@@ -705,7 +713,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           style: GoogleFonts.lato(
             fontSize: 14.0,
             fontWeight: FontWeight.bold,
-            color: _colorDark,
+            color: _textBlack,
           ),
         ),
         const SizedBox(height: 8.0),
@@ -722,12 +730,14 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   vertical: 8.0,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFEBF5FF) : Colors.white,
+                  color: isSelected
+                      ? (_isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEBF5FF))
+                      : _cardBg,
                   borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(
                     color: isSelected
                         ? _colorPrimaryBlue
-                        : const Color(0xFFD1D7DB),
+                        : _borderColor,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -736,7 +746,9 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12.0,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? _colorPrimaryBlue : _colorMuted,
+                    color: isSelected
+                        ? (_isDark ? const Color(0xFF60A5FA) : _colorPrimaryBlue)
+                        : _textGrey,
                   ),
                 ),
               ),
@@ -759,24 +771,24 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           style: GoogleFonts.lato(
             fontSize: 15.0,
             fontWeight: FontWeight.bold,
-            color: _colorMarker,
+            color: _textBlack,
             height: 1.4,
           ),
         ),
       );
     }
-    return const SizedBox(
+    return SizedBox(
       width: 24.0,
       child: Align(
         alignment: Alignment.centerLeft,
         child: Padding(
-          padding: EdgeInsets.only(left: 4.0),
+          padding: const EdgeInsets.only(left: 4.0),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: _colorMarker,
+              color: _textBlack,
               shape: BoxShape.circle,
             ),
-            child: SizedBox(width: 5.0, height: 5.0),
+            child: const SizedBox(width: 5.0, height: 5.0),
           ),
         ),
       ),
@@ -801,7 +813,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
               style: GoogleFonts.lato(
                 fontSize: 15.0,
                 fontWeight: FontWeight.bold,
-                color: _colorDark,
+                color: _textBlack,
               ),
             ),
             GestureDetector(
@@ -819,12 +831,12 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
           ],
         ),
         const SizedBox(height: 8.0),
-        // Kotak Card Putih Melengkung dengan bayangan halus
+        // Kotak Card Melengkung dengan bayangan halus
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _cardBg,
             borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(color: const Color(0xFFE9EDEF)),
+            border: Border.all(color: _borderColor),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -858,7 +870,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                             maxLines: isNumbered ? null : 1,
                             style: GoogleFonts.lato(
                               fontSize: 13.5,
-                              color: _colorDark,
+                              color: _textBlack,
                             ),
                             decoration: InputDecoration(
                               isDense: true,
@@ -870,7 +882,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                                   : '$hintText...',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 13.0,
-                                color: const Color(0xFFD1D7DB),
+                                color: _textGrey,
                               ),
                               border: InputBorder.none,
                             ),
@@ -904,7 +916,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
                       child: SizedBox(
                         height: 1.0,
                         child: CustomPaint(
-                          painter: const _DashedLinePainter(),
+                          painter: _DashedLinePainter(color: _borderColor),
                           child: const SizedBox.expand(),
                         ),
                       ),
@@ -1089,12 +1101,13 @@ class _DashedRRectPainter extends CustomPainter {
 }
 
 class _DashedLinePainter extends CustomPainter {
-  const _DashedLinePainter();
+  final Color color;
+  const _DashedLinePainter({this.color = const Color(0xFFD1D7DB)});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFD1D7DB)
+      ..color = color
       ..strokeWidth = 1.0;
     double x = 0;
     while (x < size.width) {
@@ -1104,5 +1117,5 @@ class _DashedLinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) => oldDelegate.color != color;
 }

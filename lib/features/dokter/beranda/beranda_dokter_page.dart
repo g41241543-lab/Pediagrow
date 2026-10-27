@@ -8,10 +8,10 @@ import '../../../core/services/superadmin_notification_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../models/superadmin_notification_model.dart';
-import '../../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+import '../../pengguna/artikel/artikel_kesehatan_page.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import '../../pengguna/mpasi/daftar_resep_page.dart';
 import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import 'data_pasien/data_pasien_page.dart';
@@ -47,37 +47,6 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
-  bool _canAccessFeature(String permissionKey) {
-    final staff = StaffAuthService().currentStaff;
-    if (staff != null && staff.permissions.isNotEmpty) {
-      return staff.hasPermission(permissionKey);
-    }
-    final doc = DoctorService().findDoctorForStaff(staff);
-    if (doc != null && doc.permissions.isNotEmpty) {
-      return doc.permissions[permissionKey] ?? true;
-    }
-    if (staff != null) {
-      return staff.hasPermission(permissionKey);
-    }
-    return true;
-  }
-
-  void _handleMenuTap({
-    required String permissionKey,
-    required String featureName,
-    required VoidCallback onAllowed,
-  }) {
-    if (_canAccessFeature(permissionKey)) {
-      onAllowed();
-    } else {
-      LocalPushService().show(
-        title: 'Akses Terbatas',
-        body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
-        targetRole: PushRole.dokter,
-      );
-    }
-  }
-
   void _openAturJadwalDokter() {
     final staff = StaffAuthService().currentStaff;
     String? targetDoctorId;
@@ -108,39 +77,37 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeService.lightTheme,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // LAYER 0 — Background animasi awan & burung (full-page)
-              const Positioned.fill(child: FullPageSkyBackground()),
+    final isDark = ThemeService.isDark(context);
+    return Scaffold(
+      backgroundColor: isDark ? ThemeService.darkBg : Colors.white,
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // LAYER 0 — Background animasi awan & burung (full-page)
+            const Positioned.fill(child: FullPageSkyBackground()),
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Area Biru Seamless (Header + Card Dokter PeGo)
-                  _buildSeamlessBlueArea(context),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Area Biru Seamless (Header + Card Dokter PeGo)
+                _buildSeamlessBlueArea(context),
 
-                  // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
-                  _buildWhiteContentSection(context),
+                // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
+                _buildWhiteContentSection(context),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // 3. Ilustrasi Footer (Daun)
-                  _buildFooterIllustration(),
-                ],
-              ),
-            ],
-          ),
+                // 3. Ilustrasi Footer (Daun)
+                _buildFooterIllustration(),
+              ],
+            ),
+          ],
         ),
-        bottomNavigationBar: _buildFixedNavBar(),
       ),
+      bottomNavigationBar: _buildFixedNavBar(),
     );
   }
 
@@ -328,15 +295,17 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // Kiri: Teks PeGo + tagline; Kanan: Ilustrasi dokter
   // =========================================================================
   Widget _buildDokterCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 120,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? ThemeService.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -390,16 +359,24 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
+                            color: isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
+                                  : const Color(0xFFBFDBFE),
+                            ),
                           ),
                           child: Text(
                             roleText,
                             style: GoogleFonts.lato(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2563EB),
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : const Color(0xFF2563EB),
                             ),
                           ),
                         );
@@ -413,7 +390,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF2C363D),
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
                     height: 1.35,
                   ),
                 ),
@@ -461,7 +440,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           // Card Slogan PeGo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildPeGoSloganCard(),
+            child: _buildPeGoSloganCard(context),
           ),
         ],
       ),
@@ -478,124 +457,97 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // 6. Permainan (Terkunci dengan gembok seperti role pmik_superadmin)
   // =========================================================================
   Widget _build6MenuGrid(BuildContext context) {
-    return ValueListenableBuilder<StaffAccount?>(
-      valueListenable: StaffAuthService().currentStaffNotifier,
-      builder: (context, staff, _) {
-        final canRekap = _canAccessFeature('rekapitulasi');
-        final canPasien = _canAccessFeature('data_pasien');
-        final canResep = _canAccessFeature('daftar_resep_mpasi');
-        final canArtikel = _canAccessFeature('daftar_artikel_kesehatan');
-        final canPermainan = _canAccessFeature('permainan');
-
-        return Column(
+    return Column(
+      children: [
+        // Baris 1: Rekapitulasi, Data Pasien, Jadwal Praktik (semua aktif)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Baris 1: Rekapitulasi, Data Pasien, Jadwal Praktik
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _buildMenuItem(
-                    title: 'Rekapitulasi',
-                    customIcon: _buildRekapitulasiLogo(),
-                    blobColor: const Color(0xFFD97706),
-                    isLocked: !canRekap,
-                    onTap: () => _handleMenuTap(
-                      permissionKey: 'rekapitulasi',
-                      featureName: 'Rekapitulasi',
-                      onAllowed: () =>
-                          _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildMenuItem(
-                    title: 'Data\nPasien',
-                    imageAsset: 'assets/images/data_pasien_logo.png',
-                    blobColor: const Color(0xFF3CC3A6),
-                    isLocked: !canPasien,
-                    onTap: () => _handleMenuTap(
-                      permissionKey: 'data_pasien',
-                      featureName: 'Data Pasien',
-                      onAllowed: () => _navigateTo(const DataPasienPage()),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildMenuItem(
-                    title: 'Jadwal\nPraktik',
-                    customIcon: _buildJadwalPraktikLogo(),
-                    blobColor: const Color(0xFF0284C7),
-                    isLocked: false,
-                    onTap: _openAturJadwalDokter,
-                  ),
-                ),
-              ],
+            Expanded(
+              child: _buildMenuItem(
+                context: context,
+                title: 'Rekapitulasi',
+                customIcon: _buildRekapitulasiLogo(),
+                blobColor: const Color(0xFFD97706),
+                isLocked: false,
+                onTap: () =>
+                    _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
+              ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Baris 2: Resep MPASI, Daftar Artikel Kesehatan, Permainan
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _buildMenuItem(
-                    title: 'Resep\nMPASI',
-                    imageAsset: 'assets/images/resep_mpasi_logo.png',
-                    blobColor: const Color(0xFFF97316),
-                    isLocked: !canResep,
-                    onTap: () => _handleMenuTap(
-                      permissionKey: 'daftar_resep_mpasi',
-                      featureName: 'Daftar Resep MPASI',
-                      onAllowed: () =>
-                          _navigateTo(const DaftarResepMpasiAdminPage()),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildMenuItem(
-                    title: 'Daftar Artikel\nKesehatan',
-                    imageAsset: 'assets/images/artikel_kesehatan_logo.png',
-                    blobColor: const Color(0xFF10B981),
-                    isLocked: !canArtikel,
-                    onTap: () => _handleMenuTap(
-                      permissionKey: 'daftar_artikel_kesehatan',
-                      featureName: 'Daftar Artikel Kesehatan',
-                      onAllowed: () =>
-                          _navigateTo(const DaftarArtikelAdminPage()),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildMenuItem(
-                    title: 'Permainan\n',
-                    imageAsset: 'assets/images/permainan_logo.png',
-                    blobColor: const Color(0xFFF59E0B),
-                    logoOffsetX: 5,
-                    isLocked: !canPermainan,
-                    onTap: () => _handleMenuTap(
-                      permissionKey: 'permainan',
-                      featureName: 'Permainan',
-                      onAllowed: () => _showLockedMenuNotice('Permainan'),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                context: context,
+                title: 'Data\nPasien',
+                imageAsset: 'assets/images/data_pasien_logo.png',
+                blobColor: const Color(0xFF3CC3A6),
+                isLocked: false,
+                onTap: () => _navigateTo(const DataPasienPage()),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                context: context,
+                title: 'Jadwal\nPraktik',
+                customIcon: _buildJadwalPraktikLogo(),
+                blobColor: const Color(0xFF0284C7),
+                isLocked: false,
+                onTap: _openAturJadwalDokter,
+              ),
             ),
           ],
-        );
-      },
+        ),
+
+        const SizedBox(height: 20),
+
+        // Baris 2: Resep MPASI, Daftar Artikel Kesehatan, Permainan (terkunci)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildMenuItem(
+                context: context,
+                title: 'Resep\nMPASI',
+                imageAsset: 'assets/images/resep_mpasi_logo.png',
+                blobColor: const Color(0xFFF97316),
+                isLocked: false,
+                onTap: () => _navigateTo(const DaftarResepPage()),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                context: context,
+                title: 'Daftar Artikel\nKesehatan',
+                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                blobColor: const Color(0xFF10B981),
+                isLocked: false,
+                onTap: () => _navigateTo(const ArtikelKesehatanPage()),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildMenuItem(
+                context: context,
+                title: 'Permainan\n',
+                imageAsset: 'assets/images/permainan_logo.png',
+                blobColor: const Color(0xFFF59E0B),
+                logoOffsetX: 5,
+                isLocked: true,
+                onTap: () => _showLockedMenuNotice('Permainan'),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
   void _showLockedMenuNotice(String featureName) {
     LocalPushService().show(
       title: 'Akses Terbatas',
-      body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
+      body: 'Akses fitur "$featureName" dinonaktifkan untuk role Dokter.',
       targetRole: PushRole.dokter,
     );
   }
@@ -739,6 +691,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   }
 
   Widget _buildMenuItem({
+    required BuildContext context,
     required String title,
     required VoidCallback onTap,
     required Color blobColor,
@@ -751,6 +704,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
+    final isDark = ThemeService.isDark(context);
     final Widget baseContent = _buildTileContent(
       imageAsset: imageAsset,
       icon: icon,
@@ -775,19 +729,25 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  // Abu-abu jika terkunci, biru muda (#ECF6FF) jika aktif
-                  color: isLocked
-                      ? const Color(0xFFD1D7DB)
-                      : const Color(0xFFECF6FF),
+                  color: isDark
+                      ? (isLocked ? const Color(0xFF141C22) : ThemeService.darkCard)
+                      : (isLocked
+                          ? const Color(0xFFD1D7DB)
+                          : const Color(0xFFECF6FF)),
                   borderRadius: BorderRadius.circular(10),
-                  border: isLocked
-                      ? Border.all(color: const Color(0xFFCBD5E1), width: 1.0)
-                      : null,
+                  border: isDark
+                      ? Border.all(color: ThemeService.darkBorder)
+                      : (isLocked
+                          ? Border.all(
+                              color: const Color(0xFFCBD5E1),
+                              width: 1.0,
+                            )
+                          : null),
                   boxShadow: [
                     BoxShadow(
                       color: isLocked
                           ? const Color(0x0A000000)
-                          : const Color(0xFF3985E7).withValues(alpha: 0.06),
+                          : const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.06),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -851,9 +811,13 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
-              color: isLocked
-                  ? const Color(0xFF8696A0)
-                  : const Color(0xFF000000),
+              color: isDark
+                  ? (isLocked
+                      ? ThemeService.darkTextMuted
+                      : ThemeService.darkTextPrimary)
+                  : (isLocked
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF000000)),
               height: 1.25,
             ),
           ),
@@ -903,16 +867,18 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // CARD SLOGAN PeGo DOKTER
   // Dimensi: height 115, color #ECF6FF, corner radius 10
   // =========================================================================
-  Widget _buildPeGoSloganCard() {
+  Widget _buildPeGoSloganCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: const Color(0xFFECF6FF),
+        color: isDark ? ThemeService.darkCard : const Color(0xFFECF6FF),
         borderRadius: BorderRadius.circular(10),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3985E7).withValues(alpha: 0.07),
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.07),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -971,7 +937,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF2C363D),
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
                     height: 1.3,
                   ),
                   maxLines: 4,
@@ -1022,12 +990,18 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
       _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
+    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
+
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: navBg,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8.0,
@@ -1058,10 +1032,10 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                         Container(
                           width: 36.0,
                           height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: activeCircleBg,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4.0,
@@ -1086,7 +1060,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
+                                color: activeLabelColor,
                               ),
                             ),
                           ),
@@ -1095,7 +1069,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: const Color(0xFF9E9E9E),
+                          color: inactiveColor,
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -1109,7 +1083,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: inactiveColor,
                               ),
                             ),
                           ),
@@ -1133,27 +1107,14 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
         // Beranda aktif
         break;
       case 1:
-        _handleMenuTap(
-          permissionKey: 'konsultasi',
-          featureName: 'Konsultasi',
-          onAllowed: () => _navigateTo(const KonsultasiDokterPage()),
-        );
+        _navigateTo(const KonsultasiDokterPage());
         break;
       case 2:
-        _handleMenuTap(
-          permissionKey: 'riwayat_konsultasi',
-          featureName: 'Riwayat Konsultasi',
-          onAllowed: () =>
-              _navigateTo(const DaftarRiwayatKonsultasiAdminPage()),
-        );
+        _navigateTo(const DaftarRiwayatKonsultasiAdminPage());
         break;
       case 3:
-        _handleMenuTap(
-          permissionKey: 'profil',
-          featureName: 'Profil',
-          onAllowed: () => Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
-          ),
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
         );
         break;
     }

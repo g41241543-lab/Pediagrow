@@ -12,6 +12,7 @@ import '../auth/auth_choice_page.dart';
 import 'beranda/beranda_pmik_page.dart';
 import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../pengguna/profil/tampilan_page.dart';
 
 /// Halaman Profil PMIK Admin PediaGrow.
 ///
@@ -199,11 +200,12 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
 
   // ─── LOGOUT ───────────────────────────────────────────────────────────────
   void _showLogoutConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
         elevation: 8,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
@@ -217,7 +219,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -226,7 +228,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -239,7 +241,9 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD1D7DB)),
+                          side: BorderSide(
+                            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -249,7 +253,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C363D),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -356,6 +360,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -363,10 +368,14 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         _onBottomNavTap(0);
       },
       child: Scaffold(
+<<<<<<< HEAD
         backgroundColor: Colors.white,
+=======
+        backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
-          child: _buildCustomHeader(),
+          child: _buildCustomHeader(isDark),
         ),
         body: SafeArea(
           top: false,
@@ -380,7 +389,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 const SizedBox(height: 16.0),
 
                 // 1. KARTU PROFIL
-                _buildProfileCard(),
+                _buildProfileCard(isDark),
 
                 const SizedBox(height: 24.0),
 
@@ -390,11 +399,11 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 12.0),
-                _buildGeneralInfoCard(),
+                _buildGeneralInfoCard(isDark),
 
                 const SizedBox(height: 20.0),
 
@@ -402,9 +411,13 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7ED),
+                    color: isDark
+                        ? const Color(0xFF7C2D12).withValues(alpha: 0.25)
+                        : const Color(0xFFFFF7ED),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFED7AA)),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF9A3412) : const Color(0xFFFED7AA),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -420,7 +433,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           'Hubungi Superadmin jika perlu pembaruan data.',
                           style: GoogleFonts.lato(
                             fontSize: 13,
-                            color: const Color(0xFF92400E),
+                            color: isDark ? const Color(0xFFFDBA74) : const Color(0xFF92400E),
                             height: 1.4,
                           ),
                         ),
@@ -428,6 +441,11 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 20.0),
+
+                // 3.5 PENGATURAN TAMPILAN
+                _buildTampilanMenuCard(isDark),
 
                 const SizedBox(height: 24.0),
 
@@ -466,10 +484,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
-  Widget _buildCustomHeader() {
+  Widget _buildCustomHeader(bool isDark) {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -482,12 +500,12 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 GestureDetector(
                   onTap: () => _onBottomNavTap(0),
                   behavior: HitTestBehavior.opaque,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
                     child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF0F172A),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
                     ),
                   ),
                 ),
@@ -497,7 +515,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -509,8 +527,92 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     );
   }
 
+  // ─── MENU TAMPILAN ─────────────────────────────────────────────────────────
+  Widget _buildTampilanMenuCard(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10.0,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16.0),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const TampilanPage(),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.palette_outlined,
+                    color: Color(0xFF3985E7),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tampilan',
+                        style: GoogleFonts.lato(
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Pilih tema terang, gelap, atau sistem',
+                        style: GoogleFonts.lato(
+                          fontSize: 12.0,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 15,
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ─── PROFILE CARD ─────────────────────────────────────────────────────────
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(bool isDark) {
     const double avatarRadius = 46.0;
     final name = _pmik?.name.isNotEmpty == true ? _pmik!.name : 'Nama PMIK';
     final email = _pmik?.email ?? '';
@@ -529,14 +631,17 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             bottom: 20.0,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1.0,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0F000000),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
                 blurRadius: 16.0,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -549,7 +654,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -559,7 +664,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -578,6 +683,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 children: [
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.work_rounded,
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
@@ -590,6 +696,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.badge_outlined,
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
@@ -612,7 +719,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               children: [
                 CircleAvatar(
                   radius: avatarRadius,
-                  backgroundColor: const Color(0xFFE0F2FE),
+                  backgroundColor: isDark ? const Color(0xFF2C363D) : const Color(0xFFE0F2FE),
                   backgroundImage: StorageService.buildImageProvider(
                     _avatarPath,
                   ),
@@ -633,7 +740,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF0891B2),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                        width: 2,
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x33000000),
@@ -658,6 +768,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 
   Widget _buildStatChip({
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required Color bgColor,
@@ -670,7 +781,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isDark ? const Color(0xFF2C363D) : bgColor,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -696,7 +807,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
             ],
@@ -707,7 +818,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 
   // ─── GENERAL INFO CARD ────────────────────────────────────────────────────
-  Widget _buildGeneralInfoCard() {
+  Widget _buildGeneralInfoCard(bool isDark) {
     final items = [
       _InfoItem(
         icon: Icons.calendar_today_rounded,
@@ -727,14 +838,17 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -754,7 +868,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: item.bgColor,
+                        color: isDark ? const Color(0xFF2C363D) : item.bgColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
@@ -776,7 +890,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1A2228),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                           ),
                         ),
                       ],
@@ -785,7 +899,11 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 ),
               ),
               if (i < items.length - 1)
-                const Divider(height: 1, indent: 66, color: Color(0xFFE9EDEF)),
+                Divider(
+                  height: 1,
+                  indent: 66,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
             ],
           );
         }),
@@ -805,12 +923,18 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
       const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
+    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1E293B);
+    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
+
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: navBg,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8.0,
@@ -841,10 +965,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                         Container(
                           width: 36.0,
                           height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: activeCircleBg,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4.0,
@@ -869,7 +993,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: activeLabelColor,
                               ),
                             ),
                           ),
@@ -878,7 +1002,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: const Color(0xFF9E9E9E),
+                          color: inactiveColor,
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -892,7 +1016,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: inactiveColor,
                               ),
                             ),
                           ),
