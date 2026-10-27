@@ -118,7 +118,12 @@ class StaffAccount {
   bool get isPmik => role == StaffRole.admin;
 
   /// Apakah akun ini merupakan PMIK Superadmin?
-  bool get isPmikSuperadmin => isSuperAdmin;
+  /// Hanya berlaku untuk role superadmin atau PMIK (admin) yang memiliki hak_akses.
+  /// Dokter tidak termasuk PMIK Superadmin.
+  bool get isPmikSuperadmin {
+    if (role == StaffRole.dokter) return false;
+    return isSuperAdmin;
+  }
 
   /// Apakah akun ini merupakan PMIK biasa?
   bool get isPmikBiasa =>
@@ -267,6 +272,10 @@ class StaffAccount {
   bool hasPermission(String permissionKey) {
     if (permissionKey == 'hak_akses') {
       return isSuperAdmin;
+    }
+    if (permissionKey == 'download_dataset_rekapitulasi' ||
+        permissionKey == 'download_dataset_pengguna') {
+      return isPmikSuperadmin;
     }
     if (isSuperAdmin) return true;
     if (permissions.isEmpty) return true;

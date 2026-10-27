@@ -305,6 +305,8 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           .where((e) => e.isNotEmpty)
           .toList();
 
+      final sanitizedPermissions = DoctorPermissions.sanitize(_permissions);
+
       final updatedDoctor = widget.doctor.copyWith(
         name: _namaCtrl.text.trim(),
         specialization: _spesialisasiCtrl.text.trim(),
@@ -316,7 +318,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
         educations: edus,
         education: edus.isNotEmpty ? edus.first : null,
         avatarUrl: _avatarPath,
-        permissions: _permissions,
+        permissions: sanitizedPermissions,
       );
 
       // Simpan perubahan ke Firestore
@@ -339,7 +341,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           password: _passwordBaruCtrl.text.trim().isNotEmpty
               ? _passwordBaruCtrl.text.trim()
               : null,
-          permissions: _permissions,
+          permissions: sanitizedPermissions,
           avatarPath: _avatarPath,
           experience: _pengalamanCtrl.text.trim().isNotEmpty
               ? '${_pengalamanCtrl.text.trim()} tahun'

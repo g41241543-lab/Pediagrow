@@ -258,6 +258,8 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
           .where((e) => e.isNotEmpty)
           .toList();
 
+      final sanitizedPermissions = DoctorPermissions.sanitize(_permissions);
+
       final newDoctor = DoctorModel(
         id: '',
         name: _namaCtrl.text.trim(),
@@ -272,7 +274,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
         educations: edus,
         education: edus.isNotEmpty ? edus.first : null,
         avatarUrl: _avatarPath,
-        permissions: _permissions,
+        permissions: sanitizedPermissions,
         isOnline: true,
       );
 
