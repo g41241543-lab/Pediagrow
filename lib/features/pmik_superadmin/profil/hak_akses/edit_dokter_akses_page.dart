@@ -876,8 +876,6 @@ Padding(
     final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
     final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
-    final textValue = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
-    final textMuted = const Color(0xFF8696A0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1307,76 +1305,23 @@ Row(
                                 color: textItem,
                               ),
                             ),
-                          ),
-<<<<<<< HEAD
-                          Switch(
+                          ),                          Switch(
                             value: isChecked,
                             activeThumbColor: const Color(0xFF3985E7),
                             activeTrackColor:
                                 const Color(0xFF3985E7).withValues(alpha: 0.5),
-                            inactiveThumbColor: const Color(0xFFFFFFFF),
-                            inactiveTrackColor: const Color(0xFF8696A0),
+                            inactiveThumbColor: isDark
+                                ? const Color(0xFF8696A0)
+                                : const Color(0xFFFFFFFF),
+                            inactiveTrackColor: isDark
+                                ? const Color(0xFF2C363D)
+                                : const Color(0xFF8696A0),
                             onChanged: (val) {
                               setState(() {
                                 _permissions[item.key] = val;
                               });
                             },
                           ),
-=======
-                          if (item.key == 'daftar_resep_mpasi' ||
-                              item.key == 'daftar_artikel_kesehatan')
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0,
-                                vertical: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF2563EB).withValues(alpha: 0.15)
-                                    : const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(
-                                  color: isDark
-                                      ? const Color(0xFF2563EB).withValues(alpha: 0.3)
-                                      : const Color(0xFFBFDBFE),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.visibility_outlined,
-                                    size: 14.0,
-                                    color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                                  ),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    'Hanya Lihat',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Switch(
-                              value: isChecked,
-                              activeThumbColor: const Color(0xFF3985E7),
-                              activeTrackColor:
-                                  const Color(0xFF3985E7).withValues(alpha: 0.5),
-                              inactiveThumbColor: const Color(0xFFFFFFFF),
-                              inactiveTrackColor: isDark ? const Color(0xFF334155) : const Color(0xFF8696A0),
-                              onChanged: (val) {
-                                setState(() {
-                                  _permissions[item.key] = val;
-                                });
-                              },
-                            ),
->>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
                         ],
                       ),
                     ),

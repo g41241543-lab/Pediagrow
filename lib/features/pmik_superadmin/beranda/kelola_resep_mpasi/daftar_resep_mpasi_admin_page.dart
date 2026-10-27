@@ -57,8 +57,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   ];
 
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorDark = Color(0xFF0B1014);
-  static const Color _colorMuted = Color(0xFF8696A0);
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
@@ -301,13 +299,8 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         _navigateBack();
       },
       child: Scaffold(
-<<<<<<< HEAD
-        backgroundColor: Colors.white,
-        bottomNavigationBar: _buildBottomNavigationBar(),
-=======
         backgroundColor: _scaffoldBg,
-        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
->>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
+        bottomNavigationBar: _buildBottomNavigationBar(),
         body: SafeArea(
           child: Column(
             children: [
@@ -732,122 +725,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   }
 
   Widget _buildBottomNavigationBar() {
-<<<<<<< HEAD
     return const PediaBottomNavBar(selectedIndex: -1);
-=======
-    final navItems = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 24.0,
-                        color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                      ),
-                      const SizedBox(height: 3.0),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            item.label,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 11.0,
-                              fontWeight: FontWeight.normal,
-                              color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  void _onNavTap(int index) {
-    final isPmik = StaffAuthService().currentStaff?.role == StaffRole.admin;
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => isPmik
-                ? const BerandaPmikPage()
-                : const BerandaSuperadminPage(),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => isPmik
-                ? const KonsultasiPmikAdminPage()
-                : const KonsultasiSuperadminPage(),
-          ),
-        );
-        break;
-      case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
-          ),
-        );
-        break;
-      case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => isPmik
-                ? const ProfilPmikPage()
-                : const ProfilSuperadminPage(),
-          ),
-        );
-        break;
-    }
->>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
   }
 }
