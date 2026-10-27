@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import 'daftar_dokter_akses_page.dart';
 import 'daftar_pmik_akses_page.dart';
 
@@ -89,6 +90,7 @@ class HakAksesPage extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
     );
   }
 

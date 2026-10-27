@@ -35,7 +35,6 @@ class RiwayatConsultationCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16.0),
       cursor: SystemMouseCursors.click,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2228) : Colors.white,
           borderRadius: BorderRadius.circular(16.0),

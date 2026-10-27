@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/notification_service.dart';
+import '../../../../shared/widgets/hover_lift.dart';
 import '../../beranda/notifikasi_page.dart';
 
 /// Custom Header terstandarisasi untuk halaman Riwayat Konsultasi dan Detail Konsultasi.
@@ -60,25 +61,31 @@ class RiwayatHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (showBackButton) ...[
-                  GestureDetector(
-                    onTap: () {
-                      if (onBackPressed != null) {
-                        onBackPressed!();
-                      } else {
-                        if (Navigator.of(context).canPop()) {
-                          Navigator.of(context).pop();
+                  Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: InkWell(
+                      onTap: () {
+                        if (onBackPressed != null) {
+                          onBackPressed!();
+                        } else {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                      }
-                    },
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      width: 36.0,
-                      height: 36.0,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.arrow_back,
-                        size: 24.0,
-                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                      },
+                      borderRadius: BorderRadius.circular(20.0),
+                      hoverColor: isDark ? Colors.white12 : const Color(0x12000000),
+                      mouseCursor: SystemMouseCursors.click,
+                      child: Container(
+                        width: 36.0,
+                        height: 36.0,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.arrow_back,
+                          size: 24.0,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                        ),
                       ),
                     ),
                   ),
@@ -101,64 +108,69 @@ class RiwayatHeader extends StatelessWidget {
                   ValueListenableBuilder<int>(
                     valueListenable: NotificationService().unreadCountNotifier,
                     builder: (context, unreadCount, _) {
-                      return GestureDetector(
-                        onTap: () => _navigateToNotification(context),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              width: 31,
-                              height: 31,
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF1A2228) : Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x1F000000),
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              alignment: Alignment.center,
-                              child: Icon(
-                                Icons.notifications_none_rounded,
-                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                                size: 19,
-                              ),
-                            ),
-                            if (unreadCount > 0)
-                              Positioned(
-                                top: -4,
-                                right: -4,
-                                child: Container(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE53E3E),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: isDark ? const Color(0xFF0B1014) : Colors.white,
-                                      width: 1,
+                      return HoverLift(
+                        lift: 2.0,
+                        cursor: SystemMouseCursors.click,
+                        borderRadius: BorderRadius.circular(16.0),
+                        child: GestureDetector(
+                          onTap: () => _navigateToNotification(context),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 31,
+                                height: 31,
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x1F000000),
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
                                     ),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    unreadCount > 99 ? '99+' : '$unreadCount',
-                                    style: GoogleFonts.lato(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                                  size: 19,
+                                ),
+                              ),
+                              if (unreadCount > 0)
+                                Positioned(
+                                  top: -4,
+                                  right: -4,
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE53E3E),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isDark ? const Color(0xFF0B1014) : Colors.white,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      unreadCount > 99 ? '99+' : '$unreadCount',
+                                      style: GoogleFonts.lato(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },

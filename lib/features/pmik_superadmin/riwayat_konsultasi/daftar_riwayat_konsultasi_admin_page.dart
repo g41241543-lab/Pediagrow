@@ -352,6 +352,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   doctorHandledChildren.add(name);
                 }
               }
+              if (_selectedDoctorChild != 'Semua' &&
+                  !doctorHandledChildren.contains(_selectedDoctorChild)) {
+                _selectedDoctorChild = 'Semua';
+              }
             }
 
             // Kumpulkan daftar opsi nama dokter untuk modal filter (mode admin/superadmin)
@@ -380,60 +384,58 @@ class _DaftarRiwayatKonsultasiAdminPageState
                         child: ConstrainedBox(
                           constraints:
                               BoxConstraints(minHeight: constraints.maxHeight),
-                          child: IntrinsicHeight(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 10.0),
 
-                                      // 1. Search Bar & Filter Kapsul (mode dokter: bentuk searchbar dan filter sama seperti pengguna / resep MPASI)
-                                      _isDoctorMode
-                                          ? _buildDoctorSearchBarAndFilter(
-                                              doctorHandledChildren)
-                                          : _buildSearchAndFilterRow(
-                                              doctorOptions.toList()),
+                                    // 1. Search Bar & Filter Kapsul (mode dokter: bentuk searchbar dan filter sama seperti pengguna / resep MPASI)
+                                    _isDoctorMode
+                                        ? _buildDoctorSearchBarAndFilter(
+                                            doctorHandledChildren)
+                                        : _buildSearchAndFilterRow(
+                                            doctorOptions.toList()),
 
-                                      // 2. Chip status dokter aktif (mode admin saja)
-                                      if (!_isDoctorMode &&
-                                          _filterDoctor != 'Semua Dokter') ...[
-                                        _buildActiveDoctorFilterChip(),
-                                        const SizedBox(height: 6.0),
-                                      ],
-                                      const SizedBox(height: 8.0),
-
-                                      // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
-                                      if (isLoading)
-                                        _buildLoadingState()
-                                      else if (hasError)
-                                        _buildErrorState(
-                                            snapshot.error.toString())
-                                      else if (filtered.isEmpty)
-                                        _buildEmptyState()
-                                      else
-                                        _buildConsultationList(filtered),
-
-                                      const SizedBox(height: 14.0),
-
-                                      // 4. Banner Keterangan di BAGIAN BAWAH
-                                      _isDoctorMode
-                                          ? _buildDoctorInfoBanner()
-                                          : _buildInfoBanner(),
+                                    // 2. Chip status dokter aktif (mode admin saja)
+                                    if (!_isDoctorMode &&
+                                        _filterDoctor != 'Semua Dokter') ...[
+                                      _buildActiveDoctorFilterChip(),
+                                      const SizedBox(height: 6.0),
                                     ],
-                                  ),
-                                ),
+                                    const SizedBox(height: 8.0),
 
-                                const Spacer(),
-                                const SizedBox(height: 14.0),
-                                _buildFooterIllustration(),
-                              ],
-                            ),
+                                    // 3. Status State: Loading, Error, Empty, atau Daftar Kartu
+                                    if (isLoading)
+                                      _buildLoadingState()
+                                    else if (hasError)
+                                      _buildErrorState(
+                                          snapshot.error.toString())
+                                    else if (filtered.isEmpty)
+                                      _buildEmptyState()
+                                    else
+                                      _buildConsultationList(filtered),
+
+                                    const SizedBox(height: 14.0),
+
+                                    // 4. Banner Keterangan di BAGIAN BAWAH
+                                    _isDoctorMode
+                                        ? _buildDoctorInfoBanner()
+                                        : _buildInfoBanner(),
+                                    const SizedBox(height: 16.0),
+                                  ],
+                                ),
+                              ),
+
+                              _buildFooterIllustration(),
+                            ],
                           ),
                         ),
                       );
@@ -462,16 +464,22 @@ class _DaftarRiwayatKonsultasiAdminPageState
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: _handleBack,
-              behavior: HitTestBehavior.opaque,
-              child: const SizedBox(
-                width: 32.0,
-                height: 32.0,
-                child: Icon(
-                  Icons.arrow_back,
-                  size: 24.0,
-                  color: _colorTextBlack,
+            Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20.0),
+              child: InkWell(
+                onTap: _handleBack,
+                borderRadius: BorderRadius.circular(20.0),
+                hoverColor: const Color(0x12000000),
+                mouseCursor: SystemMouseCursors.click,
+                child: const SizedBox(
+                  width: 36.0,
+                  height: 36.0,
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24.0,
+                    color: _colorTextBlack,
+                  ),
                 ),
               ),
             ),
@@ -590,13 +598,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
         const SizedBox(width: 10.0),
 
         // 2. Tombol Filter
-        GestureDetector(
-          onTap: () => _showDoctorFilterSheet(doctorOptions),
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+        HoverLift(
+          lift: 2.0,
+          cursor: SystemMouseCursors.click,
+          borderRadius: BorderRadius.circular(14.0),
+          child: Container(
             height: 48.0,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
             decoration: BoxDecoration(
               color: isFilterActive ? _colorFilterLightBg : Colors.white,
               borderRadius: BorderRadius.circular(14.0),
@@ -612,36 +619,51 @@ class _DaftarRiwayatKonsultasiAdminPageState
                 ),
               ],
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Ikon corong filter
-                _FilterFunnelSparkleIcon(
-                  size: 20.0,
-                  color: _colorFilterAccent,
-                ),
-                const SizedBox(width: 6.0),
-                Text(
-                  'Filter',
-                  style: GoogleFonts.lato(
-                    fontSize: 13.0,
-                    fontWeight: FontWeight.w600,
-                    color: _colorFilterAccent,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14.0),
+              child: InkWell(
+                onTap: () => _showDoctorFilterSheet(doctorOptions),
+                borderRadius: BorderRadius.circular(14.0),
+                hoverColor: isFilterActive
+                    ? const Color(0xFFDBEAFE)
+                    : const Color(0xFFEFF6FF),
+                splashColor: _colorFilterAccent.withValues(alpha: 0.15),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Ikon corong filter
+                      _FilterFunnelSparkleIcon(
+                        size: 20.0,
+                        color: _colorFilterAccent,
+                      ),
+                      const SizedBox(width: 6.0),
+                      Text(
+                        'Filter',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _colorFilterAccent,
+                        ),
+                      ),
+                      if (isFilterActive) ...[
+                        const SizedBox(width: 5.0),
+                        Container(
+                          width: 6.0,
+                          height: 6.0,
+                          decoration: const BoxDecoration(
+                            color: _colorFilterAccent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                if (isFilterActive) ...[
-                  const SizedBox(width: 5.0),
-                  Container(
-                    width: 6.0,
-                    height: 6.0,
-                    decoration: const BoxDecoration(
-                      color: _colorFilterAccent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ),
@@ -808,39 +830,11 @@ class _DaftarRiwayatKonsultasiAdminPageState
     required VoidCallback onTap,
     required double width,
   }) {
-    return GestureDetector(
+    return _HoverDoctorChildChip(
+      label: label,
+      isSelected: isSelected,
       onTap: onTap,
-      child: Container(
-        width: width,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8.0,
-          vertical: 7.0,
-        ),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF3985E7)
-                : const Color(0xFFE2E8F0),
-            width: 1.2,
-          ),
-        ),
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.lato(
-            fontSize: 13.0,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected
-                ? const Color(0xFF3985E7)
-                : const Color(0xFF7F7F7F),
-          ),
-        ),
-      ),
+      width: width,
     );
   }
 
@@ -1082,16 +1076,13 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   // ─── DAFTAR KARTU KONSULTASI ──────────────────────────────────────────────
   Widget _buildConsultationList(List<RiwayatKonsultasiAdminItem> items) {
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12.0),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _buildConsultationCard(item);
-      },
+    return Column(
+      children: [
+        for (int i = 0; i < items.length; i++) ...[
+          _buildConsultationCard(items[i]),
+          if (i < items.length - 1) const SizedBox(height: 12.0),
+        ],
+      ],
     );
   }
 
@@ -1403,10 +1394,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
               final item = navItems[i];
 
               return Expanded(
-                child: GestureDetector(
-                  onTap: () => _onBottomNavTap(i),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => _onBottomNavTap(i),
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1475,8 +1468,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     ],
                   ),
                 ),
-              );
-            }),
+              ),
+            );
+          }),
           ),
         ),
       ),
@@ -1588,4 +1582,83 @@ class _NavData {
   final IconData icon;
   final String label;
   const _NavData({required this.icon, required this.label});
+}
+
+class _HoverDoctorChildChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final double width;
+
+  const _HoverDoctorChildChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.width,
+  });
+
+  @override
+  State<_HoverDoctorChildChip> createState() => _HoverDoctorChildChipState();
+}
+
+class _HoverDoctorChildChipState extends State<_HoverDoctorChildChip> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    Color bgColor;
+    Color borderColor;
+
+    if (widget.isSelected) {
+      bgColor = const Color(0xFFEFF6FF);
+      borderColor = const Color(0xFF3985E7);
+    } else {
+      if (_hovered) {
+        bgColor = const Color(0xFFF1F5F9);
+        borderColor = const Color(0xFFCBD5E1);
+      } else {
+        bgColor = Colors.white;
+        borderColor = const Color(0xFFE2E8F0);
+      }
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: widget.width,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8.0,
+            vertical: 7.0,
+          ),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(20.0),
+            border: Border.all(
+              color: borderColor,
+              width: 1.2,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 13.0,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: widget.isSelected
+                  ? const Color(0xFF3985E7)
+                  : const Color(0xFF7F7F7F),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -368,15 +368,23 @@ class FasyankesCardItem extends StatelessWidget {
         width: 52,
         height: 52,
         color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-        child: photoUrl != null && photoUrl.startsWith('http')
-            ? Image.network(
+        child: photoUrl != null && photoUrl.startsWith('assets/')
+            ? Image.asset(
                 photoUrl,
                 width: 52,
                 height: 52,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _buildFallbackThumbnail(isDark),
               )
-            : _buildFallbackThumbnail(isDark),
+            : (photoUrl != null && photoUrl.startsWith('http')
+                ? Image.network(
+                    photoUrl,
+                    width: 52,
+                    height: 52,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _buildFallbackThumbnail(isDark),
+                  )
+                : _buildFallbackThumbnail(isDark)),
       ),
     );
   }

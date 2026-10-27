@@ -132,47 +132,19 @@ class FasyankesDetailBottomSheet extends StatelessWidget {
                   _buildPhotoHeader(isDark),
                   const SizedBox(height: 16),
 
-                  // B. Nama Fasyankes & Verified Badge
+                  // B. Nama Fasyankes
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              fasyankes.name,
-                              style: GoogleFonts.lato(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: textTitle,
-                                height: 1.25,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.verified_rounded,
-                                  size: 16,
-                                  color: Color(0xFF10B981),
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    'Terdaftar Resmi di Google Maps',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.lato(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF10B981),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        child: Text(
+                          fasyankes.name,
+                          style: GoogleFonts.lato(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: textTitle,
+                            height: 1.25,
+                          ),
                         ),
                       ),
                       // Jarak dari posisi pengguna
@@ -326,10 +298,8 @@ class FasyankesDetailBottomSheet extends StatelessWidget {
                     const SizedBox(height: 12),
                   ],
 
-                  _buildInfoRow(
-                    icon: Icons.access_time_rounded,
-                    title: 'Jam Operasional',
-                    content: fasyankes.operatingHours,
+                  _OperatingHoursDropdown(
+                    fasyankes: fasyankes,
                     isDark: isDark,
                   ),
 
@@ -496,7 +466,13 @@ class FasyankesDetailBottomSheet extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (photoUrl != null && photoUrl.startsWith('http'))
+            if (photoUrl != null && photoUrl.startsWith('assets/'))
+              Image.asset(
+                photoUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _buildFallbackPhotoHeader(isDark),
+              )
+            else if (photoUrl != null && photoUrl.startsWith('http'))
               Image.network(
                 photoUrl,
                 fit: BoxFit.cover,
@@ -803,3 +779,238 @@ class FasyankesDetailBottomSheet extends StatelessWidget {
     );
   }
 }
+
+/// Widget Dropdown Jam Operasional interaktif seperti pada Google Maps.
+/// Menampilkan status buka/tutup dan jam hari ini, serta dapat diperluas
+/// (expand) untuk melihat jadwal lengkap per hari dari Senin sampai Minggu
+/// dengan penanda khusus pada hari ini.
+class _OperatingHoursDropdown extends StatefulWidget {
+  final FasyankesModel fasyankes;
+  final bool isDark;
+
+  const _OperatingHoursDropdown({
+    required this.fasyankes,
+    required this.isDark,
+  });
+
+  @override
+  State<_OperatingHoursDropdown> createState() => _OperatingHoursDropdownState();
+}
+
+class _OperatingHoursDropdownState extends State<_OperatingHoursDropdown> {
+  bool _isExpanded = false;
+
+  static const List<String> _daysOrder = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final schedule = widget.fasyankes.weeklySchedule;
+    final todaySchedule = widget.fasyankes.todaySchedule;
+    final isOpen = widget.fasyankes.isOpenNow;
+
+    // Menentukan index hari ini (1 = Senin, ..., 7 = Minggu)
+    final todayWeekday = DateTime.now().weekday;
+    final todayDayName = _daysOrder[(todayWeekday - 1) % 7];
+
+    final bgCard = widget.isDark ? const Color(0xFF1A2228) : const Color(0xFFF9FAFB);
+    final borderColor = widget.isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E7EB);
+    final textTitle = widget.isDark ? const Color(0xFFE9EDEF) : const Color(0xFF111827);
+    final textSubtitle = widget.isDark ? const Color(0xFF8696A0) : const Color(0xFF6B7280);
+    const colorPrimary = Color(0xFF2B7AE8);
+    final statusColor = isOpen ? const Color(0xFF059669) : const Color(0xFFDC2626);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Dropdown (Dapat diklik / tap)
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 20,
+                    color: colorPrimary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Jam Operasional',
+                          style: GoogleFonts.lato(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: textSubtitle,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Text(
+                              isOpen ? 'Buka' : 'Tutup',
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                            Text(
+                              ' • ',
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: textSubtitle,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                todaySchedule,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.lato(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: textTitle,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 22,
+                      color: textSubtitle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Detail Jadwal Mingguan saat Diperluas
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            child: _isExpanded
+                ? Column(
+                    children: [
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: widget.isDark
+                            ? const Color(0xFF2C363D)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        child: Column(
+                          children: _daysOrder.map((day) {
+                            final isToday = day == todayDayName;
+                            final hours = schedule[day] ?? 'Buka 24 Jam';
+                            final isClosed = hours.toLowerCase() == 'tutup';
+
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: isToday
+                                    ? (widget.isDark
+                                        ? colorPrimary.withValues(alpha: 0.15)
+                                        : const Color(0xFFEFF6FF))
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        day,
+                                        style: GoogleFonts.lato(
+                                          fontSize: 12.5,
+                                          fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                                          color: isToday
+                                              ? (widget.isDark ? const Color(0xFF93C5FD) : colorPrimary)
+                                              : textTitle,
+                                        ),
+                                      ),
+                                      if (isToday) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: colorPrimary,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            'Hari Ini',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  Text(
+                                    hours,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 12.5,
+                                      fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                                      color: isClosed
+                                          ? (widget.isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))
+                                          : (isToday
+                                              ? (widget.isDark ? const Color(0xFF93C5FD) : colorPrimary)
+                                              : (widget.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF4B5563))),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

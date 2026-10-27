@@ -13,6 +13,7 @@ import '../../features/pmik_superadmin/superadmin_shell.dart';
 import '../../models/staff_account_model.dart';
 import 'child_service.dart';
 import 'local_push_service.dart';
+import 'notification_service.dart';
 import 'staff_auth_service.dart';
 import 'user_service.dart';
 
@@ -120,6 +121,7 @@ class SessionService {
       await prefs.remove(_keyStaffData);
       await prefs.remove(_keyStaffLastLeftTime);
       _inMemoryStaffLastLeftTime = null;
+      StaffAuthService().currentStaffNotifier.value = null;
 
       // Set role & user aktif untuk filter push notifikasi
       LocalPushService().setActiveUser(
@@ -192,6 +194,7 @@ class SessionService {
       // Hapus role & user aktif push notifikasi serta batalkan alarm terjadwal sesi ini
       LocalPushService().setActiveUser(userId: null, role: null);
       await LocalPushService().cancelAll();
+      NotificationService().cancelAllPendingReminders();
 
       debugPrint('[SessionService] Seluruh data sesi dibersihkan.');
     } catch (e) {

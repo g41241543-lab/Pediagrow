@@ -15,6 +15,7 @@ class NotificationItem {
   final String message;
   final DateTime date;
   final NotificationType type;
+  final String? recipientId;
   final bool isRead;
 
   const NotificationItem({
@@ -23,6 +24,7 @@ class NotificationItem {
     required this.message,
     required this.date,
     required this.type,
+    this.recipientId,
     this.isRead = false,
   });
 
@@ -54,6 +56,7 @@ class NotificationItem {
     String? message,
     DateTime? date,
     NotificationType? type,
+    String? recipientId,
     bool? isRead,
   }) {
     return NotificationItem(
@@ -62,6 +65,7 @@ class NotificationItem {
       message: message ?? this.message,
       date: date ?? this.date,
       type: type ?? this.type,
+      recipientId: recipientId ?? this.recipientId,
       isRead: isRead ?? this.isRead,
     );
   }
@@ -73,6 +77,7 @@ class NotificationItem {
       'message': message,
       'date': date.toIso8601String(),
       'type': type.name,
+      'recipientId': recipientId,
       'isRead': isRead,
     };
   }
@@ -94,6 +99,7 @@ class NotificationItem {
           ? DateTime.tryParse(map['date'] as String) ?? DateTime.now()
           : DateTime.now(),
       type: parseType(map['type'] as String?),
+      recipientId: map['recipientId'] as String?,
       isRead: map['isRead'] as bool? ?? false,
     );
   }

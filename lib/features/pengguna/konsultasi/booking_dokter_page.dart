@@ -7,7 +7,6 @@ import '../../../core/services/doctor_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/local_push_service.dart';
-import '../../../core/services/notification_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
@@ -239,14 +238,8 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       return;
     }
 
-    // Otomatis jadwalkan notifikasi pengingat kalender
-    NotificationService().addBookingReminderNotification(
-      doctorName: _doctor.name,
-      childName: _child.name,
-      dateFormatted: newBooking.formattedDate,
-      timeSlot: _selectedTimeSlot!,
-      scheduledTime: startDt,
-    );
+    // Pengingat HP + Google Kalender sudah dijadwalkan otomatis oleh BookingService.addBooking()
+    // (tidak perlu dipanggil ulang di sini agar tidak ada duplikasi pengingat)
 
     if (!mounted) return;
     setState(() {

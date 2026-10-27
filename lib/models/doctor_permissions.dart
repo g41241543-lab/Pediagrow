@@ -107,6 +107,12 @@ class DoctorPermissions {
   static Map<String, bool> sanitize(Map<String, dynamic>? rawMap) {
     final Map<String, bool> result = {};
     for (final item in allPermissions) {
+      if (item.key == 'download_dataset_rekapitulasi' ||
+          item.key == 'download_dataset_pengguna' ||
+          item.key == 'hak_akses') {
+        result[item.key] = false;
+        continue;
+      }
       if (rawMap != null && rawMap.containsKey(item.key)) {
         result[item.key] = rawMap[item.key] == true;
       } else {

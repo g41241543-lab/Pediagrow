@@ -633,44 +633,19 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(18.0, 16.0, 18.0, 14.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.confirmation_number_outlined,
-                      size: 20.0,
-                      color: _kPrimaryBlue,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      'Detail Booking',
-                      style: GoogleFonts.lato(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
-                      ),
-                    ),
-                  ],
+                const Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 20.0,
+                  color: _kPrimaryBlue,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0,
-                    vertical: 4.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF064E3B).withValues(alpha: 0.35)
-                        : const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Text(
-                    'Terkonfirmasi',
-                    style: GoogleFonts.lato(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? const Color(0xFF4ADE80) : _kGreenSuccess,
-                    ),
+                const SizedBox(width: 8.0),
+                Text(
+                  'Detail Booking',
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
                   ),
                 ),
               ],
@@ -1191,6 +1166,10 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               ),
               elevation: 0,
             ).copyWith(
+              mouseCursor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.disabled)
+                      ? SystemMouseCursors.basic
+                      : SystemMouseCursors.click),
               overlayColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.hovered)) {
                   return Colors.white.withValues(alpha: 0.15);
