@@ -65,7 +65,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
   void _initDefaultPermissions() {
     _permissions = {
       'rekapitulasi': true,
-      'download_dataset_rekapitulasi': true,
+      'download_dataset_rekapitulasi': false,
       'data_pasien': true,
       'detail_pasien': true,
       'edit_resume_medis': false,
@@ -73,7 +73,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
       'daftar_resep_mpasi': true,
       'daftar_artikel_kesehatan': true,
       'grafik_pengguna': true,
-      'download_dataset_pengguna': true,
+      'download_dataset_pengguna': false,
       'permainan': true,
       'konsultasi': true,
       'konfirmasi_konsultasi': false,
