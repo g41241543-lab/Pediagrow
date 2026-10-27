@@ -344,6 +344,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   doctorHandledChildren.add(name);
                 }
               }
+              if (_selectedDoctorChild != 'Semua' &&
+                  !doctorHandledChildren.contains(_selectedDoctorChild)) {
+                _selectedDoctorChild = 'Semua';
+              }
             }
 
             // Kumpulkan daftar opsi nama dokter untuk modal filter (mode admin/superadmin)
