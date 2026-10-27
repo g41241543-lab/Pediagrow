@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'daftar_dokter_akses_page.dart';
@@ -47,11 +47,15 @@ class HakAksesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
+        child: _buildHeader(context, isDark),
       ),
       body: SafeArea(
         top: false,
@@ -61,18 +65,21 @@ class HakAksesPage extends StatelessWidget {
             // 1. Menu Hak Akses: Dokter
             _buildAccessTile(
               context: context,
+              isDark: isDark,
               icon: Icons.medical_services_rounded,
               iconColor: const Color(0xFF0284C7),
-              iconBgColor: const Color(0xFFE0F2FE),
+              iconBgColor: isDark
+                  ? const Color(0xFF0284C7).withValues(alpha: 0.2)
+                  : const Color(0xFFE0F2FE),
               title: 'Dokter',
               onTap: () => _navigateToDokter(context),
             ),
 
             // Garis pembatas tipis
-            const Divider(
+            Divider(
               height: 1.0,
               thickness: 1.0,
-              color: Color(0xFFE9EDEF),
+              color: dividerColor,
               indent: 16.0,
               endIndent: 16.0,
             ),
@@ -80,9 +87,12 @@ class HakAksesPage extends StatelessWidget {
             // 2. Menu Hak Akses: PMIK
             _buildAccessTile(
               context: context,
+              isDark: isDark,
               icon: Icons.badge_rounded,
               iconColor: const Color(0xFF38C1A2),
-              iconBgColor: const Color(0xFFE6F9F5),
+              iconBgColor: isDark
+                  ? const Color(0xFF38C1A2).withValues(alpha: 0.2)
+                  : const Color(0xFFE6F9F5),
               title: 'PMIK',
               onTap: () => _navigateToPmik(context),
             ),
@@ -92,10 +102,13 @@ class HakAksesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: headerBg,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -112,10 +125,10 @@ class HakAksesPage extends StatelessWidget {
                     width: 36.0,
                     height: 36.0,
                     alignment: Alignment.center,
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -128,7 +141,7 @@ class HakAksesPage extends StatelessWidget {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -143,12 +156,18 @@ class HakAksesPage extends StatelessWidget {
 
   Widget _buildAccessTile({
     required BuildContext context,
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required Color iconBgColor,
     required String title,
     required VoidCallback onTap,
   }) {
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+    final chevronBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
+    final chevronBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final chevronIconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -179,7 +198,7 @@ class HakAksesPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF0B1014),
+                  color: titleColor,
                 ),
               ),
             ),
@@ -189,18 +208,18 @@ class HakAksesPage extends StatelessWidget {
               width: 30.0,
               height: 30.0,
               decoration: BoxDecoration(
-                color: const Color(0xFFE9EDEF),
+                color: chevronBg,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFE9EDEF),
+                  color: chevronBorder,
                   width: 0.8,
                 ),
               ),
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 Icons.chevron_right,
                 size: 20.0,
-                color: Color(0xFF667781),
+                color: chevronIconColor,
               ),
             ),
           ],

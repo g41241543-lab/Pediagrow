@@ -47,6 +47,13 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   static const Color _colorLightGray = Color(0xFFC5C5C5);
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
 
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E7EB);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : Colors.black;
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : _colorDarkGray;
+
   @override
   void initState() {
     super.initState();
@@ -161,7 +168,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
             borderRadius: BorderRadius.circular(18.0),
           ),
           elevation: 4,
-          backgroundColor: Colors.white,
+          backgroundColor: _cardBg,
           insetPadding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 20.0),
@@ -176,7 +183,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2228),
+                    color: _textBlack,
                   ),
                 ),
                 const SizedBox(height: 12.0),
@@ -187,7 +194,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 13.5,
-                    color: const Color(0xFF667781),
+                    color: _textGrey,
                     height: 1.45,
                   ),
                 ),
@@ -203,9 +210,11 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(dialogCtx).pop(true),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            side: const BorderSide(
-                              color: Color(0xFFD1D7DB),
+                            backgroundColor: _cardBg,
+                            side: BorderSide(
+                              color: _isDark
+                                  ? const Color(0xFF2C363D)
+                                  : const Color(0xFFD1D7DB),
                               width: 1.0,
                             ),
                             shape: RoundedRectangleBorder(
@@ -317,7 +326,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
         _navigateBack();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: _scaffoldBg,
         // Bottom Navigation Bar hanya untuk Superadmin/PMIK
         bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
         body: SafeArea(
@@ -352,7 +361,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     return Container(
       height: 56.0,
       width: double.infinity,
-      color: Colors.white,
+      color: _scaffoldBg,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -364,12 +373,12 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               child: InkWell(
                 onTap: _navigateBack,
                 borderRadius: BorderRadius.circular(24.0),
-                child: const Padding(
-                  padding: EdgeInsets.all(4.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
                   child: Icon(
                     Icons.arrow_back,
                     size: 24.0,
-                    color: Colors.black,
+                    color: _textBlack,
                   ),
                 ),
               ),
@@ -386,7 +395,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               style: GoogleFonts.lato(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: _textBlack,
               ),
             ),
           ),
@@ -406,7 +415,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: _colorPrimaryBlue, width: 1.8),
-                      color: Colors.transparent,
+                      color: _isDark ? const Color(0xFF1A2228) : Colors.transparent,
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
@@ -429,25 +438,28 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     return Container(
       height: 48.0,
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F2F6),
+        color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6),
         borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: _isDark ? const Color(0xFF2C363D) : Colors.transparent,
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.search, size: 22.0, color: _colorDarkGray),
+          Icon(Icons.search, size: 22.0, color: _textGrey),
           const SizedBox(width: 10.0),
           Expanded(
             child: TextField(
               controller: _searchController,
               focusNode: _searchFocusNode,
-              style: GoogleFonts.lato(fontSize: 15.0, color: Colors.black),
+              style: GoogleFonts.lato(fontSize: 15.0, color: _textBlack),
               decoration: InputDecoration(
                 hintText: 'Cari Artikel',
                 hintStyle: GoogleFonts.lato(
                   fontSize: 15.0,
-                  color: _colorDarkGray,
+                  color: _textGrey,
                   fontWeight: FontWeight.normal,
                 ),
                 border: InputBorder.none,
@@ -460,12 +472,12 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
           if (_searchController.text.isNotEmpty)
             GestureDetector(
               onTap: _clearSearch,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.close_rounded,
                   size: 18.0,
-                  color: _colorDarkGray,
+                  color: _textGrey,
                 ),
               ),
             ),
@@ -543,14 +555,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   Widget _buildArticleCard(ArtikelModel artikel) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardBg,
         borderRadius: BorderRadius.circular(18.0),
-        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.0),
-        boxShadow: const [
+        border: Border.all(color: _borderColor, width: 1.0),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: _isDark ? Colors.black.withOpacity(0.2) : const Color(0x0A000000),
             blurRadius: 8.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -586,7 +598,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                             style: GoogleFonts.lato(
                               fontSize: 16.0,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: _textBlack,
                               height: 1.25,
                             ),
                           ),
@@ -596,10 +608,10 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.access_time_rounded,
                                 size: 14.0,
-                                color: Color(0xFFA0A0A0),
+                                color: _textGrey,
                               ),
                               const SizedBox(width: 5.0),
                               Expanded(
@@ -609,7 +621,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.lato(
                                     fontSize: 12.0,
-                                    color: const Color(0xFFA0A0A0),
+                                    color: _textGrey,
                                     fontWeight: FontWeight.normal,
                                   ),
                                 ),
@@ -624,10 +636,10 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               ),
 
               // Garis pemisah horizontal tipis
-              const Divider(
+              Divider(
                 height: 1.0,
                 thickness: 1.0,
-                color: Color(0xFFE9EDEF),
+                color: _borderColor,
               ),
 
               // Konten Bawah: Tanggal Artikel di kiri & Dua Tombol Aksi di kanan
@@ -646,7 +658,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                         artikel.tanggal,
                         style: GoogleFonts.lato(
                           fontSize: 12.0,
-                          color: const Color(0xFFA0A0A0),
+                          color: _textGrey,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
@@ -667,10 +679,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                                 width: 34.0,
                                 height: 34.0,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFFEBEE),
+                                  color: _isDark
+                                      ? const Color(0xFF3B1818)
+                                      : const Color(0xFFFFEBEE),
                                   borderRadius: BorderRadius.circular(8.0),
                                   border: Border.all(
-                                    color: const Color(0xFFFFCDD2),
+                                    color: _isDark
+                                        ? const Color(0xFF5C2424)
+                                        : const Color(0xFFFFCDD2),
                                     width: 1.0,
                                   ),
                                 ),
@@ -695,10 +711,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                                 width: 34.0,
                                 height: 34.0,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE3F2FD),
+                                  color: _isDark
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFE3F2FD),
                                   borderRadius: BorderRadius.circular(8.0),
                                   border: Border.all(
-                                    color: const Color(0xFFBBDEFB),
+                                    color: _isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFBBDEFB),
                                     width: 1.0,
                                   ),
                                 ),
@@ -774,7 +794,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F2F6),
+        color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F2F6),
         borderRadius: BorderRadius.circular(radius),
       ),
       child: ClipRRect(
@@ -792,12 +812,12 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
   Widget _buildPlaceholderImage() {
     return Container(
-      color: const Color(0xFFF1F2F6),
+      color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F2F6),
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         Icons.image_outlined,
         size: 32.0,
-        color: _colorLightGray,
+        color: _textGrey,
       ),
     );
   }
@@ -825,7 +845,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                           ? Icons.search_off_rounded
                           : Icons.article_outlined,
                       size: 54.0,
-                      color: _colorLightGray,
+                      color: _textGrey,
                     ),
                     const SizedBox(height: 14.0),
                     Text(
@@ -836,7 +856,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                       style: GoogleFonts.lato(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2C363D),
+                        color: _textBlack,
                       ),
                     ),
                     const SizedBox(height: 6.0),
@@ -847,7 +867,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
-                        color: _colorDarkGray,
+                        color: _textGrey,
                         height: 1.4,
                       ),
                     ),
@@ -882,7 +902,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A2228),
+                color: _textBlack,
               ),
             ),
             const SizedBox(height: 6.0),
@@ -890,7 +910,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               _errorMessage ??
                   'Terjadi kesalahan saat menghubungkan ke database.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.lato(fontSize: 13.0, color: _colorDarkGray),
+              style: GoogleFonts.lato(fontSize: 13.0, color: _textGrey),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton.icon(

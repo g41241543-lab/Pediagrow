@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -45,6 +45,13 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   bool _showSuccessBar = false;
   late AnimationController _notifController;
   late Animation<Offset> _notifSlide;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
 
   @override
   void initState() {
@@ -163,7 +170,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         if (!didPop) _navigateBack();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: _scaffoldBg,
         resizeToAvoidBottomInset: false,
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
         body: Stack(
@@ -309,10 +316,10 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         _buildKuisInfo(),
         const SizedBox(height: 24),
         // Garis pemisah horizontal tipis abu-abu muda (#E2E8F0)
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Divider(
-            color: Color(0xFFE9EDEF),
+            color: _borderColor,
             thickness: 1,
           ),
         ),
@@ -327,14 +334,16 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1A2228),
+                  color: _textBlack,
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE9EDEF),
+                  color: _isDark
+                      ? const Color(0xFF2C363D)
+                      : const Color(0xFFE9EDEF),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -342,7 +351,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF667781),
+                    color: _isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF667781),
                   ),
                 ),
               ),
@@ -387,10 +398,12 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                     width: 88,
                     height: 88,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: _cardBg,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFBFDBFE),
+                        color: _isDark
+                            ? const Color(0xFF2C363D)
+                            : const Color(0xFFBFDBFE),
                         width: 2,
                       ),
                       boxShadow: [
@@ -417,7 +430,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                       decoration: BoxDecoration(
                         color: const Color(0xFF16A34A),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: _cardBg, width: 2),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.10),
@@ -447,7 +460,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A2228),
+                color: _textBlack,
                 letterSpacing: -0.2,
               ),
             ),
@@ -461,7 +474,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               style: GoogleFonts.lato(
                 fontSize: 13,
                 fontWeight: FontWeight.normal,
-                color: const Color(0xFF667781),
+                color: _textGrey,
                 height: 1.45,
               ),
             ),
@@ -478,16 +491,20 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE0EDFD),
+                    color: _isDark
+                        ? const Color(0xFF1E3A5F)
+                        : const Color(0xFFE0EDFD),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.quiz_outlined,
                         size: 14,
-                        color: Color(0xFF2B7AE8),
+                        color: _isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF2B7AE8),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -495,7 +512,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF2B7AE8),
+                          color: _isDark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF2B7AE8),
                         ),
                       ),
                     ],
@@ -505,16 +524,20 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
+                    color: _isDark
+                        ? const Color(0xFF14532D)
+                        : const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.storage_rounded,
                         size: 14,
-                        color: Color(0xFF16A34A),
+                        color: _isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF16A34A),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -522,7 +545,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF16A34A),
+                          color: _isDark
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF16A34A),
                         ),
                       ),
                     ],
@@ -545,12 +570,14 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+        border: Border.all(color: _borderColor, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: _isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -569,7 +596,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                 style: GoogleFonts.lato(
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
-                  color: const Color(0xFF667781),
+                  color: _textGrey,
                 ),
               ),
               const Spacer(),
@@ -580,7 +607,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
+                    color: _isDark
+                        ? const Color(0xFF3B2D14)
+                        : const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -601,7 +630,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1A2228),
+              color: _textBlack,
               height: 1.45,
             ),
           ),
@@ -656,7 +685,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14,
-                color: const Color(0xFF667781),
+                color: _textGrey,
               ),
             ),
             const SizedBox(height: 20),

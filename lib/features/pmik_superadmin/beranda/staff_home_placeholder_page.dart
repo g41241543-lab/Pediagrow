@@ -175,19 +175,21 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
           );
         }
       });
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+        body: const Center(
           child: CircularProgressIndicator(),
         ),
       );
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: Container(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
           child: SafeArea(
             bottom: false,
             child: SizedBox(
@@ -201,9 +203,9 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                       children: [
                         if (Navigator.of(context).canPop()) ...[
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.arrow_back_rounded,
-                              color: Color(0xFF0B1014),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                             ),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -216,7 +218,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                           style: GoogleFonts.lato(
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0B1014),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                           ),
                         ),
                       ],
@@ -272,14 +274,14 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                 Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1A2228) : Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
-                    border: Border.all(color: const Color(0xFFE9EDEF)),
-                    boxShadow: const [
+                    border: Border.all(color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x0A000000),
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                         blurRadius: 10.0,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -288,8 +290,8 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                       Container(
                         width: 56.0,
                         height: 56.0,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEFF6FF),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -308,7 +310,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 16.0,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF0B1014),
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                               ),
                             ),
                             const SizedBox(height: 2.0),
@@ -316,7 +318,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                               _account.email,
                               style: GoogleFonts.lato(
                                 fontSize: 13.0,
-                                color: const Color(0xFF667781),
+                                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                               ),
                             ),
                             const SizedBox(height: 6.0),
@@ -358,7 +360,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                       style: GoogleFonts.lato(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0B1014),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
@@ -376,14 +378,14 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                 // LIST 16 HAK AKSES
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1A2228) : Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
-                    border: Border.all(color: const Color(0xFFE9EDEF)),
-                    boxShadow: const [
+                    border: Border.all(color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x0A000000),
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                         blurRadius: 10.0,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -457,10 +459,10 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
                               ),
                             ),
                             if (!isLast)
-                              const Divider(
+                              Divider(
                                 height: 1.0,
                                 thickness: 0.8,
-                                color: Color(0xFFE9EDEF),
+                                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                                 indent: 16.0,
                                 endIndent: 16.0,
                               ),

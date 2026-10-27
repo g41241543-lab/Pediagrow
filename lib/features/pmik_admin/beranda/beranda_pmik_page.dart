@@ -101,46 +101,43 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     );
   }
 
-  // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeService.lightTheme,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: false,
-        body: ScrollConfiguration(
-          behavior: const ScrollBehavior().copyWith(overscroll: false),
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Background animasi langit
-                const Positioned.fill(child: FullPageSkyBackground()),
+    final isDark = ThemeService.isDark(context);
+    return Scaffold(
+      backgroundColor: isDark ? ThemeService.darkBg : Colors.white,
+      resizeToAvoidBottomInset: false,
+      body: ScrollConfiguration(
+        behavior: const ScrollBehavior().copyWith(overscroll: false),
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Background animasi langit
+              const Positioned.fill(child: FullPageSkyBackground()),
 
-                // Konten Utama
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Area Biru Seamless
-                    _buildSeamlessBlueArea(context),
+              // Konten Utama
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Area Biru Seamless
+                  _buildSeamlessBlueArea(context),
 
-                    // 2. Konten Putih
-                    _buildWhiteContentSection(context),
+                  // 2. Konten Putih
+                  _buildWhiteContentSection(context),
 
-                    const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                    // 3. Ilustrasi Landscape Footer
-                    _buildFooterIllustration(),
-                  ],
-                ),
-              ],
-            ),
+                  // 3. Ilustrasi Landscape Footer
+                  _buildFooterIllustration(),
+                ],
+              ),
+            ],
           ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -306,6 +303,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
 
   // ─── PMIK CARD ────────────────────────────────────────────────────────────
   Widget _buildPmikCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return ValueListenableBuilder<StaffAccount?>(
       valueListenable: StaffAuthService().currentStaffNotifier,
       builder: (context, staff, _) {
@@ -314,11 +312,12 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? ThemeService.darkCard : Colors.white,
             borderRadius: BorderRadius.circular(15),
+            border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -362,16 +361,24 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
+                            color: isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
+                                  : const Color(0xFFBFDBFE),
+                            ),
                           ),
                           child: Text(
                             roleLabel,
                             style: GoogleFonts.lato(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2563EB),
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : const Color(0xFF2563EB),
                             ),
                           ),
                         ),
@@ -383,14 +390,18 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0B1014),
+                        color: isDark
+                            ? ThemeService.darkTextPrimary
+                            : const Color(0xFF0B1014),
                       ),
                     ),
                     Text(
                       'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
                       style: GoogleFonts.lato(
                         fontSize: 12,
-                        color: const Color(0xFF667781),
+                        color: isDark
+                            ? ThemeService.darkTextSecondary
+                            : const Color(0xFF667781),
                         height: 1.3,
                       ),
                     ),
@@ -430,7 +441,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           // Card Slogan PeGo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildPeGoSloganCard(),
+            child: _buildPeGoSloganCard(context),
           ),
 
           const SizedBox(height: 24),
@@ -460,6 +471,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           children: [
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Rekapitulasi',
                 customIcon: _buildRekapitulasiLogo(),
                 blobColor: const Color(0xFFD97706),
@@ -471,6 +483,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Data\nPasien',
                 imageAsset: 'assets/images/data_pasien_logo.png',
                 blobColor: const Color(0xFF3CC3A6),
@@ -481,6 +494,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Daftar Resep\nMPASI',
                 imageAsset: 'assets/images/resep_mpasi_logo.png',
                 blobColor: const Color(0xFF10B981),
@@ -499,6 +513,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
           children: [
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Daftar Artikel\nKesehatan',
                 imageAsset: 'assets/images/artikel_kesehatan_logo.png',
                 blobColor: const Color(0xFF6366F1),
@@ -509,6 +524,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Kelola\nHak Akses',
                 customIcon: const HakAksesLogo(isDisabled: true),
                 blobColor: const Color(0xFF0284C7),
@@ -519,6 +535,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Permainan\n',
                 imageAsset: 'assets/images/permainan_logo.png',
                 blobColor: const Color(0xFFF59E0B),
@@ -648,6 +665,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   }
 
   Widget _buildMenuItem({
+    required BuildContext context,
     required String title,
     required VoidCallback onTap,
     required Color blobColor,
@@ -660,6 +678,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
+    final isDark = ThemeService.isDark(context);
     final Widget baseContent = _buildTileContent(
       imageAsset: imageAsset,
       icon: icon,
@@ -684,18 +703,25 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isLocked
-                      ? const Color(0xFFF1F5F9)
-                      : const Color(0xFFECF6FF),
+                  color: isDark
+                      ? (isLocked ? const Color(0xFF141C22) : ThemeService.darkCard)
+                      : (isLocked
+                          ? const Color(0xFFF1F5F9)
+                          : const Color(0xFFECF6FF)),
                   borderRadius: BorderRadius.circular(10),
-                  border: isLocked
-                      ? Border.all(color: const Color(0xFFCBD5E1), width: 1.0)
-                      : null,
+                  border: isDark
+                      ? Border.all(color: ThemeService.darkBorder)
+                      : (isLocked
+                          ? Border.all(
+                              color: const Color(0xFFCBD5E1),
+                              width: 1.0,
+                            )
+                          : null),
                   boxShadow: [
                     BoxShadow(
                       color: isLocked
                           ? const Color(0x0A000000)
-                          : const Color(0xFF3985E7).withValues(alpha: 0.06),
+                          : const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.06),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -760,9 +786,13 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
-              color: isLocked
-                  ? const Color(0xFF94A3B8)
-                  : const Color(0xFF000000),
+              color: isDark
+                  ? (isLocked
+                      ? ThemeService.darkTextMuted
+                      : ThemeService.darkTextPrimary)
+                  : (isLocked
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF000000)),
               height: 1.25,
             ),
           ),
@@ -811,16 +841,18 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   // =========================================================================
   // CARD SLOGAN PeGo PMIK
   // =========================================================================
-  Widget _buildPeGoSloganCard() {
+  Widget _buildPeGoSloganCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: const Color(0xFFECF6FF),
+        color: isDark ? ThemeService.darkCard : const Color(0xFFECF6FF),
         borderRadius: BorderRadius.circular(10),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -859,7 +891,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             style: GoogleFonts.lato(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF2B7AE8),
+              color: isDark
+                  ? const Color(0xFF93C5FD)
+                  : const Color(0xFF2B7AE8),
               height: 1.35,
             ),
           ),
@@ -872,6 +906,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   // ARTIKEL TERBARU
   // =========================================================================
   Widget _buildLatestArticlesSection(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -885,7 +920,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: isDark
+                      ? ThemeService.darkTextPrimary
+                      : const Color(0xFF0F172A),
                 ),
               ),
               GestureDetector(
@@ -918,7 +955,11 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             ),
             child: Text(
               'Belum ada artikel terbaru.',
-              style: GoogleFonts.lato(color: const Color(0xFF94A3B8)),
+              style: GoogleFonts.lato(
+                color: isDark
+                    ? ThemeService.darkTextSecondary
+                    : const Color(0xFF94A3B8),
+              ),
             ),
           )
         else
@@ -936,11 +977,14 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                   child: Container(
                     width: 220,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? ThemeService.darkCard : Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      border: isDark
+                          ? Border.all(color: ThemeService.darkBorder)
+                          : null,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -956,12 +1000,16 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             errorWidget: Container(
-                              color: const Color(0xFFF1F5F9),
+                              color: isDark
+                                  ? const Color(0xFF2C363D)
+                                  : const Color(0xFFF1F5F9),
                               alignment: Alignment.center,
-                              child: const Icon(
+                              child: Icon(
                                 Icons.article_rounded,
                                 size: 36,
-                                color: Color(0xFF94A3B8),
+                                color: isDark
+                                    ? ThemeService.darkTextSecondary
+                                    : const Color(0xFF94A3B8),
                               ),
                             ),
                           ),
@@ -975,7 +1023,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
@@ -1028,12 +1078,18 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       _NavItem(icon: Icons.person_rounded, label: 'Profil'),
     ];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
+    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
+    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1E293B);
+    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
+
     return Container(
       width: double.infinity,
       height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: navBg,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8.0,
@@ -1064,10 +1120,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                         Container(
                           width: 36.0,
                           height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: activeCircleBg,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4.0,
@@ -1092,7 +1148,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
+                                color: activeLabelColor,
                               ),
                             ),
                           ),
@@ -1101,7 +1157,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                         Icon(
                           item.icon,
                           size: 24.0,
-                          color: const Color(0xFF9E9E9E),
+                          color: inactiveColor,
                         ),
                         const SizedBox(height: 3.0),
                         Flexible(
@@ -1115,7 +1171,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                               style: GoogleFonts.lato(
                                 fontSize: 11.0,
                                 fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
+                                color: inactiveColor,
                               ),
                             ),
                           ),

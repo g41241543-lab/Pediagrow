@@ -54,15 +54,23 @@ class DaftarRiwayatKonsultasiAdminPage extends StatefulWidget {
 class _DaftarRiwayatKonsultasiAdminPageState
     extends State<DaftarRiwayatKonsultasiAdminPage> {
   // ─── Color Palette ─────────────────────────────────────────────────────────
-  static const Color _colorNavBg = Color(0xFFF2EDED);
-  static const Color _colorSecondaryGrey = Color(0xFF7F7F7F);
-  static const Color _colorBorderLight = Color(0xFFC5C5C5);
-  static const Color _colorTextBlack = Color(0xFF1E293B);
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _colorNavBg =>
+      _isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
+  Color get _colorSecondaryGrey =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F);
+  Color get _colorBorderLight =>
+      _isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5);
+  Color get _colorTextBlack =>
+      _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1E293B);
   static const Color _colorActiveBlue = Color(0xFF72A9F4);
-  static const Color _colorInactiveNav = Color(0xFF9E9E9E);
+  Color get _colorInactiveNav =>
+      _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
   static const Color _colorFilterAccent = Color(0xFF72A9F4); // Biru primer resmi aplikasi PediaGrow
-  static const Color _colorFilterLightBg = Color(0xFFEFF6FF);
-  static const Color _colorFilterLightBorder = Color(0xFFBFDBFE);
+  Color get _colorFilterLightBg =>
+      _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF);
+  Color get _colorFilterLightBorder =>
+      _isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE);
 
   static const int _selectedNavIndex = 2; // Riwayat Konsultasi aktif
 
@@ -316,7 +324,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
         _handleBack();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
         body: StreamBuilder<List<RiwayatKonsultasiAdminItem>>(
           stream: _streamRiwayat,
           builder: (context, snapshot) {
@@ -447,7 +455,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: _isDark ? const Color(0xFF0B1014) : Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -457,7 +465,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
             GestureDetector(
               onTap: _handleBack,
               behavior: HitTestBehavior.opaque,
-              child: const SizedBox(
+              child: SizedBox(
                 width: 32.0,
                 height: 32.0,
                 child: Icon(
@@ -492,22 +500,22 @@ class _DaftarRiwayatKonsultasiAdminPageState
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          color: const Color(0xFFBFDBFE),
+          color: _isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
           width: 1.0,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 2.0),
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0),
             child: Icon(
               Icons.info_outline_rounded,
               size: 20.0,
-              color: Color(0xFF2563EB),
+              color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
             ),
           ),
           const SizedBox(width: 10.0),
@@ -517,7 +525,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
               style: GoogleFonts.lato(
                 fontSize: 13.0,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF1E40AF),
+                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
                 height: 1.35,
               ),
             ),
@@ -533,22 +541,22 @@ class _DaftarRiwayatKonsultasiAdminPageState
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(
-          color: const Color(0xFFBFDBFE),
+          color: _isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
           width: 1.0,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 2.0),
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0),
             child: Icon(
               Icons.assignment_ind_outlined,
               size: 20.0,
-              color: Color(0xFF2563EB),
+              color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
             ),
           ),
           const SizedBox(width: 10.0),
@@ -558,7 +566,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
               style: GoogleFonts.lato(
                 fontSize: 13.0,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF1E40AF),
+                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
                 height: 1.35,
               ),
             ),
@@ -590,7 +598,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
             height: 48.0,
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             decoration: BoxDecoration(
-              color: isFilterActive ? _colorFilterLightBg : Colors.white,
+              color: isFilterActive
+                  ? _colorFilterLightBg
+                  : (_isDark ? const Color(0xFF1A2228) : Colors.white),
               borderRadius: BorderRadius.circular(14.0),
               border: Border.all(
                 color: isFilterActive ? _colorFilterAccent : _colorBorderLight,
@@ -702,17 +712,18 @@ class _DaftarRiwayatKonsultasiAdminPageState
         Container(
           height: 48.0,
           decoration: BoxDecoration(
-            color: const Color(0xFFF2F4F7),
+            color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFF2F4F7),
             borderRadius: BorderRadius.circular(20.0),
+            border: _isDark ? Border.all(color: _colorBorderLight) : null,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.search_rounded,
                 size: 22.0,
-                color: Color(0xFF9E9E9E),
+                color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
               ),
               const SizedBox(width: 10.0),
               Expanded(
@@ -726,7 +737,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     hintText: 'Cari riwayat konsultasi pasien...',
                     hintStyle: GoogleFonts.lato(
                       fontSize: 14.0,
-                      color: const Color(0xFF9E9E9E),
+                      color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
                       fontWeight: FontWeight.w400,
                     ),
                     border: InputBorder.none,
@@ -741,12 +752,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     _searchController.clear();
                     setState(() => _searchQuery = '');
                   },
-                  child: const Padding(
-                    padding: EdgeInsets.all(4.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
                     child: Icon(
                       Icons.close_rounded,
                       size: 18.0,
-                      color: Color(0xFF9E9E9E),
+                      color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
                     ),
                   ),
                 ),
@@ -810,12 +821,14 @@ class _DaftarRiwayatKonsultasiAdminPageState
         ),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+          color: isSelected
+              ? (_isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF))
+              : (_isDark ? const Color(0xFF1A2228) : Colors.white),
           borderRadius: BorderRadius.circular(20.0),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF3985E7)
-                : const Color(0xFFE2E8F0),
+                : (_isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
             width: 1.2,
           ),
         ),
@@ -829,7 +842,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             color: isSelected
                 ? const Color(0xFF3985E7)
-                : const Color(0xFF7F7F7F),
+                : (_isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F)),
           ),
         ),
       ),
@@ -843,7 +856,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return Container(
       height: 48.0,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(14.0),
         border: Border.all(color: _colorBorderLight, width: 1.0),
         boxShadow: const [
@@ -866,14 +879,14 @@ class _DaftarRiwayatKonsultasiAdminPageState
             fontSize: 13.5,
             color: _colorSecondaryGrey,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search,
             color: _colorSecondaryGrey,
             size: 22.0,
           ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.clear,
                     color: _colorSecondaryGrey,
                     size: 18.0,
@@ -898,7 +911,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
   void _showDoctorFilterSheet(List<String> doctorOptions) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: _isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
       ),
@@ -919,7 +932,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
                         width: 42.0,
                         height: 4.5,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFCBD5E1),
+                          color: _isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFCBD5E1),
                           borderRadius: BorderRadius.circular(3.0),
                         ),
                       ),
@@ -974,7 +989,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       ),
                     ),
                     const SizedBox(height: 14.0),
-                    const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFF1F5F9)),
+                    Divider(
+                        height: 1.0,
+                        thickness: 1.0,
+                        color: _isDark
+                            ? const Color(0xFF2C363D)
+                            : const Color(0xFFF1F5F9)),
                     const SizedBox(height: 10.0),
 
                     // Daftar Dokter
@@ -982,10 +1002,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: doctorOptions.length,
-                        separatorBuilder: (context, index) => const Divider(
+                        separatorBuilder: (context, index) => Divider(
                           height: 1.0,
                           thickness: 1.0,
-                          color: Color(0xFFF8FAFC),
+                          color: _isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFF8FAFC),
                         ),
                         itemBuilder: (context, index) {
                           final docName = doctorOptions[index];
@@ -1018,8 +1040,11 @@ class _DaftarRiwayatKonsultasiAdminPageState
                                       height: 38.0,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? _colorFilterAccent.withValues(alpha: 0.15)
-                                            : const Color(0xFFF1F5F9),
+                                            ? _colorFilterAccent
+                                                .withValues(alpha: 0.15)
+                                            : (_isDark
+                                                ? const Color(0xFF2C363D)
+                                                : const Color(0xFFF1F5F9)),
                                         shape: BoxShape.circle,
                                       ),
                                       alignment: Alignment.center,
@@ -1030,7 +1055,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
                                         size: 20.0,
                                         color: isSelected
                                             ? _colorFilterAccent
-                                            : const Color(0xFF64748B),
+                                            : (_isDark
+                                                ? const Color(0xFF8696A0)
+                                                : const Color(0xFF64748B)),
                                       ),
                                     ),
                                     const SizedBox(width: 12.0),
@@ -1096,10 +1123,10 @@ class _DaftarRiwayatKonsultasiAdminPageState
       cursor: SystemMouseCursors.click,
       child: Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0),
           width: 1.0,
         ),
         boxShadow: const [
@@ -1121,7 +1148,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
               ),
             );
           },
-          hoverColor: const Color(0xFFF1F5F9),
+          hoverColor: _isDark ? const Color(0xFF222C33) : const Color(0xFFF1F5F9),
           splashColor: const Color(0xFF72A9F4).withValues(alpha: 0.12),
           highlightColor: const Color(0xFF72A9F4).withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16.0),
@@ -1171,13 +1198,18 @@ class _DaftarRiwayatKonsultasiAdminPageState
                   ],
                 ),
                 const SizedBox(height: 12.0),
-                const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFF1F5F9)),
+                Divider(
+                    height: 1.0,
+                    thickness: 1.0,
+                    color: _isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFF1F5F9)),
                 const SizedBox(height: 10.0),
 
                 // Dokter & Tanggal
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.person_outline_rounded,
                       size: 15.0,
                       color: _colorSecondaryGrey,
@@ -1200,7 +1232,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                 const SizedBox(height: 4.0),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_today_outlined,
                       size: 14.0,
                       color: _colorSecondaryGrey,
@@ -1225,7 +1257,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
-                      color: const Color(0xFF475569),
+                      color: _isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF475569),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -1243,7 +1277,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFDCFCE7),
+        color: _isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: Text(
@@ -1251,7 +1285,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
         style: GoogleFonts.lato(
           fontSize: 11.5,
           fontWeight: FontWeight.bold,
-          color: const Color(0xFF15803D),
+          color: _isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D),
         ),
       ),
     );
@@ -1267,14 +1301,14 @@ class _DaftarRiwayatKonsultasiAdminPageState
             Container(
               width: 72.0,
               height: 72.0,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.assignment_outlined,
                 size: 36.0,
-                color: Color(0xFF94A3B8),
+                color: _isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               ),
             ),
             const SizedBox(height: 16.0),
@@ -1373,9 +1407,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: _colorNavBg,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Color(0x18000000),
             blurRadius: 8.0,
@@ -1407,10 +1441,12 @@ class _DaftarRiwayatKonsultasiAdminPageState
                         Container(
                           width: 32.0,
                           height: 32.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration: BoxDecoration(
+                            color: _isDark
+                                ? const Color(0xFF2C363D)
+                                : Colors.white,
                             shape: BoxShape.circle,
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
                                 color: Color(0x1A000000),
                                 blurRadius: 4.0,
