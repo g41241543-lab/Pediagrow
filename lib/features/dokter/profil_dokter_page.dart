@@ -480,7 +480,11 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         _onBottomNavTap(0);
       },
       child: Scaffold(
+<<<<<<< HEAD
+        backgroundColor: Colors.white,
+=======
         backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: _buildCustomHeader(isDark),
@@ -1096,7 +1100,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               child: const Icon(
                 Icons.school_outlined,
                 size: 20,
-                color: Color(0xFF8696A0),
+                color: Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 12),
@@ -1251,7 +1255,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               child: const Icon(
                 Icons.apartment_rounded,
                 size: 20,
-                color: Color(0xFF8696A0),
+                color: Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 12),

@@ -31,8 +31,24 @@ class ResepMpasiService {
 
   static const String _collectionName = 'resep_mpasi';
 
-  CollectionReference<Map<String, dynamic>> get _col =>
-      FirebaseFirestore.instance.collection(_collectionName);
+  CollectionReference<Map<String, dynamic>>? get _col {
+    try {
+      return FirebaseFirestore.instance.collection(_collectionName);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  CollectionReference<Map<String, dynamic>> get _colNonNull {
+    final col = _col;
+    if (col == null) throw StateError('Firebase Firestore tidak tersedia.');
+    return col;
+  }
+
+  /// Testing helper untuk menyetel data resep tanpa Firebase
+  void setRecipesForTesting(List<ResepMpasiModel> recipes) {
+    _recipesNotifier.value = List.of(recipes);
+  }
 
   /// Notifier reaktif untuk mendengarkan perubahan daftar resep.
   final ValueNotifier<List<ResepMpasiModel>> _recipesNotifier =
@@ -60,32 +76,50 @@ class ResepMpasiService {
     _ready = completer;
 
     () async {
-      await _seedIfEmpty();
-
-      _subscription = _col.snapshots().listen(
-        (snap) {
-          // Dokumen yang timestamp-nya belum terisi dianggap paling baru.
-          final now = DateTime.now();
-          final docs = snap.docs.toList()
-            ..sort((a, b) {
-              final ta = (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
-              final tb = (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
-              return ta.compareTo(tb);
-            });
-          _recipesNotifier.value = docs
-              .map(ResepMpasiModel.fromFirestore)
-              .toList();
+      try {
+        final col = _col;
+        if (col == null) {
+          if (_recipesNotifier.value.isEmpty) {
+            _recipesNotifier.value =
+                List.of(ResepMpasiModel.defaultKemenkesRecipes);
+          }
           if (!completer.isCompleted) completer.complete();
-        },
-        onError: (Object e) {
-          debugPrint('Listener resep_mpasi error: $e');
-          if (!completer.isCompleted) completer.completeError(e);
-          // Reset supaya pemanggilan berikutnya (tombol "Coba Lagi") mencoba ulang.
-          _subscription?.cancel();
-          _subscription = null;
-          _ready = null;
-        },
-      );
+          return;
+        }
+
+        await _seedIfEmpty();
+
+        _subscription = col.snapshots().listen(
+          (snap) {
+            // Dokumen yang timestamp-nya belum terisi dianggap paling baru.
+            final now = DateTime.now();
+            final docs = snap.docs.toList()
+              ..sort((a, b) {
+                final ta =
+                    (a.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+                final tb =
+                    (b.data()['createdAt'] as Timestamp?)?.toDate() ?? now;
+                return ta.compareTo(tb);
+              });
+            _recipesNotifier.value = docs
+                .map(ResepMpasiModel.fromFirestore)
+                .toList();
+            if (!completer.isCompleted) completer.complete();
+          },
+          onError: (Object e) {
+            debugPrint('Listener resep_mpasi error: $e');
+            if (!completer.isCompleted) completer.completeError(e);
+            // Reset supaya pemanggilan berikutnya (tombol "Coba Lagi") mencoba ulang.
+            _subscription?.cancel();
+            _subscription = null;
+            _ready = null;
+          },
+        );
+      } catch (e) {
+        debugPrint('Firestore resep_mpasi listener init error: $e');
+        if (!completer.isCompleted) completer.completeError(e);
+        _ready = null;
+      }
     }();
 
     return completer.future;
@@ -96,11 +130,13 @@ class ResepMpasiService {
   /// dijalankan dua perangkat bersamaan (tidak menghasilkan duplikat).
   Future<void> _seedIfEmpty() async {
     try {
-      final check = await _col.limit(1).get();
+      final col = _col;
+      if (col == null) return;
+      final check = await col.limit(1).get();
       if (check.docs.isNotEmpty) return;
 
       final batch = FirebaseFirestore.instance.batch();
-      _addSeedToBatch(batch);
+      _addSeedToBatch(batch, col);
       await batch.commit();
     } catch (e) {
       // Jangan menggagalkan pemuatan daftar hanya karena seed gagal
@@ -109,13 +145,18 @@ class ResepMpasiService {
     }
   }
 
-  void _addSeedToBatch(WriteBatch batch) {
+  void _addSeedToBatch(
+    WriteBatch batch, [
+    CollectionReference<Map<String, dynamic>>? targetCol,
+  ]) {
+    final col = targetCol ?? _col;
+    if (col == null) return;
     // createdAt dibuat berurutan agar urutan resep 1..7 tetap terjaga.
     final base = DateTime(2026, 8, 26);
     var i = 0;
     for (final recipe in ResepMpasiModel.defaultKemenkesRecipes) {
       final stamp = Timestamp.fromDate(base.add(Duration(minutes: i++)));
-      batch.set(_col.doc(recipe.id), {
+      batch.set(col.doc(recipe.id), {
         ...recipe.toFirestore(),
         'createdAt': stamp,
         'updatedAt': stamp,
@@ -149,19 +190,29 @@ class ResepMpasiService {
 
   /// Ambil satu resep berdasarkan ID dokumen.
   Future<ResepMpasiModel?> getResepById(String id) async {
-    final doc = await _col.doc(id).get();
+    final col = _col;
+    if (col == null) {
+      return _recipesNotifier.value.cast<ResepMpasiModel?>().firstWhere(
+            (r) => r?.id == id,
+            orElse: () => null,
+          );
+    }
+    final doc = await col.doc(id).get();
     return doc.exists ? ResepMpasiModel.fromFirestore(doc) : null;
   }
 
   void _checkWritePermission() {
-    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
-      throw StateError(
-        '403 Forbidden: Role Dokter hanya memiliki hak akses baca (read-only) untuk Resep MPASI',
-      );
+    final staff = StaffAuthService().currentStaff;
+    if (staff != null && staff.role == StaffRole.dokter) {
+      if (!staff.hasPermission('edit_resep_mpasi')) {
+        throw StateError(
+          '403 Forbidden: Role Dokter memerlukan izin edit_resep_mpasi untuk mengelola Resep MPASI',
+        );
+      }
     }
   }
 
-  /// Tambah resep baru (PMIK/Superadmin). Mengembalikan ID dokumen.
+  /// Tambah resep baru (PMIK/Superadmin/Dokter berizin). Mengembalikan ID dokumen.
   Future<String> insertResep(ResepMpasiModel resep) async {
     _checkWritePermission();
 
@@ -179,17 +230,17 @@ class ResepMpasiService {
 
     String docId;
     if (toSave.id != null && toSave.id!.isNotEmpty) {
-      await _col.doc(toSave.id).set(data);
+      await _colNonNull.doc(toSave.id).set(data);
       docId = toSave.id!;
     } else {
-      final ref = await _col.add(data);
+      final ref = await _colNonNull.add(data);
       docId = ref.id;
     }
     await SuperadminNotificationService().notifyResepTambah(toSave.judul);
     return docId;
   }
 
-  /// Ubah resep yang sudah ada (PMIK/Superadmin). Mengembalikan 1 jika berhasil,
+  /// Ubah resep yang sudah ada (PMIK/Superadmin/Dokter berizin). Mengembalikan 1 jika berhasil,
   /// 0 jika resep tidak punya ID.
   Future<int> updateResep(ResepMpasiModel resep) async {
     _checkWritePermission();
@@ -202,7 +253,7 @@ class ResepMpasiService {
         : null;
     final toSave = resep.copyWith(imageUrl: persistableImageUrl);
 
-    await _col.doc(id).update({
+    await _colNonNull.doc(id).update({
       ...toSave.toFirestore(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -210,10 +261,10 @@ class ResepMpasiService {
     return 1;
   }
 
-  /// Hapus resep (PMIK/Superadmin). Mengembalikan 1 jika berhasil.
+  /// Hapus resep (PMIK/Superadmin/Dokter berizin). Mengembalikan 1 jika berhasil.
   Future<int> deleteResep(String id, {String judul = 'Resep MPASI'}) async {
     _checkWritePermission();
-    await _col.doc(id).delete();
+    await _colNonNull.doc(id).delete();
     await SuperadminNotificationService().notifyResepHapus(judul);
     return 1;
   }
@@ -221,12 +272,12 @@ class ResepMpasiService {
   /// Hapus semua resep lalu isi ulang dengan 7 resep default Kemenkes.
   Future<void> resetToDefault() async {
     _checkWritePermission();
-    final existing = await _col.get();
+    final existing = await _colNonNull.get();
     final batch = FirebaseFirestore.instance.batch();
     for (final doc in existing.docs) {
       batch.delete(doc.reference);
     }
-    _addSeedToBatch(batch);
+    _addSeedToBatch(batch, _colNonNull);
     await batch.commit();
   }
 

@@ -130,7 +130,9 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       perms['hak_akses'] = item['hak_akses'] as bool;
       perms['download_dataset_rekapitulasi'] = true;
       perms['daftar_resep_mpasi'] = true;
+      perms['edit_resep_mpasi'] = true;
       perms['daftar_artikel_kesehatan'] = true;
+      perms['edit_artikel_kesehatan'] = true;
       perms['download_dataset_pengguna'] = true;
       perms['permainan'] = true;
       perms['edit_resume_medis'] = false;

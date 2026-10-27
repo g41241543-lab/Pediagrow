@@ -351,18 +351,24 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       },
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: RiwayatHeader(
-            title: 'Riwayat Konsultasi',
-            showBackButton: true,
-            onBackPressed: _handleBack,
-          ),
-        ),
-        body: SafeArea(
-          top: false,
-          bottom: false,
-          child: _buildBody(isDark),
+        body: Column(
+          children: [
+            // Header tanpa tombol back — identik pola halaman admin.
+            // RiwayatHeader dengan showBackButton: false sudah memiliki
+            // padding top: 56dp dari atas layar fisik (inkl. status bar)
+            // dan margin kiri judul 16dp.
+            RiwayatHeader(
+              title: 'Riwayat Konsultasi',
+              showBackButton: false,
+            ),
+            Expanded(
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: _buildBody(isDark),
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 2),
       ),
@@ -599,7 +605,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                   else
                     ...displayed.map((item) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 12.0),
                         child: RiwayatConsultationCard(
                           riwayat: item,
                           onTap: () => _navigateToDetail(item),

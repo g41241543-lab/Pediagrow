@@ -6,14 +6,11 @@ import '../../../../core/services/storage_service.dart';
 import '../../../../models/resep_mpasi_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_banner.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pengguna/mpasi/detail_resep_page.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
-import '../../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
-import '../../../pmik_admin/profil_pmik_page.dart';
-import '../../konsultasi/konsultasi_superadmin_page.dart';
-import '../../profil/profil_superadmin_page.dart';
-import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../beranda_superadmin_page.dart';
+import '../../../dokter/beranda/beranda_dokter_page.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/staff_account_model.dart';
 import 'edit_resep_mpasi_page.dart';
@@ -33,9 +30,13 @@ class DaftarResepMpasiAdminPage extends StatefulWidget {
 class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   final ResepMpasiService _service = ResepMpasiService();
 
-  bool get isReadOnly =>
-      widget.isReadOnly ||
-      StaffAuthService().currentStaff?.role == StaffRole.dokter;
+  bool get isReadOnly {
+    if (widget.isReadOnly) return true;
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return false;
+    if (staff.isSuperAdmin) return false;
+    return !staff.hasPermission('edit_resep_mpasi');
+  }
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -271,30 +272,42 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     }
   }
 
+  void _navigateBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      final staff = StaffAuthService().currentStaff;
+      final isDokter = staff?.role == StaffRole.dokter;
+      final isPmik = staff?.role == StaffRole.admin;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => isDokter
+              ? const BerandaDokterPage()
+              : isPmik
+                  ? const BerandaPmikPage()
+                  : const BerandaSuperadminPage(),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        } else {
-          final isPmik =
-              StaffAuthService().currentStaff?.role == StaffRole.admin;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => isPmik
-                  ? const BerandaPmikPage()
-                  : const BerandaSuperadminPage(),
-            ),
-            (route) => false,
-          );
-        }
+        _navigateBack();
       },
       child: Scaffold(
+<<<<<<< HEAD
+        backgroundColor: Colors.white,
+        bottomNavigationBar: _buildBottomNavigationBar(),
+=======
         backgroundColor: _scaffoldBg,
         bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
         body: SafeArea(
           child: Column(
             children: [
@@ -321,22 +334,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                } else {
-                  final isPmik =
-                      StaffAuthService().currentStaff?.role == StaffRole.admin;
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) => isPmik
-                          ? const BerandaPmikPage()
-                          : const BerandaSuperadminPage(),
-                    ),
-                    (route) => false,
-                  );
-                }
-              },
+              onTap: _navigateBack,
               borderRadius: BorderRadius.circular(24.0),
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
@@ -734,6 +732,9 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   }
 
   Widget _buildBottomNavigationBar() {
+<<<<<<< HEAD
+    return const PediaBottomNavBar(selectedIndex: -1);
+=======
     final navItems = [
       const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
       const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
@@ -847,12 +848,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
         );
         break;
     }
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
   }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-
-  const _NavItem({required this.icon, required this.label});
 }

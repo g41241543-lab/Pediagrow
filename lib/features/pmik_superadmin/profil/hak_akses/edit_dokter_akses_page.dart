@@ -1308,6 +1308,21 @@ Row(
                               ),
                             ),
                           ),
+<<<<<<< HEAD
+                          Switch(
+                            value: isChecked,
+                            activeThumbColor: const Color(0xFF3985E7),
+                            activeTrackColor:
+                                const Color(0xFF3985E7).withValues(alpha: 0.5),
+                            inactiveThumbColor: const Color(0xFFFFFFFF),
+                            inactiveTrackColor: const Color(0xFF8696A0),
+                            onChanged: (val) {
+                              setState(() {
+                                _permissions[item.key] = val;
+                              });
+                            },
+                          ),
+=======
                           if (item.key == 'daftar_resep_mpasi' ||
                               item.key == 'daftar_artikel_kesehatan')
                             Container(
@@ -1361,6 +1376,7 @@ Row(
                                 });
                               },
                             ),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
                         ],
                       ),
                     ),

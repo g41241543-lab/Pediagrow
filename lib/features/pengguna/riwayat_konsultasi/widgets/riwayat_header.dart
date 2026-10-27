@@ -45,6 +45,115 @@ class RiwayatHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Jika showBackButton: false → header ada di dalam body Column (bukan appBar).
+    // Gunakan padding top: 56dp agar jarak dari atas layar fisik = 56dp,
+    // identik dengan pola _buildHeader() pada halaman admin/superadmin.
+    // Jika showBackButton: true → header ada di dalam appBar (PreferredSize 56dp),
+    // sistem sudah menangani status bar, gunakan SafeArea + SizedBox(56).
+    if (!showBackButton) {
+      return Container(
+        width: double.infinity,
+        color: isDark ? const Color(0xFF0B1014) : Colors.white,
+        padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16.0, right: 12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              if (showNotification)
+                ValueListenableBuilder<int>(
+                  valueListenable: NotificationService().unreadCountNotifier,
+                  builder: (context, unreadCount, _) {
+                    return HoverLift(
+                      lift: 2.0,
+                      cursor: SystemMouseCursors.click,
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: GestureDetector(
+                        onTap: () => _navigateToNotification(context),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              width: 31,
+                              height: 31,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x1F000000),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.notifications_none_rounded,
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                                size: 19,
+                              ),
+                            ),
+                            if (unreadCount > 0)
+                              Positioned(
+                                top: -4,
+                                right: -4,
+                                child: Container(
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE53E3E),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isDark ? const Color(0xFF0B1014) : Colors.white,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    unreadCount > 99 ? '99+' : '$unreadCount',
+                                    style: GoogleFonts.lato(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                )
+              else
+                const SizedBox(width: 4.0),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // showBackButton: true → digunakan sebagai appBar (PreferredSize 56dp).
     return Container(
       width: double.infinity,
       color: isDark ? const Color(0xFF0B1014) : Colors.white,
@@ -53,10 +162,7 @@ class RiwayatHeader extends StatelessWidget {
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: EdgeInsets.only(
-              left: showBackButton ? 12.0 : 16.0,
-              right: 12.0,
-            ),
+            padding: const EdgeInsets.only(left: 12.0, right: 12.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [

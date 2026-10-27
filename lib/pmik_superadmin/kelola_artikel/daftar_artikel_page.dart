@@ -29,9 +29,13 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   // Service terpusat yang sama persis dengan halaman pengguna
   final ArtikelService _artikelService = ArtikelService();
 
-  bool get isReadOnly =>
-      widget.isReadOnly ||
-      StaffAuthService().currentStaff?.role == StaffRole.dokter;
+  bool get isReadOnly {
+    if (widget.isReadOnly) return true;
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return false;
+    if (staff.isSuperAdmin) return false;
+    return !staff.hasPermission('edit_artikel_kesehatan');
+  }
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -326,9 +330,14 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
         _navigateBack();
       },
       child: Scaffold(
+<<<<<<< HEAD
+        backgroundColor: Colors.white,
+        bottomNavigationBar: _buildBottomNavigationBar(),
+=======
         backgroundColor: _scaffoldBg,
         // Bottom Navigation Bar hanya untuk Superadmin/PMIK
         bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
         body: SafeArea(
           bottom: false,
           child: Column(

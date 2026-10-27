@@ -368,7 +368,11 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         _onBottomNavTap(0);
       },
       child: Scaffold(
+<<<<<<< HEAD
+        backgroundColor: Colors.white,
+=======
         backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
+>>>>>>> 53862d66c0ac0cb11c407b684ab7fd713d754749
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: _buildCustomHeader(isDark),
@@ -817,16 +821,16 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   Widget _buildGeneralInfoCard(bool isDark) {
     final items = [
       _InfoItem(
-        icon: Icons.cake_rounded,
-        iconColor: const Color(0xFFEC4899),
-        bgColor: const Color(0xFFFDF2F8),
+        icon: Icons.calendar_today_rounded,
+        iconColor: const Color(0xFF3985E7),
+        bgColor: const Color(0xFFEFF6FF),
         label: 'Tanggal Lahir',
         value: _pmik?.birthDate ?? '-',
       ),
       _InfoItem(
         icon: Icons.school_rounded,
-        iconColor: const Color(0xFF7C3AED),
-        bgColor: const Color(0xFFF5F3FF),
+        iconColor: const Color(0xFF3985E7),
+        bgColor: const Color(0xFFEFF6FF),
         label: 'Pendidikan',
         value: _pmik?.education ?? '-',
       ),
