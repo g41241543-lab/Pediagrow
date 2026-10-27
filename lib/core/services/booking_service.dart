@@ -9,6 +9,7 @@ import '../../models/child_model.dart';
 import '../../models/doctor_model.dart';
 import 'google_calendar_service.dart';
 import 'jadwal_dokter_service.dart';
+import 'local_push_service.dart';
 import 'notification_service.dart';
 import 'user_service.dart';
 
@@ -302,6 +303,7 @@ class BookingService {
       dateFormatted: modelToSave.formattedDate,
       timeSlot: modelToSave.scheduledTimeSlot,
       scheduledTime: modelToSave.scheduledStartDateTime,
+      bookingId: modelToSave.id,
     );
 
     // 5. Jadwalkan pengingat saat waktu konsultasi tiba
@@ -468,6 +470,7 @@ class BookingService {
       dateFormatted: newBooking.formattedDate,
       timeSlot: newBooking.scheduledTimeSlot,
       scheduledTime: newBooking.scheduledStartDateTime,
+      bookingId: newBooking.id,
     );
 
     // Jadwalkan pengingat saat waktu konsultasi tiba
@@ -556,9 +559,38 @@ class BookingService {
     });
   }
 
-  /// Membatalkan booking konsultasi dan menyelaraskannya ke Firestore serta notifier
+  /// Membatalkan booking konsultasi dan menyelaraskannya ke Firestore serta notifier.
+  /// Juga membatalkan pengingat terjadwal di HP dan menampilkan konfirmasi pembatalan
+  /// di status bar (tanpa menambah baris di aplikasi atau menambah badge).
   Future<void> cancelBooking(String bookingId) async {
+    // Cari detail booking untuk digunakan di pesan notifikasi
+    final cancelledBooking = bookingsNotifier.value
+        .where((b) => b.id == bookingId)
+        .firstOrNull;
+
+    // Ubah status booking menjadi 'Dibatalkan'
     updateBookingStatus(bookingId, 'Dibatalkan');
+
+    // 1. Batalkan pengingat jadwal konsultasi di sistem HP (agar tidak muncul setelah booking dihapus)
+    NotificationService().cancelBookingReminder(bookingId);
+
+    // 2. Tampilkan notifikasi konfirmasi pembatalan di status bar HP
+    //    (recordInApp: false → tidak menambah baris di aplikasi dan tidak menambah badge)
+    if (cancelledBooking != null) {
+      final currentUserId = UserService().currentUser.id;
+      LocalPushService().showWithExactTitle(
+        title: 'Booking Konsultasi Dibatalkan',
+        body:
+            'Booking konsultasi anak ${cancelledBooking.child.name} bersama '
+            '${cancelledBooking.doctor.name} pada ${cancelledBooking.formattedDate} '
+            '(${cancelledBooking.scheduledTimeSlot}) berhasil dibatalkan.',
+        targetRole: PushRole.pengguna,
+        targetUserId: currentUserId.isNotEmpty ? currentUserId : null,
+        recordInApp: false,
+      );
+    }
+
+    // 3. Hapus booking dari Cloud Firestore
     try {
       await _db.collection(_collectionName).doc(bookingId).delete();
       debugPrint('[BookingService] Sukses menghapus booking $bookingId yang dibatalkan');

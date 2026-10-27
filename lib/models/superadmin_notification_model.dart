@@ -35,6 +35,7 @@ class SuperadminNotificationItem {
   final SuperadminActionType actionType;
   final String? targetName;
   final String? role; // 'superadmin', 'pmik', 'dokter'
+  final String? recipientId; // ID akun staf/penerima
   final bool isRead;
 
   const SuperadminNotificationItem({
@@ -46,6 +47,7 @@ class SuperadminNotificationItem {
     required this.actionType,
     this.targetName,
     this.role,
+    this.recipientId,
     this.isRead = false,
   });
 
@@ -80,6 +82,7 @@ class SuperadminNotificationItem {
     SuperadminActionType? actionType,
     String? targetName,
     String? role,
+    String? recipientId,
     bool? isRead,
   }) {
     return SuperadminNotificationItem(
@@ -91,6 +94,7 @@ class SuperadminNotificationItem {
       actionType: actionType ?? this.actionType,
       targetName: targetName ?? this.targetName,
       role: role ?? this.role,
+      recipientId: recipientId ?? this.recipientId,
       isRead: isRead ?? this.isRead,
     );
   }
@@ -105,6 +109,7 @@ class SuperadminNotificationItem {
       'actionType': actionType.name,
       'targetName': targetName,
       'role': role,
+      'recipientId': recipientId,
       'isRead': isRead,
     };
   }
@@ -127,6 +132,7 @@ class SuperadminNotificationItem {
       ),
       targetName: map['targetName'] as String?,
       role: map['role'] as String?,
+      recipientId: map['recipientId'] as String?,
       isRead: map['isRead'] as bool? ?? false,
     );
   }
