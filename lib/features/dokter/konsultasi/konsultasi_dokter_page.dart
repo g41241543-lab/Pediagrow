@@ -619,6 +619,11 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
 
                 final rawUserBookings = userBookings.where((b) {
                   if (b.isExpired) return false;
+                  // Jangan tampilkan booking yang sudah selesai di antrean aktif
+                  final isSelesai =
+                      b.status.toLowerCase() == 'selesai' ||
+                      b.status.toLowerCase() == 'completed';
+                  if (isSelesai) return false;
                   return _isDoctorMatch(b.doctor.name, loggedInDoctorName) ||
                       doctorAliases.contains(b.doctor.id) ||
                       (currentStaff != null && b.doctor.id == currentStaff.id);

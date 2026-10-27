@@ -441,6 +441,11 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
             final validUserBookings = <BookingConsultationModel>[];
             for (final b in userBookings) {
               if (b.isExpired) continue;
+              // Jangan tampilkan booking yang sudah selesai di antrean aktif
+              final isSelesai =
+                  b.status.toLowerCase() == 'selesai' ||
+                  b.status.toLowerCase() == 'completed';
+              if (isSelesai) continue;
               final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
               if (seenAdmin.add(b.id) && seenAdmin.add(slotKey)) {
                 validUserBookings.add(b);

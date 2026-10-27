@@ -1,26 +1,18 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../models/child_model.dart';
-import '../../../../shared/widgets/child_avatar.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../models/user_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 
-import 'detail_anak_page.dart';
-
-/// Halaman Detail Pengguna untuk POV Superadmin.
+/// Halaman Data Orangtua untuk POV Admin.
 ///
 /// Menampilkan:
-/// - Header fixed 56dp dengan tombol kembali & judul "Detail Pengguna".
-/// - Card biodata pengguna: nama, email, jenis kelamin, tanggal lahir,
-///   provinsi, kota/kabupaten, kecamatan, dan kelurahan/desa.
-/// - Card "Data Anak" berisi list profil anak (avatar di kiri, nama & usia, tanda >)
-///   yang dapat diklik untuk navigasi ke halaman [DetailAnakPage].
-/// - Tanpa navigation bar di bagian bawah.
+/// - Header fixed 56dp dengan tombol kembali & judul "Data Orangtua".
+/// - Card profil orang tua dengan avatar foto / inisial, nama, email, dan status akun.
+/// - Card biodata lengkap orang tua: nama, email, nomor telepon, jenis kelamin,
+///   tanggal lahir, provinsi, kota/kabupaten, kecamatan, dan kelurahan/desa.
+/// - Sesuai instruksi: list anak di bawahnya sudah tidak ditampilkan lagi.
 class DetailPenggunaPage extends StatefulWidget {
   final UserModel user;
 
@@ -31,22 +23,15 @@ class DetailPenggunaPage extends StatefulWidget {
 }
 
 class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
-  // ──────────────────────────────────────────────────────────────
-  // Konstanta Warna (konsisten dengan desain superadmin)
-  // ──────────────────────────────────────────────────────────────
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
-  static const Color _colorTableBorder = Color(0xFFE9EDEF);
   static const Color _colorLabelGrey = Color(0xFF667781);
   static const Color _colorTextBlack = Color(0xFF1A2228);
 
-  // ──────────────────────────────────────────────────────────────
-  // BUILD
-  // ──────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -70,25 +55,21 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                           children: [
                             const SizedBox(height: 16),
 
-                            // ── Tabel Biodata Pengguna ─────────────
+                            // ── Card Profil Header Orang Tua ─────────
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildProfileHeaderCard(),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // ── Tabel Biodata Lengkap Orang Tua ──────
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
                               child: _buildBiodataTable(),
                             ),
 
-                            const SizedBox(height: 20),
-
-                            // ── Tabel Daftar Anak ──────────────────
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: _buildChildrenTable(),
-                            ),
-
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
 
                             // Spacer agar ilustrasi menempel di dasar
                             const Spacer(),
@@ -140,7 +121,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Detail Pengguna',
+              'Data Orangtua',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
@@ -156,28 +137,206 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   }
 
   // ──────────────────────────────────────────────────────────────
+  // CARD PROFIL HEADER ORANG TUA
+  // ──────────────────────────────────────────────────────────────
+  Widget _buildProfileHeaderCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final u = widget.user;
+    final initialLetter = u.name.isNotEmpty ? u.name[0].toUpperCase() : 'O';
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD6E4FF),
+          width: 1.5,
+        ),
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: _colorPrimaryBlue.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Avatar Orang Tua
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF242E35) : const Color(0xFFEBF3FF),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: _colorPrimaryBlue.withValues(alpha: 0.3),
+                width: 2,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: u.avatarPath != null && u.avatarPath!.trim().isNotEmpty
+                ? StorageService.buildImageWidget(
+                    u.avatarPath,
+                    width: 58,
+                    height: 58,
+                    fit: BoxFit.cover,
+                    placeholder: Center(
+                      child: Text(
+                        initialLetter,
+                        style: GoogleFonts.lato(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: _colorPrimaryBlue,
+                        ),
+                      ),
+                    ),
+                    errorWidget: Center(
+                      child: Text(
+                        initialLetter,
+                        style: GoogleFonts.lato(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: _colorPrimaryBlue,
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      initialLetter,
+                      style: GoogleFonts.lato(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: _colorPrimaryBlue,
+                      ),
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 16),
+          // Info Teks Orang Tua
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  u.name.isNotEmpty ? u.name : 'Orang Tua Pasien',
+                  style: GoogleFonts.lato(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  u.email.isNotEmpty ? u.email : '-',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                // Badge Terdaftar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFF2E7D32),
+                        size: 13,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Orang Tua Terdaftar',
+                        style: GoogleFonts.lato(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF2E7D32),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────
   // CARD DATA ORANG TUA (PENGGUNA)
-  // Layout identik dengan gambar: Card ber-border lembut, icon kotak
-  // biru muda di header, divider tipis, dan list key-value tebal.
   // ──────────────────────────────────────────────────────────────
   Widget _buildBiodataTable() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final u = widget.user;
 
-    final rows = <_TableRow>[
-      _TableRow('Nama Lengkap', u.name.isNotEmpty ? u.name : '-'),
-      _TableRow('Email', u.email.isNotEmpty ? u.email : '-'),
-      _TableRow('Jenis Kelamin', _formatGender(u.gender)),
-      _TableRow('Tanggal Lahir', _formatDate(u.birthDate)),
-      _TableRow('Provinsi', u.province?.isNotEmpty == true ? u.province! : '-'),
-      _TableRow('Kota / Kabupaten', u.city?.isNotEmpty == true ? u.city! : '-'),
-      _TableRow(
-        'Kecamatan',
-        u.district?.isNotEmpty == true ? u.district! : '-',
+    final rows = <_TableRowData>[
+      _TableRowData(
+        icon: Icons.person_outline_rounded,
+        label: 'Nama Lengkap',
+        value: u.name.isNotEmpty ? u.name : '-',
       ),
-      _TableRow(
-        'Kelurahan / Desa',
-        u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-',
+      _TableRowData(
+        icon: Icons.email_outlined,
+        label: 'Email',
+        value: u.email.isNotEmpty ? u.email : '-',
+      ),
+      _TableRowData(
+        icon: Icons.phone_outlined,
+        label: 'Nomor Telepon',
+        value: u.phone?.isNotEmpty == true ? u.phone! : '-',
+      ),
+      _TableRowData(
+        icon: Icons.wc_outlined,
+        label: 'Jenis Kelamin',
+        value: _formatGender(u.gender),
+      ),
+      _TableRowData(
+        icon: Icons.calendar_today_outlined,
+        label: 'Tanggal Lahir',
+        value: _formatDate(u.birthDate),
+      ),
+      _TableRowData(
+        icon: Icons.map_outlined,
+        label: 'Provinsi',
+        value: u.province?.isNotEmpty == true ? u.province! : '-',
+      ),
+      _TableRowData(
+        icon: Icons.location_city_outlined,
+        label: 'Kota / Kabupaten',
+        value: u.city?.isNotEmpty == true ? u.city! : '-',
+      ),
+      _TableRowData(
+        icon: Icons.holiday_village_outlined,
+        label: 'Kecamatan',
+        value: u.district?.isNotEmpty == true ? u.district! : '-',
+      ),
+      _TableRowData(
+        icon: Icons.home_work_outlined,
+        label: 'Kelurahan / Desa',
+        value: u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-',
       ),
     ];
 
@@ -223,15 +382,15 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.person_outline_rounded,
+                  Icons.badge_outlined,
                   color: _colorPrimaryBlue,
-                  size: 22,
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Data Pengguna',
+                  'Biodata Orangtua',
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -252,23 +411,39 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
 
           // Baris-baris Data Key-Value
           for (int i = 0; i < rows.length; i++) ...[
-            if (i > 0) const SizedBox(height: 14),
-            _buildKeyValueRow(rows[i].label, rows[i].value),
+            if (i > 0) ...[
+              const SizedBox(height: 10),
+              Divider(
+                height: 1,
+                thickness: 0.7,
+                color: isDark
+                    ? const Color(0xFF242E35)
+                    : const Color(0xFFF1F5F9),
+              ),
+              const SizedBox(height: 10),
+            ],
+            _buildRowItem(rows[i]),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildKeyValueRow(String label, String value) {
+  Widget _buildRowItem(_TableRowData item) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(
+          item.icon,
+          size: 18,
+          color: _colorPrimaryBlue.withValues(alpha: 0.75),
+        ),
+        const SizedBox(width: 10),
         SizedBox(
-          width: 130,
+          width: 125,
           child: Text(
-            label,
+            item.label,
             style: GoogleFonts.lato(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -279,9 +454,9 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            value,
+            item.value,
             style: GoogleFonts.lato(
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: FontWeight.bold,
               color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
@@ -292,499 +467,49 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   }
 
   // ──────────────────────────────────────────────────────────────
-  // CARD DATA ANAK (data dari Firestore 'children')
-  // Menampilkan judul "Data Anak" beserta list anak:
-  // - Profil di kiri (avatar)
-  // - Nama dan Usia di tengah
-  // - Tanda > di samping kanan
-  // - Klik card anak menuju ke DetailAnakPage
+  // HELPER FORMATTING
   // ──────────────────────────────────────────────────────────────
-  Widget _buildChildrenTable() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('children').snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildChildrenLoadingSkeleton();
-        }
-
-        if (snapshot.hasError) {
-          return _buildChildrenErrorState();
-        }
-
-        final docs = snapshot.data?.docs ?? [];
-        final userId = widget.user.id.trim();
-        final userEmail = widget.user.email.trim().toLowerCase();
-
-        final children = <ChildModel>[];
-
-        for (final doc in docs) {
-          final data = doc.data();
-          final rawOwner =
-              (data['owner_id'] ??
-                      data['ownerId'] ??
-                      data['userId'] ??
-                      data['user_id'] ??
-                      data['parentId'] ??
-                      data['parent_id'] ??
-                      '')
-                  .toString()
-                  .trim();
-
-          bool isMatch = false;
-          if (userId.isNotEmpty && rawOwner == userId) {
-            isMatch = true;
-          } else if (userEmail.isNotEmpty &&
-              rawOwner.toLowerCase() == userEmail) {
-            isMatch = true;
-          }
-
-          if (isMatch) {
-            children.add(ChildModel.fromMap({...data, 'id': doc.id}));
-          }
-        }
-
-        if (children.isEmpty) {
-          return _buildNoChildrenState();
-        }
-
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2228) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD6E4FF),
-              width: 1.5,
-            ),
-            boxShadow: isDark
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : const [
-                    BoxShadow(
-                      color: Color(0x06000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: Icon kotak biru + Judul "Data Anak" + Jumlah anak
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF242E35)
-                          : const Color(0xFFEBF3FF),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.face_rounded,
-                      color: _colorPrimaryBlue,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Data Anak',
-                      style: GoogleFonts.lato(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF242E35)
-                          : const Color(0xFFEBF3FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${children.length} Anak',
-                      style: GoogleFonts.lato(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-              ),
-
-              // List Card Anak
-              for (int i = 0; i < children.length; i++) ...[
-                if (i > 0)
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-                  ),
-                _buildChildListItem(children[i]),
-              ],
-            ],
-          ),
-        );
-      },
-    );
+  String _formatGender(String? g) {
+    if (g == null || g.trim().isEmpty) return '-';
+    final l = g.toLowerCase().trim();
+    if (l == 'l' || l == 'laki-laki' || l == 'pria') return 'Laki-laki';
+    if (l == 'p' || l == 'perempuan' || l == 'wanita') return 'Perempuan';
+    return g;
   }
 
-  Widget _buildChildListItem(ChildModel child) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ageText = _formatChildAge(child);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => DetailAnakPage(child: child, user: widget.user),
-            ),
-          );
-        },
-        splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
-        highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Profil di kiri
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: ChildAvatar.bgColorFor(gender: child.gender),
-                  shape: BoxShape.circle,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: _buildChildAvatar(child.photoUrl, child.gender),
-              ),
-              const SizedBox(width: 14),
-
-              // Nama dan Usia di tengah
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      child.name.isNotEmpty ? child.name : '-',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.lato(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      ageText,
-                      style: GoogleFonts.lato(
-                        fontSize: 13,
-                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Tanda > di samping kanan
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 26,
-                color: Color(0xFF8696A0),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  // STATE KOSONG / ERROR / LOADING untuk tabel anak
-  // ──────────────────────────────────────────────────────────────
-  Widget _buildNoChildrenState() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.child_care_rounded,
-            size: 40,
-            color: Color(0xFF8696A0),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Belum Ada Data Anak',
-            style: GoogleFonts.lato(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Pengguna ini belum mendaftarkan profil anak di aplikasi.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 13,
-              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChildrenLoadingSkeleton() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: List.generate(
-          3,
-          (i) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Container(
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChildrenErrorState() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            size: 22,
-            color: Color(0xFFEF4444),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Gagal memuat data anak.',
-            style: GoogleFonts.lato(
-              fontSize: 13,
-              color: const Color(0xFFEF4444),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  // HELPER — avatar anak
-  // ──────────────────────────────────────────────────────────────
-  Widget _buildChildAvatar(String? imagePath, [String? gender]) {
-    final fallback = ChildAvatar(
-      gender: gender,
-      size: 48,
-    );
-    if (imagePath == null || imagePath.trim().isEmpty) return fallback;
-    final trimmed = imagePath.trim();
-
-    if (trimmed.startsWith('data:image')) {
-      try {
-        final commaIdx = trimmed.indexOf(',');
-        final b64 = commaIdx != -1 ? trimmed.substring(commaIdx + 1) : trimmed;
-        return Image.memory(
-          base64Decode(b64.trim()),
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-    if (trimmed.startsWith('/9j/') || trimmed.startsWith('iVBORw0KGgo')) {
-      try {
-        return Image.memory(
-          base64Decode(trimmed),
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      } catch (_) {}
-    }
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return Image.network(
-        trimmed,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
-    if (trimmed.startsWith('assets/')) {
-      return Image.asset(
-        trimmed,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      );
-    }
+  String _formatDate(String? d) {
+    if (d == null || d.trim().isEmpty) return '-';
     try {
-      final file = File(trimmed);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback,
-        );
-      }
-    } catch (_) {}
-    return fallback;
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  // HELPER — Format data
-  // ──────────────────────────────────────────────────────────────
-  String _formatGender(String? gender) {
-    if (gender == null || gender.trim().isEmpty) return '-';
-    final g = gender.toLowerCase().trim();
-    if (g == 'l' || g == 'laki-laki' || g == 'male' || g == 'laki') {
-      return 'Laki-laki';
-    }
-    if (g == 'p' || g == 'perempuan' || g == 'female' || g == 'wanita') {
-      return 'Perempuan';
-    }
-    return gender;
-  }
-
-
-  String _formatChildAge(ChildModel child) {
-    if (child.birthDate != null) {
-      final bDate = child.birthDate!;
-      final now = DateTime.now();
-      int years = now.year - bDate.year;
-      int months = now.month - bDate.month;
-      int days = now.day - bDate.day;
-
-      if (days < 0) {
-        months -= 1;
-        final lastDayPrevMonth = DateTime(now.year, now.month, 0);
-        days += lastDayPrevMonth.day;
-      }
-      if (months < 0) {
-        years -= 1;
-        months += 12;
-      }
-      if (years < 0) years = 0;
-      if (months < 0) months = 0;
-      if (days < 0) days = 0;
-
-      if (years == 0 && months == 0) {
-        return '$days hari';
-      } else if (years == 0) {
-        return days > 0 ? '$months bulan $days hari' : '$months bulan';
-      } else {
-        return months > 0 ? '$years tahun $months bulan' : '$years tahun';
-      }
-    }
-
-    if (child.ageDescription.isNotEmpty) {
-      return child.ageDescription;
-    }
-
-    return '-';
-  }
-
-  String _formatDate(String? dateStr) {
-    if (dateStr == null || dateStr.trim().isEmpty) return '-';
-    try {
-      // Coba parse format ISO (YYYY-MM-DD atau Timestamp string)
-      final dt = DateTime.parse(dateStr.trim());
-      return '${dt.day}/${dt.month}/${dt.year}';
+      final dt = DateTime.parse(d);
+      const months = [
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+      ];
+      return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
     } catch (_) {
-      return dateStr;
+      return d;
     }
   }
-
-
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper classes
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _TableRow {
+class _TableRowData {
+  final IconData icon;
   final String label;
   final String value;
-  const _TableRow(this.label, this.value);
+
+  _TableRowData({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 }

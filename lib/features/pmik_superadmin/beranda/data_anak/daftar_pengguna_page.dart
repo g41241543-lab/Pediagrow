@@ -4,29 +4,22 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
 import '../../../../models/user_model.dart';
+import '../../../../shared/widgets/child_avatar.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda_superadmin_page.dart';
 import '../../konsultasi/konsultasi_superadmin_page.dart';
 import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../profil/profil_superadmin_page.dart';
-import 'detail_pengguna_page.dart';
+import 'detail_anak_page.dart';
+import 'pilih_anak_button_sheet.dart';
 
-/// Halaman Daftar Data Pengguna untuk POV SUPERADMIN aplikasi PediaGrow.
+/// Halaman Daftar Data Pasien Anak untuk POV SUPERADMIN aplikasi PediaGrow.
 ///
-/// Fitur Utama:
-/// - Header fixed 56dp di bagian atas layar dengan tombol kembali & judul "Data Pengguna".
-/// - Search Bar fixed di bawah header dengan sudut rounded, background abu-abu muda,
-///   ikon pencarian, hint "Cari data pengguna", dan filter pencarian dinamis (real-time).
-/// - Daftar card pengguna scrollable dengan efek border & shadow biru khas
-///   (konsisten dengan hover card pada `lokasi_fasyankes_page.dart`).
-/// - Menampilkan nama lengkap pengguna (Lato Bold 17sp, #000000) dan info status anak:
-///   "[x] Anak Terdaftar" atau "Belum ada data anak" (Lato Regular 13sp, #94A3B8).
-/// - Selalu clickable, memunculkan modal bottom sheet "Pilih Profil Anak" ([PilihAnakBottomSheet]).
-/// - Sumber data utama dari database Firebase Firestore (`users` & `children`).
-/// - Jika database kosong, tidak menampilkan card pengguna apa pun melainkan
-///   menampilkan ilustrasi alam ([IllustrationForestFooter]) dan informasi ramah.
-/// - Navigation Bar permanen 4 menu di Scaffold bawah ([PediaBottomNavBar]).
+/// Logika Baru:
+/// - List menampilkan seluruh daftar anak yang terdaftar di aplikasi (tersimpan di Firestore 'children').
+/// - Setiap card anak menampilkan Avatar, Nama Anak, Usia, dan Nama Orang Tua.
+/// - Saat card anak diklik, langsung membuka [DetailAnakPage].
 class DaftarPenggunaPage extends StatefulWidget {
   const DaftarPenggunaPage({super.key});
 
@@ -81,12 +74,8 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     });
   }
 
-  /// Handler navigasi bottom bar khusus superadmin yang konsisten dengan BerandaSuperadminPage.
-  /// Menggunakan FadeTransition (200ms) agar animasi identik dengan PediaBottomNavBar
-  /// dan transisi beranda → profil.
   void _onNavTap(int index) {
     if (index == 0) {
-      // Kembali ke Beranda Superadmin — clear seluruh stack
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const BerandaSuperadminPage(),
@@ -99,216 +88,74 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
       return;
     }
 
-    Widget targetPage;
-    switch (index) {
-      case 1:
-        targetPage = const KonsultasiSuperadminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      case 3:
-        targetPage = const ProfilSuperadminPage();
-        break;
-      default:
-        return;
+    if (index == 1) {
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const KonsultasiSuperadminPage(),
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+      );
+      return;
     }
 
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) => targetPage,
-        transitionsBuilder: (_, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
+    if (index == 2) {
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) =>
+              const DaftarRiwayatKonsultasiAdminPage(),
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+      );
+      return;
+    }
+
+    if (index == 3) {
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const ProfilSuperadminPage(),
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+      );
+      return;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      // Dismiss keyboard saat pengguna mengetuk di luar Search Bar
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              // -------------------------------------------------------------
-              // 1. HEADER FIXED (56dp) — Tidak ikut scroll
-              // -------------------------------------------------------------
-              _buildFixedHeader(),
 
-              // -------------------------------------------------------------
-              // 2. SEARCH BAR FIXED — Tidak ikut scroll
-              // -------------------------------------------------------------
-              _buildFixedSearchBar(),
-
-              // -------------------------------------------------------------
-              // 3. KONTEN UTAMA SCROLLABLE (Daftar Pengguna / Empty State)
-              // -------------------------------------------------------------
-              Expanded(child: _buildUserListStream()),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildFixedHeader(),
+            _buildFixedSearchBar(),
+            Expanded(child: _buildChildListStream()),
+          ],
         ),
-        // -----------------------------------------------------------------
-        // 4. BOTTOM NAVIGATION BAR FIXED — 4 Menu Konsisten dengan Beranda Superadmin
-        // -----------------------------------------------------------------
-        bottomNavigationBar: _buildFixedNavBar(),
       ),
+      bottomNavigationBar: _buildBottomNavigationBar(isDark),
     );
   }
 
-  // Indeks nav bar (0 = Beranda aktif, karena Data Pengguna sub-fitur Beranda)
-  final int _selectedIndex = -1;
-
-  // =========================================================================
-  // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
-  // Warna #F2EDED, tinggi 68dp, identik dengan halaman Beranda
-  // =========================================================================
-  Widget _buildFixedNavBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final navItems = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
-        border: Border(
-          top: BorderSide(
-            color: isDark ? const Color(0xFF2C363D) : Colors.transparent,
-            width: 1.0,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : const Color(0x18000000),
-            blurRadius: 8.0,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF242E35) : Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: isDark
-                                    ? Colors.black.withValues(alpha: 0.3)
-                                    : const Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: isDark
-                                ? const Color(0xFF3985E7)
-                                : const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: isDark
-                                    ? const Color(0xFFE9EDEF)
-                                    : const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: isDark
-                              ? const Color(0xFF8696A0)
-                              : const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: isDark
-                                    ? const Color(0xFF8696A0)
-                                    : const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
+  Widget _buildBottomNavigationBar(bool isDark) {
+    return PediaBottomNavBar(
+      selectedIndex: -1,
+      onNavTap: _onNavTap,
     );
   }
 
-  // ===========================================================================
-  // 1. HEADER FIXED (Tinggi 56dp)
-  // Tombol Kembali 12dp dari kiri, Judul "Data Pengguna" Lato 20sp Bold
-  // ===========================================================================
   Widget _buildFixedHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       height: 56,
@@ -317,7 +164,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Tombol Kembali
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             behavior: HitTestBehavior.opaque,
@@ -325,19 +171,15 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               padding: const EdgeInsets.all(4.0),
               child: Icon(
                 Icons.arrow_back,
-                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                color: isDark ? const Color(0xFFE9EDEF) : Colors.black,
                 size: 24,
               ),
             ),
           ),
-
-          // Jarak 12dp setelah tombol kembali
           const SizedBox(width: 12),
-
-          // Judul "Data Pengguna" (Font Lato 20sp Bold)
           Expanded(
             child: Text(
-              'Data Pengguna',
+              'Data Pasien Anak',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
@@ -352,10 +194,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 2. SEARCH BAR FIXED
-  // Sudut Rounded 14dp, Background Abu-Abu Muda, Ikon Search, Dynamic Filtering
-  // ===========================================================================
   Widget _buildFixedSearchBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
@@ -374,15 +212,12 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 12),
-            // Ikon Pencarian
             Icon(
               Icons.search_rounded,
               color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
               size: 22,
             ),
             const SizedBox(width: 8),
-
-            // Input Teks Pencarian
             Expanded(
               child: TextField(
                 controller: _searchController,
@@ -393,7 +228,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Cari Data Pengguna',
+                  hintText: 'Cari data anak atau orang tua',
                   hintStyle: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
@@ -405,97 +240,87 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                 ),
               ),
             ),
-
-            // Tombol Reset / Clear Pencarian
             if (_searchQuery.isNotEmpty)
               GestureDetector(
                 onTap: _clearSearch,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Icon(
-                    Icons.cancel_rounded,
-                    color: Color(0xFF8696A0),
-                    size: 18,
+                    Icons.close_rounded,
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
+                    size: 20,
                   ),
                 ),
-              ),
+              )
+            else
+              const SizedBox(width: 12),
           ],
         ),
       ),
     );
   }
 
-  // ===========================================================================
-  // 3. STREAMBUILDER FIREBASE (USERS + CHILDREN)
-  // Menghubungkan ke collection 'users' dan 'children' Firestore secara dinamis
-  // ===========================================================================
-  Widget _buildUserListStream() {
+  Widget _buildChildListStream() {
     return LayoutBuilder(
       builder: (context, constraints) {
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _firestore.collection('users').snapshots(),
-          builder: (context, userSnapshot) {
-            // State Loading
-            if (userSnapshot.connectionState == ConnectionState.waiting) {
+          stream: _firestore.collection('children').snapshots(),
+          builder: (context, childSnapshot) {
+            if (childSnapshot.connectionState == ConnectionState.waiting) {
               return _buildLoadingSkeleton();
             }
 
-            // State Error
-            if (userSnapshot.hasError) {
-              return _buildErrorState(userSnapshot.error.toString());
+            if (childSnapshot.hasError) {
+              return _buildErrorState(childSnapshot.error.toString());
             }
 
-            final userDocs = userSnapshot.data?.docs ?? [];
+            final childDocs = childSnapshot.data?.docs ?? [];
 
-            // -------------------------------------------------------------------
-            // JIKA DATABASE KOSONG:
-            // Tidak boleh menampilkan card pengguna apa pun, hanya Header,
-            // Search Bar, Ilustrasi Alam & Navigation Bar
-            // -------------------------------------------------------------------
-            if (userDocs.isEmpty) {
+            if (childDocs.isEmpty) {
               return _buildEmptyDatabaseState(constraints);
             }
 
-            // Parsing data pengguna
-            final List<UserModel> allUsers = userDocs.map((doc) {
+            final List<ChildModel> allChildren = childDocs.map((doc) {
               final data = doc.data();
-              return UserModel.fromMap({...data, 'id': doc.id});
+              return ChildModel.fromMap({...data, 'id': doc.id});
             }).toList();
 
-            // Mengambil data seluruh anak untuk menghitung jumlah anak per user
             return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _firestore.collection('children').snapshots(),
-              builder: (context, childSnapshot) {
-                final childDocs = childSnapshot.data?.docs ?? [];
-                final Map<String, List<ChildModel>> childrenByUser = {};
+              stream: _firestore.collection('users').snapshots(),
+              builder: (context, userSnapshot) {
+                final userDocs = userSnapshot.data?.docs ?? [];
+                final Map<String, UserModel> usersById = {};
 
-                for (final doc in childDocs) {
+                for (final doc in userDocs) {
                   final data = doc.data();
-                  final child = ChildModel.fromMap({...data, 'id': doc.id});
-                  final ownerId = child.ownerId;
-                  if (ownerId.isNotEmpty) {
-                    childrenByUser.putIfAbsent(ownerId, () => []).add(child);
+                  final user = UserModel.fromMap({...data, 'id': doc.id});
+                  usersById[user.id] = user;
+                  if (user.email.isNotEmpty) {
+                    usersById[user.email.toLowerCase()] = user;
                   }
                 }
 
-                // Filter pencarian berdasarkan query (nama pengguna / email)
-                final filteredUsers = allUsers.where((user) {
+                final filteredChildren = allChildren.where((child) {
                   if (_searchQuery.isEmpty) return true;
                   final q = _searchQuery.toLowerCase();
-                  final nameMatch = user.name.toLowerCase().contains(q);
-                  final emailMatch = user.email.toLowerCase().contains(q);
-                  return nameMatch || emailMatch;
+                  final childMatch = child.name.toLowerCase().contains(q);
+                  final parentUser = usersById[child.ownerId] ??
+                      (child.ownerId.isNotEmpty
+                          ? usersById[child.ownerId.toLowerCase()]
+                          : null);
+                  final parentMatch =
+                      parentUser?.name.toLowerCase().contains(q) == true;
+                  return childMatch || parentMatch;
                 }).toList();
 
-                // Jika hasil pencarian tidak ditemukan
-                if (filteredUsers.isEmpty) {
+                if (filteredChildren.isEmpty) {
                   return _buildNoSearchResultsState(constraints);
                 }
 
-                // Render Daftar Card Pengguna
-                return _buildScrollableUserList(
-                  filteredUsers,
-                  childrenByUser,
+                return _buildScrollableChildList(
+                  filteredChildren,
+                  usersById,
                   constraints,
                 );
               },
@@ -506,15 +331,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 4. DAFTAR CARD PENGGUNA SCROLLABLE
-  // Setiap card memiliki efek hover/border biru halus seperti fasyankes_card_item.
-  // Ilustrasi pohon berada tepat di bagian paling bawah dan tidak dapat di-scroll
-  // lebih lanjut ke bawah (mentok di ilustrasi).
-  // ===========================================================================
-  Widget _buildScrollableUserList(
-    List<UserModel> users,
-    Map<String, List<ChildModel>> childrenByUser,
+  Widget _buildScrollableChildList(
+    List<ChildModel> children,
+    Map<String, UserModel> usersById,
     BoxConstraints constraints,
   ) {
     return SingleChildScrollView(
@@ -526,20 +345,17 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 4),
-              for (int i = 0; i < users.length; i++) ...[
-                _buildUserCard(
-                  user: users[i],
-                  children: childrenByUser[users[i].id] ?? [],
-                  childrenCount: (childrenByUser[users[i].id] ?? []).length,
+              for (int i = 0; i < children.length; i++) ...[
+                _buildChildCard(
+                  child: children[i],
+                  parentUser: usersById[children[i].ownerId] ??
+                      (children[i].ownerId.isNotEmpty
+                          ? usersById[children[i].ownerId.toLowerCase()]
+                          : null),
                 ),
               ],
-
-              // Spacer fleksibel agar ilustrasi menempel tepat di dasar bila item sedikit
               const Spacer(),
-
               const SizedBox(height: 16),
-
-              // Ilustrasi Footer Landscape tepat di paling bawah tanpa ruang scroll lagi
               const IllustrationForestFooter(fit: BoxFit.fitWidth),
             ],
           ),
@@ -548,32 +364,28 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 5. ITEM CARD PENGGUNA
-  // - Rounded 16dp
-  // - Border biru halus & subtle shadow biru konsisten dengan lokasi_fasyankes_page.dart
-  // - Nama Lengkap (Lato Bold 17sp, #000000)
-  // - Info Jumlah Anak (Lato Regular 13sp, #94A3B8)
-  // - Icon chevron right (>)
-  // - Always clickable -> memunculkan bottom sheet "Pilih Profil Anak"
-  // ===========================================================================
-  Widget _buildUserCard({
-    required UserModel user,
-    required List<ChildModel> children,
-    required int childrenCount,
+  Widget _buildChildCard({
+    required ChildModel child,
+    required UserModel? parentUser,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Teks keterangan jumlah anak
-    final String childInfoText = childrenCount > 0
-        ? '$childrenCount Anak Terdaftar'
-        : 'Belum ada data anak';
+    final parentName = parentUser?.name.isNotEmpty == true
+        ? parentUser!.name
+        : 'Orang tua tidak diketahui';
+
+    String usiaText = child.ageDescription;
+    if (child.birthDate != null) {
+      usiaText = calculateAge(child.birthDate!).formatted;
+    }
+    if (usiaText.isEmpty) {
+      usiaText = '-';
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        // Efek border biru halus yang ada di hover card fasyankes
         border: Border.all(
           color: isDark
               ? const Color(0xFF2C363D)
@@ -589,7 +401,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                 ),
               ]
             : [
-                // Shadow halus dengan rona biru elegan
                 BoxShadow(
                   color: _colorPrimaryBlue.withValues(alpha: 0.08),
                   blurRadius: 10,
@@ -613,43 +424,88 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => DetailPenggunaPage(user: user)),
+              MaterialPageRoute(
+                builder: (_) => DetailAnakPage(
+                  child: child,
+                  user: parentUser,
+                ),
+              ),
             );
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Info Pengguna (Nama & Status Anak)
+                // Avatar Anak
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: ChildAvatar.bgColorFor(gender: child.gender),
+                    shape: BoxShape.circle,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: child.photoUrl != null && child.photoUrl!.isNotEmpty
+                      ? Image.network(
+                          child.photoUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => ChildAvatar(
+                            gender: child.gender,
+                            size: 48,
+                          ),
+                        )
+                      : ChildAvatar(
+                          gender: child.gender,
+                          size: 48,
+                        ),
+                ),
+                const SizedBox(width: 14),
+
+                // Info Anak
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Nama Pengguna
+                      // Nama Anak
                       Text(
-                        user.name.isNotEmpty ? user.name : 'Pengguna',
+                        child.name.isNotEmpty ? child.name : 'Anak Pasien',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                           height: 1.2,
                         ),
                       ),
 
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
 
-                      // Status Jumlah Anak
+                      // Usia Anak
                       Text(
-                        childInfoText,
+                        'Usia: $usiaText',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.normal,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      // Orang Tua
+                      Text(
+                        'Orang Tua: $parentName',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
                           color: isDark ? const Color(0xFF8696A0) : _colorSubtitleGrey,
                         ),
                       ),
@@ -657,9 +513,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
 
-                // Button Chevron Right (>) Penanda Klik
+                // Chevron Right
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 26,
@@ -673,11 +529,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 6. EMPTY DATABASE STATE
-  // Apabila belum terdapat daftar pengguna pada database (database kosong)
-  // Tidak menampilkan card pengguna apa pun, ilustrasi alam berada di paling bawah.
-  // ===========================================================================
   Widget _buildEmptyDatabaseState(BoxConstraints constraints) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
@@ -699,37 +550,45 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+                            color: isDark
+                                ? const Color(0xFF242E35)
+                                : const Color(0xFFE9EDEF),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                              color: isDark
+                                  ? const Color(0xFF2C363D)
+                                  : const Color(0xFFE9EDEF),
                               width: 1.2,
                             ),
                           ),
                           child: const Icon(
-                            Icons.person_off_outlined,
+                            Icons.child_care_rounded,
                             size: 36,
                             color: Color(0xFF8696A0),
                           ),
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Belum Ada Data Pengguna',
+                          'Belum Ada Data Pasien Anak',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                            color: isDark
+                                ? const Color(0xFFE9EDEF)
+                                : const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Data pengguna yang terdaftar di aplikasi akan muncul di sini secara otomatis.',
+                          'Data anak yang terdaftar di aplikasi akan muncul di sini secara otomatis.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.normal,
-                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                            color: isDark
+                                ? const Color(0xFF8696A0)
+                                : const Color(0xFF667781),
                             height: 1.4,
                           ),
                         ),
@@ -738,8 +597,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   ),
                 ),
               ),
-
-              // Ilustrasi Landscape Pepohonan konsisten dengan Beranda (di paling bawah)
               const IllustrationForestFooter(fit: BoxFit.fitWidth),
             ],
           ),
@@ -748,9 +605,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 7. HASIL PENCARIAN KOSONG STATE
-  // ===========================================================================
   Widget _buildNoSearchResultsState(BoxConstraints constraints) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
@@ -775,21 +629,25 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Pengguna Tidak Ditemukan',
+                          'Data Anak Tidak Ditemukan',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                            color: isDark
+                                ? const Color(0xFFE9EDEF)
+                                : const Color(0xFF1A2228),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Tidak ditemukan data pengguna dengan kata kunci "$_searchQuery".',
+                          'Tidak ditemukan data anak dengan kata kunci "$_searchQuery".',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 13,
-                            color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                            color: isDark
+                                ? const Color(0xFF8696A0)
+                                : const Color(0xFF667781),
                           ),
                         ),
                       ],
@@ -805,9 +663,6 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 8. SKELETON / LOADING STATE
-  // ===========================================================================
   Widget _buildLoadingSkeleton() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView.builder(
@@ -818,24 +673,39 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-              width: 1,
+              color: isDark
+                  ? const Color(0xFF2C363D)
+                  : const Color(0xFFE9EDEF),
+              width: 1.2,
             ),
           ),
           child: Row(
             children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF242E35)
+                      : const Color(0xFFE9EDEF),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 160,
+                      width: 140,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+                        color: isDark
+                            ? const Color(0xFF242E35)
+                            : const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -844,19 +714,13 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                       width: 100,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+                        color: isDark
+                            ? const Color(0xFF242E35)
+                            : const Color(0xFFE9EDEF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ],
-                ),
-              ),
-              Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-                  shape: BoxShape.circle,
                 ),
               ),
             ],
@@ -866,54 +730,35 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
     );
   }
 
-  // ===========================================================================
-  // 9. ERROR STATE
-  // ===========================================================================
   Widget _buildErrorState(String error) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.cloud_off_rounded,
+              Icons.error_outline_rounded,
+              color: Color(0xFFE53935),
               size: 48,
-              color: Color(0xFFEF4444),
             ),
             const SizedBox(height: 12),
             Text(
-              'Gagal Memuat Data Pengguna',
+              'Gagal Memuat Data Pasien Anak',
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
-              'Terjadi kendala saat menghubungkan ke database: $error',
+              error,
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 12,
-                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => setState(() {}),
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text(
-                'Coba Lagi',
-                style: GoogleFonts.lato(fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _colorPrimaryBlue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                color: const Color(0xFF8696A0),
               ),
             ),
           ],
@@ -921,13 +766,4 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
       ),
     );
   }
-}
-
-// =============================================================================
-// Helper class data item navigasi bottom bar
-// =============================================================================
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

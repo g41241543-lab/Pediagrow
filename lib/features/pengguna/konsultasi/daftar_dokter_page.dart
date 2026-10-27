@@ -343,7 +343,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               userChildNames.contains(
                                 booking.child.name.toLowerCase().trim(),
                               );
-                          return isChildMatch && !booking.isExpired;
+                          final isSelesai =
+                              booking.status.toLowerCase() == 'selesai' ||
+                              booking.status.toLowerCase() == 'completed';
+                          return isChildMatch && !booking.isExpired && !isSelesai;
                         }).toList();
 
                         // Deduplikasi aman untuk memastikan tidak ada kartu ganda
@@ -848,7 +851,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                                 userChildNames.contains(
                                   booking.child.name.toLowerCase().trim(),
                                 );
-                            return isChildMatch && !booking.isExpired;
+                            final isSelesai =
+                                booking.status.toLowerCase() == 'selesai' ||
+                                booking.status.toLowerCase() == 'completed';
+                            return isChildMatch && !booking.isExpired && !isSelesai;
                           }).toList();
 
                           // Deduplikasi aman untuk memastikan tidak ada kartu ganda di UI

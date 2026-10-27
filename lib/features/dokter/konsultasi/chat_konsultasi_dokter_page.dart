@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/staff_auth_service.dart';
@@ -999,6 +1000,14 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                               _sessionEndedByUs = true; // kita yang mengakhiri
                               KonsultasiService.instance.akhiriSesi(
                                 widget.sessionId!,
+                              );
+                            }
+
+                            // Tandai booking sebagai selesai agar hilang dari antrean aktif
+                            if (widget.booking != null) {
+                              BookingService().updateBookingStatus(
+                                widget.booking!.id,
+                                'Selesai',
                               );
                             }
 

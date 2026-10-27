@@ -9,6 +9,7 @@ import '../../../../models/user_model.dart';
 import 'pilih_anak_button_sheet.dart';
 import 'superadmin_grafik_page.dart';
 import 'tab_detail_pasien/resume_medis/daftar_resume_medis_page.dart';
+import 'detail_pengguna_page.dart';
 
 /// Halaman Data Pasien Anak untuk POV Admin.
 ///
@@ -204,6 +205,34 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     );
   }
 
+  Future<void> _navigateToDataOrangtua() async {
+    UserModel? userToOpen = _parentUser;
+    if (userToOpen == null && _currentChild.ownerId.isNotEmpty) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_currentChild.ownerId)
+            .get();
+        if (doc.exists && doc.data() != null) {
+          userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+        }
+      } catch (_) {}
+    }
+
+    userToOpen ??= UserModel(
+      id: _currentChild.ownerId,
+      name: 'Orang Tua',
+      email: '-',
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DetailPenggunaPage(user: userToOpen!),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -216,13 +245,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             // 1. Header Bar Fixed (56dp)
             _buildAppBar(),
 
-            // 2. Info Nama Orang Tua (Tanpa icon, font lebih kecil & warna abu-abu)
-            _buildParentHeader(),
-
-            // 3. Tab Bar (Detail Pasien | Ruang Obrolan)
+            // 2. Tab Bar (Detail Anak | Ruang Obrolan)
             _buildTabBar(),
 
-            // 4. Konten Tab (Scrollable)
+            // 3. Konten Tab (Scrollable)
             Expanded(
               child: _selectedTabIndex == 0
                   ? _buildDetailPasienContent()
@@ -274,55 +300,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     );
   }
 
-  // ===========================================================================
-  // 2. INFO PENGGUNA (ORANG TUA)
-  // Tanpa icon di sampingnya, font lebih kecil & warna teks abu-abu
-  // ===========================================================================
-  Widget _buildParentHeader() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final parentName = _parentUser?.name.isNotEmpty == true
-        ? _parentUser!.name
-        : 'Susanti Saputri Dewi';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF242E35) : const Color(0xFFD1D7DB),
-              shape: BoxShape.circle,
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: _buildAvatarImage(
-              imagePath: _parentUser?.avatarPath,
-              size: 44,
-              fallback: Center(
-                child: Icon(
-                  Icons.person,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-                  size: 28,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              parentName,
-              style: GoogleFonts.lato(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // ===========================================================================
   // 3. TAB BAR: "Detail Pasien" & "🔒 Ruang Obrolan"
@@ -355,7 +333,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      'Detail Pasien',
+                      'Detail Anak',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.lato(
                         fontSize: 15,
@@ -508,10 +486,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
           const SizedBox(height: 20),
 
-          // B. Dua Tombol Menu Berdampingan: "Grafik Pertumbuhan" & "Resume Medis"
-          // Dibuat agak kecil, proporsional, dan jarak kanan, tengah, serta kiri simetris
+          // B. Tiga Tombol Menu Berdampingan: "Grafik Pertumbuhan", "Resume Medis", & "Data Orangtua"
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // 1. Grafik Pertumbuhan (Menggunakan logo resmi grafik_pertumbuhan_logo.png)
               _buildFeatureButton(
@@ -533,13 +510,18 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 },
               ),
 
-              const SizedBox(width: 48),
-
               // 2. Resume Medis (Menggunakan logo resmi data_pasien_logo.png)
               _buildFeatureButton(
                 title: 'Resume\nMedis',
                 imageAsset: 'assets/images/data_pasien_logo.png',
                 onTap: _navigateToResumeMedis,
+              ),
+
+              // 3. Data Orangtua
+              _buildFeatureButton(
+                title: 'Data\nOrangtua',
+                icon: Icons.badge_outlined,
+                onTap: _navigateToDataOrangtua,
               ),
             ],
           ),
@@ -559,10 +541,32 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
   // ===========================================================================
   Widget _buildFeatureButton({
     required String title,
-    required String imageAsset,
+    String? imageAsset,
+    IconData? icon,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    Widget iconWidget;
+    if (imageAsset != null && imageAsset.isNotEmpty) {
+      iconWidget = Image.asset(
+        imageAsset,
+        width: 36,
+        height: 36,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => Icon(
+          Icons.insert_chart_outlined,
+          size: 32,
+          color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
+        ),
+      );
+    } else {
+      iconWidget = Icon(
+        icon ?? Icons.badge_outlined,
+        size: 34,
+        color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -582,17 +586,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 border: isDark ? Border.all(color: const Color(0xFF2C363D), width: 1) : null,
               ),
               alignment: Alignment.center,
-              child: Image.asset(
-                imageAsset,
-                width: 36,
-                height: 36,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Icon(
-                  Icons.insert_chart_outlined,
-                  size: 32,
-                  color: isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue,
-                ),
-              ),
+              child: iconWidget,
             ),
           ),
         ),
