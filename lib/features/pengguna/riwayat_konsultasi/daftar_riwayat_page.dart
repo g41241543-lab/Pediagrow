@@ -38,7 +38,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   String? _errorMessage;
 
   ChildModel? _activeChild;
-  bool _showAllChildren = true;
+  final bool _showAllChildren = true;
   StreamSubscription<List<ResumeMedisModel>>? _resumeSub;
 
   final TextEditingController _searchController = TextEditingController();
@@ -92,19 +92,6 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     if (mounted) _listenToResumeMedis();
   }
 
-  void _selectChild(ChildModel? child) {
-    setState(() {
-      if (child == null) {
-        _showAllChildren = true;
-        _activeChild = null;
-      } else {
-        _showAllChildren = false;
-        _activeChild = child;
-        ChildService().setActiveChild(child);
-      }
-    });
-    _listenToResumeMedis();
-  }
 
   void _listenToResumeMedis() {
     if (!mounted) return;
@@ -541,7 +528,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSearchBarAndFilter(isDark),
+                  _buildSearchBar(isDark),
                   const Expanded(child: Center(child: RiwayatEmptyState())),
                   _buildFooterIllustration(),
                 ],
@@ -567,7 +554,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSearchBarAndFilter(isDark),
+                  _buildSearchBar(isDark),
 
                   const SizedBox(height: 10.0),
 
@@ -625,242 +612,79 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     );
   }
 
-  /// Search Bar dan Filter Kategori Anak (Identik dengan Desain Daftar Resep MPASI)
-  Widget _buildSearchBarAndFilter(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 1. Search Bar mirip Daftar Resep MPASI
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2F4F7),
-              borderRadius: BorderRadius.circular(20),
-              border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_rounded,
-                  size: 22,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    onChanged: (val) {
-                      setState(() => _searchQuery = val.trim());
-                    },
-                    style: GoogleFonts.lato(
-                      fontSize: 15,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Cari riwayat konsultasi...',
-                      hintStyle: GoogleFonts.lato(
-                        fontSize: 14.5,
-                        color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                        fontWeight: FontWeight.w400,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    textInputAction: TextInputAction.search,
-                  ),
-                ),
-                if (_searchQuery.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      _searchFocusNode.unfocus();
-                      setState(() => _searchQuery = '');
-                    },
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 18,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+  /// Search Bar tanpa filter (langsung disusul kartu riwayat konsultasi)
+  Widget _buildSearchBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2F4F7),
+          borderRadius: BorderRadius.circular(20),
+          border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
         ),
-
-        // 2. Filter Kategori Anak (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
-        Builder(
-          builder: (context) {
-            final screenWidth = MediaQuery.of(context).size.width;
-            // Padding horizontal 16 kiri & kanan (total 32), 2 jarak celah antar 3 filter @ 8dp (total 16)
-            final chipWidth = (screenWidth - 32 - 16) / 3;
-
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: [
-                  _buildMpasiStyleChip(
-                    label: 'Semua',
-                    isSelected: _showAllChildren,
-                    onTap: () => _selectChild(null),
-                    isDark: isDark,
-                    width: chipWidth,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_rounded,
+              size: 22,
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onChanged: (val) {
+                  setState(() => _searchQuery = val.trim());
+                },
+                style: GoogleFonts.lato(
+                  fontSize: 15,
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Cari riwayat konsultasi...',
+                  hintStyle: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+                    fontWeight: FontWeight.w400,
                   ),
-                  const SizedBox(width: 8),
-                  ...ChildService().children.map((child) {
-                    final isSelected = !_showAllChildren && _activeChild?.id == child.id;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _buildMpasiStyleChip(
-                        label: child.name,
-                        isSelected: isSelected,
-                        onTap: () => _selectChild(child),
-                        isDark: isDark,
-                        width: chipWidth,
-                      ),
-                    );
-                  }),
-                ],
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                textInputAction: TextInputAction.search,
               ),
-            );
-          },
+            ),
+            if (_searchQuery.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchController.clear();
+                  _searchFocusNode.unfocus();
+                  setState(() => _searchQuery = '');
+                },
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildMpasiStyleChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required bool isDark,
-    required double width,
-  }) {
-    return _HoverChip(
-      label: label,
-      isSelected: isSelected,
-      onTap: onTap,
-      isDark: isDark,
-      width: width,
+      ),
     );
   }
 
   /// Ilustrasi Footer Landscape Full-Bleed
   Widget _buildFooterIllustration() {
     return const IllustrationForestFooter(fit: BoxFit.fitWidth);
-  }
-}
-
-class _HoverChip extends StatefulWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final bool isDark;
-  final double width;
-
-  const _HoverChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.isDark,
-    required this.width,
-  });
-
-  @override
-  State<_HoverChip> createState() => _HoverChipState();
-}
-
-class _HoverChipState extends State<_HoverChip> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    Color bgColor;
-    Color borderColor;
-
-    if (widget.isSelected) {
-      bgColor = widget.isDark
-          ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
-          : const Color(0xFFEFF6FF);
-      borderColor = const Color(0xFF3985E7);
-    } else {
-      if (_hovered) {
-        bgColor = widget.isDark
-            ? const Color(0xFF243038)
-            : const Color(0xFFF1F5F9);
-        borderColor = widget.isDark
-            ? const Color(0xFF475569)
-            : const Color(0xFFCBD5E1);
-      } else {
-        bgColor = widget.isDark ? const Color(0xFF1A2228) : Colors.white;
-        borderColor = widget.isDark
-            ? const Color(0xFF2C363D)
-            : const Color(0xFFE9EDEF);
-      }
-    }
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        if (mounted) setState(() => _hovered = true);
-      },
-      onExit: (_) {
-        if (mounted) setState(() => _hovered = false);
-      },
-      child: GestureDetector(
-        onTap: widget.onTap,
-        onTapDown: (_) {
-          if (mounted) setState(() => _hovered = true);
-        },
-        onTapUp: (_) {
-          if (mounted) setState(() => _hovered = false);
-        },
-        onTapCancel: () {
-          if (mounted) setState(() => _hovered = false);
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: widget.width,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: borderColor,
-              width: 1.2,
-            ),
-          ),
-          child: Text(
-            widget.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 13,
-              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
-              color: widget.isSelected
-                  ? const Color(0xFF3985E7)
-                  : (widget.isDark
-                      ? const Color(0xFF8696A0)
-                      : const Color(0xFF7F7F7F)),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
