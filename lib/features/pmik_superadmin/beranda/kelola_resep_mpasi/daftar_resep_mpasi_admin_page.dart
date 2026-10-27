@@ -6,14 +6,11 @@ import '../../../../core/services/storage_service.dart';
 import '../../../../models/resep_mpasi_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_banner.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pengguna/mpasi/detail_resep_page.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
-import '../../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
-import '../../../pmik_admin/profil_pmik_page.dart';
-import '../../konsultasi/konsultasi_superadmin_page.dart';
-import '../../profil/profil_superadmin_page.dart';
-import '../../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../beranda_superadmin_page.dart';
+import '../../../dokter/beranda/beranda_dokter_page.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/staff_account_model.dart';
 import 'edit_resep_mpasi_page.dart';
@@ -33,9 +30,13 @@ class DaftarResepMpasiAdminPage extends StatefulWidget {
 class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   final ResepMpasiService _service = ResepMpasiService();
 
-  bool get isReadOnly =>
-      widget.isReadOnly ||
-      StaffAuthService().currentStaff?.role == StaffRole.dokter;
+  bool get isReadOnly {
+    if (widget.isReadOnly) return true;
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return false;
+    if (staff.isSuperAdmin) return false;
+    return !staff.hasPermission('edit_resep_mpasi');
+  }
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -56,8 +57,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   ];
 
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorDark = Color(0xFF0B1014);
-  static const Color _colorMuted = Color(0xFF8696A0);
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
@@ -271,30 +270,37 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
     }
   }
 
+  void _navigateBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      final staff = StaffAuthService().currentStaff;
+      final isDokter = staff?.role == StaffRole.dokter;
+      final isPmik = staff?.role == StaffRole.admin;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => isDokter
+              ? const BerandaDokterPage()
+              : isPmik
+                  ? const BerandaPmikPage()
+                  : const BerandaSuperadminPage(),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        } else {
-          final isPmik =
-              StaffAuthService().currentStaff?.role == StaffRole.admin;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => isPmik
-                  ? const BerandaPmikPage()
-                  : const BerandaSuperadminPage(),
-            ),
-            (route) => false,
-          );
-        }
+        _navigateBack();
       },
       child: Scaffold(
         backgroundColor: _scaffoldBg,
-        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+        bottomNavigationBar: _buildBottomNavigationBar(),
         body: SafeArea(
           child: Column(
             children: [
@@ -321,22 +327,7 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                } else {
-                  final isPmik =
-                      StaffAuthService().currentStaff?.role == StaffRole.admin;
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) => isPmik
-                          ? const BerandaPmikPage()
-                          : const BerandaSuperadminPage(),
-                    ),
-                    (route) => false,
-                  );
-                }
-              },
+              onTap: _navigateBack,
               borderRadius: BorderRadius.circular(24.0),
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
@@ -734,125 +725,6 @@ class _DaftarResepMpasiAdminPageState extends State<DaftarResepMpasiAdminPage> {
   }
 
   Widget _buildBottomNavigationBar() {
-    final navItems = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 24.0,
-                        color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                      ),
-                      const SizedBox(height: 3.0),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            item.label,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 11.0,
-                              fontWeight: FontWeight.normal,
-                              color: _isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
+    return const PediaBottomNavBar(selectedIndex: -1);
   }
-
-  void _onNavTap(int index) {
-    final isPmik = StaffAuthService().currentStaff?.role == StaffRole.admin;
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => isPmik
-                ? const BerandaPmikPage()
-                : const BerandaSuperadminPage(),
-          ),
-          (route) => false,
-        );
-        break;
-      case 1:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => isPmik
-                ? const KonsultasiPmikAdminPage()
-                : const KonsultasiSuperadminPage(),
-          ),
-        );
-        break;
-      case 2:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const DaftarRiwayatKonsultasiAdminPage(),
-          ),
-        );
-        break;
-      case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => isPmik
-                ? const ProfilPmikPage()
-                : const ProfilSuperadminPage(),
-          ),
-        );
-        break;
-    }
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-
-  const _NavItem({required this.icon, required this.label});
 }

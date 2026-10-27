@@ -130,7 +130,9 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       perms['hak_akses'] = item['hak_akses'] as bool;
       perms['download_dataset_rekapitulasi'] = true;
       perms['daftar_resep_mpasi'] = true;
+      perms['edit_resep_mpasi'] = true;
       perms['daftar_artikel_kesehatan'] = true;
+      perms['edit_artikel_kesehatan'] = true;
       perms['download_dataset_pengguna'] = true;
       perms['permainan'] = true;
       perms['edit_resume_medis'] = false;
@@ -293,11 +295,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           ],
         ),
       ),
-<<<<<<< HEAD
-      bottomNavigationBar: _buildBottomNavigationBar(isDark),
-=======
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
     );
   }
 
@@ -624,21 +622,12 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
 
   Widget _buildFallbackAvatarIcon(bool isDark) {
     return Container(
-<<<<<<< HEAD
-      color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+      color: isDark ? const Color(0xFF242E35) : const Color(0xFFECF6FF),
       alignment: Alignment.center,
       child: Icon(
-        Icons.person,
-        size: 36.0,
-        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
-=======
-      color: const Color(0xFFECF6FF),
-      alignment: Alignment.center,
-      child: const Icon(
         Icons.person_rounded,
         size: 36.0,
-        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF3985E7),
       ),
     );
   }
@@ -662,13 +651,8 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
               Container(
                 width: 76.0,
                 height: 76.0,
-<<<<<<< HEAD
                 decoration: BoxDecoration(
                   color: circleBg,
-=======
-                decoration: const BoxDecoration(
-                  color: Color(0xFFECF6FF),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -705,110 +689,5 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       ),
     );
   }
-<<<<<<< HEAD
-
-  // ---------------------------------------------------------------------------
-  // BOTTOM NAVIGATION BAR (Permanen Scaffold 4 Menu)
-  // ---------------------------------------------------------------------------
-  Widget _buildBottomNavigationBar(bool isDark) {
-    final barBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
-
-    return Container(
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: barBg,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(
-            index: 0,
-            icon: Icons.home_rounded,
-            label: 'Beranda',
-            isActive: _selectedNavIndex == 0,
-            isDark: isDark,
-          ),
-          _buildNavItem(
-            index: 1,
-            icon: Icons.chat_bubble_outline_rounded,
-            label: 'Konsultasi',
-            isActive: _selectedNavIndex == 1,
-            isDark: isDark,
-          ),
-          _buildNavItem(
-            index: 2,
-            icon: Icons.history_rounded,
-            label: 'Riwayat Konsultasi',
-            isActive: _selectedNavIndex == 2,
-            isDark: isDark,
-          ),
-          _buildNavItem(
-            index: 3,
-            icon: Icons.person_rounded,
-            label: 'Profil',
-            isActive: _selectedNavIndex == 3,
-            isDark: isDark,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required int index,
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required bool isDark,
-  }) {
-    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
-    final inactiveColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF4A4A4A);
-
-    return GestureDetector(
-      onTap: () => _handleBottomNavTap(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 76.0,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6.0),
-              decoration: BoxDecoration(
-                color: isActive ? activeCircleBg : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 24.0,
-                color: isActive ? const Color(0xFF72A9F4) : inactiveColor,
-              ),
-            ),
-            const SizedBox(height: 2.0),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 10.5,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? const Color(0xFF72A9F4) : inactiveColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-=======
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
 }
 

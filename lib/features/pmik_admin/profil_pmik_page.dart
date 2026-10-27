@@ -489,33 +489,20 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () => _onBottomNavTap(0),
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
-                    ),
-                  ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Profil',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.lato(
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                  letterSpacing: -0.2,
                 ),
-                const SizedBox(width: 12.0),
-                Text(
-                  'Profil',
-                  style: GoogleFonts.lato(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -684,9 +671,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _pmik?.experience != null
-                          ? '${_pmik!.experience} thn'
-                          : '-',
+                      value: _formatExperience(_pmik?.experience),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -813,25 +798,15 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     );
   }
 
+  String _formatExperience(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '-';
+    final digits = RegExp(r'\d+').stringMatch(raw);
+    if (digits != null) return '$digits tahun';
+    return raw;
+  }
+
   // ─── GENERAL INFO CARD ────────────────────────────────────────────────────
   Widget _buildGeneralInfoCard(bool isDark) {
-    final items = [
-      _InfoItem(
-        icon: Icons.cake_rounded,
-        iconColor: const Color(0xFFEC4899),
-        bgColor: const Color(0xFFFDF2F8),
-        label: 'Tanggal Lahir',
-        value: _pmik?.birthDate ?? '-',
-      ),
-      _InfoItem(
-        icon: Icons.school_rounded,
-        iconColor: const Color(0xFF7C3AED),
-        bgColor: const Color(0xFFF5F3FF),
-        label: 'Pendidikan',
-        value: _pmik?.education ?? '-',
-      ),
-    ];
-
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A2228) : Colors.white,
@@ -843,66 +818,124 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 12.0,
-            offset: const Offset(0, 2),
+            blurRadius: 10.0,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
-        children: List.generate(items.length, (i) {
-          final item = items[i];
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 14.0,
+        children: [
+          // Item 1: Tanggal Lahir
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2C363D) : item.bgColor,
-                        borderRadius: BorderRadius.circular(10),
+                const SizedBox(width: 14.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tanggal Lahir',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                        ),
                       ),
-                      alignment: Alignment.center,
-                      child: Icon(item.icon, size: 20, color: item.iconColor),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.label,
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            color: const Color(0xFF8696A0),
-                          ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        _pmik?.birthDate ?? '16/09/2005',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
-                        Text(
-                          item.value,
-                          style: GoogleFonts.lato(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                          ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Garis pemisah tipis
+          Divider(
+            height: 1.0,
+            thickness: 1.0,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            indent: 68.0,
+          ),
+
+          // Item 2: Pendidikan
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.school_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
+                ),
+                const SizedBox(width: 14.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pendidikan',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        _pmik?.education ??
+                            'DIV Manajemen Informasi Kesehatan (MIK) - Politeknik Negeri Jember',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (i < items.length - 1)
-                Divider(
-                  height: 1,
-                  indent: 66,
-                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-                ),
-            ],
-          );
-        }),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1030,21 +1063,6 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 }
 
-// ─── DATA CLASS ───────────────────────────────────────────────────────────────
-class _InfoItem {
-  final IconData icon;
-  final Color iconColor;
-  final Color bgColor;
-  final String label;
-  final String value;
-  const _InfoItem({
-    required this.icon,
-    required this.iconColor,
-    required this.bgColor,
-    required this.label,
-    required this.value,
-  });
-}
 
 class _NavItem {
   final IconData icon;

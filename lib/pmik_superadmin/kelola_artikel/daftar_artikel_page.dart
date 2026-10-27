@@ -29,9 +29,13 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
   // Service terpusat yang sama persis dengan halaman pengguna
   final ArtikelService _artikelService = ArtikelService();
 
-  bool get isReadOnly =>
-      widget.isReadOnly ||
-      StaffAuthService().currentStaff?.role == StaffRole.dokter;
+  bool get isReadOnly {
+    if (widget.isReadOnly) return true;
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return false;
+    if (staff.isSuperAdmin) return false;
+    return !staff.hasPermission('edit_artikel_kesehatan');
+  }
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -44,7 +48,6 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
 
   // Konstanta warna sesuai panduan desain
   static const Color _colorDarkGray = Color(0xFF7F7F7F);
-  static const Color _colorLightGray = Color(0xFFC5C5C5);
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
@@ -327,8 +330,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
       },
       child: Scaffold(
         backgroundColor: _scaffoldBg,
-        // Bottom Navigation Bar hanya untuk Superadmin/PMIK
-        bottomNavigationBar: isReadOnly ? null : _buildBottomNavigationBar(),
+        bottomNavigationBar: _buildBottomNavigationBar(),
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -560,7 +562,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
         border: Border.all(color: _borderColor, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: _isDark ? Colors.black.withOpacity(0.2) : const Color(0x0A000000),
+            color: _isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
             blurRadius: 8.0,
             offset: const Offset(0, 2),
           ),

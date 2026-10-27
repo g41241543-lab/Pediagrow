@@ -944,14 +944,26 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         children: [
           // Item 1: Tanggal Lahir
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 26.0,
-                  color: Color(0xFF8696A0),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(
@@ -986,18 +998,31 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             height: 1.0,
             thickness: 1.0,
             color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            indent: 68.0,
           ),
 
           // Item 2: Pendidikan
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.home_work_outlined,
-                  size: 26.0,
-                  color: Color(0xFF8696A0),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.school_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(

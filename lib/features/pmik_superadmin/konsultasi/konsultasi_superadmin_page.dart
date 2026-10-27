@@ -447,11 +447,6 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             final validUserBookings = <BookingConsultationModel>[];
             for (final b in userBookings) {
               if (b.isExpired) continue;
-              // Jangan tampilkan booking yang sudah selesai di antrean aktif
-              final isSelesai =
-                  b.status.toLowerCase() == 'selesai' ||
-                  b.status.toLowerCase() == 'completed';
-              if (isSelesai) continue;
               final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
               if (seenSuperadmin.add(b.id) && seenSuperadmin.add(slotKey)) {
                 validUserBookings.add(b);
@@ -525,7 +520,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   ],
                 ),
               ),
-              bottomNavigationBar: _buildBottomNavigationBar(isDark),
+              bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(isDark),
             );
           },
         );

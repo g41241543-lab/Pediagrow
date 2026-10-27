@@ -108,6 +108,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
           );
           break;
         case 'daftar_resep_mpasi':
+        case 'edit_resep_mpasi':
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => const DaftarResepMpasiAdminPage(),
@@ -115,6 +116,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
           );
           break;
         case 'daftar_artikel_kesehatan':
+        case 'edit_artikel_kesehatan':
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => const DaftarArtikelAdminPage(),
