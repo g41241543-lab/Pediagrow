@@ -430,15 +430,23 @@ class _DetailRiwayatKonsultasiAdminPageState
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF33CCA6),
+          color: _isDark
+              ? const Color(0xFF064E3B).withValues(alpha: 0.6)
+              : const Color(0xFF33CCA6),
           borderRadius: BorderRadius.circular(12.0),
+          border: _isDark
+              ? Border.all(
+                  color: const Color(0xFF059669).withValues(alpha: 0.4),
+                  width: 1.0,
+                )
+              : null,
         ),
         child: Text(
           'Selesai',
           style: GoogleFonts.lato(
             fontSize: 12.0,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: _isDark ? const Color(0xFF34D399) : Colors.white,
           ),
         ),
       );
@@ -446,15 +454,23 @@ class _DetailRiwayatKonsultasiAdminPageState
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFEEA0),
+          color: _isDark
+              ? const Color(0xFF78350F).withValues(alpha: 0.5)
+              : const Color(0xFFFFEEA0),
           borderRadius: BorderRadius.circular(12.0),
+          border: _isDark
+              ? Border.all(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.3),
+                  width: 1.0,
+                )
+              : null,
         ),
         child: Text(
           'Dijadwalkan',
           style: GoogleFonts.lato(
             fontSize: 12.0,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFFE67E00),
+            color: _isDark ? const Color(0xFFFBBF24) : const Color(0xFFE67E00),
           ),
         ),
       );
