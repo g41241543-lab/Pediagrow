@@ -1,4 +1,4 @@
-﻿import 'dart:ui' as ui;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/fasyankes_model.dart';
+import 'fasyankes_detail_bottom_sheet.dart';
 
 enum MapDisplayType {
   standard,
@@ -30,6 +31,7 @@ class FasyankesMapWidget extends StatefulWidget {
   final ValueChanged<FasyankesModel>? onFasyankesSelected;
   final VoidCallback? onLocateUser;
   final double height;
+  final bool autoCenterUserOnLocationChange;
 
   const FasyankesMapWidget({
     super.key,
@@ -40,6 +42,7 @@ class FasyankesMapWidget extends StatefulWidget {
     this.onFasyankesSelected,
     this.onLocateUser,
     this.height = 270,
+    this.autoCenterUserOnLocationChange = false,
   });
 
   @override
@@ -79,13 +82,22 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
   @override
   void didUpdateWidget(covariant FasyankesMapWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Animasikan kamera ke fasyankes yang dipilih
+    // 1. Animasikan kamera ke fasyankes yang dipilih jika berganti
     if (widget.selectedFasyankes != null &&
-        widget.selectedFasyankes != oldWidget.selectedFasyankes) {
+        widget.selectedFasyankes?.id != oldWidget.selectedFasyankes?.id) {
       _animatedMove(
         LatLng(widget.selectedFasyankes!.latitude,
             widget.selectedFasyankes!.longitude),
         15.5,
+      );
+    } else if ((widget.userLat != oldWidget.userLat ||
+            widget.userLng != oldWidget.userLng) &&
+        (widget.selectedFasyankes == null ||
+            widget.autoCenterUserOnLocationChange)) {
+      // 2. Animasikan ke lokasi pengguna saat koordinat perangkat terdeteksi/berubah
+      _animatedMove(
+        LatLng(widget.userLat, widget.userLng),
+        15.2,
       );
     }
   }
@@ -211,50 +223,63 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
                     // Marker Pengguna
                     Marker(
                       point: userLatLng,
-                      width: 44,
-                      height: 44,
-                      child: AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Lingkaran pulsing aura
-                              Container(
-                                width: 36 * _pulseAnimation.value,
-                                height: 36 * _pulseAnimation.value,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0x442563EB),
-                                ),
+                      width: 48,
+                      height: 48,
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '📍 Lokasi Perangkat Anda: ${widget.userLat.toStringAsFixed(6)}, ${widget.userLng.toStringAsFixed(6)}',
                               ),
-                              // Dot putih border
-                              Container(
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.25),
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Titik biru pusat
-                              Container(
-                                width: 10,
-                                height: 10,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ),
-                            ],
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                            ),
                           );
                         },
+                        child: AnimatedBuilder(
+                          animation: _pulseAnimation,
+                          builder: (context, child) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Lingkaran pulsing aura
+                                Container(
+                                  width: 38 * _pulseAnimation.value,
+                                  height: 38 * _pulseAnimation.value,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0x442563EB),
+                                  ),
+                                ),
+                                // Dot putih border
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.25),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Titik biru pusat
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
 
@@ -517,13 +542,7 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
 
   Widget _buildCallout(FasyankesModel fasyankes, bool isDark) {
     return GestureDetector(
-      onTap: () async {
-        // Buka di Google Maps dengan nama + koordinat akurat
-        final uri = Uri.parse(fasyankes.googleMapsUrl);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }
-      },
+      onTap: () => FasyankesDetailBottomSheet.show(context, fasyankes),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
@@ -577,29 +596,65 @@ class _FasyankesMapWidgetState extends State<FasyankesMapWidget>
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    '${fasyankes.category} • ${fasyankes.formattedDistance}',
-                    style: GoogleFonts.lato(
-                      fontSize: 11,
-                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF6B7280),
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, size: 13, color: Color(0xFFFBBF24)),
+                      const SizedBox(width: 2),
+                      Text(
+                        fasyankes.rating.toStringAsFixed(1),
+                        style: GoogleFonts.lato(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF111827),
+                        ),
+                      ),
+                      if (fasyankes.formattedDistance.isNotEmpty) ...[
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '• ${fasyankes.formattedDistance}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 11,
+                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF6B7280),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2563EB),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                'Buka Maps',
-                style: GoogleFonts.lato(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri.parse(fasyankes.googleMapsUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2563EB),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.directions_rounded, size: 12, color: Colors.white),
+                    const SizedBox(width: 3),
+                    Text(
+                      'Buka Maps',
+                      style: GoogleFonts.lato(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

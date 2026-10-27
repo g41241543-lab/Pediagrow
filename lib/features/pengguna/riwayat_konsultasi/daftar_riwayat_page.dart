@@ -13,6 +13,7 @@ import '../../../models/resume_medis_model.dart';
 import '../../../models/riwayat_konsultasi_model.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../beranda/beranda_page.dart';
 import 'detail_konsultasi_page.dart';
 import 'widgets/riwayat_consultation_card.dart';
 import 'widgets/riwayat_empty_state.dart';
@@ -322,24 +323,49 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     );
   }
 
+  void _handleBack() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const BerandaPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: RiwayatHeader(
-          title: 'Riwayat Konsultasi',
-          showBackButton: false,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: RiwayatHeader(
+            title: 'Riwayat Konsultasi',
+            showBackButton: true,
+            onBackPressed: _handleBack,
+          ),
         ),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: _buildBody(isDark),
+        ),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 2),
       ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: _buildBody(isDark),
-      ),
-      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 2),
     );
   }
 
@@ -668,11 +694,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
         ),
 
         // 2. Filter Kategori Anak (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final screenWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                ? constraints.maxWidth
-                : MediaQuery.of(context).size.width;
+        Builder(
+          builder: (context) {
+            final screenWidth = MediaQuery.of(context).size.width;
             // Padding horizontal 16 kiri & kanan (total 32), 2 jarak celah antar 3 filter @ 8dp (total 16)
             final chipWidth = (screenWidth - 32 - 16) / 3;
 

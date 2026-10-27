@@ -16,6 +16,9 @@ import '../../pmik_admin/profil_pmik_page.dart';
 import '../beranda/beranda_superadmin_page.dart';
 import '../konsultasi/konsultasi_superadmin_page.dart';
 import '../profil/profil_superadmin_page.dart';
+import '../../pengguna/beranda/beranda_page.dart';
+import '../../pengguna/konsultasi/daftar_dokter_page.dart';
+import '../../pengguna/profil/menu_profil_page.dart';
 import 'detail_riwayat_konsultasi_admin_page.dart';
 import 'riwayat_konsultasi_admin_model.dart';
 import 'riwayat_konsultasi_admin_service.dart';
@@ -140,7 +143,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
               ? const BerandaDokterPage()
               : isPmik
                   ? const BerandaPmikPage()
-                  : const BerandaSuperadminPage(),
+                  : staff == null
+                      ? const BerandaPage()
+                      : const BerandaSuperadminPage(),
         ),
         (route) => false,
       );
@@ -161,14 +166,18 @@ class _DaftarRiwayatKonsultasiAdminPageState
             ? const BerandaDokterPage()
             : isPmik
                 ? const BerandaPmikPage()
-                : const BerandaSuperadminPage();
+                : staff == null
+                    ? const BerandaPage()
+                    : const BerandaSuperadminPage();
         break;
       case 1:
         targetPage = isDokter
             ? const KonsultasiDokterPage()
             : isPmik
                 ? const KonsultasiPmikAdminPage()
-                : const KonsultasiSuperadminPage();
+                : staff == null
+                    ? const DaftarDokterPage()
+                    : const KonsultasiSuperadminPage();
         break;
       case 2:
         return;
@@ -177,7 +186,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
             ? const ProfilDokterPage()
             : isPmik
                 ? const ProfilPmikPage()
-                : const ProfilSuperadminPage();
+                : staff == null
+                    ? const MenuProfilPage()
+                    : const ProfilSuperadminPage();
         break;
       default:
         return;
@@ -745,11 +756,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
         const SizedBox(height: 10.0),
 
         // 2. Filter Kapsul Anak yang Ditangani Dokter (1 halaman menampilkan 3 filter pas, bisa digeser menyamping jika >3)
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                ? constraints.maxWidth
-                : (MediaQuery.of(context).size.width - 32.0);
+        Builder(
+          builder: (context) {
+            final availableWidth = MediaQuery.of(context).size.width - 32.0;
             // 2 jarak celah antar 3 filter @ 8dp (total 16)
             final chipWidth = (availableWidth - 16.0) / 3;
 
