@@ -1212,55 +1212,19 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                               ),
                             ),
                           ),
-                          if (item.key == 'daftar_resep_mpasi' ||
-                              item.key == 'daftar_artikel_kesehatan')
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0,
-                                vertical: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(
-                                  color: const Color(0xFFBFDBFE),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.visibility_outlined,
-                                    size: 14.0,
-                                    color: Color(0xFF2563EB),
-                                  ),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    'Hanya Lihat',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF2563EB),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Switch(
-                              value: isChecked,
-                              activeThumbColor: const Color(0xFF3985E7),
-                              activeTrackColor:
-                                  const Color(0xFF3985E7).withValues(alpha: 0.5),
-                              inactiveThumbColor: const Color(0xFFFFFFFF),
-                              inactiveTrackColor: const Color(0xFF8696A0),
-                              onChanged: (val) {
-                                setState(() {
-                                  _permissions[item.key] = val;
-                                });
-                              },
-                            ),
+                          Switch(
+                            value: isChecked,
+                            activeThumbColor: const Color(0xFF3985E7),
+                            activeTrackColor:
+                                const Color(0xFF3985E7).withValues(alpha: 0.5),
+                            inactiveThumbColor: const Color(0xFFFFFFFF),
+                            inactiveTrackColor: const Color(0xFF8696A0),
+                            onChanged: (val) {
+                              setState(() {
+                                _permissions[item.key] = val;
+                              });
+                            },
+                          ),
                         ],
                       ),
                     ),

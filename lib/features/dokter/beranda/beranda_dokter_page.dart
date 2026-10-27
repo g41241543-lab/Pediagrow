@@ -8,10 +8,10 @@ import '../../../core/services/superadmin_notification_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../models/superadmin_notification_model.dart';
-import '../../pengguna/artikel/artikel_kesehatan_page.dart';
+import '../../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../pengguna/mpasi/daftar_resep_page.dart';
+import '../../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import 'data_pasien/data_pasien_page.dart';
@@ -45,6 +45,37 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
   void _navigateTo(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  }
+
+  bool _canAccessFeature(String permissionKey) {
+    final staff = StaffAuthService().currentStaff;
+    if (staff != null && staff.permissions.isNotEmpty) {
+      return staff.hasPermission(permissionKey);
+    }
+    final doc = DoctorService().findDoctorForStaff(staff);
+    if (doc != null && doc.permissions.isNotEmpty) {
+      return doc.permissions[permissionKey] ?? true;
+    }
+    if (staff != null) {
+      return staff.hasPermission(permissionKey);
+    }
+    return true;
+  }
+
+  void _handleMenuTap({
+    required String permissionKey,
+    required String featureName,
+    required VoidCallback onAllowed,
+  }) {
+    if (_canAccessFeature(permissionKey)) {
+      onAllowed();
+    } else {
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
+        targetRole: PushRole.dokter,
+      );
+    }
   }
 
   void _openAturJadwalDokter() {
@@ -447,91 +478,124 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // 6. Permainan (Terkunci dengan gembok seperti role pmik_superadmin)
   // =========================================================================
   Widget _build6MenuGrid(BuildContext context) {
-    return Column(
-      children: [
-        // Baris 1: Rekapitulasi, Data Pasien, Jadwal Praktik (semua aktif)
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return ValueListenableBuilder<StaffAccount?>(
+      valueListenable: StaffAuthService().currentStaffNotifier,
+      builder: (context, staff, _) {
+        final canRekap = _canAccessFeature('rekapitulasi');
+        final canPasien = _canAccessFeature('data_pasien');
+        final canResep = _canAccessFeature('daftar_resep_mpasi');
+        final canArtikel = _canAccessFeature('daftar_artikel_kesehatan');
+        final canPermainan = _canAccessFeature('permainan');
+
+        return Column(
           children: [
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Rekapitulasi',
-                customIcon: _buildRekapitulasiLogo(),
-                blobColor: const Color(0xFFD97706),
-                isLocked: false,
-                onTap: () =>
-                    _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
-              ),
+            // Baris 1: Rekapitulasi, Data Pasien, Jadwal Praktik
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Rekapitulasi',
+                    customIcon: _buildRekapitulasiLogo(),
+                    blobColor: const Color(0xFFD97706),
+                    isLocked: !canRekap,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'rekapitulasi',
+                      featureName: 'Rekapitulasi',
+                      onAllowed: () =>
+                          _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Data\nPasien',
+                    imageAsset: 'assets/images/data_pasien_logo.png',
+                    blobColor: const Color(0xFF3CC3A6),
+                    isLocked: !canPasien,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'data_pasien',
+                      featureName: 'Data Pasien',
+                      onAllowed: () => _navigateTo(const DataPasienPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Jadwal\nPraktik',
+                    customIcon: _buildJadwalPraktikLogo(),
+                    blobColor: const Color(0xFF0284C7),
+                    isLocked: false,
+                    onTap: _openAturJadwalDokter,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Data\nPasien',
-                imageAsset: 'assets/images/data_pasien_logo.png',
-                blobColor: const Color(0xFF3CC3A6),
-                isLocked: false,
-                onTap: () => _navigateTo(const DataPasienPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Jadwal\nPraktik',
-                customIcon: _buildJadwalPraktikLogo(),
-                blobColor: const Color(0xFF0284C7),
-                isLocked: false,
-                onTap: _openAturJadwalDokter,
-              ),
+
+            const SizedBox(height: 20),
+
+            // Baris 2: Resep MPASI, Daftar Artikel Kesehatan, Permainan
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Resep\nMPASI',
+                    imageAsset: 'assets/images/resep_mpasi_logo.png',
+                    blobColor: const Color(0xFFF97316),
+                    isLocked: !canResep,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_resep_mpasi',
+                      featureName: 'Daftar Resep MPASI',
+                      onAllowed: () =>
+                          _navigateTo(const DaftarResepMpasiAdminPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Daftar Artikel\nKesehatan',
+                    imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                    blobColor: const Color(0xFF10B981),
+                    isLocked: !canArtikel,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_artikel_kesehatan',
+                      featureName: 'Daftar Artikel Kesehatan',
+                      onAllowed: () =>
+                          _navigateTo(const DaftarArtikelAdminPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    title: 'Permainan\n',
+                    imageAsset: 'assets/images/permainan_logo.png',
+                    blobColor: const Color(0xFFF59E0B),
+                    logoOffsetX: 5,
+                    isLocked: !canPermainan,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'permainan',
+                      featureName: 'Permainan',
+                      onAllowed: () => _showLockedMenuNotice('Permainan'),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-
-        const SizedBox(height: 20),
-
-        // Baris 2: Resep MPASI, Daftar Artikel Kesehatan, Permainan (terkunci)
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Resep\nMPASI',
-                imageAsset: 'assets/images/resep_mpasi_logo.png',
-                blobColor: const Color(0xFFF97316),
-                isLocked: false,
-                onTap: () => _navigateTo(const DaftarResepPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Daftar Artikel\nKesehatan',
-                imageAsset: 'assets/images/artikel_kesehatan_logo.png',
-                blobColor: const Color(0xFF10B981),
-                isLocked: false,
-                onTap: () => _navigateTo(const ArtikelKesehatanPage()),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildMenuItem(
-                title: 'Permainan\n',
-                imageAsset: 'assets/images/permainan_logo.png',
-                blobColor: const Color(0xFFF59E0B),
-                logoOffsetX: 5,
-                isLocked: true,
-                onTap: () => _showLockedMenuNotice('Permainan'),
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
   void _showLockedMenuNotice(String featureName) {
     LocalPushService().show(
       title: 'Akses Terbatas',
-      body: 'Akses fitur "$featureName" dinonaktifkan untuk role Dokter.',
+      body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
       targetRole: PushRole.dokter,
     );
   }
@@ -1069,14 +1133,27 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
         // Beranda aktif
         break;
       case 1:
-        _navigateTo(const KonsultasiDokterPage());
+        _handleMenuTap(
+          permissionKey: 'konsultasi',
+          featureName: 'Konsultasi',
+          onAllowed: () => _navigateTo(const KonsultasiDokterPage()),
+        );
         break;
       case 2:
-        _navigateTo(const DaftarRiwayatKonsultasiAdminPage());
+        _handleMenuTap(
+          permissionKey: 'riwayat_konsultasi',
+          featureName: 'Riwayat Konsultasi',
+          onAllowed: () =>
+              _navigateTo(const DaftarRiwayatKonsultasiAdminPage()),
+        );
         break;
       case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+        _handleMenuTap(
+          permissionKey: 'profil',
+          featureName: 'Profil',
+          onAllowed: () => Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+          ),
         );
         break;
     }

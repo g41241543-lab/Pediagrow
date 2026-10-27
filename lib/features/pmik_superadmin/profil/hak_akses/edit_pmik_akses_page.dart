@@ -88,7 +88,12 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     _permissions = Map<String, bool>.from(staff.permissions);
     for (final item in DoctorPermissions.allPermissions) {
       if (!_permissions.containsKey(item.key)) {
-        _permissions[item.key] = item.defaultValue;
+        if (item.key == 'edit_resep_mpasi' ||
+            item.key == 'edit_artikel_kesehatan') {
+          _permissions[item.key] = true;
+        } else {
+          _permissions[item.key] = item.defaultValue;
+        }
       }
     }
   }
