@@ -274,7 +274,7 @@ class SearchableDropdownField extends StatelessWidget {
                 child: Icon(
                   Icons.arrow_drop_down_rounded,
                   size: 20.0,
-                  color: Color(0xFF8696A0),
+                  color: Color(0xFF3985E7),
                 ),
               ),
             ),
@@ -407,7 +407,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search_rounded, size: 20, color: Color(0xFF9CA3AF)),
+                  const Icon(Icons.search_rounded, size: 20, color: Color(0xFF3985E7)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(

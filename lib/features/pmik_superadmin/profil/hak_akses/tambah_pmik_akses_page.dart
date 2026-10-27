@@ -841,13 +841,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE9EDEF),
+                      color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
                       Icons.calendar_month_outlined,
                       size: 20.0,
-                      color: Color(0xFF667781),
+                      color: Color(0xFF3985E7),
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -881,7 +881,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                   const Icon(
                     Icons.chevron_right_rounded,
                     size: 20.0,
-                    color: Color(0xFF8696A0),
+                    color: Color(0xFF3985E7),
                   ),
                 ],
               ),
@@ -924,13 +924,13 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE9EDEF),
+                      color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Icon(
                       Icons.info_outline_rounded,
                       size: 20.0,
-                      color: Color(0xFF667781),
+                      color: Color(0xFF3985E7),
                     ),
                   ),
                   const SizedBox(width: 14.0),
