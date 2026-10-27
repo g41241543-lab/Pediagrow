@@ -282,7 +282,14 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
       final newId = await ResumeMedisService().saveOrUpdateResumeMedis(resume);
 
       // Tandai booking sebagai selesai agar hilang dari antrean aktif dokter & pengguna
-      final bookingId = widget.booking?.id;
+      final currentChild = widget.child;
+      final bookingId = widget.booking?.id ??
+          BookingService().bookings.where((b) {
+            if (currentChild == null) return false;
+            return (b.child.id.isNotEmpty && b.child.id == currentChild.id) ||
+                b.child.name.toLowerCase().trim() ==
+                    currentChild.name.toLowerCase().trim();
+          }).firstOrNull?.id;
       if (bookingId != null && bookingId.isNotEmpty) {
         BookingService().updateBookingStatus(bookingId, 'Selesai');
       }

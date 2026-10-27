@@ -442,11 +442,11 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                 .where(_isJadwalBelumLewat)
                 .toList();
 
-            // Filter booking dari Firebase yang sudah expired & hilangkan duplikasi
+            // Filter booking dari Firebase yang sudah expired / selesai & hilangkan duplikasi
             final seenSuperadmin = <String>{};
             final validUserBookings = <BookingConsultationModel>[];
             for (final b in userBookings) {
-              if (b.isExpired) continue;
+              if (b.isExpired || b.isSelesai || b.isDibatalkan) continue;
               final slotKey = '${b.child.name.toLowerCase().trim()}|${b.doctor.name.toLowerCase().trim()}|${b.scheduledDate.year}-${b.scheduledDate.month}-${b.scheduledDate.day}|${b.scheduledTimeSlot.trim()}';
               if (seenSuperadmin.add(b.id) && seenSuperadmin.add(slotKey)) {
                 validUserBookings.add(b);
@@ -1142,11 +1142,19 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                               ),
                               const SizedBox(width: 8),
                               _buildStatusBadge(
-                                booking.status,
-                                _colorPrimaryBlue,
-                                isDark
-                                    ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                                    : const Color(0xFFEBF5FF),
+                                booking.isInTimeWindow
+                                    ? 'Mulai Konsultasi'
+                                    : 'Terjadwal',
+                                booking.isInTimeWindow
+                                    ? const Color(0xFF10B981)
+                                    : _colorPrimaryBlue,
+                                booking.isInTimeWindow
+                                    ? (isDark
+                                        ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                        : const Color(0xFFD1FAE5))
+                                    : (isDark
+                                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                        : const Color(0xFFEBF5FF)),
                               ),
                             ],
                           ),

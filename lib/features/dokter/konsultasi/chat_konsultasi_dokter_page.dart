@@ -1003,10 +1003,18 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                               );
                             }
 
-                            // Tandai booking sebagai selesai agar hilang dari antrean aktif
-                            if (widget.booking != null) {
+                            // Tandai booking sebagai selesai agar langsung hilang dari antrean aktif
+                            final activeChild = widget.child;
+                            final targetBooking = widget.booking ??
+                                BookingService().bookings.where((b) {
+                                  if (activeChild == null) return false;
+                                  return (b.child.id.isNotEmpty && b.child.id == activeChild.id) ||
+                                      b.child.name.toLowerCase().trim() ==
+                                          activeChild.name.toLowerCase().trim();
+                                }).firstOrNull;
+                            if (targetBooking != null) {
                               BookingService().updateBookingStatus(
-                                widget.booking!.id,
+                                targetBooking.id,
                                 'Selesai',
                               );
                             }
@@ -1997,16 +2005,6 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: text));
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Pesan disalin ke clipboard',
-                            style: GoogleFonts.lato(),
-                          ),
-                          duration: const Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
                     },
                   ),
                 ],

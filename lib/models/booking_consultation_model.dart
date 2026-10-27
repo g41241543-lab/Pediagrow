@@ -286,16 +286,24 @@ class BookingConsultationModel {
         now.isBefore(scheduledEndDateTime);
   }
 
-  /// Cek apakah waktu jadwal konsultasi sudah berakhir (waktu booking habis).
-  /// Booking berstatus 'Selesai' TIDAK dianggap expired agar tetap dapat tampil
-  /// di riwayat konsultasi dan tidak dihapus otomatis oleh BookingService.
+  /// Cek apakah status booking sudah selesai
+  bool get isSelesai {
+    final s = status.toLowerCase().trim();
+    return s == 'selesai' || s == 'completed';
+  }
+
+  /// Cek apakah booking dibatalkan
+  bool get isDibatalkan {
+    final s = status.toLowerCase().trim();
+    return s == 'dibatalkan' || s == 'cancelled';
+  }
+
+  /// Cek apakah waktu jadwal konsultasi sudah berakhir (waktu booking habis)
+  /// atau sesi konsultasi telah selesai / dibatalkan.
+  /// Jadwal yang sudah lewat, selesai, atau dibatalkan otomatis dianggap expired
+  /// dan langsung hilang dari antrean jadwal konsultasi aktif.
   bool get isExpired {
-    // Jika sudah selesai, tidak expired — data tetap disimpan sebagai riwayat
-    if (status.toLowerCase() == 'selesai' || status.toLowerCase() == 'completed') {
-      return false;
-    }
-    // Dibatalkan dianggap expired agar dihapus dari antrian aktif
-    if (status.toLowerCase() == 'dibatalkan' || status.toLowerCase() == 'cancelled') {
+    if (isSelesai || isDibatalkan) {
       return true;
     }
     return DateTime.now().isAfter(scheduledEndDateTime);

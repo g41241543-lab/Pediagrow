@@ -618,12 +618,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                     : <String>{};
 
                 final rawUserBookings = userBookings.where((b) {
-                  if (b.isExpired) return false;
-                  // Jangan tampilkan booking yang sudah selesai di antrean aktif
-                  final isSelesai =
-                      b.status.toLowerCase() == 'selesai' ||
-                      b.status.toLowerCase() == 'completed';
-                  if (isSelesai) return false;
+                  if (b.isExpired || b.isSelesai || b.isDibatalkan) return false;
                   return _isDoctorMatch(b.doctor.name, loggedInDoctorName) ||
                       doctorAliases.contains(b.doctor.id) ||
                       (currentStaff != null && b.doctor.id == currentStaff.id);
@@ -1606,11 +1601,19 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                                 ),
                                 const SizedBox(width: 8),
                                 _buildStatusBadge(
-                                  booking.status,
-                                  _colorPrimaryBlue,
-                                  isDark
-                                      ? const Color(0xFF1E3A8A)
-                                      : const Color(0xFFEBF5FF),
+                                  booking.isInTimeWindow
+                                      ? 'Mulai Konsultasi'
+                                      : 'Terjadwal',
+                                  booking.isInTimeWindow
+                                      ? const Color(0xFF10B981)
+                                      : _colorPrimaryBlue,
+                                  booking.isInTimeWindow
+                                      ? (isDark
+                                          ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                          : const Color(0xFFD1FAE5))
+                                      : (isDark
+                                          ? const Color(0xFF1E3A8A)
+                                          : const Color(0xFFEBF5FF)),
                                 ),
                               ],
                             ),

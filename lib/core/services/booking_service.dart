@@ -144,8 +144,7 @@ class BookingService {
     });
   }
 
-  /// Menghapus booking yang telah lewat jadwalnya dari memori dan Firestore.
-  /// Booking berstatus 'Selesai' TIDAK dihapus karena digunakan sebagai riwayat.
+  /// Menghapus booking yang telah lewat jadwalnya atau telah selesai dari memori dan Firestore.
   Future<void> _cleanupExpiredBookings() async {
     final current = bookingsNotifier.value;
     if (current.isEmpty) {
@@ -153,7 +152,6 @@ class BookingService {
       _cleanupTimer = null;
       return;
     }
-    // Hanya hapus yang benar-benar expired (bukan selesai)
     final expired = current.where((b) => b.isExpired).toList();
     if (expired.isEmpty) return;
 
@@ -538,8 +536,30 @@ class BookingService {
 
   /// Mengubah status booking (misalnya 'Dibatalkan' atau 'Selesai')
   /// dan menyinkronkan status tersebut ke Firestore.
+  /// Jika status 'Selesai' atau 'Dibatalkan', booking langsung dihapus dari antrean
+  /// jadwal konsultasi aktif dan dihapus dari Cloud Firestore.
   void updateBookingStatus(String bookingId, String newStatus) {
     final list = List<BookingConsultationModel>.from(bookingsNotifier.value);
+    final isDone = newStatus.toLowerCase().trim() == 'selesai' ||
+        newStatus.toLowerCase().trim() == 'completed' ||
+        newStatus.toLowerCase().trim() == 'dibatalkan' ||
+        newStatus.toLowerCase().trim() == 'cancelled';
+
+    if (isDone) {
+      list.removeWhere((b) => b.id == bookingId);
+      bookingsNotifier.value = list;
+
+      if (activeBookingNotifier.value?.id == bookingId) {
+        activeBookingNotifier.value = null;
+      }
+
+      // Hapus dari Cloud Firestore koleksi consultation_booking agar tidak tersisa di antrean
+      _db.collection(_collectionName).doc(bookingId).delete().catchError((e) {
+        debugPrint('[BookingService] Gagal menghapus booking selesai di Firestore: $e');
+      });
+      return;
+    }
+
     final idx = list.indexWhere((b) => b.id == bookingId);
     if (idx != -1) {
       final updated = list[idx].copyWith(status: newStatus);

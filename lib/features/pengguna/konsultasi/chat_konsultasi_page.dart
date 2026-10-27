@@ -1045,8 +1045,17 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         await KonsultasiService.instance.akhiriSesi(effSession);
       }
 
-      // Perbarui status booking jika ada
-      final booking = _effectiveBooking;
+      // Perbarui status booking jika ada agar langsung hilang dari antrean jadwal
+      final booking = _effectiveBooking ??
+          BookingService().activeBookingNotifier.value ??
+          BookingService().bookings.where((b) {
+            if (effectiveChild != null) {
+              return b.child.id == effectiveChild.id ||
+                  b.child.name.toLowerCase().trim() ==
+                      effectiveChild.name.toLowerCase().trim();
+            }
+            return false;
+          }).firstOrNull;
       if (booking != null) {
         BookingService().updateBookingStatus(booking.id, 'Selesai');
       }
@@ -2686,16 +2695,6 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: text));
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Pesan disalin ke clipboard',
-                            style: GoogleFonts.lato(),
-                          ),
-                          duration: const Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
                     },
                   ),
                 ],
