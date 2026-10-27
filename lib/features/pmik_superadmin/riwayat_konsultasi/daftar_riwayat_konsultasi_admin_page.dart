@@ -455,51 +455,24 @@ class _DaftarRiwayatKonsultasiAdminPageState
   }
 
   // ─── HEADER ─────────────────────────────────────────────────────────────────
-  /// Header diletakkan 56dp dari atas layar, berisi tombol back berjarak 12dp
-  /// dari tepi kiri layar, dan judul halaman di sebelah kanannya berjarak 12dp.
+  /// Header diletakkan 56dp dari atas layar fisik, tanpa tombol back,
+  /// dengan padding kiri 16dp (konsisten antara Pengguna, Admin/Superadmin, dan Dokter).
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
       color: Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 8.0),
       child: Padding(
-        padding: const EdgeInsets.only(left: 12.0, right: 16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(20.0),
-              child: InkWell(
-                onTap: _handleBack,
-                borderRadius: BorderRadius.circular(20.0),
-                hoverColor: const Color(0x12000000),
-                mouseCursor: SystemMouseCursors.click,
-                child: const SizedBox(
-                  width: 36.0,
-                  height: 36.0,
-                  child: Icon(
-                    Icons.arrow_back,
-                    size: 24.0,
-                    color: _colorTextBlack,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12.0),
-            Expanded(
-              child: Text(
-                'Riwayat Konsultasi',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.lato(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: _colorTextBlack,
-                ),
-              ),
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Text(
+          'Riwayat Konsultasi',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.lato(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: _colorTextBlack,
+          ),
         ),
       ),
     );
