@@ -595,12 +595,12 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
 
   Widget _buildFallbackAvatarIcon() {
     return Container(
-      color: const Color(0xFFE9EDEF),
+      color: const Color(0xFFECF6FF),
       alignment: Alignment.center,
       child: const Icon(
-        Icons.person,
+        Icons.person_rounded,
         size: 36.0,
-        color: Color(0xFF8696A0),
+        color: Color(0xFF3985E7),
       ),
     );
   }
@@ -621,13 +621,13 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                 width: 76.0,
                 height: 76.0,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFE9EDEF),
+                  color: Color(0xFFECF6FF),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.person_search_rounded,
                   size: 40.0,
-                  color: Color(0xFF8696A0),
+                  color: Color(0xFF3985E7),
                 ),
               ),
               const SizedBox(height: 16.0),
