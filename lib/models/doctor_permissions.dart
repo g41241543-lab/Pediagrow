@@ -11,7 +11,7 @@ class DoctorPermissionItem {
   });
 }
 
-/// Daftar 16 hak akses standar sesuai rancangan UI PediaGrow.
+/// Daftar hak akses standar sesuai rancangan UI PediaGrow.
 class DoctorPermissions {
   static const List<DoctorPermissionItem> allPermissions = [
     DoctorPermissionItem(
@@ -50,9 +50,19 @@ class DoctorPermissions {
       defaultValue: true,
     ),
     DoctorPermissionItem(
+      key: 'edit_resep_mpasi',
+      label: 'Edit Resep MPASI',
+      defaultValue: false,
+    ),
+    DoctorPermissionItem(
       key: 'daftar_artikel_kesehatan',
       label: 'Daftar Artikel Kesehatan',
       defaultValue: true,
+    ),
+    DoctorPermissionItem(
+      key: 'edit_artikel_kesehatan',
+      label: 'Edit Artikel Kesehatan',
+      defaultValue: false,
     ),
     DoctorPermissionItem(
       key: 'grafik_pengguna',

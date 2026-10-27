@@ -88,7 +88,12 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     _permissions = Map<String, bool>.from(staff.permissions);
     for (final item in DoctorPermissions.allPermissions) {
       if (!_permissions.containsKey(item.key)) {
-        _permissions[item.key] = item.defaultValue;
+        if (item.key == 'edit_resep_mpasi' ||
+            item.key == 'edit_artikel_kesehatan') {
+          _permissions[item.key] = true;
+        } else {
+          _permissions[item.key] = item.defaultValue;
+        }
       }
     }
   }
@@ -766,21 +771,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-<<<<<<< HEAD
-                        color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-=======
-                        color: const Color(0xFFEFF6FF),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 18.0,
-<<<<<<< HEAD
-                        color: textMuted,
-=======
-                        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? textMuted : const Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -857,21 +854,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-<<<<<<< HEAD
-                        color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-=======
-                        color: const Color(0xFFEFF6FF),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 18.0,
-<<<<<<< HEAD
-                        color: textMuted,
-=======
-                        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? textMuted : const Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -929,21 +918,14 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-<<<<<<< HEAD
-      errorWidget: Icon(
-        Icons.person,
-        size: 54.0,
-        color: const Color(0xFF8696A0),
-=======
-      errorWidget: Container(
-        color: const Color(0xFFECF6FF),
+errorWidget: Container(
+        color: isDark ? const Color(0xFF242E35) : const Color(0xFFECF6FF),
         alignment: Alignment.center,
-        child: const Icon(
+        child: Icon(
           Icons.person_rounded,
           size: 54.0,
-          color: Color(0xFF3985E7),
+          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF3985E7),
         ),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
       ),
     );
   }
@@ -985,21 +967,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-<<<<<<< HEAD
-                      color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-=======
-                      color: const Color(0xFFEFF6FF),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Icon(
                       Icons.calendar_month_outlined,
                       size: 20.0,
-<<<<<<< HEAD
-                      color: textMuted,
-=======
-                      color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? textMuted : const Color(0xFF3985E7),
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -1031,11 +1005,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 20.0,
-<<<<<<< HEAD
-                    color: textMuted,
-=======
-                    color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? textMuted : const Color(0xFF3985E7),
                   ),
                 ],
               ),
@@ -1050,67 +1020,18 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-<<<<<<< HEAD
-                Container(
-                  width: 36.0,
-                  height: 36.0,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Icon(
-                    Icons.school_outlined,
-                    size: 20.0,
-                    color: textMuted,
-                  ),
-                ),
-                const SizedBox(width: 14.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pendidikan',
-                        style: GoogleFonts.lato(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                          color: textTitle,
-                        ),
-                      ),
-                      const SizedBox(height: 2.0),
-                      TextFormField(
-                        controller: _educationCtrl,
-                        style: GoogleFonts.lato(
-                          fontSize: 13.5,
-                          color: textValue,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Contoh: DIV - Manajemen Informasi Kesehatan',
-                          hintStyle: GoogleFonts.lato(
-                            fontSize: 13.0,
-                            color: textMuted,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ],
-                  ),
-=======
-                Text(
+Text(
                   'Pendidikan',
                   style: GoogleFonts.lato(
                     fontSize: 14.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2228),
+                    color: textTitle,
                   ),
                 ),
                 PendidikanTripletCard(
                   entry: _educationEntry,
                   isDokter: false,
                   showRemove: false,
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                 ),
               ],
             ),
@@ -1127,21 +1048,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-<<<<<<< HEAD
-                      color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
-=======
-                      color: const Color(0xFFEFF6FF),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Icon(
                       Icons.info_outline_rounded,
                       size: 20.0,
-<<<<<<< HEAD
-                      color: textMuted,
-=======
-                      color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
+color: isDark ? textMuted : const Color(0xFF3985E7),
                     ),
                   ),
                   const SizedBox(width: 14.0),

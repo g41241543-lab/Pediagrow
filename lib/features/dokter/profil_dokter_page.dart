@@ -1096,7 +1096,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               child: const Icon(
                 Icons.school_outlined,
                 size: 20,
-                color: Color(0xFF8696A0),
+                color: Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 12),
@@ -1251,7 +1251,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               child: const Icon(
                 Icons.apartment_rounded,
                 size: 20,
-                color: Color(0xFF8696A0),
+                color: Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 12),

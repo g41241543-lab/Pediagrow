@@ -707,26 +707,12 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 20.0,
                         color: textMuted,
-=======
-                    Container(
-                      width: 28.0,
-                      height: 28.0,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(6.0),
-                      ),
-                      child: const Icon(
-                        Icons.work_outline_rounded,
-                        size: 16.0,
-                        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -802,26 +788,12 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-<<<<<<< HEAD
-                    Padding(
+Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 20.0,
                         color: textMuted,
-=======
-                    Container(
-                      width: 28.0,
-                      height: 28.0,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(6.0),
-                      ),
-                      child: const Icon(
-                        Icons.badge_outlined,
-                        size: 16.0,
-                        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -904,8 +876,6 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
     final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
-    final textValue = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
-    final textMuted = const Color(0xFF8696A0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -949,63 +919,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
             ],
           ),
           child: Column(
-<<<<<<< HEAD
-            children: List.generate(_pendidikanCtrls.length, (idx) {
-              final ctrl = _pendidikanCtrls[idx];
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.school_outlined,
-                      size: 22.0,
-                      color: textMuted,
-                    ),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextFormField(
-                            controller: ctrl,
-                            style: GoogleFonts.lato(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w500,
-                              color: textValue,
-                            ),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
-                              border: InputBorder.none,
-                              hintText: 'Riwayat Pendidikan (Gelar / Univ)',
-                              hintStyle: GoogleFonts.lato(
-                                fontSize: 14.0,
-                                color: textMuted,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          const _DottedLine(),
-                        ],
-                      ),
-                    ),
-                    if (_pendidikanCtrls.length > 1)
-                      GestureDetector(
-                        onTap: () => _removePendidikan(idx),
-                        child: const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
-                          child: Icon(
-                            Icons.remove_circle_outline_rounded,
-                            size: 20.0,
-                            color: Color(0xFFEF4444),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-=======
-            children: List.generate(_pendidikanEntries.length, (idx) {
+children: List.generate(_pendidikanEntries.length, (idx) {
               final entry = _pendidikanEntries[idx];
               return Column(
                 children: [
@@ -1016,12 +930,14 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                     onRemove: () => _removePendidikan(idx),
                   ),
                   if (idx < _pendidikanEntries.length - 1)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
-                      child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Divider(
+                        color: isDark ? cardBorder : const Color(0xFFE9EDEF),
+                        height: 1.0,
+                      ),
                     ),
                 ],
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
               );
             }),
           ),
@@ -1088,25 +1004,10 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-<<<<<<< HEAD
-                    Icon(
+Icon(
                       Icons.apartment_rounded,
                       size: 22.0,
                       color: textMuted,
-=======
-                    Container(
-                      width: 32.0,
-                      height: 32.0,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: const Icon(
-                        Icons.apartment_rounded,
-                        size: 20.0,
-                        color: Color(0xFF3985E7),
-                      ),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
@@ -1176,8 +1077,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-<<<<<<< HEAD
-        Row(
+Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
@@ -1221,15 +1121,6 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
               ),
             ),
           ],
-=======
-        Text(
-          'Jadwal Konsultasi Dokter',
-          style: GoogleFonts.lato(
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF000000),
-          ),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         ),
         const SizedBox(height: 8.0),
         Container(
@@ -1414,60 +1305,23 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                                 color: textItem,
                               ),
                             ),
+                          ),                          Switch(
+                            value: isChecked,
+                            activeThumbColor: const Color(0xFF3985E7),
+                            activeTrackColor:
+                                const Color(0xFF3985E7).withValues(alpha: 0.5),
+                            inactiveThumbColor: isDark
+                                ? const Color(0xFF8696A0)
+                                : const Color(0xFFFFFFFF),
+                            inactiveTrackColor: isDark
+                                ? const Color(0xFF2C363D)
+                                : const Color(0xFF8696A0),
+                            onChanged: (val) {
+                              setState(() {
+                                _permissions[item.key] = val;
+                              });
+                            },
                           ),
-                          if (item.key == 'daftar_resep_mpasi' ||
-                              item.key == 'daftar_artikel_kesehatan')
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10.0,
-                                vertical: 4.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF2563EB).withValues(alpha: 0.15)
-                                    : const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(
-                                  color: isDark
-                                      ? const Color(0xFF2563EB).withValues(alpha: 0.3)
-                                      : const Color(0xFFBFDBFE),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.visibility_outlined,
-                                    size: 14.0,
-                                    color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                                  ),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    'Hanya Lihat',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Switch(
-                              value: isChecked,
-                              activeThumbColor: const Color(0xFF3985E7),
-                              activeTrackColor:
-                                  const Color(0xFF3985E7).withValues(alpha: 0.5),
-                              inactiveThumbColor: const Color(0xFFFFFFFF),
-                              inactiveTrackColor: isDark ? const Color(0xFF334155) : const Color(0xFF8696A0),
-                              onChanged: (val) {
-                                setState(() {
-                                  _permissions[item.key] = val;
-                                });
-                              },
-                            ),
                         ],
                       ),
                     ),

@@ -614,26 +614,12 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.work_outline_rounded,
                         size: 20.0,
                         color: iconColor,
-=======
-                    Container(
-                      width: 28.0,
-                      height: 28.0,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(6.0),
-                      ),
-                      child: const Icon(
-                        Icons.work_outline_rounded,
-                        size: 16.0,
-                        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -708,26 +694,12 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-<<<<<<< HEAD
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Icon(
                         Icons.badge_outlined,
                         size: 20.0,
                         color: iconColor,
-=======
-                    Container(
-                      width: 28.0,
-                      height: 28.0,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(6.0),
-                      ),
-                      child: const Icon(
-                        Icons.badge_outlined,
-                        size: 16.0,
-                        color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -874,20 +846,12 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
       width: 82.0,
       height: 82.0,
       errorWidget: Container(
-<<<<<<< HEAD
         color: fallbackBg,
-=======
-        color: const Color(0xFFECF6FF),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         alignment: Alignment.center,
         child: Icon(
           Icons.person_rounded,
           size: 46.0,
-<<<<<<< HEAD
           color: fallbackIcon,
-=======
-          color: Color(0xFF3985E7),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
         ),
       ),
     );
@@ -900,8 +864,6 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
     final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
     final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
     final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
-    final textVal = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
-    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -945,62 +907,6 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
             ],
           ),
           child: Column(
-<<<<<<< HEAD
-            children: List.generate(_pendidikanCtrls.length, (idx) {
-              final ctrl = _pendidikanCtrls[idx];
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.school_outlined,
-                      size: 22.0,
-                      color: hintColor,
-                    ),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextFormField(
-                            controller: ctrl,
-                            style: GoogleFonts.lato(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w500,
-                              color: textVal,
-                            ),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
-                              border: InputBorder.none,
-                              hintText: 'Riwayat Pendidikan (Gelar / Univ)',
-                              hintStyle: GoogleFonts.lato(
-                                fontSize: 14.0,
-                                color: hintColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          const _DottedLine(),
-                        ],
-                      ),
-                    ),
-                    if (_pendidikanCtrls.length > 1)
-                      GestureDetector(
-                        onTap: () => _removePendidikan(idx),
-                        child: const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
-                          child: Icon(
-                            Icons.remove_circle_outline_rounded,
-                            size: 20.0,
-                            color: Color(0xFFEF4444),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-=======
             children: List.generate(_pendidikanEntries.length, (idx) {
               final entry = _pendidikanEntries[idx];
               return Column(
@@ -1012,12 +918,11 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                     onRemove: () => _removePendidikan(idx),
                   ),
                   if (idx < _pendidikanEntries.length - 1)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
-                      child: Divider(color: Color(0xFFE9EDEF), height: 1.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Divider(color: borderColor, height: 1.0),
                     ),
                 ],
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
               );
             }),
           ),
@@ -1084,25 +989,10 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-<<<<<<< HEAD
-                    Icon(
+Icon(
                       Icons.apartment_rounded,
                       size: 22.0,
                       color: hintColor,
-=======
-                    Container(
-                      width: 32.0,
-                      height: 32.0,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: const Icon(
-                        Icons.apartment_rounded,
-                        size: 20.0,
-                        color: Color(0xFF3985E7),
-                      ),
->>>>>>> 69f9bbd5b3b1a63c0172d779502ab9f5acb8edc8
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(

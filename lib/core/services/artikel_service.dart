@@ -199,10 +199,13 @@ class ArtikelService {
   // ---------------------------------------------------------------------------
 
   void _checkWritePermission() {
-    if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
-      throw StateError(
-        '403 Forbidden: Role Dokter hanya memiliki hak akses baca (read-only) untuk Artikel Kesehatan',
-      );
+    final staff = StaffAuthService().currentStaff;
+    if (staff != null && staff.role == StaffRole.dokter) {
+      if (!staff.hasPermission('edit_artikel_kesehatan')) {
+        throw StateError(
+          '403 Forbidden: Role Dokter memerlukan izin edit_artikel_kesehatan untuk mengelola Artikel Kesehatan',
+        );
+      }
     }
   }
 
