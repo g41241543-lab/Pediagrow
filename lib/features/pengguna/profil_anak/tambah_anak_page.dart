@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -10,10 +10,8 @@ import '../../../core/services/child_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../beranda/beranda_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Tambah Profil Anak PediaGrow.
 ///
@@ -1109,7 +1107,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           ),
         ),
         // 3. Navigation Bar Tetap di Scaffold (68dp)
-        bottomNavigationBar: _buildFixedBottomNavBar(),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       ),
     );
   }
@@ -2083,97 +2081,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // 3. FIXED BOTTOM NAVIGATION BAR (68dp)
-  // ---------------------------------------------------------------------------
-  Widget _buildFixedBottomNavBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final navItems = [
-      _NavData(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavData(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavData(icon: Icons.person_outline_rounded, label: 'Profil Ibu'),
-    ];
 
-    return Container(
-      width: double.infinity,
-      height: 68,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(navItems.length, (i) {
-          final item = navItems[i];
-          return GestureDetector(
-            onTap: () {
-              switch (i) {
-                case 0:
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const BerandaPage()),
-                    (route) => false,
-                  );
-                  break;
-                case 1:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-                  );
-                  break;
-                case 2:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const DaftarRiwayatPage(),
-                    ),
-                  );
-                  break;
-                case 3:
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-                  );
-                  break;
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 76,
-              height: 68,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    item.icon,
-                    size: 24,
-                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    item.label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 11,
-                      fontWeight: FontWeight.normal,
-                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
 
   // ---------------------------------------------------------------------------
   // HELPER WIDGETS
@@ -2279,15 +2187,6 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       ),
     );
   }
-}
-
-// ---------------------------------------------------------------------------
-// DATA CLASS BOTTOM NAV
-// ---------------------------------------------------------------------------
-class _NavData {
-  final IconData icon;
-  final String label;
-  const _NavData({required this.icon, required this.label});
 }
 
 // ---------------------------------------------------------------------------

@@ -1,14 +1,12 @@
-﻿import 'dart:ui' as ui;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/notification_service.dart';
 import '../beranda/beranda_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'form_cek_stunting_page.dart';
 import 'preview_hasil_cek_stunting_page.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Hasil Cek Stunting PediaGrow.
 ///
@@ -35,7 +33,6 @@ class HasilCekStuntingPage extends StatelessWidget {
   static const Color colorTextBlack = Color(0xFF000000);
   static const Color colorBorderGrey = Color(0xFFC5C5C5);
   static const Color colorReadOnlyBg = Color(0xFFF6F7F9);
-  static const Color colorNavBarBg = Color(0xFFF2EDED);
 
   // Palet Warna Tombol ASI Sesuai Desain
   static const Color colorMintBg = Color(0xFFC7F9EB);
@@ -134,7 +131,7 @@ class HasilCekStuntingPage extends StatelessWidget {
         ),
       ),
       // Navigation Bar tetap di Scaffold.bottomNavigationBar
-      bottomNavigationBar: _buildBottomNavigationBar(context, isDark),
+      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
     );
   }
 
@@ -651,106 +648,6 @@ class HasilCekStuntingPage extends StatelessWidget {
     );
   }
 
-  // ===========================================================================
-  // 7. NAVIGATION BAR (SCAFFOLD.BOTTOMNAVIGATIONBAR)
-  // ===========================================================================
-  Widget _buildBottomNavigationBar(BuildContext context, bool isDark) {
-    return Container(
-      width: double.infinity,
-      height: 68,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : colorNavBarBg,
-        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(
-            context: context,
-            icon: Icons.home_rounded,
-            label: 'Beranda',
-            isDark: isDark,
-            onTap: () => Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const BerandaPage()),
-              (route) => false,
-            ),
-          ),
-          _buildNavItem(
-            context: context,
-            icon: Icons.question_answer_rounded,
-            label: 'Konsultasi',
-            isDark: isDark,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-            ),
-          ),
-          _buildNavItem(
-            context: context,
-            icon: Icons.manage_search_rounded,
-            label: 'Riwayat Konsultasi',
-            isDark: isDark,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-            ),
-          ),
-          _buildNavItem(
-            context: context,
-            icon: Icons.person_outline_rounded,
-            label: 'Profil',
-            isDark: isDark,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    final inactiveColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 80,
-        height: 68,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 24, color: inactiveColor),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.lato(
-                fontSize: 11,
-                color: inactiveColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // =============================================================================

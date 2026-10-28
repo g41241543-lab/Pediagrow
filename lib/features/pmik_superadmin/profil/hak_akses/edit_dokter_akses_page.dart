@@ -1346,8 +1346,7 @@ Row(
 
 /// Garis putus-putus horizontal sesuai desain
 class _DottedLine extends StatelessWidget {
-  final Color? color;
-  const _DottedLine({this.color});
+  const _DottedLine();
 
   static const Color _defaultColor = Color(0xFFD1D7DB);
   static const double _height = 1.0;
@@ -1357,7 +1356,7 @@ class _DottedLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dotColor = color ?? (isDark ? const Color(0xFF2C363D) : _defaultColor);
+    final dotColor = isDark ? const Color(0xFF2C363D) : _defaultColor;
 
     return LayoutBuilder(
       builder: (context, constraints) {

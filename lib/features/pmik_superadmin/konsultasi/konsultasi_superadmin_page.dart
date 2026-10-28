@@ -5,14 +5,11 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/konsultasi_session_model.dart';
-import '../beranda/beranda_superadmin_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import '../profil/profil_superadmin_page.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
-const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
 const Color _colorTextBlack = Color(0xFF1A2228);
 const Color _colorLabelGrey = Color(0xFF667781);
@@ -88,8 +85,6 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  // Indeks nav bar: 1 = Konsultasi (aktif)
-  final int _selectedNavIndex = 1;
 
   @override
   void initState() {
@@ -146,53 +141,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     return booking.isInTimeWindow;
   }
 
-  // ─── Navigation ────────────────────────────────────────────────────────────
-  void _onBottomNavTap(int index) {
-    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
-    if (widget.inShell) return;
-    if (index == _selectedNavIndex) return;
-    Widget targetPage;
-    switch (index) {
-      case 0:
-        targetPage = const BerandaSuperadminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      case 3:
-        targetPage = const ProfilSuperadminPage();
-        break;
-      default:
-        return;
-    }
-    final isLeft = index < _selectedNavIndex;
-    final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
-    final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, _, _) => targetPage,
-      transitionsBuilder: (_, animation, _, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: beginOffset,
-            end: Offset.zero,
-          ).animate(curved),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curved),
-            child: child,
-          ),
-        );
-      },
-    );
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (r) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
-  }
+
 
   /// Superadmin tidak boleh masuk ruang obrolan — tampilkan sheet terkunci.
   void _showLockedChatSheet() {
@@ -520,7 +469,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
                   ],
                 ),
               ),
-              bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(isDark),
+              bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 1),
             );
           },
         );
@@ -1600,128 +1549,5 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
     );
   }
 
-  // ─── BOTTOM NAVIGATION BAR ────────────────────────────────────────────────
-  Widget _buildBottomNavigationBar(bool isDark) {
-    const navItems = [
-      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    final navBg = isDark ? const Color(0xFF1A2228) : _colorNavBg;
-    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
-    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
-    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: navBg,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedNavIndex;
-            final item = navItems[i];
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: BoxDecoration(
-                            color: activeCircleBg,
-                            shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: activeLabelColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: inactiveColor,
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: inactiveColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Helper types ─────────────────────────────────────────────────────────────
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }
 
