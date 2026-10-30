@@ -13,6 +13,7 @@ import 'beranda/beranda_pmik_page.dart';
 import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../pengguna/profil/tampilan_page.dart';
+import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil PMIK Admin PediaGrow.
 ///
@@ -474,7 +475,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             ),
           ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
       ),
     );
   }
@@ -940,132 +941,4 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     );
   }
 
-  // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
-  Widget _buildBottomNavigationBar() {
-    final navItems = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
-    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
-    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1E293B);
-    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: navBg,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: BoxDecoration(
-                            color: activeCircleBg,
-                            shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: activeLabelColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: inactiveColor,
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: inactiveColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

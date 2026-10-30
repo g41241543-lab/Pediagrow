@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/google_calendar_service.dart';
-import '../../../core/services/local_push_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
@@ -103,11 +102,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
 
   void _onMasukRoomKonsultasiPressed() {
     if (_currentBooking.isExpired) {
-      LocalPushService().show(
-        title: 'Sesi Konsultasi Berakhir',
-        body: 'Waktu sesi konsultasi telah berakhir.',
-        targetRole: PushRole.pengguna,
-      );
       return;
     }
 
@@ -230,13 +224,6 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                     Navigator.of(dialogCtx).pop();
                     await BookingService().cancelBooking(_currentBooking.id);
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Jadwal konsultasi berhasil dibatalkan.'),
-                        backgroundColor: Color(0xFFEF4444),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
                     _handleNavigateBack();
                   },
                   style: ElevatedButton.styleFrom(

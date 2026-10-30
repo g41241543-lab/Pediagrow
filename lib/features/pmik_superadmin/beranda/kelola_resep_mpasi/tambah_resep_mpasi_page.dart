@@ -65,13 +65,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
   late final String _tanggal;
 
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorDark = Color(0xFF0B1014);
-  static const Color _colorMuted = Color(0xFF8696A0);
-  static const Color _colorGray = Color(0xFF7F7F7F);
   static const Color _colorGreen = Color(0xFF22C55E);
-
-  // Warna penanda bullet/nomor — sama dengan Detail Resep (#262626)
-  static const Color _colorMarker = Color(0xFF262626);
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;

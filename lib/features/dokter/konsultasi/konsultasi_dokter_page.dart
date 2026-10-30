@@ -11,13 +11,10 @@ import '../../../models/konsultasi_session_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../models/user_model.dart';
 import '../beranda/data_pasien/detail_anak_page.dart';
-import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../beranda/beranda_dokter_page.dart';
-import '../profil_dokter_page.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
-// ─── Palette ─────────────────────────────────────────────────────────────────
-const Color _colorNavBg = Color(0xFFF2EDED);
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
 const Color _colorTextBlack = Color(0xFF1A2228);
 const Color _colorLabelGrey = Color(0xFF667781);
@@ -91,7 +88,6 @@ class KonsultasiDokterPage extends StatefulWidget {
 class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final int _selectedNavIndex = 1;
 
   @override
   void initState() {
@@ -618,7 +614,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                     : <String>{};
 
                 final rawUserBookings = userBookings.where((b) {
-                  if (b.isExpired) return false;
+                  if (b.isExpired || b.isSelesai || b.isDibatalkan) return false;
                   return _isDoctorMatch(b.doctor.name, loggedInDoctorName) ||
                       doctorAliases.contains(b.doctor.id) ||
                       (currentStaff != null && b.doctor.id == currentStaff.id);
@@ -751,7 +747,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                           ],
                         ),
                       ),
-                      bottomNavigationBar: _buildBottomNav(isDark),
+                      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 1),
                     ),
                   );
                 },
@@ -1601,11 +1597,19 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                                 ),
                                 const SizedBox(width: 8),
                                 _buildStatusBadge(
-                                  booking.status,
-                                  _colorPrimaryBlue,
-                                  isDark
-                                      ? const Color(0xFF1E3A8A)
-                                      : const Color(0xFFEBF5FF),
+                                  booking.isInTimeWindow
+                                      ? 'Mulai Konsultasi'
+                                      : 'Terjadwal',
+                                  booking.isInTimeWindow
+                                      ? const Color(0xFF10B981)
+                                      : _colorPrimaryBlue,
+                                  booking.isInTimeWindow
+                                      ? (isDark
+                                          ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                          : const Color(0xFFD1FAE5))
+                                      : (isDark
+                                          ? const Color(0xFF1E3A8A)
+                                          : const Color(0xFFEBF5FF)),
                                 ),
                               ],
                             ),
@@ -1823,173 +1827,4 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
       );
     }
 
-    // ─── BOTTOM NAVIGATION BAR (Format PMIK: Lingkaran Aktif & Transisi Halus) ─
-    Widget _buildBottomNav(bool isDark) {
-      const navItems = [
-        _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-        _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-        _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-        _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-      ];
-
-      return Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2228) : _colorNavBg,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x18000000),
-              blurRadius: 8.0,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 60.0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: List.generate(navItems.length, (i) {
-                final isSelected = i == _selectedNavIndex;
-                final item = navItems[i];
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => _onNavTap(i),
-                    behavior: HitTestBehavior.opaque,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isSelected) ...[
-                          Container(
-                            width: 32.0,
-                            height: 32.0,
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF2C363D) : Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x1A000000),
-                                  blurRadius: 4.0,
-                                  offset: Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              item.icon,
-                              size: 19.0,
-                              color: const Color(0xFF72A9F4),
-                            ),
-                          ),
-                          const SizedBox(height: 2.0),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                item.label,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.lato(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.normal,
-                                  color: isDark
-                                      ? const Color(0xFFE9EDEF)
-                                      : const Color(0xFF1A2228),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ] else ...[
-                          Icon(
-                            item.icon,
-                            size: 21.0,
-                            color: isDark
-                                ? const Color(0xFF667781)
-                                : const Color(0xFF9E9E9E),
-                          ),
-                          const SizedBox(height: 3.0),
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                item.label,
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.lato(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.normal,
-                                  color: isDark
-                                      ? const Color(0xFF667781)
-                                      : const Color(0xFF9E9E9E),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
-      );
-    }
-
-  void _onNavTap(int index) {
-    if (index == _selectedNavIndex) return;
-    Widget targetPage;
-    switch (index) {
-      case 0:
-        targetPage = const BerandaDokterPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      case 3:
-        targetPage = const ProfilDokterPage();
-        break;
-      default:
-        return;
-    }
-    final isLeft = index < _selectedNavIndex;
-    final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
-    final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (ctx, anim, anim2) => targetPage,
-      transitionsBuilder: (ctx, animation, secAnim, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: beginOffset,
-            end: Offset.zero,
-          ).animate(curved),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curved),
-            child: child,
-          ),
-        );
-      },
-    );
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (r) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
-  }
 }
-
-// ─── Helper types ─────────────────────────────────────────────────────────────
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
-}
-

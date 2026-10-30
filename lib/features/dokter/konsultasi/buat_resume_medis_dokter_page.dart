@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/resume_medis_service.dart';
@@ -279,6 +280,19 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
       );
 
       final newId = await ResumeMedisService().saveOrUpdateResumeMedis(resume);
+
+      // Tandai booking sebagai selesai agar hilang dari antrean aktif dokter & pengguna
+      final currentChild = widget.child;
+      final bookingId = widget.booking?.id ??
+          BookingService().bookings.where((b) {
+            if (currentChild == null) return false;
+            return (b.child.id.isNotEmpty && b.child.id == currentChild.id) ||
+                b.child.name.toLowerCase().trim() ==
+                    currentChild.name.toLowerCase().trim();
+          }).firstOrNull?.id;
+      if (bookingId != null && bookingId.isNotEmpty) {
+        BookingService().updateBookingStatus(bookingId, 'Selesai');
+      }
 
       final savedResume = ResumeMedisModel(
         id: newId,

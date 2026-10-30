@@ -576,7 +576,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         boxShadow: [
           BoxShadow(
             color: _isDark
-                ? Colors.black.withOpacity(0.2)
+                ? Colors.black.withValues(alpha: 0.2)
                 : Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),

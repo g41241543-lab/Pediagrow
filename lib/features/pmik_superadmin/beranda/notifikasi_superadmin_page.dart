@@ -254,7 +254,6 @@ class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
-  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
   Color get _borderColor =>
       _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
   Color get _textPrimary =>

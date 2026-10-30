@@ -4,9 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'form_cek_stunting_page.dart';
 import 'hasil_cek_stunting_page.dart';
 import 'services/stunting_ml_service.dart';
@@ -14,6 +11,7 @@ import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Proses Cek Stunting PediaGrow
 ///
@@ -53,7 +51,6 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   static const Color colorTextDark = Color(0xFF222222);
   static const Color colorBorderGrey = Color(0xFFD1D5DB);
   static const Color colorReadOnlyBg = Color(0xFFF9FAFB);
-  static const Color colorNavBarBg = Color(0xFFF2EDED);
 
   // Controllers Form
   final TextEditingController _namaController = TextEditingController(
@@ -401,7 +398,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         resizeToAvoidBottomInset: true,
-        bottomNavigationBar: _buildPermanentBottomNavigationBar(isDark),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
         body: SafeArea(
           bottom: false,
           child: Stack(
@@ -946,125 +943,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
     return const IllustrationForestFooter(height: 34, fit: BoxFit.cover);
   }
 
-  // ===========================================================================
-  // 5. SCAFFOLD.BOTTOMNAVIGATIONBAR PERMANEN 4 MENU
-  // ===========================================================================
 
-  Widget _buildPermanentBottomNavigationBar(bool isDark) {
-    return Container(
-      width: double.infinity,
-      height: 64,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : colorNavBarBg,
-        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(
-            icon: Icons.home_rounded,
-            label: 'Beranda',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              if (!_isAnalyzing) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              }
-            },
-          ),
-          _buildNavItem(
-            icon: Icons.question_answer_rounded,
-            label: 'Konsultasi',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              if (!_isAnalyzing) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-                );
-              }
-            },
-          ),
-          _buildNavItem(
-            icon: Icons.manage_search_rounded,
-            label: 'Riwayat Konsultasi',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              if (!_isAnalyzing) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-                );
-              }
-            },
-          ),
-          _buildNavItem(
-            icon: Icons.person_outline_rounded,
-            label: 'Profil',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              if (!_isAnalyzing) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    final inactiveColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 80,
-        height: 64,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 23,
-              color: isActive ? colorPrimaryBlue : inactiveColor,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.lato(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? colorPrimaryBlue : inactiveColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ===========================================================================
   // 6. BOTTOM SHEET HASIL ANALISIS STUNTING

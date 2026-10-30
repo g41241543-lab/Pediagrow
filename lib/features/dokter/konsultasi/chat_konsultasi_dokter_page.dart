@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/staff_auth_service.dart';
@@ -1002,6 +1003,22 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                               );
                             }
 
+                            // Tandai booking sebagai selesai agar langsung hilang dari antrean aktif
+                            final activeChild = widget.child;
+                            final targetBooking = widget.booking ??
+                                BookingService().bookings.where((b) {
+                                  if (activeChild == null) return false;
+                                  return (b.child.id.isNotEmpty && b.child.id == activeChild.id) ||
+                                      b.child.name.toLowerCase().trim() ==
+                                          activeChild.name.toLowerCase().trim();
+                                }).firstOrNull;
+                            if (targetBooking != null) {
+                              BookingService().updateBookingStatus(
+                                targetBooking.id,
+                                'Selesai',
+                              );
+                            }
+
                             // Navigasi ke halaman Buat Resume Medis Dokter
                             _navigateToBuatResume();
                           },
@@ -1988,16 +2005,6 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: text));
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Pesan disalin ke clipboard',
-                            style: GoogleFonts.lato(),
-                          ),
-                          duration: const Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
                     },
                   ),
                 ],

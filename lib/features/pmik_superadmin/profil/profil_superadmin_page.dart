@@ -7,11 +7,9 @@ import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../auth/auth_choice_page.dart';
-import '../beranda/beranda_superadmin_page.dart';
-import '../konsultasi/konsultasi_superadmin_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../../../models/staff_account_model.dart';
 import '../../pengguna/profil/tampilan_page.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
 ///
@@ -43,7 +41,6 @@ class ProfilSuperadminPage extends StatefulWidget {
 }
 
 class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
-  final int _selectedIndex = 3; // Menu Profil aktif
   final ImagePicker _picker = ImagePicker();
   String? _superadminAvatarPath;
   StaffAccount? _superadmin;
@@ -363,81 +360,6 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     );
   }
 
-  void _onBottomNavTap(int index) {
-    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
-    if (widget.inShell) return;
-    if (index == _selectedIndex) return;
-
-    final staff = StaffAuthService().currentStaff;
-    if (index == 1 && staff != null && !staff.hasPermission('konsultasi')) {
-      LocalPushService().show(
-        title: 'Akses Terbatas',
-        body: 'Akses fitur "Konsultasi" dinonaktifkan oleh Superadmin.',
-        targetRole: PushRole.superadmin,
-      );
-      return;
-    }
-    if (index == 2 &&
-        staff != null &&
-        !staff.isSuperAdmin &&
-        !staff.hasPermission('riwayat_konsultasi')) {
-      LocalPushService().show(
-        title: 'Akses Terbatas',
-        body: 'Akses fitur "Riwayat Konsultasi" dinonaktifkan oleh Superadmin.',
-        targetRole: PushRole.superadmin,
-      );
-      return;
-    }
-
-    Widget targetPage;
-    switch (index) {
-      case 0:
-        targetPage = const BerandaSuperadminPage();
-        break;
-      case 1:
-        targetPage = const KonsultasiSuperadminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      default:
-        return;
-    }
-
-    final isLeft = index < _selectedIndex;
-    final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
-
-    final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 280),
-      reverseTransitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, _, _) => targetPage,
-      transitionsBuilder: (_, animation, secondaryAnimation, child) {
-        final curvedAnimation = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: beginOffset,
-            end: Offset.zero,
-          ).animate(curvedAnimation),
-          child: FadeTransition(
-            opacity: Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(curvedAnimation),
-            child: child,
-          ),
-        );
-      },
-    );
-
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (route) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -559,7 +481,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         ),
       ),
       // Scaffold.bottomNavigationBar permanen 4 menu
-      bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
+      bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 3),
     );
   }
 
@@ -1056,138 +978,4 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       ),
     );
   }
-
-  /// Scaffold.bottomNavigationBar permanen 4 menu konsisten dengan PediaGrow
-  Widget _buildBottomNavigationBar() {
-    final navItems = [
-      _BottomNavItemData(icon: Icons.home_rounded, label: 'Beranda'),
-      _BottomNavItemData(
-        icon: Icons.question_answer_rounded,
-        label: 'Konsultasi',
-      ),
-      _BottomNavItemData(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      _BottomNavItemData(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final navBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED);
-    final activeCircleBg = isDark ? const Color(0xFF2C363D) : Colors.white;
-    final activeLabelColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
-    final inactiveColor = isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E);
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: BoxDecoration(
-        color: navBg,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        // State aktif: bulatan putih dengan icon biru #72A9F4
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: BoxDecoration(
-                            color: activeCircleBg,
-                            shape: BoxShape.circle,
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: activeLabelColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        // State tidak aktif: icon & teks abu-abu #9E9E9E
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: inactiveColor,
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: inactiveColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavItemData {
-  final IconData icon;
-  final String label;
-
-  const _BottomNavItemData({required this.icon, required this.label});
 }

@@ -54,7 +54,6 @@ class _FormArtikelPageState extends State<FormArtikelPage> {
 
   // Konstanta warna sesuai standar desain PediaGrow
   static const Color _colorDarkGray = Color(0xFF7F7F7F);
-  static const Color _colorLightGray = Color(0xFFC5C5C5);
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
