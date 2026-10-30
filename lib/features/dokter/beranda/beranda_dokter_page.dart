@@ -467,7 +467,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 blobColor: const Color(0xFFD97706),
                 isLocked: false,
                 onTap: () =>
-                    _navigateTo(const GrafikPenggunaPage(initialTab: 0)),
+                    _navigateTo(const GrafikPenggunaPage(initialTab: 1)),
               ),
             ),
             const SizedBox(width: 16),

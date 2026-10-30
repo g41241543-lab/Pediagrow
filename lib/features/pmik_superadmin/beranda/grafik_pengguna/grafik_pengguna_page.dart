@@ -187,6 +187,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       TextEditingController();
   String _stuntingSearchQuery = '';
   int? _selectedStuntingMonth; // null = Semua Bulan, 1-12 = Jan-Des
+  final Set<String> _expandedDokterChildNames = {};
+
+  // ── State Pencarian & Filter Grafik Stunting ──────────────────────────────
+  final TextEditingController _stuntingSearchController =
+      TextEditingController();
+  String _stuntingSearchQuery = '';
+  int? _selectedStuntingMonth; // null = Semua Bulan, 1-12 = Jan-Des
 
   StreamSubscription<QuerySnapshot>? _usersSub;
   StreamSubscription<QuerySnapshot>? _childrenSub;
@@ -1136,24 +1143,26 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               // ── HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS ──────────
               _buildHeader(),
 
-              // ── TAB SELECTOR ELEGAN GABUNGAN 2 MENU DALAM 1 TAMPILAN ─────
-              _buildTabSelector(),
+              // ── TAB SELECTOR HANYA UNTUK PMIK (SUPERADMIN & ADMIN) ─────
+              if (!isDokter) _buildTabSelector(),
 
-              // ── ISI HALAMAN BERDASARKAN TAB AKTIF ─────────────────────────
+              // ── ISI HALAMAN: DOKTER HANYA GRAFIK STUNTING, PMIK 2 TAB ──────
               Expanded(
                 child: _isLoading
                     ? _buildLoadingSkeleton()
-                    : TabBarView(
-                        controller: _tabController,
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
-                          _buildTabGrafikPengguna(),
+                    : (isDokter
+                        ? _buildTabHasilCekStunting()
+                        : TabBarView(
+                            controller: _tabController,
+                            physics: const BouncingScrollPhysics(),
+                            children: [
+                              // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
+                              _buildTabGrafikPengguna(),
 
-                          // TAB 2: REKAPITULASI HASIL CEK STUNTING
-                          _buildTabHasilCekStunting(),
-                        ],
-                      ),
+                              // TAB 2: REKAPITULASI HASIL CEK STUNTING
+                              _buildTabHasilCekStunting(),
+                            ],
+                          )),
               ),
             ],
           ),
@@ -1166,9 +1175,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // HEADER FIXED
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildHeader() {
-    final title = _tabController.index == 0
-        ? 'Grafik Pengguna'
-        : 'Grafik Stunting';
+    final staff = StaffAuthService().currentStaff;
+    final isDokter = staff?.role == StaffRole.dokter;
+    final title = isDokter
+        ? 'Grafik Stunting'
+        : (_tabController.index == 0 ? 'Grafik Pengguna' : 'Grafik Stunting');
 
     return Container(
       width: double.infinity,
@@ -2123,6 +2134,839 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ],
       ),
     );
+  }
+
+  // ── Search Bar & Filter Bulan ─────────────────────────────────────────────
+  Widget _buildStuntingSearchAndFilter() {
+    final isFiltered = _selectedStuntingMonth != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            // 1. Search Bar dengan teks & hint yang presisi di tengah
+            Expanded(
+              child: Container(
+                height: 46.0,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _isDark ? const Color(0xFF1E2C35) : Colors.white,
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(
+                    color: _isDark ? const Color(0xFF2C363D) : _kBorderColor,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 6.0,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _stuntingSearchController,
+                  textAlignVertical: TextAlignVertical.center,
+                  onChanged: (v) => setState(() => _stuntingSearchQuery = v.trim()),
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    color: _textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: 'Cari nama anak atau status gizi...',
+                    hintStyle: GoogleFonts.lato(
+                      fontSize: 13.0,
+                      color: _textSecondary,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      size: 20.0,
+                      color: _textSecondary,
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 40.0,
+                      minHeight: 40.0,
+                    ),
+                    suffixIcon: _stuntingSearchQuery.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _stuntingSearchController.clear();
+                              setState(() => _stuntingSearchQuery = '');
+                            },
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 18.0,
+                              color: _textSecondary,
+                            ),
+                          )
+                        : null,
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 38.0,
+                      minHeight: 38.0,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 12.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10.0),
+
+            // 2. Tombol Ikon Filter Corong di samping search bar (jarak ke sisi kanan layar 16dp)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _showStuntingMonthFilterBottomSheet,
+                borderRadius: BorderRadius.circular(12.0),
+                child: Container(
+                  width: 46.0,
+                  height: 46.0,
+                  decoration: BoxDecoration(
+                    color: isFiltered
+                        ? _kBluePrimary
+                        : (_isDark ? const Color(0xFF1E2C35) : Colors.white),
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                      color: isFiltered
+                          ? _kBluePrimary
+                          : (_isDark ? const Color(0xFF2C363D) : _kBorderColor),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isFiltered
+                            ? _kBluePrimary.withValues(alpha: 0.25)
+                            : Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 6.0,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.filter_alt_rounded,
+                        size: 21.0,
+                        color: isFiltered
+                            ? Colors.white
+                            : (_isDark ? const Color(0xFFE9EDEF) : _kBluePrimary),
+                      ),
+                      if (isFiltered)
+                        Positioned(
+                          top: 8.0,
+                          right: 8.0,
+                          child: Container(
+                            width: 7.0,
+                            height: 7.0,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFACC15),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // Indikator status pencarian / filter bulan aktif
+        const SizedBox(height: 8.0),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${_filteredStuntingRows.length} data ditemukan'
+                '${_selectedStuntingMonth != null ? ' (Bulan: ${_bulanPanjang(_selectedStuntingMonth!)})' : ''}',
+                style: GoogleFonts.lato(
+                  fontSize: 11.5,
+                  color: _textSecondary,
+                ),
+              ),
+            ),
+            if (isFiltered)
+              GestureDetector(
+                onTap: () => setState(() => _selectedStuntingMonth = null),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    color: _kBluePrimary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _bulanPanjang(_selectedStuntingMonth!),
+                        style: GoogleFonts.lato(
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.w600,
+                          color: _kBluePrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 4.0),
+                      const Icon(
+                        Icons.close_rounded,
+                        size: 13.0,
+                        color: _kBluePrimary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Modal Bottom Sheet Pemilihan Bulan (Ikon Corong) ──────────────────────
+  void _showStuntingMonthFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final isDark = _isDark;
+        final sheetBg = isDark ? const Color(0xFF1E2C35) : Colors.white;
+        final textColor = isDark ? Colors.white : _kTextDark;
+        final mutedColor = isDark ? const Color(0xFF94A3B8) : _kTextMuted;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20.0)),
+              ),
+              padding: EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                top: 16.0,
+                bottom: MediaQuery.of(context).padding.bottom + 20.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40.0,
+                      height: 4.0,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Header Filter Bulan
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7.0),
+                            decoration: BoxDecoration(
+                              color: _kBluePrimary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: const Icon(
+                              Icons.filter_alt_rounded,
+                              size: 18.0,
+                              color: _kBluePrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 10.0),
+                          Text(
+                            'Filter Bulan',
+                            style: GoogleFonts.lato(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_selectedStuntingMonth != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _selectedStuntingMonth = null);
+                            Navigator.pop(ctx);
+                          },
+                          child: Text(
+                            'Reset Filter',
+                            style: GoogleFonts.lato(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFEF4444),
+                            ),
+                          ),
+                        )
+                      else
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: Icon(Icons.close_rounded, size: 20.0, color: mutedColor),
+                          splashRadius: 20.0,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6.0),
+                  Text(
+                    'Pilih bulan pengukuran hasil cek stunting',
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: mutedColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Opsi "Semua Bulan"
+                  InkWell(
+                    onTap: () {
+                      setState(() => _selectedStuntingMonth = null);
+                      Navigator.pop(ctx);
+                    },
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      decoration: BoxDecoration(
+                        color: _selectedStuntingMonth == null
+                            ? _kBluePrimary.withValues(alpha: 0.12)
+                            : (isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC)),
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: _selectedStuntingMonth == null
+                              ? _kBluePrimary
+                              : (isDark ? const Color(0xFF334155) : _kBorderLight),
+                          width: _selectedStuntingMonth == null ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 16.0,
+                            color: _selectedStuntingMonth == null ? _kBluePrimary : mutedColor,
+                          ),
+                          const SizedBox(width: 10.0),
+                          Expanded(
+                            child: Text(
+                              'Semua Bulan (Januari - Desember)',
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: _selectedStuntingMonth == null
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: _selectedStuntingMonth == null ? _kBluePrimary : textColor,
+                              ),
+                            ),
+                          ),
+                          if (_selectedStuntingMonth == null)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 18.0,
+                              color: _kBluePrimary,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12.0),
+
+                  // Grid 12 Bulan (3 kolom x 4 baris)
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8.0,
+                      mainAxisSpacing: 8.0,
+                      childAspectRatio: 2.2,
+                    ),
+                    itemCount: 12,
+                    itemBuilder: (context, i) {
+                      final monthNumber = i + 1;
+                      final isSelected = _selectedStuntingMonth == monthNumber;
+                      final monthName = _bulanPanjang(monthNumber);
+
+                      return InkWell(
+                        onTap: () {
+                          setState(() => _selectedStuntingMonth = monthNumber);
+                          Navigator.pop(ctx);
+                        },
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _kBluePrimary
+                                : (isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC)),
+                            borderRadius: BorderRadius.circular(10.0),
+                            border: Border.all(
+                              color: isSelected
+                                  ? _kBluePrimary
+                                  : (isDark ? const Color(0xFF334155) : _kBorderColor),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: Text(
+                            monthName,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? Colors.white : textColor,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ── Tabel 2 Kolom Khusus Dokter (Kolom 1: Nama, Kolom 2: Keterangan / Dropdown) ──
+  Widget _buildGroupedDokterTable() {
+    final groups = _groupedStuntingRows;
+
+    if (groups.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 16.0),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: _borderColor),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Icon(
+              Icons.child_care_rounded,
+              size: 44.0,
+              color: _textSecondary.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 10.0),
+            Text(
+              'Tidak ada data hasil cek stunting yang cocok',
+              style: GoogleFonts.lato(
+                fontSize: 13.5,
+                color: _textSecondary,
+              ),
+            ),
+            if (_stuntingSearchQuery.isNotEmpty || _selectedStuntingMonth != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  'Coba ubah kata kunci atau reset filter bulan',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    color: _textSecondary.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: _borderColor),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(9.0),
+        child: Column(
+          children: [
+            // ── HEADER TABEL 2 KOLOM (Nama | Keterangan) ──
+            Container(
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF242E35) : const Color(0xFFF9FAFB),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Text(
+                        'Nama',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Text(
+                        'Keterangan',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, thickness: 1, color: _borderColor),
+
+            // ── BARIS TABEL: 1 Baris per Anak Unik (Cek berkali-kali tetap 1 baris) ──
+            ...List.generate(groups.length, (idx) {
+              final group = groups[idx];
+              final isLast = idx == groups.length - 1;
+              final isExpanded = _expandedDokterChildNames.contains(group.namaAnak);
+
+              return Column(
+                children: [
+                  // Baris Utama (Kolom 1: Nama, Kolom 2: Keterangan)
+                  Container(
+                    color: isExpanded
+                        ? (_isDark ? const Color(0xFF1E2830) : const Color(0xFFF4F7FB))
+                        : _cardBg,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Kolom 1: Nama Anak
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
+                            child: Text(
+                              group.namaAnak,
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Kolom 2: Keterangan (Dropdown Detail Hasil Cek)
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    _expandedDokterChildNames.remove(group.namaAnak);
+                                  } else {
+                                    _expandedDokterChildNames.add(group.namaAnak);
+                                  }
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  color: isExpanded
+                                      ? _kBluePrimary.withValues(alpha: 0.12)
+                                      : (_isDark ? const Color(0xFF242E35) : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                    color: isExpanded ? _kBluePrimary : _borderColor,
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Detail (${group.records.length}x Cek)',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 12.0,
+                                          fontWeight: FontWeight.w600,
+                                          color: isExpanded ? _kBluePrimary : _textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4.0),
+                                    Icon(
+                                      isExpanded
+                                          ? Icons.keyboard_arrow_up_rounded
+                                          : Icons.keyboard_arrow_down_rounded,
+                                      size: 18.0,
+                                      color: isExpanded ? _kBluePrimary : _textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── DROPDOWN DETAIL DI BAWAH BARIS (Jika Expanded) ──
+                  if (isExpanded)
+                    _buildDokterChildDetailDropdown(group),
+
+                  if (!isLast)
+                    Divider(height: 1, thickness: 1, color: _borderColor),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Rincian Dropdown Hasil Cek Stunting Anak (Tanggal, Umur, BB, TB, Status Gizi) ──
+  Widget _buildDokterChildDetailDropdown(GroupedChildStuntingRecord group) {
+    const colWidthTgl = 95.0;
+    const colWidthUmur = 110.0;
+    const colWidthBb = 70.0;
+    const colWidthTb = 70.0;
+    const colWidthHasil = 100.0;
+    const minDetailWidth = colWidthTgl + colWidthUmur + colWidthBb + colWidthTb + colWidthHasil;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _isDark ? const Color(0xFF141C22) : const Color(0xFFF8FAFC),
+        border: Border(
+          top: BorderSide(color: _borderColor, width: 0.5),
+          bottom: BorderSide(color: _borderColor, width: 0.5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.history_rounded,
+                size: 15.0,
+                color: _kBluePrimary,
+              ),
+              const SizedBox(width: 6.0),
+              Text(
+                'Riwayat Cek Stunting: ${group.namaAnak} (${group.records.length} data)',
+                style: GoogleFonts.lato(
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.bold,
+                  color: _kBluePrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+
+          // Tabel Detail Mini
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: minDetailWidth),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _cardBg,
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: _borderColor),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Detail: Tanggal Cek | Umur | BB | TB | Hasil (Status Gizi)
+                      Container(
+                        color: _isDark ? const Color(0xFF242E35) : const Color(0xFFEBF1F6),
+                        child: Row(
+                          children: [
+                            _buildMiniHeaderCell('Tanggal Cek', colWidthTgl),
+                            _buildMiniHeaderCell('Umur', colWidthUmur),
+                            _buildMiniHeaderCell('BB', colWidthBb),
+                            _buildMiniHeaderCell('TB', colWidthTb),
+                            _buildMiniHeaderCell('Hasil (Status Gizi)', colWidthHasil),
+                          ],
+                        ),
+                      ),
+                      Divider(height: 1, thickness: 1, color: _borderColor),
+
+                      // Baris Tiap Record Pengecekan
+                      ...List.generate(group.records.length, (ri) {
+                        final rec = group.records[ri];
+                        final isLastRec = ri == group.records.length - 1;
+                        final isGiziNormal = !rec.isStunting;
+                        final tgl =
+                            '${rec.tanggalCek.day.toString().padLeft(2, '0')} '
+                            '${_bulanPendek(rec.tanggalCek.month)} '
+                            '${rec.tanggalCek.year}';
+
+                        return Column(
+                          children: [
+                            Container(
+                              color: _cardBg,
+                              child: Row(
+                                children: [
+                                  // Tanggal Cek
+                                  Container(
+                                    width: colWidthTgl,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      tgl,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // Umur
+                                  Container(
+                                    width: colWidthUmur,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.umur,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // BB
+                                  Container(
+                                    width: colWidthBb,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.bb,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // TB
+                                  Container(
+                                    width: colWidthTb,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.tb,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // Hasil (Status Gizi)
+                                  Container(
+                                    width: colWidthHasil,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 9.0),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0,
+                                          vertical: 3.0,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isGiziNormal
+                                              ? (_isDark
+                                                  ? const Color(0xFF064E3B)
+                                                  : const Color(0xFFDDF7F0))
+                                              : (_isDark
+                                                  ? const Color(0xFF450A0A)
+                                                  : const Color(0xFFFFECE8)),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        child: Text(
+                                          isGiziNormal ? 'Gizi normal' : 'Gizi buruk',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 11.0,
+                                            fontWeight: FontWeight.w600,
+                                            color: isGiziNormal
+                                                ? (_isDark
+                                                    ? const Color(0xFF34D399)
+                                                    : const Color(0xFF14B8A6))
+                                                : const Color(0xFFF87171),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!isLastRec)
+                              Divider(height: 1, thickness: 0.5, color: _borderColor),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniHeaderCell(String text, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+      child: Text(
+        text,
+        style: GoogleFonts.lato(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: _textSecondary,
+        ),
+      ),
+    );
+  }
+
+  String _bulanPanjang(int month) {
+    const names = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ];
+    return names[(month - 1).clamp(0, 11)];
+  }
+
+  /// Mengubah nomor bulan menjadi singkatan 3 huruf
+  String _bulanPendek(int month) {
+    const names = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    return names[(month - 1).clamp(0, 11)];
   }
 
   // ── Search Bar & Filter Bulan ─────────────────────────────────────────────
