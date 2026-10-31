@@ -632,26 +632,33 @@ class _BerandaPageState extends State<BerandaPage> {
     BuildContext context,
     List<ChildModel> children,
   ) {
-    final activeChild = ChildService().activeChild ?? children.first;
+    return ValueListenableBuilder<ChildModel?>(
+      valueListenable: ChildService().activeChildNotifier,
+      builder: (context, activeChildValue, _) {
+        final currentActiveId = activeChildValue?.id ??
+            (children.isNotEmpty ? children.first.id : null);
 
-    return SizedBox(
-      height: 140,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        itemCount: children.length + 1, // semua anak + 1 card tambah anak
-        separatorBuilder: (_, _) => const SizedBox(width: 14.0),
-        itemBuilder: (context, index) {
-          if (index < children.length) {
-            final child = children[index];
-            final isActive = child.id == activeChild.id;
-            return _buildChildCard(context, child, isActive);
-          } else {
-            return _buildAddChildCard(context);
-          }
-        },
-      ),
+        return SizedBox(
+          height: 144,
+          child: ListView.separated(
+            clipBehavior: Clip.none,
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            itemCount: children.length + 1, // semua anak + 1 card tambah anak
+            separatorBuilder: (_, _) => const SizedBox(width: 14.0),
+            itemBuilder: (context, index) {
+              if (index < children.length) {
+                final child = children[index];
+                final isActive = child.id == currentActiveId;
+                return _buildChildCard(context, child, isActive);
+              } else {
+                return _buildAddChildCard(context);
+              }
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -661,208 +668,28 @@ class _BerandaPageState extends State<BerandaPage> {
     ChildModel child,
     bool isActive,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final imageProvider = StorageService.buildImageProvider(child.photoUrl);
     final hasPhoto = imageProvider != null;
-    final isMale = child.gender.toLowerCase().contains('laki');
 
-    // Warna Banner & Avatar berdasarkan Jenis Kelamin
-    final bannerColor = isDark
-        ? (isMale ? const Color(0xFF1E3A8A) : const Color(0xFF831843))
-        : (isMale ? const Color(0xFFDDF0FF) : const Color(0xFFFDE8E4));
-    final avatarBgColor = isDark
-        ? (isMale ? const Color(0xFF172554) : const Color(0xFF701A75))
-        : (isMale ? const Color(0xFFCFE8FF) : const Color(0xFFFFDFD9));
-
-    // Gambar avatar bawaan sesuai jenis kelamin
-    final defaultAvatarAsset = isMale
-        ? 'assets/images/baby_avatar_boy.png'
-        : 'assets/images/baby_avatar_girl.png';
-
-    return Container(
-      width: 200,
-      height: 128,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: isActive
-            ? Border.all(
-                color: isMale
-                    ? const Color(0xFF60A5FA)
-                    : const Color(0xFFF472B6),
-                width: 1.5,
-              )
-            : (isDark ? Border.all(color: const Color(0xFF2C363D)) : null),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.07),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            // Tap pada bagian manapun kartu (selain foto bulat) → Ubah Data Profil
-            onTap: () {
-              ChildService().setActiveChild(child);
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
-              );
-            },
-            child: Stack(
-              children: [
-                // 1. Top Colored Banner (Pink/Peach untuk Perempuan, Sky Blue untuk Laki-laki)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 48,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: bannerColor,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(18),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 2. Avatar Anak (Posisi kiri atas, overlapping banner & white card)
-                //    Tap khusus foto bulat → tampilkan foto full-screen dengan Hero zoom
-                Positioned(
-                  top: 14,
-                  left: 14,
-                  child: GestureDetector(
-                    onTap: () {
-                      // Avatar tap: tampilkan foto full-screen, lalu balik ke edit profil
-                      _openFullScreenChildAvatar(
-                        context: context,
-                        child: child,
-                        hasPhoto: hasPhoto,
-                        heroTag: 'child_avatar_${child.id}',
-                      );
-                    },
-                    child: Hero(
-                      tag: 'child_avatar_${child.id}',
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: avatarBgColor,
-                          border: Border.all(color: Colors.white, width: 2.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: StorageService.buildImageWidget(
-                            child.photoUrl,
-                            fit: BoxFit.cover,
-                            placeholder: Image.asset(
-                              defaultAvatarAsset,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const CustomPaint(
-                                painter: _BabyFacePainter(
-                                  outlineColor: Color(0xFF1A2228),
-                                ),
-                              ),
-                            ),
-                            errorWidget: Image.asset(
-                              defaultAvatarAsset,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const CustomPaint(
-                                painter: _BabyFacePainter(
-                                  outlineColor: Color(0xFF1A2228),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 3. Nama Anak, Usia, dan Tombol Panah Kanan
-                Positioned(
-                  left: 14,
-                  right: 12,
-                  bottom: 14,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Nama Anak
-                      Text(
-                        child.name,
-                        style: GoogleFonts.lato(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? const Color(0xFFE9EDEF)
-                              : const Color(0xFF0B1014),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 3),
-
-                      // Baris Usia & Tombol Chevron Kanan
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _formatChildAge(child),
-                              style: GoogleFonts.lato(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.normal,
-                                color: isDark
-                                    ? const Color(0xFF8696A0)
-                                    : const Color(0xFF2C363D),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isDark
-                                  ? const Color(0xFF2C363D)
-                                  : const Color(0xFFD1D7DB),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.chevron_right_rounded,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return _ChildProfileCard(
+      child: child,
+      isActive: isActive,
+      formattedAge: _formatChildAge(child),
+      heroTag: 'child_avatar_${child.id}',
+      onTap: () {
+        ChildService().setActiveChild(child);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
+        );
+      },
+      onAvatarTap: () {
+        _openFullScreenChildAvatar(
+          context: context,
+          child: child,
+          hasPhoto: hasPhoto,
+          heroTag: 'child_avatar_${child.id}',
+        );
+      },
     );
   }
 
@@ -978,77 +805,8 @@ class _BerandaPageState extends State<BerandaPage> {
 
   /// Card untuk menambahkan profil anak baru di akhir list
   Widget _buildAddChildCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: 160,
-      height: 128,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.07),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _navigateTo(const TambahAnakPage()),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF0B1014)
-                          : const Color(0xFFEBF5FF),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF2563EB),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Tambah Profil\nAnak',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.lato(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? const Color(0xFF8696A0)
-                          : const Color(0xFF667781),
-                      height: 1.25,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return _AddChildCard(
+      onTap: () => _navigateTo(const TambahAnakPage()),
     );
   }
 
@@ -2386,3 +2144,430 @@ class _BabyFacePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+/// Card profil anak dengan efek hover interaktif dan outline border berwarna
+/// sesuai jenis kelamin anak:
+/// - Light Mode: Soft Blue (#60A5FA) untuk laki-laki, Soft Pink (#F472B6) untuk perempuan.
+/// - Dark Mode: Luminous Blue (#38BDF8) untuk laki-laki, Luminous Pink (#FB7185) untuk perempuan
+///   agar kontras dan terlihat jelas di atas latar belakang gelap.
+/// Berlaku untuk seluruh card profil anak.
+class _ChildProfileCard extends StatefulWidget {
+  final ChildModel child;
+  final bool isActive;
+  final String formattedAge;
+  final String heroTag;
+  final VoidCallback onTap;
+  final VoidCallback onAvatarTap;
+
+  const _ChildProfileCard({
+    required this.child,
+    this.isActive = false,
+    required this.formattedAge,
+    required this.heroTag,
+    required this.onTap,
+    required this.onAvatarTap,
+  });
+
+  @override
+  State<_ChildProfileCard> createState() => _ChildProfileCardState();
+}
+
+class _ChildProfileCardState extends State<_ChildProfileCard> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+  Offset? _pointerDownPos;
+
+  bool get _isActiveLift => _isHovered || _isPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isMale = widget.child.gender.toLowerCase().contains('laki');
+
+    // Warna Banner & Avatar berdasarkan Jenis Kelamin
+    final bannerColor = isDark
+        ? (isMale ? const Color(0xFF1E3A8A) : const Color(0xFF831843))
+        : (isMale ? const Color(0xFFDDF0FF) : const Color(0xFFFDE8E4));
+    final avatarBgColor = isDark
+        ? (isMale ? const Color(0xFF172554) : const Color(0xFF701A75))
+        : (isMale ? const Color(0xFFCFE8FF) : const Color(0xFFFFDFD9));
+
+    // Gambar avatar bawaan sesuai jenis kelamin
+    final defaultAvatarAsset = isMale
+        ? 'assets/images/baby_avatar_boy.png'
+        : 'assets/images/baby_avatar_girl.png';
+
+    // Warna hover & border aksen sesuai permintaan dan gambar pengguna:
+    // Light Mode:
+    // - Laki-laki: Soft Blue (#60A5FA - seperti kartu Lulo di gambar)
+    // - Perempuan: Soft Pink (#F472B6 - seperti kartu Wiya di gambar)
+    // Dark Mode:
+    // Disesuaikan agar kontras & terlihat jelas di atas latar gelap (#1A2228):
+    // - Laki-laki: Luminous Sky Blue (#38BDF8)
+    // - Perempuan: Luminous Rose Pink (#FB7185)
+    final Color hoverColor = isMale
+        ? (isDark ? const Color(0xFF38BDF8) : const Color(0xFF60A5FA))
+        : (isDark ? const Color(0xFFFB7185) : const Color(0xFFF472B6));
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        if (mounted) setState(() => _isHovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _isHovered = false);
+      },
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (e) {
+          _pointerDownPos = e.position;
+          if (mounted) setState(() => _isPressed = true);
+        },
+        onPointerMove: (e) {
+          if (_pointerDownPos != null && _isPressed) {
+            final distance = (e.position - _pointerDownPos!).distance;
+            if (distance > 10.0) {
+              if (mounted) setState(() => _isPressed = false);
+            }
+          }
+        },
+        onPointerUp: (_) {
+          _pointerDownPos = null;
+          if (mounted) setState(() => _isPressed = false);
+        },
+        onPointerCancel: (_) {
+          _pointerDownPos = null;
+          if (mounted) setState(() => _isPressed = false);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          width: 200,
+          height: 128,
+          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            // Seluruh card anak selalu muncul garis tepinya sesuai jenis kelamin anaknya
+            // (Biru untuk laki-laki, Pink untuk perempuan, meskipun anaknya ada 2 atau lebih).
+            // Saat di-hover atau disentuh, garis tepi menebal dan memancarkan efek glow lembut.
+            border: Border.all(
+              color: hoverColor,
+              width: _isActiveLift ? 2.2 : 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: hoverColor.withValues(
+                  alpha: _isActiveLift
+                      ? (isDark ? 0.45 : 0.32)
+                      : (isDark ? 0.20 : 0.12),
+                ),
+                blurRadius: _isActiveLift ? 16 : 8,
+                offset: _isActiveLift ? const Offset(0, 5) : const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap,
+                hoverColor: hoverColor.withValues(alpha: 0.08),
+                splashColor: hoverColor.withValues(alpha: 0.16),
+                highlightColor: hoverColor.withValues(alpha: 0.06),
+                child: Stack(
+                  children: [
+                    // 1. Top Colored Banner (Pink untuk Perempuan, Biru untuk Laki-laki)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 48,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: bannerColor,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(18),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // 2. Avatar Anak (Posisi kiri atas, overlapping banner & card)
+                    //    Tap khusus foto bulat -> tampilkan foto full-screen dengan Hero zoom
+                    Positioned(
+                      top: 14,
+                      left: 14,
+                      child: GestureDetector(
+                        onTap: widget.onAvatarTap,
+                        child: Hero(
+                          tag: widget.heroTag,
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: avatarBgColor,
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                                width: 2.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: StorageService.buildImageWidget(
+                                widget.child.photoUrl,
+                                fit: BoxFit.cover,
+                                placeholder: Image.asset(
+                                  defaultAvatarAsset,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1A2228),
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: Image.asset(
+                                  defaultAvatarAsset,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => const CustomPaint(
+                                    painter: _BabyFacePainter(
+                                      outlineColor: Color(0xFF1A2228),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // 3. Nama Anak, Usia, dan Tombol Panah Kanan
+                    Positioned(
+                      left: 14,
+                      right: 12,
+                      bottom: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Nama Anak
+                          Text(
+                            widget.child.name,
+                            style: GoogleFonts.lato(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : const Color(0xFF0B1014),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+
+                          // Baris Usia & Tombol Chevron Kanan
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.formattedAge,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.normal,
+                                    color: isDark
+                                        ? const Color(0xFF8696A0)
+                                        : const Color(0xFF2C363D),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                width: 22,
+                                height: 22,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _isActiveLift
+                                      ? hoverColor
+                                      : (isDark
+                                          ? const Color(0xFF2C363D)
+                                          : const Color(0xFFD1D7DB)),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.chevron_right_rounded,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Card tombol tambah anak dengan efek hover interaktif
+class _AddChildCard extends StatefulWidget {
+  final VoidCallback onTap;
+
+  const _AddChildCard({required this.onTap});
+
+  @override
+  State<_AddChildCard> createState() => _AddChildCardState();
+}
+
+class _AddChildCardState extends State<_AddChildCard> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+  Offset? _pointerDownPos;
+
+  bool get _isActiveLift => _isHovered || _isPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color hoverColor =
+        isDark ? const Color(0xFF38BDF8) : const Color(0xFF60A5FA);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        if (mounted) setState(() => _isHovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _isHovered = false);
+      },
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (e) {
+          _pointerDownPos = e.position;
+          if (mounted) setState(() => _isPressed = true);
+        },
+        onPointerMove: (e) {
+          if (_pointerDownPos != null && _isPressed) {
+            final distance = (e.position - _pointerDownPos!).distance;
+            if (distance > 10.0) {
+              if (mounted) setState(() => _isPressed = false);
+            }
+          }
+        },
+        onPointerUp: (_) {
+          _pointerDownPos = null;
+          if (mounted) setState(() => _isPressed = false);
+        },
+        onPointerCancel: (_) {
+          _pointerDownPos = null;
+          if (mounted) setState(() => _isPressed = false);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          width: 160,
+          height: 128,
+          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: _isActiveLift
+                  ? hoverColor
+                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
+              width: _isActiveLift ? 2.0 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _isActiveLift
+                    ? hoverColor.withValues(alpha: isDark ? 0.35 : 0.22)
+                    : Colors.black.withValues(alpha: isDark ? 0.3 : 0.07),
+                blurRadius: _isActiveLift ? 14 : 10,
+                offset: _isActiveLift ? const Offset(0, 5) : const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap,
+                hoverColor: hoverColor.withValues(alpha: 0.08),
+                splashColor: hoverColor.withValues(alpha: 0.16),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF0B1014)
+                              : const Color(0xFFEBF5FF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: hoverColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Tambah Profil\nAnak',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.lato(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF667781),
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
