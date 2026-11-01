@@ -1137,26 +1137,24 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               // ── HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS ──────────
               _buildHeader(),
 
-              // ── TAB SELECTOR HANYA UNTUK PMIK (SUPERADMIN & ADMIN) ─────
-              if (!isDokter) _buildTabSelector(),
+              // ── TAB SELECTOR: GRAFIK PENGGUNA & GRAFIK STUNTING ─────
+              _buildTabSelector(),
 
-              // ── ISI HALAMAN: DOKTER HANYA GRAFIK STUNTING, PMIK 2 TAB ──────
+              // ── ISI HALAMAN: 2 TAB (GRAFIK PENGGUNA & GRAFIK STUNTING) ──────
               Expanded(
                 child: _isLoading
                     ? _buildLoadingSkeleton()
-                    : (isDokter
-                        ? _buildTabHasilCekStunting()
-                        : TabBarView(
-                            controller: _tabController,
-                            physics: const BouncingScrollPhysics(),
-                            children: [
-                              // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
-                              _buildTabGrafikPengguna(),
+                    : TabBarView(
+                        controller: _tabController,
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
+                          _buildTabGrafikPengguna(),
 
-                              // TAB 2: REKAPITULASI HASIL CEK STUNTING
-                              _buildTabHasilCekStunting(),
-                            ],
-                          )),
+                          // TAB 2: REKAPITULASI HASIL CEK STUNTING
+                          _buildTabHasilCekStunting(),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -1169,11 +1167,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // HEADER FIXED
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildHeader() {
-    final staff = StaffAuthService().currentStaff;
-    final isDokter = staff?.role == StaffRole.dokter;
-    final title = isDokter
-        ? 'Grafik Stunting'
-        : (_tabController.index == 0 ? 'Grafik Pengguna' : 'Grafik Stunting');
+    final title = _tabController.index == 0 ? 'Grafik Pengguna' : 'Grafik Stunting';
 
     return Container(
       width: double.infinity,
