@@ -435,7 +435,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC);
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
 
     // Role label: berganti otomatis jika toggle "Hak Akses" dihidupkan
     final bool isHakAksesActive = _permissions['hak_akses'] == true;

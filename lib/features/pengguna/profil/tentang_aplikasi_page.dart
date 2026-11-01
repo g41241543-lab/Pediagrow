@@ -1,9 +1,17 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../models/staff_account_model.dart';
+
 /// Halaman Tentang Aplikasi PediaGrow.
+/// Menyesuaikan konten informasi sesuai dengan peran pengguna/staf.
 class TentangAplikasiPage extends StatelessWidget {
-  const TentangAplikasiPage({super.key});
+  final StaffRole? staffRole;
+
+  const TentangAplikasiPage({
+    super.key,
+    this.staffRole,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +62,14 @@ class TentangAplikasiPage extends StatelessWidget {
             ),
 
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 24.0,
-                ),
+              child: ScrollConfiguration(
+                behavior: const ScrollBehavior().copyWith(overscroll: false),
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 24.0,
+                  ),
                 child: Column(
                   children: [
                     Container(
@@ -70,8 +81,7 @@ class TentangAplikasiPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF3985E7)
-                                .withValues(alpha: 0.12),
+                            color: const Color(0xFF3985E7).withValues(alpha: 0.12),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -123,7 +133,7 @@ class TentangAplikasiPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Versi 1.0.0 (Rilis Publik)',
+                        _getVersionBadgeText(),
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           color: versionText,
@@ -136,11 +146,8 @@ class TentangAplikasiPage extends StatelessWidget {
                     _buildInfoCard(
                       context: context,
                       isDark: isDark,
-                      title: 'Mengenal PediaGrow',
-                      description:
-                          'PediaGrow merupakan aplikasi kesehatan anak yang berfungsi untuk membantu para orangtua untuk memantau pertumbuhan anak secara mudah dan praktis.\n'
-                          '\nPediaGrow\n'
-                          'Pantau Pertumbuhan, Cegah Stunting Untuk Masa Depan\n',
+                      title: _getAboutTitle(),
+                      description: _getAboutDescription(),
                       icon: Icons.favorite_border_rounded,
                       iconColor: const Color(0xFFE11D48),
                     ),
@@ -149,15 +156,8 @@ class TentangAplikasiPage extends StatelessWidget {
                     _buildInfoCard(
                       context: context,
                       isDark: isDark,
-                      title: 'Menu PediaGrow',
-                      description:
-                          '• Deteksi & Cek Risiko Stunting Balita\n'
-                          '• Grafik Pertumbuhan Anak\n'
-                          '• Rekomendasi Menu Resep MPASI\n'
-                          '• Artikel Kesehatan\n'
-                          '• Konsultasi Online dengan Dokter\n'
-                          '• Lokasi Fasyankes Terdekat'
-                          '• Permainan\n',
+                      title: _getMenuTitle(),
+                      description: _getMenuDescription(),
                       icon: Icons.star_border_rounded,
                       iconColor: const Color(0xFFF59E0B),
                     ),
@@ -166,14 +166,8 @@ class TentangAplikasiPage extends StatelessWidget {
                     _buildInfoCard(
                       context: context,
                       isDark: isDark,
-                      title: 'Bantuan & Pengembang',
-                      description:
-                          'Memerlukan bantuan atau memiliki pertanyaan seputar aplikasi?\n\n'
-                          'Instagram: @Pedia.Grow\n'
-                          'Youtube: PediaGrow Official Channel\n'
-                          'Email: support@pediagrow.id\n'
-                          'Website: https://pediagrow.id\n'
-                          'WhatsApp Layanan Pengguna: +62 812-3456-7890',
+                      title: _getSupportTitle(),
+                      description: _getSupportDescription(),
                       icon: Icons.support_agent_rounded,
                       iconColor: const Color(0xFF3985E7),
                     ),
@@ -190,12 +184,133 @@ class TentangAplikasiPage extends StatelessWidget {
                     ),
                   ],
                 ),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _getVersionBadgeText() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Versi 1.0.0 (Portal Dokter)';
+      case StaffRole.admin:
+        return 'Versi 1.0.0 (Portal PMIK Admin)';
+      case StaffRole.superadmin:
+        return 'Versi 1.0.0 (Portal Superadmin)';
+      case null:
+        return 'Versi 1.0.0 (Rilis Publik)';
+    }
+  }
+
+  String _getAboutTitle() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Mengenal PediaGrow Dokter';
+      case StaffRole.admin:
+        return 'Mengenal PediaGrow PMIK';
+      case StaffRole.superadmin:
+        return 'Mengenal PediaGrow Superadmin';
+      case null:
+        return 'Mengenal PediaGrow';
+    }
+  }
+
+  String _getAboutDescription() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'PediaGrow untuk Dokter mendukung dokter spesialis anak dan tenaga medis dalam memberikan layanan telemedisin profesional, memantau riwayat rekam medis pasien, serta mengatur jadwal praktik secara fleksibel.\n\nPediaGrow\nPantau Pertumbuhan, Cegah Stunting Untuk Masa Depan\n';
+      case StaffRole.admin:
+        return 'PediaGrow untuk PMIK (Perekam Medis & Informasi Kesehatan) memfasilitasi integrasi rekam medis pasien, pemantauan data tumbuh kembang anak, dan tata kelola informasi gizi balita.\n\nPediaGrow\nPantau Pertumbuhan, Cegah Stunting Untuk Masa Depan\n';
+      case StaffRole.superadmin:
+        return 'Portal Superadmin PediaGrow menyediakan pusat kendali penuh tata kelola akun, pengaturan hak akses dokter & staf PMIK, serta pengawasan menyeluruh modul data kesehatan anak.\n\nPediaGrow\nPantau Pertumbuhan, Cegah Stunting Untuk Masa Depan\n';
+      case null:
+        return 'PediaGrow merupakan aplikasi kesehatan anak yang berfungsi untuk membantu para orangtua untuk memantau pertumbuhan anak secara mudah dan praktis.\n\nPediaGrow\nPantau Pertumbuhan, Cegah Stunting Untuk Masa Depan\n';
+    }
+  }
+
+  String _getMenuTitle() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Fitur Utama Dokter';
+      case StaffRole.admin:
+        return 'Fitur Utama PMIK';
+      case StaffRole.superadmin:
+        return 'Fitur Utama Superadmin';
+      case null:
+        return 'Menu PediaGrow';
+    }
+  }
+
+  String _getMenuDescription() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return '• Layanan Telekonsultasi Online Balita\n'
+            '• Pengaturan Jadwal Praktik & Sesi Kerja\n'
+            '• Riwayat Konsultasi & Catatan Medis Pasien\n'
+            '• Monitoring Data Pasien Anak\n';
+      case StaffRole.admin:
+        return '• Rekam Medis & Riwayat Konsultasi\n'
+            '• Pengelolaan Resep Menu MPASI\n'
+            '• Monitoring Data Pasien & Deteksi Stunting\n'
+            '• Pengawasan Layanan Fasilitas Kesehatan\n';
+      case StaffRole.superadmin:
+        return '• Manajemen Hak Akses Dokter & PMIK\n'
+            '• Pengelolaan Konten Resep MPASI & Artikel\n'
+            '• Pengawasan Rekam Medis & Notifikasi Sistem\n'
+            '• Monitoring Menyeluruh Ekosistem PediaGrow\n';
+      case null:
+        return '• Deteksi & Cek Risiko Stunting Balita\n'
+            '• Grafik Pertumbuhan Anak\n'
+            '• Rekomendasi Menu Resep MPASI\n'
+            '• Artikel Kesehatan\n'
+            '• Konsultasi Online dengan Dokter\n'
+            '• Lokasi Fasyankes Terdekat\n'
+            '• Permainan Edukasi\n';
+    }
+  }
+
+  String _getSupportTitle() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Bantuan & Layanan Dokter';
+      case StaffRole.admin:
+        return 'Bantuan & Layanan PMIK';
+      case StaffRole.superadmin:
+        return 'Bantuan & Administrasi Sistem';
+      case null:
+        return 'Bantuan & Pengembang';
+    }
+  }
+
+  String _getSupportDescription() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Memerlukan bantuan teknis atau koordinasi operasional?\n\n'
+            'Email: dokter@pediagrow.id\n'
+            'WhatsApp Layanan Tenaga Medis: +62 812-3456-7890\n'
+            'Website: https://pediagrow.id';
+      case StaffRole.admin:
+        return 'Memerlukan koordinasi teknis data rekam medis?\n\n'
+            'Email: pmik@pediagrow.id\n'
+            'WhatsApp Layanan Staf: +62 812-3456-7890\n'
+            'Website: https://pediagrow.id';
+      case StaffRole.superadmin:
+        return 'Memerlukan koordinasi teknis pengembang sistem?\n\n'
+            'Email: admin@pediagrow.id\n'
+            'WhatsApp Admin Utama: +62 812-3456-7890\n'
+            'Website: https://pediagrow.id';
+      case null:
+        return 'Memerlukan bantuan atau memiliki pertanyaan seputar aplikasi?\n\n'
+            'Instagram: @Pedia.Grow\n'
+            'Youtube: PediaGrow Official Channel\n'
+            'Email: support@pediagrow.id\n'
+            'Website: https://pediagrow.id\n'
+            'WhatsApp Layanan Pengguna: +62 812-3456-7890';
+    }
   }
 
   Widget _buildInfoCard({
@@ -238,7 +353,7 @@ class TentangAplikasiPage extends StatelessWidget {
             description,
             style: GoogleFonts.lato(
               fontSize: 14,
-              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
+              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
               height: 1.5,
             ),
           ),

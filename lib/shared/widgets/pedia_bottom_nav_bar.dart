@@ -171,7 +171,6 @@ class PediaBottomNavBar extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      height: 68,
       decoration: BoxDecoration(
         color: navBg,
         boxShadow: const [
@@ -184,7 +183,9 @@ class PediaBottomNavBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Row(
+        child: SizedBox(
+          height: 68,
+          child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(navItems.length, (i) {
@@ -270,6 +271,7 @@ class PediaBottomNavBar extends StatelessWidget {
               ),
             );
           }),
+        ),
         ),
       ),
     );

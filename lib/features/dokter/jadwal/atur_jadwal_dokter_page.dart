@@ -5,6 +5,7 @@ import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../../../shared/widgets/pedia_wheel_time_picker_dialog.dart';
 import '../beranda/beranda_dokter_page.dart';
 
 /// Halaman Atur Jadwal Dokter:
@@ -508,6 +509,60 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     );
   }
 
+  Widget _buildTimeSelectorField({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: _isDark ? const Color(0xFF222C33) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: _isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+            width: 1.2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.lato(
+                fontSize: 11.5,
+                color: _textGrey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.lato(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _textBlack,
+                  ),
+                ),
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 18,
+                  color: _primaryBlue,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showSesiFormDialog({
     required int day,
     required String initialStart,
@@ -516,8 +571,8 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     String? currentId,
     required void Function(String start, String end, int duration) onSave,
   }) {
-    final startCtrl = TextEditingController(text: initialStart);
-    final endCtrl = TextEditingController(text: initialEnd);
+    String selectedStart = initialStart;
+    String selectedEnd = initialEnd;
     int selectedDuration = initialDuration;
     String? errorText;
 
@@ -538,34 +593,42 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: startCtrl,
-                      style: GoogleFonts.lato(color: _textBlack),
-                      decoration: InputDecoration(
-                        labelText: 'Jam Mulai',
-                        labelStyle: GoogleFonts.lato(color: _textGrey),
-                        hintText: '08:30',
-                        hintStyle: GoogleFonts.lato(color: _textGrey),
-                        border: const OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
-                        isDense: true,
-                      ),
+                    child: _buildTimeSelectorField(
+                      label: 'Jam Mulai',
+                      value: selectedStart,
+                      onTap: () async {
+                        final picked = await showPediaWheelTimePicker(
+                          context: context,
+                          initialTime: selectedStart,
+                          title: 'Atur Jam Mulai',
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedStart = picked;
+                            errorText = null;
+                          });
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: TextField(
-                      controller: endCtrl,
-                      style: GoogleFonts.lato(color: _textBlack),
-                      decoration: InputDecoration(
-                        labelText: 'Jam Selesai',
-                        labelStyle: GoogleFonts.lato(color: _textGrey),
-                        hintText: '11:30',
-                        hintStyle: GoogleFonts.lato(color: _textGrey),
-                        border: const OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
-                        isDense: true,
-                      ),
+                    child: _buildTimeSelectorField(
+                      label: 'Jam Selesai',
+                      value: selectedEnd,
+                      onTap: () async {
+                        final picked = await showPediaWheelTimePicker(
+                          context: context,
+                          initialTime: selectedEnd,
+                          title: 'Atur Jam Selesai',
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedEnd = picked;
+                            errorText = null;
+                          });
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -610,12 +673,21 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               child: Text('Batal', style: GoogleFonts.lato(color: _textGrey)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryBlue,
+                foregroundColor: Colors.white,
+                elevation: 4,
+                shadowColor: _primaryBlue.withValues(alpha: 0.5),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
               onPressed: () {
                 final validationError = _jadwalService.validateSesi(
                   hari: day,
-                  jamMulai: startCtrl.text.trim(),
-                  jamSelesai: endCtrl.text.trim(),
+                  jamMulai: selectedStart,
+                  jamSelesai: selectedEnd,
                   durasiSlotMenit: selectedDuration,
                   existingSessionsOnDay: _currentJadwal.where((j) => j.hari == day).toList(),
                   currentEditingId: currentId,
@@ -626,10 +698,17 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   return;
                 }
 
-                onSave(startCtrl.text.trim(), endCtrl.text.trim(), selectedDuration);
+                onSave(selectedStart, selectedEnd, selectedDuration);
                 Navigator.of(ctx).pop();
               },
-              child: const Text('Simpan'),
+              child: Text(
+                'Simpan',
+                style: GoogleFonts.lato(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
             ),
           ],
         ),
@@ -800,8 +879,8 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
   void _showTambahCutiDialog() {
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
     bool isSeharian = true;
-    final jamMulaiCtrl = TextEditingController(text: '08:30');
-    final jamSelesaiCtrl = TextEditingController(text: '11:30');
+    String jamMulaiVal = '08:30';
+    String jamSelesaiVal = '11:30';
     final alasanCtrl = TextEditingController();
 
     showDialog(
@@ -813,8 +892,8 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             dokterId: _targetDoctorId,
             tanggalMulai: selectedDate,
             tanggalSelesai: selectedDate,
-            jamMulai: isSeharian ? null : jamMulaiCtrl.text.trim(),
-            jamSelesai: isSeharian ? null : jamSelesaiCtrl.text.trim(),
+            jamMulai: isSeharian ? null : jamMulaiVal,
+            jamSelesai: isSeharian ? null : jamSelesaiVal,
           );
 
           return AlertDialog(
@@ -885,32 +964,36 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     Row(
                       children: [
                         Expanded(
-                          child: TextField(
-                            controller: jamMulaiCtrl,
-                            style: GoogleFonts.lato(color: _textBlack),
-                            decoration: InputDecoration(
-                              labelText: 'Jam Mulai',
-                              labelStyle: GoogleFonts.lato(color: _textGrey),
-                              isDense: true,
-                              border: const OutlineInputBorder(),
-                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
-                            ),
-                            onChanged: (_) => setDialogState(() {}),
+                          child: _buildTimeSelectorField(
+                            label: 'Jam Mulai',
+                            value: jamMulaiVal,
+                            onTap: () async {
+                              final picked = await showPediaWheelTimePicker(
+                                context: context,
+                                initialTime: jamMulaiVal,
+                                title: 'Atur Jam Mulai Cuti',
+                              );
+                              if (picked != null) {
+                                setDialogState(() => jamMulaiVal = picked);
+                              }
+                            },
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: TextField(
-                            controller: jamSelesaiCtrl,
-                            style: GoogleFonts.lato(color: _textBlack),
-                            decoration: InputDecoration(
-                              labelText: 'Jam Selesai',
-                              labelStyle: GoogleFonts.lato(color: _textGrey),
-                              isDense: true,
-                              border: const OutlineInputBorder(),
-                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
-                            ),
-                            onChanged: (_) => setDialogState(() {}),
+                          child: _buildTimeSelectorField(
+                            label: 'Jam Selesai',
+                            value: jamSelesaiVal,
+                            onTap: () async {
+                              final picked = await showPediaWheelTimePicker(
+                                context: context,
+                                initialTime: jamSelesaiVal,
+                                title: 'Atur Jam Selesai Cuti',
+                              );
+                              if (picked != null) {
+                                setDialogState(() => jamSelesaiVal = picked);
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -967,7 +1050,16 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 child: Text('Batal', style: GoogleFonts.lato(color: _textGrey)),
               ),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryBlue,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: _primaryBlue.withValues(alpha: 0.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
                 onPressed: () async {
                   if (alasanCtrl.text.trim().isEmpty) {
                     PediaBanner.showError(dialogCtx, message: 'Harap isi alasan cuti!');
@@ -979,8 +1071,8 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     dokterId: _targetDoctorId,
                     tanggalMulai: selectedDate,
                     tanggalSelesai: selectedDate,
-                    jamMulai: isSeharian ? null : jamMulaiCtrl.text.trim(),
-                    jamSelesai: isSeharian ? null : jamSelesaiCtrl.text.trim(),
+                    jamMulai: isSeharian ? null : jamMulaiVal,
+                    jamSelesai: isSeharian ? null : jamSelesaiVal,
                     alasan: alasanCtrl.text.trim(),
                     dibuatOleh: widget.isSuperadmin ? 'superadmin' : 'dokter',
                   );
@@ -999,7 +1091,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     PediaBanner.showSuccess(context, message: 'Cuti dokter berhasil ditambahkan!');
                   }
                 },
-                child: const Text('Simpan Cuti'),
+                child: Text('Simpan Cuti', style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
               ),
             ],
           );
@@ -1025,7 +1117,15 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
             child: Text('Batal', style: GoogleFonts.lato(color: _textGrey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              elevation: 3,
+              shadowColor: const Color(0xFFEF4444).withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
             onPressed: () async {
               await _jadwalService.hapusCuti(cuti.id);
               if (ctx.mounted) {
@@ -1035,7 +1135,14 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 PediaBanner.showSuccess(context, message: 'Cuti dokter dihapus.');
               }
             },
-            child: const Text('Hapus'),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.lato(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 14,
+              ),
+            ),
           ),
         ],
       ),

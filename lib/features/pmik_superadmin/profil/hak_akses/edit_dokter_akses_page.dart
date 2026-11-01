@@ -26,11 +26,13 @@ import 'widgets/pendidikan_triplet_input.dart';
 class EditDokterAksesPage extends StatefulWidget {
   final DoctorModel doctor;
   final StaffAccount? staffAccount;
+  final bool isSelfEdit;
 
   const EditDokterAksesPage({
     super.key,
     required this.doctor,
     this.staffAccount,
+    this.isSelfEdit = false,
   });
 
   @override
@@ -325,7 +327,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
         educations: edus,
         education: edus.isNotEmpty ? edus.first : null,
         avatarUrl: _avatarPath,
-        permissions: sanitizedPermissions,
+        permissions: widget.isSelfEdit ? widget.doctor.permissions : sanitizedPermissions,
       );
 
       // Simpan perubahan ke Firestore
@@ -348,7 +350,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           password: _passwordBaruCtrl.text.trim().isNotEmpty
               ? _passwordBaruCtrl.text.trim()
               : null,
-          permissions: sanitizedPermissions,
+          permissions: widget.isSelfEdit ? (widget.staffAccount?.permissions.isNotEmpty == true ? widget.staffAccount!.permissions : widget.doctor.permissions) : sanitizedPermissions,
           avatarPath: _avatarPath,
           experience: _pengalamanCtrl.text.trim().isNotEmpty
               ? '${_pengalamanCtrl.text.trim()} tahun'
@@ -376,7 +378,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB);
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -386,8 +388,10 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
       ),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+        child: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
           child: Form(
             key: _formKey,
@@ -406,13 +410,15 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
                 _buildTempatPraktikSection(isDark),
                 const SizedBox(height: 20.0),
 
-                // 3. SECTION JADWAL KONSULTASI STANDAR
-                _buildJadwalStandarSection(isDark),
-                const SizedBox(height: 20.0),
+                if (!widget.isSelfEdit) ...[
+                  // 3. SECTION JADWAL KONSULTASI STANDAR
+                  _buildJadwalStandarSection(isDark),
+                  const SizedBox(height: 20.0),
 
-                // 4. SECTION HAK AKSES
-                _buildHakAksesSection(isDark),
-                const SizedBox(height: 24.0),
+                  // 4. SECTION HAK AKSES
+                  _buildHakAksesSection(isDark),
+                  const SizedBox(height: 24.0),
+                ],
 
                 // 4. TOMBOL SIMPAN
                 SizedBox(
@@ -451,6 +457,7 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -651,52 +658,54 @@ class _EditDokterAksesPageState extends State<EditDokterAksesPage> {
           const _DottedLine(),
           const SizedBox(height: 10.0),
 
-          // Kata Sandi / Password Baru (Opsional)
-          TextFormField(
-            controller: _passwordBaruCtrl,
-            obscureText: !_isPasswordVisible,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 13.0,
-              fontWeight: FontWeight.w500,
-              color: textSecondary,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
-              border: InputBorder.none,
-              hintText: 'Kata Sandi Baru (Opsional)',
-              hintStyle: GoogleFonts.lato(
+          if (!widget.isSelfEdit) ...[
+            // Kata Sandi / Password Baru (Opsional)
+            TextFormField(
+              controller: _passwordBaruCtrl,
+              obscureText: !_isPasswordVisible,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: textMuted,
+                fontWeight: FontWeight.w500,
+                color: textSecondary,
               ),
-              suffixIcon: IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: Icon(
-                  _isPasswordVisible
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  size: 18.0,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
+                border: InputBorder.none,
+                hintText: 'Kata Sandi Baru (Opsional)',
+                hintStyle: GoogleFonts.lato(
+                  fontSize: 13.0,
                   color: textMuted,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _isPasswordVisible = !_isPasswordVisible;
-                  });
-                },
+                suffixIcon: IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 18.0,
+                    color: textMuted,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                ),
               ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty && v.length < 6) {
+                  return 'Password minimal 6 karakter';
+                }
+                return null;
+              },
             ),
-            validator: (v) {
-              if (v != null && v.isNotEmpty && v.length < 6) {
-                return 'Password minimal 6 karakter';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 4.0),
-          const _DottedLine(),
-          const SizedBox(height: 14.0),
+            const SizedBox(height: 4.0),
+            const _DottedLine(),
+            const SizedBox(height: 14.0),
+          ],
 
           // Baris 2 Kolom: Pengalaman & No. STR
           Row(

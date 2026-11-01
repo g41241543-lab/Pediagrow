@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/staff_auth_service.dart';
 import 'menu_profil_page.dart';
 
 /// Halaman Ubah Kata Sandi PediaGrow.
@@ -32,30 +33,37 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     super.dispose();
   }
 
-  void _handleSavePassword() {
+  void _handleSavePassword() async {
     FocusScope.of(context).unfocus();
 
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
+      final staff = StaffAuthService().currentStaff;
+      if (staff != null) {
+        await StaffAuthService().updateStaffAccount(
+          staff.id,
+          password: _newPasswordController.text.trim(),
+        );
+      }
+      await Future.delayed(const Duration(milliseconds: 300));
 
-        // Kembali ke MenuProfilPage dengan membawa pesan sukses
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop('Berhasil Ubah Kata Sandi');
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const MenuProfilPage(
-                showSuccessBanner: true,
-                successMessage: 'Berhasil Ubah Kata Sandi',
-              ),
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      // Kembali dengan membawa pesan sukses
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop('Berhasil Ubah Kata Sandi');
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const MenuProfilPage(
+              showSuccessBanner: true,
+              successMessage: 'Berhasil Ubah Kata Sandi',
             ),
-          );
-        }
-      });
+          ),
+        );
+      }
     }
   }
 
