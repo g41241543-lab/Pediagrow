@@ -165,6 +165,16 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   final List<int> _penggunaBulan = List.filled(12, 0);
   final List<int> _anakBulan = List.filled(12, 0);
 
+  // ── State Khusus Tampilan Dokter (Klinis Pasien Anak) ───────────────────────
+  int _anakBaruBulanIni = 0;
+  int _usia0sd6 = 0;
+  int _usia6sd12 = 0;
+  int _usia1sd2 = 0;
+  int _usia2sd5 = 0;
+  int _giziNormalCount = 0;
+  int _giziBurukCount = 0;
+  final List<int> _dokterKunjunganBulan = List.filled(12, 0);
+
   final List<UserDemographicRow> _userRows = [];
 
   static const List<String> _bulanLabels = [
@@ -275,6 +285,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         _loadChildrenData(),
         _loadStuntingData(),
       ]);
+
+      // Sinkronisasi data kunjungan/pemeriksaan untuk tampilan dokter
+      for (int i = 0; i < 12; i++) {
+        if (_dokterKunjunganBulan[i] == 0) {
+          _dokterKunjunganBulan[i] = _anakBulan[i];
+        }
+      }
     } catch (e) {
       debugPrint('[GrafikPengguna] Error loadAllData: $e');
       if (mounted) {
@@ -399,7 +416,34 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     final realCounts = List.filled(12, 0);
     int realLaki = 0;
     int realPr = 0;
+    int newThisMonth = 0;
+    int u0sd6 = 0;
+    int u6sd12 = 0;
+    int u1sd2 = 0;
+    int u2sd5 = 0;
     final Set<String> processedChildIds = {};
+
+    void processChildAgeAndRegistration(DateTime? bDate, DateTime regDate) {
+      if (regDate.year == now.year && regDate.month == now.month) {
+        newThisMonth++;
+      }
+      if (bDate != null) {
+        int mAge = (now.year - bDate.year) * 12 + (now.month - bDate.month);
+        if (now.day < bDate.day) mAge--;
+        if (mAge < 0) mAge = 0;
+        if (mAge <= 6) {
+          u0sd6++;
+        } else if (mAge <= 12) {
+          u6sd12++;
+        } else if (mAge <= 24) {
+          u1sd2++;
+        } else {
+          u2sd5++;
+        }
+      } else {
+        u1sd2++;
+      }
+    }
 
     try {
       final snap = await _firestore.collection('children').get();
@@ -418,14 +462,24 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           realPr++;
         }
 
-        DateTime regDate = _parseDate(
+        final regDate = _parseDate(
           d['created_at'] ??
               d['createdAt'] ??
               d['registeredAt'] ??
               d['timestamp'] ??
               d['birthDate'] ??
+              d['birth_date'] ??
               d['tanggal_lahir'],
         ) ?? now;
+
+        final bDate = _parseDate(
+          d['birthDate'] ??
+              d['birth_date'] ??
+              d['tanggal_lahir'] ??
+              d['tanggalLahir'],
+        );
+
+        processChildAgeAndRegistration(bDate, regDate);
 
         final m = (regDate.month - 1).clamp(0, 11);
         realCounts[m]++;
@@ -446,6 +500,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             realPr++;
           }
           final regDate = child.birthDate ?? now;
+          processChildAgeAndRegistration(child.birthDate, regDate);
           final m = (regDate.month - 1).clamp(0, 11);
           realCounts[m]++;
         }
@@ -456,6 +511,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     _anakLakiLaki = realLaki;
     _anakPerempuan = realPr;
     _totalAnak = realLaki + realPr;
+    _anakBaruBulanIni = newThisMonth;
+    _usia0sd6 = u0sd6;
+    _usia6sd12 = u6sd12;
+    _usia1sd2 = u1sd2;
+    _usia2sd5 = u2sd5;
 
     // Grafik Batang Bulanan Anak murni dari data riil Firebase
     for (int i = 0; i < 12; i++) {
@@ -468,8 +528,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     final now = DateTime.now();
     final realTidak = List.filled(12, 0);
     final realStunting = List.filled(12, 0);
+    final monthlyVisits = List.filled(12, 0);
     final List<StuntingRecordRow> realRows = [];
     final Map<String, String> childNames = {};
+    int gNormal = 0;
+    int gStunting = 0;
 
     try {
       // Baca nama dan data anak
@@ -498,13 +561,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 d['status_stunting'] ??
                 d['hasil'] ??
                 '')
-            .toString();
+            .toString()
+            .toLowerCase();
 
-        final isStunting = rawStatus.toLowerCase().contains('buruk') ||
-            rawStatus.toLowerCase().contains('stunting');
+        final isStunting = rawStatus.contains('buruk') ||
+            rawStatus.contains('stunting');
+
+        if (isStunting) {
+          gStunting++;
+        } else {
+          gNormal++;
+        }
+
         final statusFormatted = isStunting ? 'Gizi buruk' : 'Gizi normal';
 
         final m = (dt.month - 1).clamp(0, 11);
+        monthlyVisits[m]++;
         if (isStunting) {
           realStunting[m]++;
         } else {
@@ -532,17 +604,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       final memoryMap = GrowthService().recordsNotifier.value;
       for (final entry in memoryMap.entries) {
         for (final rec in entry.value) {
-          final isStunting = rec.statusGizi.toLowerCase().contains('buruk') ||
-              rec.statusGizi.toLowerCase().contains('stunting');
+          final rawStatus = rec.statusGizi.toLowerCase();
+          final isStunting = rawStatus.contains('buruk') ||
+              rawStatus.contains('stunting');
+
           final childName =
               childNames[rec.childId] ?? 'Anak (${rec.childId})';
           final dt = rec.date;
           final m = (dt.month - 1).clamp(0, 11);
 
           if (!realRows.any((r) => r.namaAnak == childName && r.tanggalCek == dt)) {
+            monthlyVisits[m]++;
             if (isStunting) {
+              gStunting++;
               realStunting[m]++;
             } else {
+              gNormal++;
               realTidak[m]++;
             }
 
@@ -564,6 +641,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
     // Urutkan riwayat dari yang terbaru
     realRows.sort((a, b) => b.tanggalCek.compareTo(a.tanggalCek));
+
+    // Sinkronkan data ringkasan klinis & kunjungan dokter
+    _giziNormalCount = gNormal;
+    _giziBurukCount = gStunting;
+    for (int i = 0; i < 12; i++) {
+      _dokterKunjunganBulan[i] = monthlyVisits[i];
+    }
 
     // Hitung grafik bertumpuk Jan - Des MURNI DARI DATA RIIL FIREBASE
     _stuntingChartData = List.generate(12, (i) {
@@ -1167,7 +1251,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // HEADER FIXED
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildHeader() {
-    final title = _tabController.index == 0 ? 'Grafik Pengguna' : 'Grafik Stunting';
+    final isDokter = _isDokterView;
+    final title = _tabController.index == 0
+        ? (isDokter ? 'Grafik Pasien Anak' : 'Grafik Pengguna')
+        : 'Grafik Stunting';
 
     return Container(
       width: double.infinity,
@@ -1247,19 +1334,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         labelColor: _isDark ? const Color(0xFF3985E7) : _kTextDark,
         unselectedLabelColor: _textSecondary,
         onTap: (_) => setState(() {}),
-        tabs: const [
+        tabs: [
           Tab(
             height: 48,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.people_alt_rounded, size: 17),
-                SizedBox(width: 6),
-                Text('Grafik Pengguna'),
+                Icon(
+                  _isDokterView ? Icons.child_care_rounded : Icons.people_alt_rounded,
+                  size: 17,
+                ),
+                const SizedBox(width: 6),
+                Text(_isDokterView ? 'Grafik Pasien' : 'Grafik Pengguna'),
               ],
             ),
           ),
-          Tab(
+          const Tab(
             height: 48,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1315,20 +1405,34 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           _buildWelcomeCard(),
           const SizedBox(height: 16),
 
-          // 2. Card Ringkasan Total Pengguna & Anak (Bertambah Otomatis)
-          _buildTotalCards(),
-          const SizedBox(height: 24),
+          if (_isDokterView) ...[
+            // ── TAMPILAN KHUSUS DOKTER (Murni Visualisasi & Grafik Pasien Anak) ──
+            _buildDokterPasienAnalytics(),
+          ] else ...[
+            // ── TAMPILAN SUPERADMIN & ADMIN PMIK ───
+            // 1. Tiga Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru
+            _buildTotalCards(),
+            const SizedBox(height: 16),
 
-          // 3. Card Grafik Batang Pengguna & Anak Terdaftar
-          _buildGrafikPenggunaSection(),
-          const SizedBox(height: 16),
+            // 2. Card Grafik Batang Pengguna & Anak Terdaftar (Tetap seperti semula)
+            _buildGrafikPenggunaSection(),
+            const SizedBox(height: 20),
 
-          // 4. Card Data Anak Berdasarkan Jenis Kelamin (Persentase Otomatis)
-          _buildGenderSection(),
-          const SizedBox(height: 24),
+            // 3. Tabel Kelompok Usia Pasien (Persis seperti di halaman dokter)
+            _buildDokterAgeDistributionSection(),
+            const SizedBox(height: 20),
 
-          // 5. Dataset Pengguna (Kolom Lengkap & Unduh Aktif)
-          _buildDatasetPenggunaSection(),
+            // 4. Card Data Anak Berdasarkan Jenis Kelamin (Persis seperti di halaman dokter)
+            _buildDokterGenderSection(),
+            const SizedBox(height: 20),
+
+            // 5. Tabel Status Gizi Pasien Terdaftar (Persis seperti di halaman dokter)
+            _buildDokterNutritionStatusSection(),
+            const SizedBox(height: 24),
+
+            // 6. Dataset Pengguna (Kolom Lengkap & Unduh Aktif - Tetap seperti saat ini)
+            _buildDatasetPenggunaSection(),
+          ],
           const SizedBox(height: 32),
         ],
       ),
@@ -1346,6 +1450,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ? 'Pantau data pengguna dan\nstatus stunting secara berkala'
         : 'Kelola data pengguna dan\nanak secara keseluruhan';
 
+
+    // Kembalikan card sambutan ke implementasi awal (Stack dengan aset ilustrasi asli)
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: Container(
@@ -1415,115 +1521,663 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Card Total Pengguna & Anak Sesuai Referensi Desain ──────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // WIDGET KHUSUS ROLE DOKTER (MURNI GRAFIK & ANALITIK PASIEN ANAK)
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildDokterPasienAnalytics() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Dua Kartu Ringkasan Metrik Pasien: Total Pasien & Pasien Baru
+        _buildDokterMetricCards(),
+        const SizedBox(height: 20),
+
+        // 2. Tulisan "Ringkasan Anak" (tanpa emoticon)
+        Text(
+          'Ringkasan Anak',
+          style: GoogleFonts.lato(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: _textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 3. Tabel / Grafik Batang Jumlah Anak Saja Per Bulan (Jan - Des, terhubung Firebase)
+        _buildDokterGrafikAnakSection(),
+        const SizedBox(height: 20),
+
+        // 4. Tabel Tampilan "Kelompok Usia Pasien" (tanpa emoticon)
+        _buildDokterAgeDistributionSection(),
+        const SizedBox(height: 20),
+
+        // 5. Kolom Data Anak Berdasarkan Jenis Kelamin (tanpa emoticon, kolom sama besar)
+        _buildDokterGenderSection(),
+        const SizedBox(height: 20),
+
+        // 6. Status Gizi Pasien Terdaftar (tanpa emoticon, hanya Gizi normal & Gizi buruk)
+        _buildDokterNutritionStatusSection(),
+      ],
+    );
+  }
+
+  // ── 1. Dua Kartu Metrik Pasien Anak ───────────────────────────────────────
+  Widget _buildDokterMetricCards() {
+    return Row(
+      children: [
+        // Card 1: Total Pasien
+        Expanded(
+          child: _buildDokterSingleMetricCard(
+            title: 'Total Pasien',
+            value: _formatNumber(_totalAnak),
+            unit: 'Anak',
+            accentColor: _kBluePrimary,
+            bgColor: _isDark ? const Color(0xFF1E2835) : const Color(0xFFEBF3FE),
+            borderColor: _isDark ? const Color(0xFF2C3D52) : const Color(0xFFCCE0FC),
+            icon: Icons.child_care_rounded,
+          ),
+        ),
+        const SizedBox(width: 12.0),
+
+        // Card 2: Pasien Baru
+        Expanded(
+          child: _buildDokterSingleMetricCard(
+            title: 'Pasien Baru',
+            value: '+${_formatNumber(_anakBaruBulanIni)}',
+            unit: 'Bulan Ini',
+            accentColor: _kTealPrimary,
+            bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
+            borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
+            icon: Icons.person_add_alt_1_rounded,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDokterSingleMetricCard({
+    required String title,
+    required String value,
+    required String unit,
+    required Color accentColor,
+    required Color bgColor,
+    required Color borderColor,
+    required IconData icon,
+  }) {
+    return Container(
+      height: 116.0,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
+                  ),
+                ),
+              ),
+              Icon(icon, size: 18.0, color: accentColor),
+            ],
+          ),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 22.0,
+              fontWeight: FontWeight.bold,
+              color: accentColor,
+            ),
+          ),
+          Text(
+            unit,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 2. Card Grafik Batang Jumlah Anak Terdaftar (Jan - Des) ───────────────
+  Widget _buildDokterGrafikAnakSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Jumlah Anak Terdaftar',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          _buildDokterAnakBarChartPlot(),
+          const SizedBox(height: 16.0),
+          // Legenda
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLegendBullet(_kTealPrimary, 'Anak'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDokterAnakBarChartPlot() {
+    const bulanNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+
+    int peakData = 0;
+    for (int i = 0; i < 12; i++) {
+      if (_anakBulan[i] > peakData) peakData = _anakBulan[i];
+    }
+    final scale = _YAxisScale.calculate(peakData);
+
+    const chartPlotHeight = 190.0;
+    const topPadding = 20.0;
+    const xLabelHeight = 26.0;
+    const barWidth = 14.0;
+    const monthColWidth = 28.0;
+    const groupGap = 12.0;
+    const startPadding = 12.0;
+    const endPadding = 16.0;
+    const yAxisWidth = 28.0;
+
+    const monthCount = 12;
+    final plotWidth = startPadding + (monthCount * monthColWidth) + ((monthCount - 1) * groupGap) + endPadding;
+    const totalHeight = topPadding + chartPlotHeight + xLabelHeight;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Sumbu Y
+        Padding(
+          padding: const EdgeInsets.only(top: topPadding),
+          child: SizedBox(
+            width: yAxisWidth,
+            height: chartPlotHeight,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: scale.ticks.map((val) {
+                return Text(
+                  '$val',
+                  style: GoogleFonts.lato(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                    color: _textSecondary,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8.0),
+
+        // Batang Horizontal Scroll
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: SizedBox(
+              width: plotWidth,
+              height: totalHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Garis Bantu Horizontal
+                  Positioned(
+                    top: topPadding,
+                    left: 0,
+                    right: 0,
+                    height: chartPlotHeight,
+                    child: CustomPaint(
+                      size: Size(plotWidth, chartPlotHeight),
+                      painter: _GridPainter(
+                        lineCount: scale.lineCount,
+                        color: _borderColor,
+                      ),
+                    ),
+                  ),
+
+                  // Batang Tunggal Anak per Bulan
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: List.generate(monthCount, (i) {
+                        final valAnak = _anakBulan[i];
+                        final anakH = scale.maxVal > 0
+                            ? (valAnak / scale.maxVal * chartPlotHeight)
+                                .clamp(0.0, chartPlotHeight)
+                            : 0.0;
+
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            left: i == 0 ? startPadding : 0.0,
+                            right: i < monthCount - 1 ? groupGap : endPadding,
+                          ),
+                          child: SizedBox(
+                            width: monthColWidth,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height: chartPlotHeight,
+                                  child: _buildSingleBar(
+                                    height: anakH,
+                                    color: _kTealPrimary,
+                                    value: valAnak,
+                                    width: barWidth,
+                                  ),
+                                ),
+                                const SizedBox(height: 6.0),
+                                Text(
+                                  bulanNames[i],
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: _textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2.0),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 3. Kelompok Usia Pasien ───────────────────────────────────────────────
+  Widget _buildDokterAgeDistributionSection() {
+    final totalUsia = _usia0sd6 + _usia6sd12 + _usia1sd2 + _usia2sd5;
+    final pct0sd6 = totalUsia > 0 ? (_usia0sd6 / totalUsia) : 0.0;
+    final pct6sd12 = totalUsia > 0 ? (_usia6sd12 / totalUsia) : 0.0;
+    final pct1sd2 = totalUsia > 0 ? (_usia1sd2 / totalUsia) : 0.0;
+    final pct2sd5 = totalUsia > 0 ? (_usia2sd5 / totalUsia) : 0.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Kelompok Usia Pasien',
+                style: GoogleFonts.lato(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.bold,
+                  color: _textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+                decoration: BoxDecoration(
+                  color: _isDark ? const Color(0xFF242E35) : const Color(0xFFE5EFFF),
+                  borderRadius: BorderRadius.circular(6.0),
+                ),
+                child: Text(
+                  '${_formatNumber(_totalAnak)} Pasien',
+                  style: GoogleFonts.lato(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: _kBluePrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16.0),
+
+          // Baris 1: 0 - 6 Bulan (ASI Eksklusif)
+          _buildAgeProgressBarItem(
+            label: '0–6 Bulan (ASI Eksklusif)',
+            count: _usia0sd6,
+            ratio: pct0sd6,
+            barColor: _kTealPrimary,
+          ),
+          const SizedBox(height: 12.0),
+
+          // Baris 2: 6 - 12 Bulan (Masa MPASI)
+          _buildAgeProgressBarItem(
+            label: '6–12 Bulan (Masa MPASI)',
+            count: _usia6sd12,
+            ratio: pct6sd12,
+            barColor: _kBluePrimary,
+          ),
+          const SizedBox(height: 12.0),
+
+          // Baris 3: 1 - 2 Tahun (Baduta)
+          _buildAgeProgressBarItem(
+            label: '1–2 Tahun (Baduta)',
+            count: _usia1sd2,
+            ratio: pct1sd2,
+            barColor: const Color(0xFF6366F1),
+          ),
+          const SizedBox(height: 12.0),
+
+          // Baris 4: 2 - 5 Tahun (Balita)
+          _buildAgeProgressBarItem(
+            label: '2–5 Tahun (Balita)',
+            count: _usia2sd5,
+            ratio: pct2sd5,
+            barColor: const Color(0xFF3B82F6),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgeProgressBarItem({
+    required String label,
+    required int count,
+    required double ratio,
+    required Color barColor,
+  }) {
+    final pct = (ratio * 100).toStringAsFixed(1).replaceAll('.', ',');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.lato(
+                fontSize: 12.0,
+                fontWeight: FontWeight.w600,
+                color: _textPrimary,
+              ),
+            ),
+            Text(
+              '$count Anak ($pct%)',
+              style: GoogleFonts.lato(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: _textSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6.0),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6.0),
+          child: Container(
+            height: 10.0,
+            width: double.infinity,
+            color: _isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: ratio.clamp(0.0, 1.0),
+              child: Container(color: barColor),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 4. Data Anak Berdasarkan Jenis Kelamin ─────────────────────────────────
+  Widget _buildDokterGenderSection() {
+    final total = _totalAnak > 0 ? _totalAnak : (_anakLakiLaki + _anakPerempuan);
+    final lakiPct = total > 0 ? (_anakLakiLaki / total * 100) : 50.0;
+    final prPct = total > 0 ? (_anakPerempuan / total * 100) : 50.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Data Anak Berdasarkan Jenis Kelamin',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            children: [
+              Expanded(
+                child: _buildGenderCardItem(
+                  isBoy: true,
+                  label: 'Laki-laki',
+                  count: _anakLakiLaki,
+                  pct: lakiPct,
+                  accentColor: _kBoyBlue,
+                  bgColor: _kBoyAvatarBg,
+                  fixedHeight: 86.0,
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: _buildGenderCardItem(
+                  isBoy: false,
+                  label: 'Perempuan',
+                  count: _anakPerempuan,
+                  pct: prPct,
+                  accentColor: _kGirlPink,
+                  bgColor: _kGirlAvatarBg,
+                  fixedHeight: 86.0,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 5. Status Gizi Pasien Terdaftar (Hanya Gizi normal & Gizi buruk) ───────
+  Widget _buildDokterNutritionStatusSection() {
+    final total = _giziNormalCount + _giziBurukCount;
+    final normalPct = total > 0 ? (_giziNormalCount / total) : 0.85;
+    final burukPct = total > 0 ? (_giziBurukCount / total) : 0.15;
+
+    final normalStr = (normalPct * 100).toStringAsFixed(1).replaceAll('.', ',');
+    final burukStr = (burukPct * 100).toStringAsFixed(1).replaceAll('.', ',');
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status Gizi Pasien Terdaftar',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            'Proporsi hasil pemantauan status gizi dari seluruh data riwayat pemeriksaan',
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              color: _textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14.0),
+
+          // Segmented Bar Chart Horizontal: 2 Status Saja (Gizi Normal & Gizi Buruk)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.0),
+            child: SizedBox(
+              height: 22.0,
+              child: Row(
+                children: [
+                  if (normalPct > 0)
+                    Expanded(
+                      flex: (normalPct * 1000).toInt().clamp(1, 1000),
+                      child: Container(
+                        color: _kTealPrimary,
+                        alignment: Alignment.center,
+                        child: normalPct > 0.12
+                            ? Text(
+                                '$normalStr%',
+                                style: GoogleFonts.lato(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                  if (burukPct > 0)
+                    Expanded(
+                      flex: (burukPct * 1000).toInt().clamp(1, 1000),
+                      child: Container(
+                        color: const Color(0xFFEF4444),
+                        alignment: Alignment.center,
+                        child: burukPct > 0.08
+                            ? Text(
+                                '$burukStr%',
+                                style: GoogleFonts.lato(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12.0),
+
+          // Legenda Status Gizi: Hanya Gizi normal & Gizi buruk
+          Wrap(
+            spacing: 20.0,
+            runSpacing: 8.0,
+            children: [
+              _buildLegendBullet(
+                _kTealPrimary,
+                'Gizi normal (${_giziNormalCount > 0 ? _giziNormalCount : '-'})',
+              ),
+              _buildLegendBullet(
+                const Color(0xFFEF4444),
+                'Gizi buruk (${_giziBurukCount > 0 ? _giziBurukCount : '-'})',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru (3 Kartu) ────────
   Widget _buildTotalCards() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            // Total Pengguna
+            // 1. Total Pengguna
             Expanded(
-              child: Container(
-                height: 116.0,
-                decoration: BoxDecoration(
-                  color: _isDark
-                      ? const Color(0xFF1A2228)
-                      : const Color(0xFFE5EFFF),
-                  borderRadius: BorderRadius.circular(16.0),
-                  border: Border.all(
-                    color: _isDark
-                        ? const Color(0xFF2C363D)
-                        : const Color(0xFFCDDBF8),
-                    width: 1.0,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total Pengguna',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                    Text(
-                      _formatNumber(_totalPengguna),
-                      style: GoogleFonts.lato(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        color: _isDark
-                            ? const Color(0xFF3985E7)
-                            : const Color(0xFF0B1014),
-                      ),
-                    ),
-                    Text(
-                      'Pengguna',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              child: _buildMetricMiniCard(
+                title: 'Total Pengguna',
+                value: _formatNumber(_totalPengguna),
+                unit: 'Pengguna',
+                accentColor: _kBluePrimary,
+                bgColor: _isDark ? const Color(0xFF1E2835) : const Color(0xFFEBF3FE),
+                borderColor: _isDark ? const Color(0xFF2C3D52) : const Color(0xFFCCE0FC),
+                icon: Icons.people_alt_rounded,
               ),
             ),
-            const SizedBox(width: 12.0),
+            const SizedBox(width: 8.0),
 
-            // Total Anak Terdaftar
+            // 2. Total Anak
             Expanded(
-              child: Container(
-                height: 116.0,
-                decoration: BoxDecoration(
-                  color: _isDark
-                      ? const Color(0xFF1A2228)
-                      : const Color(0xFFEDF7F4),
-                  borderRadius: BorderRadius.circular(16.0),
-                  border: Border.all(
-                    color: _isDark
-                        ? const Color(0xFF2C363D)
-                        : const Color(0xFFCFE9E0),
-                    width: 1.0,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total Anak Terdaftar',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                    Text(
-                      _formatNumber(_totalAnak),
-                      style: GoogleFonts.lato(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        color: _isDark
-                            ? const Color(0xFF3CC3A6)
-                            : const Color(0xFF0B1014),
-                      ),
-                    ),
-                    Text(
-                      'Anak',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              child: _buildMetricMiniCard(
+                title: 'Total Anak',
+                value: _formatNumber(_totalAnak),
+                unit: 'Pasien',
+                accentColor: _kTealPrimary,
+                bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
+                borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
+                icon: Icons.child_care_rounded,
+              ),
+            ),
+            const SizedBox(width: 8.0),
+
+            // 3. Pasien Baru Bulan Ini
+            Expanded(
+              child: _buildMetricMiniCard(
+                title: 'Pasien Baru',
+                value: '+${_formatNumber(_anakBaruBulanIni)}',
+                unit: 'Bulan Ini',
+                accentColor: const Color(0xFF10B981),
+                bgColor: _isDark ? const Color(0xFF162E25) : const Color(0xFFE8F7F0),
+                borderColor: _isDark ? const Color(0xFF21483A) : const Color(0xFFC7EBD9),
+                icon: Icons.person_add_alt_1_rounded,
               ),
             ),
           ],
@@ -1538,6 +2192,71 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMetricMiniCard({
+    required String title,
+    required String value,
+    required String unit,
+    required Color accentColor,
+    required Color bgColor,
+    required Color borderColor,
+    required IconData icon,
+  }) {
+    return Container(
+      height: 108.0,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 2.0),
+              Icon(icon, size: 15.0, color: accentColor),
+            ],
+          ),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 19.0,
+              fontWeight: FontWeight.bold,
+              color: accentColor,
+            ),
+          ),
+          Text(
+            unit,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1770,63 +2489,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Data Anak Berdasarkan Jenis Kelamin & Persentase Otomatis ───────────────
-  Widget _buildGenderSection() {
-    final total = _totalAnak > 0 ? _totalAnak : (_anakLakiLaki + _anakPerempuan);
-    final lakiPct = total > 0 ? (_anakLakiLaki / total * 100) : 50.0;
-    final prPct = total > 0 ? (_anakPerempuan / total * 100) : 50.0;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: _borderColor, width: 1.0),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Data Anak Berdasarkan Jenis Kelamin',
-            style: GoogleFonts.lato(
-              fontSize: 14.5,
-              fontWeight: FontWeight.bold,
-              color: _textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16.0),
-          Row(
-            children: [
-              // Laki-laki
-              Expanded(
-                child: _buildGenderCardItem(
-                  isBoy: true,
-                  label: 'Laki-laki',
-                  count: _anakLakiLaki,
-                  pct: lakiPct,
-                  accentColor: _kBoyBlue,
-                  bgColor: _kBoyAvatarBg,
-                ),
-              ),
-              const SizedBox(width: 12.0),
-              // Perempuan
-              Expanded(
-                child: _buildGenderCardItem(
-                  isBoy: false,
-                  label: 'Perempuan',
-                  count: _anakPerempuan,
-                  pct: prPct,
-                  accentColor: _kGirlPink,
-                  bgColor: _kGirlAvatarBg,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildGenderCardItem({
     required bool isBoy,
     required String label,
@@ -1834,9 +2496,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     required double pct,
     required Color accentColor,
     required Color bgColor,
+    double? fixedHeight,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12.0),
+      height: fixedHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
         color: _isDark
             ? const Color(0xFF242E35)
@@ -1853,17 +2517,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         children: [
           ChildAvatar(
             gender: isBoy ? 'Laki-laki' : 'Perempuan',
-            size: 44.0,
+            size: 38.0,
           ),
-          const SizedBox(width: 10.0),
+          const SizedBox(width: 8.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lato(
-                    fontSize: 12.5,
+                    fontSize: 11.0,
                     fontWeight: FontWeight.bold,
                     color: _textPrimary,
                   ),
@@ -1879,8 +2547,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ),
                 Text(
                   '(${pct.toStringAsFixed(1).replaceAll('.', ',')}%)',
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lato(
-                    fontSize: 11.5,
+                    fontSize: 11.0,
                     fontWeight: FontWeight.w600,
                     color: accentColor,
                   ),
