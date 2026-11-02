@@ -60,9 +60,20 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   final ImagePicker _picker = ImagePicker();
   bool _isUploadingAvatar = false;
 
+  /// Snapshot lokal data user — diperbarui via listener manual.
+  /// Menggunakan state lokal (bukan ValueListenableBuilder) agar bisa
+  /// dibekukan saat proses logout berlangsung.
+  late UserModel _currentUser;
+
+  /// Guard: saat true, _onUserUpdated tidak akan memperbarui _currentUser.
+  /// Ini mencegah header Profil berubah ke "Tamu" selama transisi logout.
+  bool _isLoggingOut = false;
+
   @override
   void initState() {
     super.initState();
+    _currentUser = UserService().currentUser;
+    UserService().currentUserNotifier.addListener(_onUserUpdated);
     if (widget.showSuccessBanner) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _triggerSuccessBanner(
@@ -70,6 +81,21 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
         );
       });
     }
+  }
+
+  @override
+  void dispose() {
+    UserService().currentUserNotifier.removeListener(_onUserUpdated);
+    super.dispose();
+  }
+
+  /// Listener manual — diblokir saat _isLoggingOut = true agar tidak
+  /// memicu setState dengan data "Tamu" saat transisi logout berjalan.
+  void _onUserUpdated() {
+    if (!mounted || _isLoggingOut) return;
+    setState(() {
+      _currentUser = UserService().currentUser;
+    });
   }
 
   void _triggerSuccessBanner({String message = 'Berhasil Memperbarui Profil'}) {
@@ -424,118 +450,116 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
   // 2. KARTU PROFIL USER (Avatar bulat + Nama dinamis sejajar tengah)
   // -------------------------------------------------------------------------
   Widget _buildProfileCard() {
-    return ValueListenableBuilder<UserModel>(
-      valueListenable: UserService().currentUserNotifier,
-      builder: (context, user, _) {
-        final imageProvider = StorageService.buildImageProvider(user.avatarPath);
-        final hasPhoto = imageProvider != null;
+    // Gunakan _currentUser (state lokal) bukan ValueListenableBuilder.
+    // Dengan cara ini tampilan profil bisa "dibekukan" saat _isLoggingOut = true.
+    final user = _currentUser;
+    final imageProvider = StorageService.buildImageProvider(user.avatarPath);
+    final hasPhoto = imageProvider != null;
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Avatar bulat (placeholder icon user / foto URL/lokal)
-            GestureDetector(
-              onTap: _isUploadingAvatar ? null : _showImagePickerOptions,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 68,
-                    height: 68,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFFE9EDEF),
-                      image: hasPhoto
-                          ? DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: _isUploadingAvatar
-                        ? const Center(
-                            child: SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Color(0xFF3985E7),
-                              ),
-                            ),
-                          )
-                        : hasPhoto
-                            ? null
-                            : const Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Color(0xFF667781),
-                              ),
-                  ),
-
-                  // Badge kecil kamera di pojok kanan bawah avatar
-                  Positioned(
-                    right: -2,
-                    bottom: -2,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3985E7),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Avatar bulat (placeholder icon user / foto URL/lokal)
+        GestureDetector(
+          onTap: _isUploadingAvatar ? null : _showImagePickerOptions,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE9EDEF),
+                  image: hasPhoto
+                      ? DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: _isUploadingAvatar
+                    ? const Center(
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Color(0xFF3985E7),
                           ),
-                        ],
+                        ),
+                      )
+                    : hasPhoto
+                        ? null
+                        : const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Color(0xFF667781),
+                          ),
+              ),
+
+              // Badge kecil kamera di pojok kanan bawah avatar
+              Positioned(
+                right: -2,
+                bottom: -2,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3985E7),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        size: 13,
-                        color: Colors.white,
-                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: 13,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+
+        // Nama Lengkap User (Dinamis, teks bold sejajar tengah)
+        Expanded(
+          child: InkWell(
+            onTap: () => _navigateTo(const ProfilIbuPage()),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    user.name.isNotEmpty
+                        ? user.name
+                        : 'Susanti Saputri Dewi',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.lato(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFE9EDEF)
+                          : const Color(0xFF000000),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-
-            // Nama Lengkap User (Dinamis, teks bold sejajar tengah)
-            Expanded(
-              child: InkWell(
-                onTap: () => _navigateTo(const ProfilIbuPage()),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        user.name.isNotEmpty
-                            ? user.name
-                            : 'Susanti Saputri Dewi',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? const Color(0xFFE9EDEF)
-                              : const Color(0xFF000000),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 
@@ -577,7 +601,18 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
         _buildMenuItem(
           icon: Icons.logout_rounded,
           title: 'Keluar',
-          onTap: () => showKeluarLogoutDialog(context),
+          onTap: () {
+            // Set guard SEBELUM membuka dialog agar _onUserUpdated tidak
+            // memicu rebuild saat sesi dihapus di belakang layar.
+            _isLoggingOut = true;
+            showKeluarLogoutDialog(context).then((_) {
+              // Jika dialog ditutup tanpa logout (tap di luar atau Batal),
+              // reset guard supaya profil kembali reaktif.
+              if (mounted && UserService().isLoggedIn) {
+                _isLoggingOut = false;
+              }
+            });
+          },
         ),
 
         // 6. Syarat dan Ketentuan (document outline -> terms_page.dart)

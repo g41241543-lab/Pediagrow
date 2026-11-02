@@ -33,6 +33,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   String? _avatarPath;
   StaffAccount? _dokter;
   DoctorModel? _doctorModel;
+  /// Guard: mencegah rebuild saat proses logout sedang berlangsung.
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -82,7 +84,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   }
 
   void _onDoctorsUpdated() {
-    if (!mounted) return;
+    // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+    if (!mounted || _isLoggingOut) return;
     final doc = _findMatchingDoctor(DoctorService().currentDoctors);
     if (doc != null) {
       setState(() {
@@ -97,7 +100,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   }
 
   void _onStaffUpdated() {
-    if (!mounted) return;
+    // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+    if (!mounted || _isLoggingOut) return;
     setState(() {
       _dokter = StaffAuthService().currentStaff;
       if (_dokter?.avatarPath != null && _dokter!.avatarPath!.isNotEmpty) {
@@ -369,14 +373,21 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
+                          // Set guard sebelum menutup dialog agar _onStaffUpdated
+                          // tidak memicu rebuild halaman Profil selama transisi.
+                          _isLoggingOut = true;
                           Navigator.of(dialogCtx).pop();
-                          StaffAuthService().logout();
+                          // Navigasi ke halaman awal terlebih dahulu (hapus seluruh stack),
+                          // baru reset sesi setelah frame selesai dirender.
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => const AuthChoicePage(),
                             ),
                             (route) => false,
                           );
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            StaffAuthService().logout();
+                          });
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFDC2626),

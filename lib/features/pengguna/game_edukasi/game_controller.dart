@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+﻿import '../../../core/services/soal_service.dart';
 import '../../../models/soal_model.dart';
 
 /// Controller sederhana (tanpa package eksternal) untuk mengatur
@@ -27,14 +26,13 @@ class GameController {
   // LOAD & SHUFFLE
   // ──────────────────────────────────────────────────────────────────
 
-  /// Memuat seluruh bank soal dari assets/data/soal_kuis.json.
+  /// Memuat bank soal secara instan dari cache SoalService atau asset lokal.
   static Future<List<SoalModel>> _loadBankSoal() async {
-    final String rawJson =
-        await rootBundle.loadString('assets/data/soal_kuis.json');
-    final List<dynamic> jsonList = json.decode(rawJson) as List<dynamic>;
-    return jsonList
-        .map((e) => SoalModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final cached = SoalService.cachedSoal;
+    if (cached != null && cached.isNotEmpty) {
+      return List<SoalModel>.from(cached);
+    }
+    return SoalService.loadInitialSoal();
   }
 
   /// Menghasilkan daftar [totalSoalPerPutaran] soal unik yang sudah diacak

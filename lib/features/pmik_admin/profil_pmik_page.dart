@@ -30,6 +30,8 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
 
   String? _avatarPath;
   StaffAccount? _pmik;
+  /// Guard: mencegah rebuild saat proses logout sedang berlangsung.
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -47,7 +49,8 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 
   void _onStaffUpdated() {
-    if (!mounted) return;
+    // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+    if (!mounted || _isLoggingOut) return;
     setState(() {
       _pmik = StaffAuthService().currentStaff;
       if (_pmik?.avatarPath != null && _pmik!.avatarPath!.isNotEmpty) {
@@ -261,14 +264,21 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
+                          // Set guard sebelum menutup dialog agar _onStaffUpdated
+                          // tidak memicu rebuild halaman Profil selama transisi.
+                          _isLoggingOut = true;
                           Navigator.of(dialogCtx).pop();
-                          StaffAuthService().logout();
+                          // Navigasi ke halaman awal terlebih dahulu (hapus seluruh stack),
+                          // baru reset sesi setelah frame selesai dirender.
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => const AuthChoicePage(),
                             ),
                             (route) => false,
                           );
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            StaffAuthService().logout();
+                          });
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFDC2626),
@@ -512,7 +522,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   // ─── PROFILE CARD ─────────────────────────────────────────────────────────
   Widget _buildProfileCard() {
     const double avatarRadius = 46.0;
-    final name = _pmik?.name.isNotEmpty == true ? _pmik!.name : 'Nama PMIK';
+    final name = _pmik?.name ?? '';
     final email = _pmik?.email ?? '';
     final roleLabel = _pmik?.pmikRoleDisplay ?? 'PMIK Admin';
 
