@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../grafik_pengguna/grafik_pengguna_page.dart';
 
-/// Halaman Rekapitulasi Stunting untuk Superadmin, Dokter, & PMIK.
-/// Terintegrasi dalam 1 menu analitik bersama Grafik Pengguna
-/// (Tab: Hasil Cek Stunting).
+/// Halaman Rekapitulasi untuk PMIK Superadmin & Admin.
+/// Memiliki 2 tab: Grafik Pengguna dan Grafik Stunting.
 class RekapitulasiStuntingPage extends StatelessWidget {
-  const RekapitulasiStuntingPage({super.key});
+  final int initialTab;
+  const RekapitulasiStuntingPage({super.key, this.initialTab = 0});
 
   @override
   Widget build(BuildContext context) {
-    return const GrafikPenggunaPage(initialTab: 1);
+    return GrafikPenggunaPage(initialTab: initialTab);
   }
 }

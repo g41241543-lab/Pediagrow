@@ -26,10 +26,12 @@ import 'widgets/pendidikan_triplet_input.dart';
 /// - Tombol Simpan (Biru #3985E7)
 class EditPmikAksesPage extends StatefulWidget {
   final StaffAccount staffAccount;
+  final bool isSelfEdit;
 
   const EditPmikAksesPage({
     super.key,
     required this.staffAccount,
+    this.isSelfEdit = false,
   });
 
   @override
@@ -415,7 +417,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
         password: _passwordCtrl.text.trim().isNotEmpty
             ? _passwordCtrl.text.trim()
             : null,
-        permissions: _permissions,
+        permissions: widget.isSelfEdit ? widget.staffAccount.permissions : _permissions,
         avatarPath: _selectedImagePath,
         experience: experience.isNotEmpty ? '$experience tahun' : null,
         strNumber: strNumber.isNotEmpty ? strNumber : null,
@@ -445,7 +447,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC);
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
 
     // Role label: berganti otomatis jika toggle "Hak Akses" dihidupkan
     final bool isHakAksesActive = _permissions['hak_akses'] == true;
@@ -462,9 +464,11 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
         top: false,
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            physics: const BouncingScrollPhysics(),
+          child: ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              physics: const ClampingScrollPhysics(),
             children: [
               // 1. KARTU PROFIL UTAMA
               _buildProfileCard(roleBadgeText, isDark),
@@ -482,12 +486,14 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
 
               const SizedBox(height: 24.0),
 
-              // 3. SECTION HAK AKSES (16 Switches)
-              _buildSectionTitle(title: 'Hak Akses', isDark: isDark),
-              const SizedBox(height: 10.0),
-              _buildPermissionsCard(isDark),
+              if (!widget.isSelfEdit) ...[
+                // 3. SECTION HAK AKSES (16 Switches)
+                _buildSectionTitle(title: 'Hak Akses', isDark: isDark),
+                const SizedBox(height: 10.0),
+                _buildPermissionsCard(isDark),
 
-              const SizedBox(height: 32.0),
+                const SizedBox(height: 32.0),
+              ],
 
               // 4. TOMBOL SIMPAN
               _buildSaveButton(),
@@ -497,6 +503,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -714,49 +721,53 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             },
           ),
 
-          _buildDottedDivider(),
+          if (!widget.isSelfEdit) ...[
+            _buildDottedDivider(),
 
-          // Input Kata Sandi / Password Baru (Opsional)
-          TextFormField(
-            controller: _passwordCtrl,
-            obscureText: _obscurePassword,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w500,
-              color: textSecondary,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Kata Sandi Baru (Opsional)',
-              hintStyle: GoogleFonts.lato(
+            // Input Kata Sandi / Password Baru (Opsional)
+            TextFormField(
+              controller: _passwordCtrl,
+              obscureText: _obscurePassword,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lato(
                 fontSize: 14.5,
-                color: textMuted,
+                fontWeight: FontWeight.w500,
+                color: textSecondary,
               ),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  size: 20,
+              decoration: InputDecoration(
+                hintText: 'Kata Sandi Baru (Opsional)',
+                hintStyle: GoogleFonts.lato(
+                  fontSize: 14.5,
                   color: textMuted,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
+                    color: textMuted,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
               ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty && v.length < 6) {
+                  return 'Password minimal 6 karakter';
+                }
+                return null;
+              },
             ),
-            validator: (v) {
-              if (v != null && v.isNotEmpty && v.length < 6) {
-                return 'Password minimal 6 karakter';
-              }
-              return null;
-            },
-          ),
 
-          _buildDottedDivider(),
+            _buildDottedDivider(),
+          ] else ...[
+            _buildDottedDivider(),
+          ],
 
           // Baris 2 Kolom: Pengalaman & No. STR
           Row(

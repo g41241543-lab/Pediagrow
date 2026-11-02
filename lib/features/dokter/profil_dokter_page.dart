@@ -11,10 +11,10 @@ import '../../core/services/storage_service.dart';
 import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
+import '../pengaturan/pengaturan_staff_page.dart';
 import 'beranda/beranda_dokter_page.dart';
 import 'konsultasi/konsultasi_dokter_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import '../pengguna/profil/tampilan_page.dart';
 import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Dokter PediaGrow.
@@ -481,7 +481,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         _onBottomNavTap(0);
       },
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: _buildCustomHeader(isDark),
@@ -489,8 +489,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         body: SafeArea(
           top: false,
           bottom: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+          child: ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -566,15 +568,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 const SizedBox(height: 12.0),
                 _buildPracticeLocationsCard(isDark),
 
-                const SizedBox(height: 20.0),
 
-                // 3. INFORMASI DIUBAH HANYA OLEH SUPERADMIN (Gaya PMIK Admin)
-                _buildSuperadminEditNotice(isDark),
-
-                const SizedBox(height: 20.0),
-
-                // 4. PENGATURAN TAMPILAN
-                _buildTampilanMenuCard(isDark),
 
                 const SizedBox(height: 24.0),
 
@@ -607,6 +601,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             ),
           ),
         ),
+        ),
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
       ),
     );
@@ -614,6 +609,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
   Widget _buildCustomHeader(bool isDark) {
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return Container(
       width: double.infinity,
       color: isDark ? const Color(0xFF0B1014) : Colors.white,
@@ -622,115 +621,52 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () => _onBottomNavTap(0),
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12.0),
                 Text(
-                  'Profil Dokter',
+                  'Profil',
                   style: GoogleFonts.lato(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
+                    color: headerTextColor,
                     letterSpacing: -0.2,
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── MENU TAMPILAN ─────────────────────────────────────────────────────────
-  Widget _buildTampilanMenuCard(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10.0,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16.0),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const TampilanPage(),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.palette_outlined,
-                    color: Color(0xFF3985E7),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tampilan',
-                        style: GoogleFonts.lato(
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PengaturanStaffPage(
+                          staffRole: StaffRole.dokter,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Pilih tema terang, gelap, atau sistem',
-                        style: GoogleFonts.lato(
-                          fontSize: 12.0,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                    );
+                  },
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: settingCircleBg,
+                      shape: BoxShape.circle,
+                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.settings_outlined,
+                      color: settingIconColor,
+                      size: 19,
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 15,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
                 ),
               ],
             ),
@@ -990,43 +926,6 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           ),
         ),
       ],
-    );
-  }
-
-  // ─── BANNER INFORMASI SUPERADMIN (Gaya PMIK Admin) ────────────────────────
-  Widget _buildSuperadminEditNotice(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF7C2D12).withValues(alpha: 0.25)
-            : const Color(0xFFFFF7ED),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? const Color(0xFF9A3412) : const Color(0xFFFED7AA),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.info_outline_rounded,
-            color: Color(0xFFF97316),
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Informasi profil hanya dapat diubah oleh Superadmin. '
-              'Hubungi Superadmin jika perlu pembaruan data.',
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                color: isDark ? const Color(0xFFFDBA74) : const Color(0xFF92400E),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

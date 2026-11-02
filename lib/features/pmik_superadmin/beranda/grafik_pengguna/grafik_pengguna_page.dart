@@ -165,6 +165,16 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   final List<int> _penggunaBulan = List.filled(12, 0);
   final List<int> _anakBulan = List.filled(12, 0);
 
+  // ── State Khusus Tampilan Dokter (Klinis Pasien Anak) ───────────────────────
+  int _anakBaruBulanIni = 0;
+  int _usia0sd6 = 0;
+  int _usia6sd12 = 0;
+  int _usia1sd2 = 0;
+  int _usia2sd5 = 0;
+  int _giziNormalCount = 0;
+  int _giziBurukCount = 0;
+  final List<int> _dokterKunjunganBulan = List.filled(12, 0);
+
   final List<UserDemographicRow> _userRows = [];
 
   static const List<String> _bulanLabels = [
@@ -187,6 +197,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       TextEditingController();
   String _stuntingSearchQuery = '';
   int? _selectedStuntingMonth; // null = Semua Bulan, 1-12 = Jan-Des
+  final Set<String> _expandedDokterChildNames = {};
 
   StreamSubscription<QuerySnapshot>? _usersSub;
   StreamSubscription<QuerySnapshot>? _childrenSub;
@@ -274,6 +285,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         _loadChildrenData(),
         _loadStuntingData(),
       ]);
+
+      // Sinkronisasi data kunjungan/pemeriksaan untuk tampilan dokter
+      for (int i = 0; i < 12; i++) {
+        if (_dokterKunjunganBulan[i] == 0) {
+          _dokterKunjunganBulan[i] = _anakBulan[i];
+        }
+      }
     } catch (e) {
       debugPrint('[GrafikPengguna] Error loadAllData: $e');
       if (mounted) {
@@ -398,7 +416,34 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     final realCounts = List.filled(12, 0);
     int realLaki = 0;
     int realPr = 0;
+    int newThisMonth = 0;
+    int u0sd6 = 0;
+    int u6sd12 = 0;
+    int u1sd2 = 0;
+    int u2sd5 = 0;
     final Set<String> processedChildIds = {};
+
+    void processChildAgeAndRegistration(DateTime? bDate, DateTime regDate) {
+      if (regDate.year == now.year && regDate.month == now.month) {
+        newThisMonth++;
+      }
+      if (bDate != null) {
+        int mAge = (now.year - bDate.year) * 12 + (now.month - bDate.month);
+        if (now.day < bDate.day) mAge--;
+        if (mAge < 0) mAge = 0;
+        if (mAge <= 6) {
+          u0sd6++;
+        } else if (mAge <= 12) {
+          u6sd12++;
+        } else if (mAge <= 24) {
+          u1sd2++;
+        } else {
+          u2sd5++;
+        }
+      } else {
+        u1sd2++;
+      }
+    }
 
     try {
       final snap = await _firestore.collection('children').get();
@@ -417,14 +462,24 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           realPr++;
         }
 
-        DateTime regDate = _parseDate(
+        final regDate = _parseDate(
           d['created_at'] ??
               d['createdAt'] ??
               d['registeredAt'] ??
               d['timestamp'] ??
               d['birthDate'] ??
+              d['birth_date'] ??
               d['tanggal_lahir'],
         ) ?? now;
+
+        final bDate = _parseDate(
+          d['birthDate'] ??
+              d['birth_date'] ??
+              d['tanggal_lahir'] ??
+              d['tanggalLahir'],
+        );
+
+        processChildAgeAndRegistration(bDate, regDate);
 
         final m = (regDate.month - 1).clamp(0, 11);
         realCounts[m]++;
@@ -445,6 +500,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             realPr++;
           }
           final regDate = child.birthDate ?? now;
+          processChildAgeAndRegistration(child.birthDate, regDate);
           final m = (regDate.month - 1).clamp(0, 11);
           realCounts[m]++;
         }
@@ -455,6 +511,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     _anakLakiLaki = realLaki;
     _anakPerempuan = realPr;
     _totalAnak = realLaki + realPr;
+    _anakBaruBulanIni = newThisMonth;
+    _usia0sd6 = u0sd6;
+    _usia6sd12 = u6sd12;
+    _usia1sd2 = u1sd2;
+    _usia2sd5 = u2sd5;
 
     // Grafik Batang Bulanan Anak murni dari data riil Firebase
     for (int i = 0; i < 12; i++) {
@@ -467,8 +528,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     final now = DateTime.now();
     final realTidak = List.filled(12, 0);
     final realStunting = List.filled(12, 0);
+    final monthlyVisits = List.filled(12, 0);
     final List<StuntingRecordRow> realRows = [];
     final Map<String, String> childNames = {};
+    int gNormal = 0;
+    int gStunting = 0;
 
     try {
       // Baca nama dan data anak
@@ -497,13 +561,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 d['status_stunting'] ??
                 d['hasil'] ??
                 '')
-            .toString();
+            .toString()
+            .toLowerCase();
 
-        final isStunting = rawStatus.toLowerCase().contains('buruk') ||
-            rawStatus.toLowerCase().contains('stunting');
+        final isStunting = rawStatus.contains('buruk') ||
+            rawStatus.contains('stunting');
+
+        if (isStunting) {
+          gStunting++;
+        } else {
+          gNormal++;
+        }
+
         final statusFormatted = isStunting ? 'Gizi buruk' : 'Gizi normal';
 
         final m = (dt.month - 1).clamp(0, 11);
+        monthlyVisits[m]++;
         if (isStunting) {
           realStunting[m]++;
         } else {
@@ -531,17 +604,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       final memoryMap = GrowthService().recordsNotifier.value;
       for (final entry in memoryMap.entries) {
         for (final rec in entry.value) {
-          final isStunting = rec.statusGizi.toLowerCase().contains('buruk') ||
-              rec.statusGizi.toLowerCase().contains('stunting');
+          final rawStatus = rec.statusGizi.toLowerCase();
+          final isStunting = rawStatus.contains('buruk') ||
+              rawStatus.contains('stunting');
+
           final childName =
               childNames[rec.childId] ?? 'Anak (${rec.childId})';
           final dt = rec.date;
           final m = (dt.month - 1).clamp(0, 11);
 
           if (!realRows.any((r) => r.namaAnak == childName && r.tanggalCek == dt)) {
+            monthlyVisits[m]++;
             if (isStunting) {
+              gStunting++;
               realStunting[m]++;
             } else {
+              gNormal++;
               realTidak[m]++;
             }
 
@@ -563,6 +641,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
     // Urutkan riwayat dari yang terbaru
     realRows.sort((a, b) => b.tanggalCek.compareTo(a.tanggalCek));
+
+    // Sinkronkan data ringkasan klinis & kunjungan dokter
+    _giziNormalCount = gNormal;
+    _giziBurukCount = gStunting;
+    for (int i = 0; i < 12; i++) {
+      _dokterKunjunganBulan[i] = monthlyVisits[i];
+    }
 
     // Hitung grafik bertumpuk Jan - Des MURNI DARI DATA RIIL FIREBASE
     _stuntingChartData = List.generate(12, (i) {
@@ -1136,10 +1221,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               // ── HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS ──────────
               _buildHeader(),
 
-              // ── TAB SELECTOR ELEGAN GABUNGAN 2 MENU DALAM 1 TAMPILAN ─────
+              // ── TAB SELECTOR: GRAFIK PENGGUNA & GRAFIK STUNTING ─────
               _buildTabSelector(),
 
-              // ── ISI HALAMAN BERDASARKAN TAB AKTIF ─────────────────────────
+              // ── ISI HALAMAN: 2 TAB (GRAFIK PENGGUNA & GRAFIK STUNTING) ──────
               Expanded(
                 child: _isLoading
                     ? _buildLoadingSkeleton()
@@ -1166,8 +1251,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // HEADER FIXED
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildHeader() {
+    final isDokter = _isDokterView;
     final title = _tabController.index == 0
-        ? 'Grafik Pengguna'
+        ? (isDokter ? 'Grafik Pasien Anak' : 'Grafik Pengguna')
         : 'Grafik Stunting';
 
     return Container(
@@ -1248,19 +1334,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         labelColor: _isDark ? const Color(0xFF3985E7) : _kTextDark,
         unselectedLabelColor: _textSecondary,
         onTap: (_) => setState(() {}),
-        tabs: const [
+        tabs: [
           Tab(
             height: 48,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.people_alt_rounded, size: 17),
-                SizedBox(width: 6),
-                Text('Grafik Pengguna'),
+                Icon(
+                  _isDokterView ? Icons.child_care_rounded : Icons.people_alt_rounded,
+                  size: 17,
+                ),
+                const SizedBox(width: 6),
+                Text(_isDokterView ? 'Grafik Pasien' : 'Grafik Pengguna'),
               ],
             ),
           ),
-          Tab(
+          const Tab(
             height: 48,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1316,20 +1405,34 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           _buildWelcomeCard(),
           const SizedBox(height: 16),
 
-          // 2. Card Ringkasan Total Pengguna & Anak (Bertambah Otomatis)
-          _buildTotalCards(),
-          const SizedBox(height: 24),
+          if (_isDokterView) ...[
+            // ── TAMPILAN KHUSUS DOKTER (Murni Visualisasi & Grafik Pasien Anak) ──
+            _buildDokterPasienAnalytics(),
+          ] else ...[
+            // ── TAMPILAN SUPERADMIN & ADMIN PMIK ───
+            // 1. Tiga Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru
+            _buildTotalCards(),
+            const SizedBox(height: 16),
 
-          // 3. Card Grafik Batang Pengguna & Anak Terdaftar
-          _buildGrafikPenggunaSection(),
-          const SizedBox(height: 16),
+            // 2. Card Grafik Batang Pengguna & Anak Terdaftar (Tetap seperti semula)
+            _buildGrafikPenggunaSection(),
+            const SizedBox(height: 20),
 
-          // 4. Card Data Anak Berdasarkan Jenis Kelamin (Persentase Otomatis)
-          _buildGenderSection(),
-          const SizedBox(height: 24),
+            // 3. Tabel Kelompok Usia Pasien (Persis seperti di halaman dokter)
+            _buildDokterAgeDistributionSection(),
+            const SizedBox(height: 20),
 
-          // 5. Dataset Pengguna (Kolom Lengkap & Unduh Aktif)
-          _buildDatasetPenggunaSection(),
+            // 4. Card Data Anak Berdasarkan Jenis Kelamin (Persis seperti di halaman dokter)
+            _buildDokterGenderSection(),
+            const SizedBox(height: 20),
+
+            // 5. Tabel Status Gizi Pasien Terdaftar (Persis seperti di halaman dokter)
+            _buildDokterNutritionStatusSection(),
+            const SizedBox(height: 24),
+
+            // 6. Dataset Pengguna (Kolom Lengkap & Unduh Aktif - Tetap seperti saat ini)
+            _buildDatasetPenggunaSection(),
+          ],
           const SizedBox(height: 32),
         ],
       ),
@@ -1347,6 +1450,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ? 'Pantau data pengguna dan\nstatus stunting secara berkala'
         : 'Kelola data pengguna dan\nanak secara keseluruhan';
 
+
+    // Kembalikan card sambutan ke implementasi awal (Stack dengan aset ilustrasi asli)
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: Container(
@@ -1416,115 +1521,663 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Card Total Pengguna & Anak Sesuai Referensi Desain ──────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // WIDGET KHUSUS ROLE DOKTER (MURNI GRAFIK & ANALITIK PASIEN ANAK)
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildDokterPasienAnalytics() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Dua Kartu Ringkasan Metrik Pasien: Total Pasien & Pasien Baru
+        _buildDokterMetricCards(),
+        const SizedBox(height: 20),
+
+        // 2. Tulisan "Ringkasan Anak" (tanpa emoticon)
+        Text(
+          'Ringkasan Anak',
+          style: GoogleFonts.lato(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: _textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 3. Tabel / Grafik Batang Jumlah Anak Saja Per Bulan (Jan - Des, terhubung Firebase)
+        _buildDokterGrafikAnakSection(),
+        const SizedBox(height: 20),
+
+        // 4. Tabel Tampilan "Kelompok Usia Pasien" (tanpa emoticon)
+        _buildDokterAgeDistributionSection(),
+        const SizedBox(height: 20),
+
+        // 5. Kolom Data Anak Berdasarkan Jenis Kelamin (tanpa emoticon, kolom sama besar)
+        _buildDokterGenderSection(),
+        const SizedBox(height: 20),
+
+        // 6. Status Gizi Pasien Terdaftar (tanpa emoticon, hanya Gizi normal & Gizi buruk)
+        _buildDokterNutritionStatusSection(),
+      ],
+    );
+  }
+
+  // ── 1. Dua Kartu Metrik Pasien Anak ───────────────────────────────────────
+  Widget _buildDokterMetricCards() {
+    return Row(
+      children: [
+        // Card 1: Total Pasien
+        Expanded(
+          child: _buildDokterSingleMetricCard(
+            title: 'Total Pasien',
+            value: _formatNumber(_totalAnak),
+            unit: 'Anak',
+            accentColor: _kBluePrimary,
+            bgColor: _isDark ? const Color(0xFF1E2835) : const Color(0xFFEBF3FE),
+            borderColor: _isDark ? const Color(0xFF2C3D52) : const Color(0xFFCCE0FC),
+            icon: Icons.child_care_rounded,
+          ),
+        ),
+        const SizedBox(width: 12.0),
+
+        // Card 2: Pasien Baru
+        Expanded(
+          child: _buildDokterSingleMetricCard(
+            title: 'Pasien Baru',
+            value: '+${_formatNumber(_anakBaruBulanIni)}',
+            unit: 'Bulan Ini',
+            accentColor: _kTealPrimary,
+            bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
+            borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
+            icon: Icons.person_add_alt_1_rounded,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDokterSingleMetricCard({
+    required String title,
+    required String value,
+    required String unit,
+    required Color accentColor,
+    required Color bgColor,
+    required Color borderColor,
+    required IconData icon,
+  }) {
+    return Container(
+      height: 116.0,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
+                  ),
+                ),
+              ),
+              Icon(icon, size: 18.0, color: accentColor),
+            ],
+          ),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 22.0,
+              fontWeight: FontWeight.bold,
+              color: accentColor,
+            ),
+          ),
+          Text(
+            unit,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 2. Card Grafik Batang Jumlah Anak Terdaftar (Jan - Des) ───────────────
+  Widget _buildDokterGrafikAnakSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Jumlah Anak Terdaftar',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          _buildDokterAnakBarChartPlot(),
+          const SizedBox(height: 16.0),
+          // Legenda
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLegendBullet(_kTealPrimary, 'Anak'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDokterAnakBarChartPlot() {
+    const bulanNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+
+    int peakData = 0;
+    for (int i = 0; i < 12; i++) {
+      if (_anakBulan[i] > peakData) peakData = _anakBulan[i];
+    }
+    final scale = _YAxisScale.calculate(peakData);
+
+    const chartPlotHeight = 190.0;
+    const topPadding = 20.0;
+    const xLabelHeight = 26.0;
+    const barWidth = 14.0;
+    const monthColWidth = 28.0;
+    const groupGap = 12.0;
+    const startPadding = 12.0;
+    const endPadding = 16.0;
+    const yAxisWidth = 28.0;
+
+    const monthCount = 12;
+    final plotWidth = startPadding + (monthCount * monthColWidth) + ((monthCount - 1) * groupGap) + endPadding;
+    const totalHeight = topPadding + chartPlotHeight + xLabelHeight;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Sumbu Y
+        Padding(
+          padding: const EdgeInsets.only(top: topPadding),
+          child: SizedBox(
+            width: yAxisWidth,
+            height: chartPlotHeight,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: scale.ticks.map((val) {
+                return Text(
+                  '$val',
+                  style: GoogleFonts.lato(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                    color: _textSecondary,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8.0),
+
+        // Batang Horizontal Scroll
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: SizedBox(
+              width: plotWidth,
+              height: totalHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Garis Bantu Horizontal
+                  Positioned(
+                    top: topPadding,
+                    left: 0,
+                    right: 0,
+                    height: chartPlotHeight,
+                    child: CustomPaint(
+                      size: Size(plotWidth, chartPlotHeight),
+                      painter: _GridPainter(
+                        lineCount: scale.lineCount,
+                        color: _borderColor,
+                      ),
+                    ),
+                  ),
+
+                  // Batang Tunggal Anak per Bulan
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: List.generate(monthCount, (i) {
+                        final valAnak = _anakBulan[i];
+                        final anakH = scale.maxVal > 0
+                            ? (valAnak / scale.maxVal * chartPlotHeight)
+                                .clamp(0.0, chartPlotHeight)
+                            : 0.0;
+
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            left: i == 0 ? startPadding : 0.0,
+                            right: i < monthCount - 1 ? groupGap : endPadding,
+                          ),
+                          child: SizedBox(
+                            width: monthColWidth,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height: chartPlotHeight,
+                                  child: _buildSingleBar(
+                                    height: anakH,
+                                    color: _kTealPrimary,
+                                    value: valAnak,
+                                    width: barWidth,
+                                  ),
+                                ),
+                                const SizedBox(height: 6.0),
+                                Text(
+                                  bulanNames[i],
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: _textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2.0),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 3. Kelompok Usia Pasien ───────────────────────────────────────────────
+  Widget _buildDokterAgeDistributionSection() {
+    final totalUsia = _usia0sd6 + _usia6sd12 + _usia1sd2 + _usia2sd5;
+    final pct0sd6 = totalUsia > 0 ? (_usia0sd6 / totalUsia) : 0.0;
+    final pct6sd12 = totalUsia > 0 ? (_usia6sd12 / totalUsia) : 0.0;
+    final pct1sd2 = totalUsia > 0 ? (_usia1sd2 / totalUsia) : 0.0;
+    final pct2sd5 = totalUsia > 0 ? (_usia2sd5 / totalUsia) : 0.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Kelompok Usia Pasien',
+                style: GoogleFonts.lato(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.bold,
+                  color: _textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+                decoration: BoxDecoration(
+                  color: _isDark ? const Color(0xFF242E35) : const Color(0xFFE5EFFF),
+                  borderRadius: BorderRadius.circular(6.0),
+                ),
+                child: Text(
+                  '${_formatNumber(_totalAnak)} Pasien',
+                  style: GoogleFonts.lato(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: _kBluePrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16.0),
+
+          // Baris 1: 0 - 6 Bulan (ASI Eksklusif)
+          _buildAgeProgressBarItem(
+            label: '0–6 Bulan (ASI Eksklusif)',
+            count: _usia0sd6,
+            ratio: pct0sd6,
+            barColor: _kTealPrimary,
+          ),
+          const SizedBox(height: 12.0),
+
+          // Baris 2: 6 - 12 Bulan (Masa MPASI)
+          _buildAgeProgressBarItem(
+            label: '6–12 Bulan (Masa MPASI)',
+            count: _usia6sd12,
+            ratio: pct6sd12,
+            barColor: _kBluePrimary,
+          ),
+          const SizedBox(height: 12.0),
+
+          // Baris 3: 1 - 2 Tahun (Baduta)
+          _buildAgeProgressBarItem(
+            label: '1–2 Tahun (Baduta)',
+            count: _usia1sd2,
+            ratio: pct1sd2,
+            barColor: const Color(0xFF6366F1),
+          ),
+          const SizedBox(height: 12.0),
+
+          // Baris 4: 2 - 5 Tahun (Balita)
+          _buildAgeProgressBarItem(
+            label: '2–5 Tahun (Balita)',
+            count: _usia2sd5,
+            ratio: pct2sd5,
+            barColor: const Color(0xFF3B82F6),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgeProgressBarItem({
+    required String label,
+    required int count,
+    required double ratio,
+    required Color barColor,
+  }) {
+    final pct = (ratio * 100).toStringAsFixed(1).replaceAll('.', ',');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.lato(
+                fontSize: 12.0,
+                fontWeight: FontWeight.w600,
+                color: _textPrimary,
+              ),
+            ),
+            Text(
+              '$count Anak ($pct%)',
+              style: GoogleFonts.lato(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: _textSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6.0),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6.0),
+          child: Container(
+            height: 10.0,
+            width: double.infinity,
+            color: _isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: ratio.clamp(0.0, 1.0),
+              child: Container(color: barColor),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 4. Data Anak Berdasarkan Jenis Kelamin ─────────────────────────────────
+  Widget _buildDokterGenderSection() {
+    final total = _totalAnak > 0 ? _totalAnak : (_anakLakiLaki + _anakPerempuan);
+    final lakiPct = total > 0 ? (_anakLakiLaki / total * 100) : 50.0;
+    final prPct = total > 0 ? (_anakPerempuan / total * 100) : 50.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Data Anak Berdasarkan Jenis Kelamin',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            children: [
+              Expanded(
+                child: _buildGenderCardItem(
+                  isBoy: true,
+                  label: 'Laki-laki',
+                  count: _anakLakiLaki,
+                  pct: lakiPct,
+                  accentColor: _kBoyBlue,
+                  bgColor: _kBoyAvatarBg,
+                  fixedHeight: 86.0,
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Expanded(
+                child: _buildGenderCardItem(
+                  isBoy: false,
+                  label: 'Perempuan',
+                  count: _anakPerempuan,
+                  pct: prPct,
+                  accentColor: _kGirlPink,
+                  bgColor: _kGirlAvatarBg,
+                  fixedHeight: 86.0,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 5. Status Gizi Pasien Terdaftar (Hanya Gizi normal & Gizi buruk) ───────
+  Widget _buildDokterNutritionStatusSection() {
+    final total = _giziNormalCount + _giziBurukCount;
+    final normalPct = total > 0 ? (_giziNormalCount / total) : 0.85;
+    final burukPct = total > 0 ? (_giziBurukCount / total) : 0.15;
+
+    final normalStr = (normalPct * 100).toStringAsFixed(1).replaceAll('.', ',');
+    final burukStr = (burukPct * 100).toStringAsFixed(1).replaceAll('.', ',');
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: _borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status Gizi Pasien Terdaftar',
+            style: GoogleFonts.lato(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            'Proporsi hasil pemantauan status gizi dari seluruh data riwayat pemeriksaan',
+            style: GoogleFonts.lato(
+              fontSize: 11.5,
+              color: _textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14.0),
+
+          // Segmented Bar Chart Horizontal: 2 Status Saja (Gizi Normal & Gizi Buruk)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.0),
+            child: SizedBox(
+              height: 22.0,
+              child: Row(
+                children: [
+                  if (normalPct > 0)
+                    Expanded(
+                      flex: (normalPct * 1000).toInt().clamp(1, 1000),
+                      child: Container(
+                        color: _kTealPrimary,
+                        alignment: Alignment.center,
+                        child: normalPct > 0.12
+                            ? Text(
+                                '$normalStr%',
+                                style: GoogleFonts.lato(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                  if (burukPct > 0)
+                    Expanded(
+                      flex: (burukPct * 1000).toInt().clamp(1, 1000),
+                      child: Container(
+                        color: const Color(0xFFEF4444),
+                        alignment: Alignment.center,
+                        child: burukPct > 0.08
+                            ? Text(
+                                '$burukStr%',
+                                style: GoogleFonts.lato(
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12.0),
+
+          // Legenda Status Gizi: Hanya Gizi normal & Gizi buruk
+          Wrap(
+            spacing: 20.0,
+            runSpacing: 8.0,
+            children: [
+              _buildLegendBullet(
+                _kTealPrimary,
+                'Gizi normal (${_giziNormalCount > 0 ? _giziNormalCount : '-'})',
+              ),
+              _buildLegendBullet(
+                const Color(0xFFEF4444),
+                'Gizi buruk (${_giziBurukCount > 0 ? _giziBurukCount : '-'})',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru (3 Kartu) ────────
   Widget _buildTotalCards() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            // Total Pengguna
+            // 1. Total Pengguna
             Expanded(
-              child: Container(
-                height: 116.0,
-                decoration: BoxDecoration(
-                  color: _isDark
-                      ? const Color(0xFF1A2228)
-                      : const Color(0xFFE5EFFF),
-                  borderRadius: BorderRadius.circular(16.0),
-                  border: Border.all(
-                    color: _isDark
-                        ? const Color(0xFF2C363D)
-                        : const Color(0xFFCDDBF8),
-                    width: 1.0,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total Pengguna',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                    Text(
-                      _formatNumber(_totalPengguna),
-                      style: GoogleFonts.lato(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        color: _isDark
-                            ? const Color(0xFF3985E7)
-                            : const Color(0xFF0B1014),
-                      ),
-                    ),
-                    Text(
-                      'Pengguna',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              child: _buildMetricMiniCard(
+                title: 'Total Pengguna',
+                value: _formatNumber(_totalPengguna),
+                unit: 'Pengguna',
+                accentColor: _kBluePrimary,
+                bgColor: _isDark ? const Color(0xFF1E2835) : const Color(0xFFEBF3FE),
+                borderColor: _isDark ? const Color(0xFF2C3D52) : const Color(0xFFCCE0FC),
+                icon: Icons.people_alt_rounded,
               ),
             ),
-            const SizedBox(width: 12.0),
+            const SizedBox(width: 8.0),
 
-            // Total Anak Terdaftar
+            // 2. Total Anak
             Expanded(
-              child: Container(
-                height: 116.0,
-                decoration: BoxDecoration(
-                  color: _isDark
-                      ? const Color(0xFF1A2228)
-                      : const Color(0xFFEDF7F4),
-                  borderRadius: BorderRadius.circular(16.0),
-                  border: Border.all(
-                    color: _isDark
-                        ? const Color(0xFF2C363D)
-                        : const Color(0xFFCFE9E0),
-                    width: 1.0,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total Anak Terdaftar',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                    Text(
-                      _formatNumber(_totalAnak),
-                      style: GoogleFonts.lato(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        color: _isDark
-                            ? const Color(0xFF3CC3A6)
-                            : const Color(0xFF0B1014),
-                      ),
-                    ),
-                    Text(
-                      'Anak',
-                      style: GoogleFonts.lato(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+              child: _buildMetricMiniCard(
+                title: 'Total Anak',
+                value: _formatNumber(_totalAnak),
+                unit: 'Pasien',
+                accentColor: _kTealPrimary,
+                bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
+                borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
+                icon: Icons.child_care_rounded,
+              ),
+            ),
+            const SizedBox(width: 8.0),
+
+            // 3. Pasien Baru Bulan Ini
+            Expanded(
+              child: _buildMetricMiniCard(
+                title: 'Pasien Baru',
+                value: '+${_formatNumber(_anakBaruBulanIni)}',
+                unit: 'Bulan Ini',
+                accentColor: const Color(0xFF10B981),
+                bgColor: _isDark ? const Color(0xFF162E25) : const Color(0xFFE8F7F0),
+                borderColor: _isDark ? const Color(0xFF21483A) : const Color(0xFFC7EBD9),
+                icon: Icons.person_add_alt_1_rounded,
               ),
             ),
           ],
@@ -1539,6 +2192,71 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMetricMiniCard({
+    required String title,
+    required String value,
+    required String unit,
+    required Color accentColor,
+    required Color bgColor,
+    required Color borderColor,
+    required IconData icon,
+  }) {
+    return Container(
+      height: 108.0,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: borderColor, width: 1.0),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 2.0),
+              Icon(icon, size: 15.0, color: accentColor),
+            ],
+          ),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 19.0,
+              fontWeight: FontWeight.bold,
+              color: accentColor,
+            ),
+          ),
+          Text(
+            unit,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.lato(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1771,63 +2489,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Data Anak Berdasarkan Jenis Kelamin & Persentase Otomatis ───────────────
-  Widget _buildGenderSection() {
-    final total = _totalAnak > 0 ? _totalAnak : (_anakLakiLaki + _anakPerempuan);
-    final lakiPct = total > 0 ? (_anakLakiLaki / total * 100) : 50.0;
-    final prPct = total > 0 ? (_anakPerempuan / total * 100) : 50.0;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: _borderColor, width: 1.0),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Data Anak Berdasarkan Jenis Kelamin',
-            style: GoogleFonts.lato(
-              fontSize: 14.5,
-              fontWeight: FontWeight.bold,
-              color: _textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16.0),
-          Row(
-            children: [
-              // Laki-laki
-              Expanded(
-                child: _buildGenderCardItem(
-                  isBoy: true,
-                  label: 'Laki-laki',
-                  count: _anakLakiLaki,
-                  pct: lakiPct,
-                  accentColor: _kBoyBlue,
-                  bgColor: _kBoyAvatarBg,
-                ),
-              ),
-              const SizedBox(width: 12.0),
-              // Perempuan
-              Expanded(
-                child: _buildGenderCardItem(
-                  isBoy: false,
-                  label: 'Perempuan',
-                  count: _anakPerempuan,
-                  pct: prPct,
-                  accentColor: _kGirlPink,
-                  bgColor: _kGirlAvatarBg,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildGenderCardItem({
     required bool isBoy,
     required String label,
@@ -1835,9 +2496,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     required double pct,
     required Color accentColor,
     required Color bgColor,
+    double? fixedHeight,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12.0),
+      height: fixedHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
         color: _isDark
             ? const Color(0xFF242E35)
@@ -1854,17 +2517,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         children: [
           ChildAvatar(
             gender: isBoy ? 'Laki-laki' : 'Perempuan',
-            size: 44.0,
+            size: 38.0,
           ),
-          const SizedBox(width: 10.0),
+          const SizedBox(width: 8.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lato(
-                    fontSize: 12.5,
+                    fontSize: 11.0,
                     fontWeight: FontWeight.bold,
                     color: _textPrimary,
                   ),
@@ -1880,8 +2547,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ),
                 Text(
                   '(${pct.toStringAsFixed(1).replaceAll('.', ',')}%)',
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lato(
-                    fontSize: 11.5,
+                    fontSize: 11.0,
                     fontWeight: FontWeight.w600,
                     color: accentColor,
                   ),
@@ -2127,173 +2797,444 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   // ── Search Bar & Filter Bulan ─────────────────────────────────────────────
   Widget _buildStuntingSearchAndFilter() {
-    final bulanNames = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-    ];
+    final isFiltered = _selectedStuntingMonth != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Search bar
-        Container(
-          height: 44.0,
-          decoration: BoxDecoration(
-            color: _isDark ? const Color(0xFF1E2C35) : Colors.white,
-            borderRadius: BorderRadius.circular(12.0),
-            border: Border.all(
-              color: _isDark ? const Color(0xFF2C363D) : _kBorderColor,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 6.0,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: _stuntingSearchController,
-            onChanged: (v) => setState(() => _stuntingSearchQuery = v.trim()),
-            style: GoogleFonts.lato(
-              fontSize: 13.5,
-              color: _textPrimary,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Cari nama anak atau status gizi...',
-              hintStyle: GoogleFonts.lato(
-                fontSize: 13.5,
-                color: _textSecondary,
-              ),
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                size: 20.0,
-                color: _textSecondary,
-              ),
-              suffixIcon: _stuntingSearchQuery.isNotEmpty
-                  ? GestureDetector(
-                      onTap: () {
-                        _stuntingSearchController.clear();
-                        setState(() => _stuntingSearchQuery = '');
-                      },
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 18.0,
-                        color: _textSecondary,
-                      ),
-                    )
-                  : null,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10.0),
-        // Filter bulan — scrollable chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              // Chip "Semua Bulan"
-              _buildMonthChip(
-                label: 'Semua',
-                isSelected: _selectedStuntingMonth == null,
-                onTap: () => setState(() => _selectedStuntingMonth = null),
-              ),
-              const SizedBox(width: 6.0),
-              ...List.generate(12, (i) {
-                final month = i + 1;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6.0),
-                  child: _buildMonthChip(
-                    label: bulanNames[i],
-                    isSelected: _selectedStuntingMonth == month,
-                    onTap: () =>
-                        setState(() => _selectedStuntingMonth = month),
+        Row(
+          children: [
+            // 1. Search Bar dengan teks & hint yang presisi di tengah
+            Expanded(
+              child: Container(
+                height: 46.0,
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                decoration: BoxDecoration(
+                  color: _isDark ? const Color(0xFF1E2C35) : Colors.white,
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(
+                    color: _isDark ? const Color(0xFF2C363D) : _kBorderColor,
                   ),
-                );
-              }),
-            ],
-          ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 6.0,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_rounded,
+                      size: 20.0,
+                      color: _textSecondary,
+                    ),
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: TextField(
+                        controller: _stuntingSearchController,
+                        onChanged: (v) => setState(() => _stuntingSearchQuery = v.trim()),
+                        style: GoogleFonts.lato(
+                          fontSize: 13.5,
+                          color: _textPrimary,
+                        ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                          hintText: 'Cari nama anak atau status gizi...',
+                          hintStyle: GoogleFonts.lato(
+                            fontSize: 13.0,
+                            color: _textSecondary,
+                          ),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    if (_stuntingSearchQuery.isNotEmpty) ...[
+                      const SizedBox(width: 4.0),
+                      GestureDetector(
+                        onTap: () {
+                          _stuntingSearchController.clear();
+                          setState(() => _stuntingSearchQuery = '');
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 18.0,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10.0),
+
+            // 2. Tombol Ikon Filter Corong di samping search bar (jarak ke sisi kanan layar 16dp)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _showStuntingMonthFilterBottomSheet,
+                borderRadius: BorderRadius.circular(12.0),
+                child: Container(
+                  width: 46.0,
+                  height: 46.0,
+                  decoration: BoxDecoration(
+                    color: isFiltered
+                        ? _kBluePrimary
+                        : (_isDark ? const Color(0xFF1E2C35) : Colors.white),
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                      color: isFiltered
+                          ? _kBluePrimary
+                          : (_isDark ? const Color(0xFF2C363D) : _kBorderColor),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isFiltered
+                            ? _kBluePrimary.withValues(alpha: 0.25)
+                            : Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 6.0,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.filter_alt_rounded,
+                        size: 21.0,
+                        color: isFiltered
+                            ? Colors.white
+                            : (_isDark ? const Color(0xFFE9EDEF) : _kBluePrimary),
+                      ),
+                      if (isFiltered)
+                        Positioned(
+                          top: 8.0,
+                          right: 8.0,
+                          child: Container(
+                            width: 7.0,
+                            height: 7.0,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFACC15),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        // Teks jumlah data ditemukan
+
+        // Indikator status pencarian / filter bulan aktif
         const SizedBox(height: 8.0),
-        Text(
-          '${_filteredStuntingRows.length} data ditemukan',
-          style: GoogleFonts.lato(
-            fontSize: 11.5,
-            color: _textSecondary,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${_filteredStuntingRows.length} data ditemukan'
+                '${_selectedStuntingMonth != null ? ' (Bulan: ${_bulanPanjang(_selectedStuntingMonth!)})' : ''}',
+                style: GoogleFonts.lato(
+                  fontSize: 11.5,
+                  color: _textSecondary,
+                ),
+              ),
+            ),
+            if (isFiltered)
+              GestureDetector(
+                onTap: () => setState(() => _selectedStuntingMonth = null),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+                  decoration: BoxDecoration(
+                    color: _kBluePrimary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _bulanPanjang(_selectedStuntingMonth!),
+                        style: GoogleFonts.lato(
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.w600,
+                          color: _kBluePrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 4.0),
+                      const Icon(
+                        Icons.close_rounded,
+                        size: 13.0,
+                        color: _kBluePrimary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildMonthChip({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? _kBluePrimary
-              : (_isDark ? const Color(0xFF1E2C35) : Colors.white),
-          borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(
-            color: isSelected
-                ? _kBluePrimary
-                : (_isDark ? const Color(0xFF2C363D) : _kBorderColor),
-          ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.lato(
-            fontSize: 12.0,
-            fontWeight:
-                isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected
-                ? Colors.white
-                : (_isDark ? const Color(0xFFB0BEC5) : _kTextMuted),
-          ),
-        ),
-      ),
+  // ── Modal Bottom Sheet Pemilihan Bulan (Ikon Corong) ──────────────────────
+  void _showStuntingMonthFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final isDark = _isDark;
+        final sheetBg = isDark ? const Color(0xFF1E2C35) : Colors.white;
+        final textColor = isDark ? Colors.white : _kTextDark;
+        final mutedColor = isDark ? const Color(0xFF94A3B8) : _kTextMuted;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20.0)),
+              ),
+              padding: EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                top: 16.0,
+                bottom: MediaQuery.of(context).padding.bottom + 20.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40.0,
+                      height: 4.0,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Header Filter Bulan
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7.0),
+                            decoration: BoxDecoration(
+                              color: _kBluePrimary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: const Icon(
+                              Icons.filter_alt_rounded,
+                              size: 18.0,
+                              color: _kBluePrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 10.0),
+                          Text(
+                            'Filter Bulan',
+                            style: GoogleFonts.lato(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_selectedStuntingMonth != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _selectedStuntingMonth = null);
+                            Navigator.pop(ctx);
+                          },
+                          child: Text(
+                            'Reset Filter',
+                            style: GoogleFonts.lato(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFEF4444),
+                            ),
+                          ),
+                        )
+                      else
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: Icon(Icons.close_rounded, size: 20.0, color: mutedColor),
+                          splashRadius: 20.0,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6.0),
+                  Text(
+                    'Pilih bulan pengukuran hasil cek stunting',
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: mutedColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+
+                  // Opsi "Semua Bulan"
+                  InkWell(
+                    onTap: () {
+                      setState(() => _selectedStuntingMonth = null);
+                      Navigator.pop(ctx);
+                    },
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      decoration: BoxDecoration(
+                        color: _selectedStuntingMonth == null
+                            ? _kBluePrimary.withValues(alpha: 0.12)
+                            : (isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC)),
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: _selectedStuntingMonth == null
+                              ? _kBluePrimary
+                              : (isDark ? const Color(0xFF334155) : _kBorderLight),
+                          width: _selectedStuntingMonth == null ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 16.0,
+                            color: _selectedStuntingMonth == null ? _kBluePrimary : mutedColor,
+                          ),
+                          const SizedBox(width: 10.0),
+                          Expanded(
+                            child: Text(
+                              'Semua Bulan (Januari - Desember)',
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: _selectedStuntingMonth == null
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: _selectedStuntingMonth == null ? _kBluePrimary : textColor,
+                              ),
+                            ),
+                          ),
+                          if (_selectedStuntingMonth == null)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 18.0,
+                              color: _kBluePrimary,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12.0),
+
+                  // Grid 12 Bulan (3 kolom x 4 baris)
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8.0,
+                      mainAxisSpacing: 8.0,
+                      childAspectRatio: 2.2,
+                    ),
+                    itemCount: 12,
+                    itemBuilder: (context, i) {
+                      final monthNumber = i + 1;
+                      final isSelected = _selectedStuntingMonth == monthNumber;
+                      final monthName = _bulanPanjang(monthNumber);
+
+                      return InkWell(
+                        onTap: () {
+                          setState(() => _selectedStuntingMonth = monthNumber);
+                          Navigator.pop(ctx);
+                        },
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _kBluePrimary
+                                : (isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC)),
+                            borderRadius: BorderRadius.circular(10.0),
+                            border: Border.all(
+                              color: isSelected
+                                  ? _kBluePrimary
+                                  : (isDark ? const Color(0xFF334155) : _kBorderColor),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: Text(
+                            monthName,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? Colors.white : textColor,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
-  // ── Tabel Grouped untuk Dokter (Expandable per anak) ─────────────────────
+  // ── Tabel 2 Kolom Khusus Dokter (Kolom 1: Nama, Kolom 2: Keterangan / Dropdown) ──
   Widget _buildGroupedDokterTable() {
     final groups = _groupedStuntingRows;
 
     if (groups.isEmpty) {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 40.0),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 16.0),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: _borderColor),
+        ),
         alignment: Alignment.center,
         child: Column(
           children: [
             Icon(
               Icons.child_care_rounded,
-              size: 48.0,
+              size: 44.0,
               color: _textSecondary.withValues(alpha: 0.4),
             ),
-            const SizedBox(height: 12.0),
+            const SizedBox(height: 10.0),
             Text(
-              'Tidak ada data yang cocok',
+              'Tidak ada data hasil cek stunting yang cocok',
               style: GoogleFonts.lato(
-                fontSize: 14.0,
+                fontSize: 13.5,
                 color: _textSecondary,
               ),
             ),
-            if (_stuntingSearchQuery.isNotEmpty ||
-                _selectedStuntingMonth != null)
+            if (_stuntingSearchQuery.isNotEmpty || _selectedStuntingMonth != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
                 child: Text(
-                  'Coba ubah kata kunci atau filter bulan',
+                  'Coba ubah kata kunci atau reset filter bulan',
                   style: GoogleFonts.lato(
                     fontSize: 12.0,
                     color: _textSecondary.withValues(alpha: 0.7),
@@ -2308,313 +3249,375 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return Container(
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(10.0),
         border: Border.all(color: _borderColor),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(9.0),
         child: Column(
-          children: List.generate(groups.length, (gi) {
-            final group = groups[gi];
-            final isLastGroup = gi == groups.length - 1;
-            return _buildDokterGroupTile(
-              group: group,
-              isLast: isLastGroup,
-            );
-          }),
+          children: [
+            // ── HEADER TABEL 2 KOLOM (Nama | Keterangan) ──
+            Container(
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF242E35) : const Color(0xFFF9FAFB),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Text(
+                        'Nama',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Text(
+                        'Keterangan',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, thickness: 1, color: _borderColor),
+
+            // ── BARIS TABEL: 1 Baris per Anak Unik (Cek berkali-kali tetap 1 baris) ──
+            ...List.generate(groups.length, (idx) {
+              final group = groups[idx];
+              final isLast = idx == groups.length - 1;
+              final isExpanded = _expandedDokterChildNames.contains(group.namaAnak);
+
+              return Column(
+                children: [
+                  // Baris Utama (Kolom 1: Nama, Kolom 2: Keterangan)
+                  Container(
+                    color: isExpanded
+                        ? (_isDark ? const Color(0xFF1E2830) : const Color(0xFFF4F7FB))
+                        : _cardBg,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Kolom 1: Nama Anak
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
+                            child: Text(
+                              group.namaAnak,
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Kolom 2: Keterangan (Dropdown Detail Hasil Cek)
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    _expandedDokterChildNames.remove(group.namaAnak);
+                                  } else {
+                                    _expandedDokterChildNames.add(group.namaAnak);
+                                  }
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  color: isExpanded
+                                      ? _kBluePrimary.withValues(alpha: 0.12)
+                                      : (_isDark ? const Color(0xFF242E35) : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                    color: isExpanded ? _kBluePrimary : _borderColor,
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Detail (${group.records.length}x Cek)',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 12.0,
+                                          fontWeight: FontWeight.w600,
+                                          color: isExpanded ? _kBluePrimary : _textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4.0),
+                                    Icon(
+                                      isExpanded
+                                          ? Icons.keyboard_arrow_up_rounded
+                                          : Icons.keyboard_arrow_down_rounded,
+                                      size: 18.0,
+                                      color: isExpanded ? _kBluePrimary : _textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── DROPDOWN DETAIL DI BAWAH BARIS (Jika Expanded) ──
+                  if (isExpanded)
+                    _buildDokterChildDetailDropdown(group),
+
+                  if (!isLast)
+                    Divider(height: 1, thickness: 1, color: _borderColor),
+                ],
+              );
+            }),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDokterGroupTile({
-    required GroupedChildStuntingRecord group,
-    required bool isLast,
-  }) {
-    // Hitung ringkasan
-    final totalCek = group.records.length;
-    final totalStunting = group.records.where((r) => r.isStunting).length;
-    final latestRecord = group.records.first;
-    final latestStatus = latestRecord.isStunting ? 'Gizi buruk' : 'Gizi normal';
-    final latestIsGiziNormal = !latestRecord.isStunting;
+  // ── Rincian Dropdown Hasil Cek Stunting Anak (Tanggal, Umur, BB, TB, Status Gizi) ──
+  Widget _buildDokterChildDetailDropdown(GroupedChildStuntingRecord group) {
+    const colWidthTgl = 95.0;
+    const colWidthUmur = 110.0;
+    const colWidthBb = 70.0;
+    const colWidthTb = 70.0;
+    const colWidthHasil = 100.0;
+    const minDetailWidth = colWidthTgl + colWidthUmur + colWidthBb + colWidthTb + colWidthHasil;
 
-    return Column(
-      children: [
-        Theme(
-          data: Theme.of(context).copyWith(
-            dividerColor: Colors.transparent,
-          ),
-          child: ExpansionTile(
-            tilePadding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-            childrenPadding: EdgeInsets.zero,
-            expandedCrossAxisAlignment: CrossAxisAlignment.start,
-            backgroundColor: _isDark
-                ? const Color(0xFF1A2228)
-                : const Color(0xFFF9FAFB),
-            collapsedBackgroundColor: _cardBg,
-            iconColor: _kBluePrimary,
-            collapsedIconColor: _textSecondary,
-            leading: Container(
-              width: 38.0,
-              height: 38.0,
-              decoration: BoxDecoration(
-                color: _kBluePrimary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  group.namaAnak.isNotEmpty
-                      ? group.namaAnak[0].toUpperCase()
-                      : 'A',
-                  style: GoogleFonts.lato(
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.bold,
-                    color: _kBluePrimary,
-                  ),
-                ),
-              ),
-            ),
-            title: Text(
-              group.namaAnak,
-              style: GoogleFonts.lato(
-                fontSize: 14.0,
-                fontWeight: FontWeight.w600,
-                color: _textPrimary,
-              ),
-            ),
-            subtitle: Row(
-              children: [
-                Text(
-                  '$totalCek kali cek',
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    color: _textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0, vertical: 2.0),
-                  decoration: BoxDecoration(
-                    color: latestIsGiziNormal
-                        ? (_isDark
-                            ? const Color(0xFF064E3B)
-                            : const Color(0xFFDDF7F0))
-                        : (_isDark
-                            ? const Color(0xFF450A0A)
-                            : const Color(0xFFFFECE8)),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Text(
-                    'Terakhir: $latestStatus',
-                    style: GoogleFonts.lato(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      color: latestIsGiziNormal
-                          ? (_isDark
-                              ? const Color(0xFF34D399)
-                              : const Color(0xFF14B8A6))
-                          : const Color(0xFFF87171),
-                    ),
-                  ),
-                ),
-                if (totalStunting > 0) ...[
-                  const SizedBox(width: 6.0),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 2.0),
-                    decoration: BoxDecoration(
-                      color: _isDark
-                          ? const Color(0xFF7C2D12)
-                          : const Color(0xFFFFF3CD),
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Text(
-                      '$totalStunting stunting',
-                      style: GoogleFonts.lato(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: _isDark
-                            ? const Color(0xFFFCA5A5)
-                            : const Color(0xFFD97706),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _isDark ? const Color(0xFF141C22) : const Color(0xFFF8FAFC),
+        border: Border(
+          top: BorderSide(color: _borderColor, width: 0.5),
+          bottom: BorderSide(color: _borderColor, width: 0.5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              // Header kolom detail
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 10.0),
-                decoration: BoxDecoration(
-                  color: _isDark
-                      ? const Color(0xFF242E35)
-                      : const Color(0xFFF1F5F9),
-                  border: Border(
-                    top: BorderSide(color: _borderColor, width: 1.0),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 88.0,
-                      child: Text(
-                        'Tanggal Cek',
-                        style: GoogleFonts.lato(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        'Umur',
-                        style: GoogleFonts.lato(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 58.0,
-                      child: Text(
-                        'BB',
-                        style: GoogleFonts.lato(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 58.0,
-                      child: Text(
-                        'TB',
-                        style: GoogleFonts.lato(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 90.0,
-                      child: Text(
-                        'Status Gizi',
-                        style: GoogleFonts.lato(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
+              const Icon(
+                Icons.history_rounded,
+                size: 15.0,
+                color: _kBluePrimary,
+              ),
+              const SizedBox(width: 6.0),
+              Text(
+                'Riwayat Cek Stunting: ${group.namaAnak} (${group.records.length} data)',
+                style: GoogleFonts.lato(
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.bold,
+                  color: _kBluePrimary,
                 ),
               ),
-              // Baris detail tiap record
-              ...List.generate(group.records.length, (ri) {
-                final rec = group.records[ri];
-                final isGiziNormal = !rec.isStunting;
-                final tgl =
-                    '${rec.tanggalCek.day.toString().padLeft(2, '0')} '
-                    '${_bulanPendek(rec.tanggalCek.month)} '
-                    '${rec.tanggalCek.year}';
-                return Column(
-                  children: [
-                    Divider(height: 1, thickness: 0.5, color: _borderColor),
-                    Container(
-                      color: _isDark
-                          ? const Color(0xFF16202A)
-                          : Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 10.0),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 88.0,
-                            child: Text(
-                              tgl,
-                              style: GoogleFonts.lato(
-                                fontSize: 12.0,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              rec.umur,
-                              style: GoogleFonts.lato(
-                                fontSize: 12.0,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 58.0,
-                            child: Text(
-                              rec.bb,
-                              style: GoogleFonts.lato(
-                                fontSize: 12.0,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 58.0,
-                            child: Text(
-                              rec.tb,
-                              style: GoogleFonts.lato(
-                                fontSize: 12.0,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 90.0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: isGiziNormal
-                                    ? (_isDark
-                                        ? const Color(0xFF064E3B)
-                                        : const Color(0xFFDDF7F0))
-                                    : (_isDark
-                                        ? const Color(0xFF450A0A)
-                                        : const Color(0xFFFFECE8)),
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              child: Text(
-                                isGiziNormal ? 'Gizi normal' : 'Gizi buruk',
-                                style: GoogleFonts.lato(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: isGiziNormal
-                                      ? (_isDark
-                                          ? const Color(0xFF34D399)
-                                          : const Color(0xFF14B8A6))
-                                      : const Color(0xFFF87171),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }),
             ],
           ),
-        ),
-        if (!isLast) Divider(height: 1, thickness: 1, color: _borderColor),
-      ],
+          const SizedBox(height: 8.0),
+
+          // Tabel Detail Mini
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: minDetailWidth),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _cardBg,
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: _borderColor),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Detail: Tanggal Cek | Umur | BB | TB | Hasil (Status Gizi)
+                      Container(
+                        color: _isDark ? const Color(0xFF242E35) : const Color(0xFFEBF1F6),
+                        child: Row(
+                          children: [
+                            _buildMiniHeaderCell('Tanggal Cek', colWidthTgl),
+                            _buildMiniHeaderCell('Umur', colWidthUmur),
+                            _buildMiniHeaderCell('BB', colWidthBb),
+                            _buildMiniHeaderCell('TB', colWidthTb),
+                            _buildMiniHeaderCell('Hasil (Status Gizi)', colWidthHasil),
+                          ],
+                        ),
+                      ),
+                      Divider(height: 1, thickness: 1, color: _borderColor),
+
+                      // Baris Tiap Record Pengecekan
+                      ...List.generate(group.records.length, (ri) {
+                        final rec = group.records[ri];
+                        final isLastRec = ri == group.records.length - 1;
+                        final isGiziNormal = !rec.isStunting;
+                        final tgl =
+                            '${rec.tanggalCek.day.toString().padLeft(2, '0')} '
+                            '${_bulanPendek(rec.tanggalCek.month)} '
+                            '${rec.tanggalCek.year}';
+
+                        return Column(
+                          children: [
+                            Container(
+                              color: _cardBg,
+                              child: Row(
+                                children: [
+                                  // Tanggal Cek
+                                  Container(
+                                    width: colWidthTgl,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      tgl,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // Umur
+                                  Container(
+                                    width: colWidthUmur,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.umur,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // BB
+                                  Container(
+                                    width: colWidthBb,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.bb,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // TB
+                                  Container(
+                                    width: colWidthTb,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.tb,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // Hasil (Status Gizi)
+                                  Container(
+                                    width: colWidthHasil,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 9.0),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0,
+                                          vertical: 3.0,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isGiziNormal
+                                              ? (_isDark
+                                                  ? const Color(0xFF064E3B)
+                                                  : const Color(0xFFDDF7F0))
+                                              : (_isDark
+                                                  ? const Color(0xFF450A0A)
+                                                  : const Color(0xFFFFECE8)),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        child: Text(
+                                          isGiziNormal ? 'Gizi normal' : 'Gizi buruk',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 11.0,
+                                            fontWeight: FontWeight.w600,
+                                            color: isGiziNormal
+                                                ? (_isDark
+                                                    ? const Color(0xFF34D399)
+                                                    : const Color(0xFF14B8A6))
+                                                : const Color(0xFFF87171),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!isLastRec)
+                              Divider(height: 1, thickness: 0.5, color: _borderColor),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildMiniHeaderCell(String text, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+      child: Text(
+        text,
+        style: GoogleFonts.lato(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: _textSecondary,
+        ),
+      ),
+    );
+  }
+
+  String _bulanPanjang(int month) {
+    const names = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    ];
+    return names[(month - 1).clamp(0, 11)];
   }
 
   /// Mengubah nomor bulan menjadi singkatan 3 huruf
@@ -2625,6 +3628,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     ];
     return names[(month - 1).clamp(0, 11)];
   }
+
 
   // ── Stacked Bar Chart Cek Stunting (Jan - Des) ──────────────────────────────
   Widget _buildStuntingStackedBarChart() {
