@@ -26,10 +26,12 @@ import 'widgets/pendidikan_triplet_input.dart';
 /// - Tombol Simpan (Biru #3985E7)
 class EditPmikAksesPage extends StatefulWidget {
   final StaffAccount staffAccount;
+  final bool isSelfEdit;
 
   const EditPmikAksesPage({
     super.key,
     required this.staffAccount,
+    this.isSelfEdit = false,
   });
 
   @override
@@ -88,7 +90,12 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     _permissions = Map<String, bool>.from(staff.permissions);
     for (final item in DoctorPermissions.allPermissions) {
       if (!_permissions.containsKey(item.key)) {
-        _permissions[item.key] = item.defaultValue;
+        if (item.key == 'edit_resep_mpasi' ||
+            item.key == 'edit_artikel_kesehatan') {
+          _permissions[item.key] = true;
+        } else {
+          _permissions[item.key] = item.defaultValue;
+        }
       }
     }
   }
@@ -108,10 +115,20 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // IMAGE PICKER (Gaya Profil Ibu POV Pengguna)
   // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // IMAGE PICKER (Gaya Profil Ibu POV Pengguna)
+  // ---------------------------------------------------------------------------
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final handleColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final iconBg = isDark ? const Color(0xFF3985E7).withValues(alpha: 0.15) : const Color(0xFFECF6FF);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -126,7 +143,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: handleColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -136,7 +153,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF000000),
+                    color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -144,7 +161,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: iconBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -158,7 +175,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                   onTap: () {
@@ -166,12 +183,12 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFE9EDEF)),
+                Divider(height: 1, color: dividerColor),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: iconBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -185,7 +202,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                   onTap: () {
@@ -229,6 +246,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   // DATE PICKER TANGGAL LAHIR
   // ---------------------------------------------------------------------------
   Future<void> _selectBirthDate() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     final initialDate = DateTime(2000, 1, 1);
     final picked = await showDatePicker(
@@ -239,11 +257,18 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF3985E7),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF1A2228),
-            ),
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: Color(0xFF3985E7),
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF1A2228),
+                    onSurface: Color(0xFFE9EDEF),
+                  )
+                : const ColorScheme.light(
+                    primary: Color(0xFF3985E7),
+                    onPrimary: Colors.white,
+                    onSurface: Color(0xFF1A2228),
+                  ),
           ),
           child: child!,
         );
@@ -263,40 +288,64 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   // DIALOG TAMBAH INFORMASI UMUM DINAMIS
   // ---------------------------------------------------------------------------
   void _showAddExtraInfoDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleCtrl = TextEditingController();
     final valueCtrl = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Tambah Informasi Umum',
-          style: GoogleFonts.lato(fontSize: 18, fontWeight: FontWeight.bold),
+          style: GoogleFonts.lato(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleCtrl,
+              style: GoogleFonts.lato(
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+              ),
               decoration: InputDecoration(
                 labelText: 'Judul Informasi',
                 hintText: 'Contoh: Alamat Domisili',
-                labelStyle: GoogleFonts.lato(color: const Color(0xFF667781)),
+                labelStyle: GoogleFonts.lato(color: const Color(0xFF8696A0)),
+                hintStyle: GoogleFonts.lato(color: const Color(0xFF8696A0)),
                 focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF3985E7)),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: valueCtrl,
+              style: GoogleFonts.lato(
+                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+              ),
               decoration: InputDecoration(
                 labelText: 'Keterangan',
                 hintText: 'Contoh: Semarang, Jawa Tengah',
-                labelStyle: GoogleFonts.lato(color: const Color(0xFF667781)),
+                labelStyle: GoogleFonts.lato(color: const Color(0xFF8696A0)),
+                hintStyle: GoogleFonts.lato(color: const Color(0xFF8696A0)),
                 focusedBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF3985E7)),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                  ),
                 ),
               ),
             ),
@@ -305,7 +354,12 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Batal', style: GoogleFonts.lato(color: Colors.grey)),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.lato(
+                color: isDark ? const Color(0xFF8696A0) : Colors.grey,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -363,7 +417,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
         password: _passwordCtrl.text.trim().isNotEmpty
             ? _passwordCtrl.text.trim()
             : null,
-        permissions: _permissions,
+        permissions: widget.isSelfEdit ? widget.staffAccount.permissions : _permissions,
         avatarPath: _selectedImagePath,
         experience: experience.isNotEmpty ? '$experience tahun' : null,
         strNumber: strNumber.isNotEmpty ? strNumber : null,
@@ -392,27 +446,32 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+
     // Role label: berganti otomatis jika toggle "Hak Akses" dihidupkan
     final bool isHakAksesActive = _permissions['hak_akses'] == true;
     final String roleBadgeText =
         isHakAksesActive ? 'PMIK (SUPER ADMIN)' : 'PMIK';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: scaffoldBg,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
+        child: _buildHeader(context, isDark),
       ),
       body: SafeArea(
         top: false,
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            physics: const BouncingScrollPhysics(),
+          child: ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              physics: const ClampingScrollPhysics(),
             children: [
               // 1. KARTU PROFIL UTAMA
-              _buildProfileCard(roleBadgeText),
+              _buildProfileCard(roleBadgeText, isDark),
 
               const SizedBox(height: 24.0),
 
@@ -420,18 +479,21 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
               _buildSectionTitle(
                 title: 'Informasi Umum',
                 onAddPressed: _showAddExtraInfoDialog,
+                isDark: isDark,
               ),
               const SizedBox(height: 10.0),
-              _buildGeneralInfoCard(),
+              _buildGeneralInfoCard(isDark),
 
               const SizedBox(height: 24.0),
 
-              // 3. SECTION HAK AKSES (16 Switches)
-              _buildSectionTitle(title: 'Hak Akses'),
-              const SizedBox(height: 10.0),
-              _buildPermissionsCard(),
+              if (!widget.isSelfEdit) ...[
+                // 3. SECTION HAK AKSES (16 Switches)
+                _buildSectionTitle(title: 'Hak Akses', isDark: isDark),
+                const SizedBox(height: 10.0),
+                _buildPermissionsCard(isDark),
 
-              const SizedBox(height: 32.0),
+                const SizedBox(height: 32.0),
+              ],
 
               // 4. TOMBOL SIMPAN
               _buildSaveButton(),
@@ -441,16 +503,20 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
           ),
         ),
       ),
+    ),
     );
   }
 
   // ---------------------------------------------------------------------------
   // HEADER 56DP
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: headerBg,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -466,10 +532,10 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     alignment: Alignment.center,
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -480,7 +546,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -496,18 +562,24 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU PROFIL UTAMA
   // ---------------------------------------------------------------------------
-  Widget _buildProfileCard(String roleBadgeText) {
+  Widget _buildProfileCard(String roleBadgeText, bool isDark) {
     final bool isHakAksesActive = _permissions['hak_akses'] == true;
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textSecondary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final textMuted = const Color(0xFF8696A0);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: cardBorder),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
             blurRadius: 10.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -524,13 +596,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFFE9EDEF),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                     width: 1.5,
                   ),
-                  color: const Color(0xFFE9EDEF),
+                  color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                 ),
                 child: ClipOval(
-                  child: _buildAvatarImage(),
+                  child: _buildAvatarImage(isDark),
                 ),
               ),
             ),
@@ -558,13 +630,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 17.0,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF000000),
+              color: textPrimary,
             ),
             decoration: InputDecoration(
               hintText: 'Nama PMIK',
               hintStyle: GoogleFonts.lato(
                 fontSize: 16.0,
-                color: const Color(0xFF8696A0),
+                color: textMuted,
                 fontWeight: FontWeight.w600,
               ),
               border: InputBorder.none,
@@ -588,11 +660,19 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isHakAksesActive
-                  ? const Color(0xFFE0F2FE)
-                  : const Color(0xFFE9EDEF),
+                  ? (isDark
+                      ? const Color(0xFF0284C7).withValues(alpha: 0.2)
+                      : const Color(0xFFE0F2FE))
+                  : (isDark
+                      ? const Color(0xFF242E35)
+                      : const Color(0xFFE9EDEF)),
               borderRadius: BorderRadius.circular(6.0),
               border: isHakAksesActive
-                  ? Border.all(color: const Color(0xFFBAE6FD))
+                  ? Border.all(
+                      color: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.3)
+                          : const Color(0xFFBAE6FD),
+                    )
                   : null,
             ),
             child: Text(
@@ -601,8 +681,8 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                 fontSize: 13.5,
                 fontWeight: FontWeight.bold,
                 color: isHakAksesActive
-                    ? const Color(0xFF0369A1)
-                    : const Color(0xFF2C363D),
+                    ? (isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1))
+                    : (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D)),
                 letterSpacing: 0.5,
               ),
             ),
@@ -618,13 +698,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             style: GoogleFonts.lato(
               fontSize: 14.5,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF2C363D),
+              color: textSecondary,
             ),
             decoration: InputDecoration(
               hintText: 'E-mail',
               hintStyle: GoogleFonts.lato(
                 fontSize: 14.5,
-                color: const Color(0xFF8696A0),
+                color: textMuted,
               ),
               border: InputBorder.none,
               isDense: true,
@@ -641,49 +721,53 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             },
           ),
 
-          _buildDottedDivider(),
+          if (!widget.isSelfEdit) ...[
+            _buildDottedDivider(),
 
-          // Input Kata Sandi / Password Baru (Opsional)
-          TextFormField(
-            controller: _passwordCtrl,
-            obscureText: _obscurePassword,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF2C363D),
-            ),
-            decoration: InputDecoration(
-              hintText: 'Kata Sandi Baru (Opsional)',
-              hintStyle: GoogleFonts.lato(
+            // Input Kata Sandi / Password Baru (Opsional)
+            TextFormField(
+              controller: _passwordCtrl,
+              obscureText: _obscurePassword,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lato(
                 fontSize: 14.5,
-                color: const Color(0xFF8696A0),
+                fontWeight: FontWeight.w500,
+                color: textSecondary,
               ),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  size: 20,
-                  color: const Color(0xFF8696A0),
+              decoration: InputDecoration(
+                hintText: 'Kata Sandi Baru (Opsional)',
+                hintStyle: GoogleFonts.lato(
+                  fontSize: 14.5,
+                  color: textMuted,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    size: 20,
+                    color: textMuted,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
               ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty && v.length < 6) {
+                  return 'Password minimal 6 karakter';
+                }
+                return null;
+              },
             ),
-            validator: (v) {
-              if (v != null && v.isNotEmpty && v.length < 6) {
-                return 'Password minimal 6 karakter';
-              }
-              return null;
-            },
-          ),
 
-          _buildDottedDivider(),
+            _buildDottedDivider(),
+          ] else ...[
+            _buildDottedDivider(),
+          ],
 
           // Baris 2 Kolom: Pengalaman & No. STR
           Row(
@@ -698,13 +782,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.work_outline_rounded,
                         size: 18.0,
-                        color: Color(0xFF3985E7),
+color: isDark ? textMuted : const Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -716,7 +800,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                             'Pengalaman',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF667781),
+                              color: textMuted,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -733,13 +817,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                                   style: GoogleFonts.lato(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF1A2228),
+                                    color: textSecondary,
                                   ),
                                   decoration: InputDecoration(
                                     hintText: 'Isi',
                                     hintStyle: GoogleFonts.lato(
                                       fontSize: 13.0,
-                                      color: const Color(0xFF8696A0),
+                                      color: textMuted,
                                     ),
                                     border: InputBorder.none,
                                     isDense: true,
@@ -753,7 +837,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1A2228),
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
@@ -768,7 +852,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
               Container(
                 height: 40.0,
                 width: 1.0,
-                color: const Color(0xFFE9EDEF),
+                color: cardBorder,
                 margin: const EdgeInsets.symmetric(horizontal: 10.0),
               ),
 
@@ -781,13 +865,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                       width: 32.0,
                       height: 32.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.badge_outlined,
                         size: 18.0,
-                        color: Color(0xFF3985E7),
+color: isDark ? textMuted : const Color(0xFF3985E7),
                       ),
                     ),
                     const SizedBox(width: 8.0),
@@ -799,7 +883,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                             'No. STR',
                             style: GoogleFonts.lato(
                               fontSize: 12.0,
-                              color: const Color(0xFF667781),
+                              color: textMuted,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -813,13 +897,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13.0,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1A2228),
+                              color: textSecondary,
                             ),
                             decoration: InputDecoration(
                               hintText: 'No. STR',
                               hintStyle: GoogleFonts.lato(
                                 fontSize: 13.0,
-                                color: const Color(0xFF8696A0),
+                                color: textMuted,
                               ),
                               border: InputBorder.none,
                               isDense: true,
@@ -839,19 +923,19 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
     );
   }
 
-  Widget _buildAvatarImage() {
+  Widget _buildAvatarImage(bool isDark) {
     return StorageService.buildImageWidget(
       _selectedImagePath,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      errorWidget: Container(
-        color: const Color(0xFFECF6FF),
+errorWidget: Container(
+        color: isDark ? const Color(0xFF242E35) : const Color(0xFFECF6FF),
         alignment: Alignment.center,
-        child: const Icon(
+        child: Icon(
           Icons.person_rounded,
           size: 54.0,
-          color: Color(0xFF3985E7),
+          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF3985E7),
         ),
       ),
     );
@@ -860,17 +944,23 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU INFORMASI UMUM
   // ---------------------------------------------------------------------------
-  Widget _buildGeneralInfoCard() {
+  Widget _buildGeneralInfoCard(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final textValue = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D);
+    final textMuted = const Color(0xFF8696A0);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: cardBorder),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
             blurRadius: 8.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -888,13 +978,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.calendar_month_outlined,
                       size: 20.0,
-                      color: Color(0xFF3985E7),
+color: isDark ? textMuted : const Color(0xFF3985E7),
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -907,7 +997,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2228),
+                            color: textTitle,
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -917,23 +1007,23 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                               : '16/07/2006',
                           style: GoogleFonts.lato(
                             fontSize: 13.5,
-                            color: const Color(0xFF2C363D),
+                            color: textValue,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
                     size: 20.0,
-                    color: Color(0xFF3985E7),
+color: isDark ? textMuted : const Color(0xFF3985E7),
                   ),
                 ],
               ),
             ),
           ),
 
-          const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
+          Divider(height: 1.0, color: cardBorder),
 
           // 2. Pendidikan (Strata, Prodi, Universitas)
           Padding(
@@ -941,12 +1031,12 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+Text(
                   'Pendidikan',
                   style: GoogleFonts.lato(
                     fontSize: 14.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A2228),
+                    color: textTitle,
                   ),
                 ),
                 PendidikanTripletCard(
@@ -960,7 +1050,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
 
           // Daftar Info Tambahan Dinamis (jika ada)
           for (int i = 0; i < _extraInfoList.length; i++) ...[
-            const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
+            Divider(height: 1.0, color: cardBorder),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Row(
@@ -969,13 +1059,13 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.info_outline_rounded,
                       size: 20.0,
-                      color: Color(0xFF3985E7),
+color: isDark ? textMuted : const Color(0xFF3985E7),
                     ),
                   ),
                   const SizedBox(width: 14.0),
@@ -988,7 +1078,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                           style: GoogleFonts.lato(
                             fontSize: 14.0,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1A2228),
+                            color: textTitle,
                           ),
                         ),
                         const SizedBox(height: 2.0),
@@ -996,7 +1086,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
                           _extraInfoList[i].value,
                           style: GoogleFonts.lato(
                             fontSize: 13.5,
-                            color: const Color(0xFF2C363D),
+                            color: textValue,
                           ),
                         ),
                       ],
@@ -1022,34 +1112,38 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU HAK AKSES (16 TOGGLES)
   // ---------------------------------------------------------------------------
-  Widget _buildPermissionsCard() {
+  Widget _buildPermissionsCard(bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: cardBorder),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0x0A000000),
             blurRadius: 8.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
           for (int i = 0; i < DoctorPermissions.allPermissions.length; i++) ...[
-            _buildPermissionRow(DoctorPermissions.allPermissions[i]),
+            _buildPermissionRow(DoctorPermissions.allPermissions[i], isDark),
             if (i < DoctorPermissions.allPermissions.length - 1)
-              const Divider(height: 1.0, color: Color(0xFFE9EDEF)),
+              Divider(height: 1.0, color: cardBorder),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildPermissionRow(DoctorPermissionItem item) {
+  Widget _buildPermissionRow(DoctorPermissionItem item, bool isDark) {
     final isChecked = _permissions[item.key] ?? false;
+    final textTitle = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -1062,7 +1156,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A2228),
+                color: textTitle,
               ),
             ),
           ),
@@ -1071,7 +1165,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             activeThumbColor: Colors.white,
             activeTrackColor: const Color(0xFF3985E7),
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: const Color(0xFF8696A0),
+            inactiveTrackColor: isDark ? const Color(0xFF334155) : const Color(0xFF8696A0),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             onChanged: (bool newVal) {
               setState(() {
@@ -1127,6 +1221,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
   Widget _buildSectionTitle({
     required String title,
     VoidCallback? onAddPressed,
+    required bool isDark,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1136,7 +1231,7 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
           style: GoogleFonts.lato(
             fontSize: 17.0,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF000000),
+            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
           ),
         ),
         if (onAddPressed != null)
@@ -1161,6 +1256,8 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final dotColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
           final boxWidth = constraints.constrainWidth();
           const dashWidth = 4.0;
           const dashSpace = 3.0;
@@ -1169,11 +1266,11 @@ class _EditPmikAksesPageState extends State<EditPmikAksesPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             direction: Axis.horizontal,
             children: List.generate(dashCount, (_) {
-              return const SizedBox(
+              return SizedBox(
                 width: dashWidth,
                 height: 1.0,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(color: Color(0xFFD1D7DB)),
+                  decoration: BoxDecoration(color: dotColor),
                 ),
               );
             }),

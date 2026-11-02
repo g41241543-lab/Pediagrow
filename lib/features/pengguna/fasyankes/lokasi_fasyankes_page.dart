@@ -4,15 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../beranda/beranda_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'models/fasyankes_model.dart';
 import 'services/fasyankes_service.dart';
 import 'widgets/fasyankes_card_item.dart';
 import 'widgets/fasyankes_map_widget.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Lokasi Fasilitas Pelayanan Kesehatan (Fasyankes) PediaGrow
 ///
@@ -62,8 +59,6 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
   LocationPermission _locationPermission = LocationPermission.unableToDetermine;
   final bool _autoCenterUser = true;
 
-  // Navigasi Bottom Bar — -1 berarti tidak ada tab yang aktif
-  final int _selectedNavIndex = -1;
 
   @override
   void dispose() {
@@ -308,32 +303,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
     _loadFasyankes(query: '');
   }
 
-  void _onNavTap(int index) {
-    if (index == _selectedNavIndex) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
-    }
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const BerandaPage()),
-          (route) => false,
-        );
-        break;
-      case 1:
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const DaftarDokterPage()));
-        break;
-      case 2:
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()));
-        break;
-      case 3:
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const MenuProfilPage()));
-        break;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -380,7 +350,7 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
             ],
           ),
         ),
-        bottomNavigationBar: _buildFixedNavBar(isDark),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       ),
     );
   }
@@ -809,114 +779,4 @@ class _LokasiFasyankesPageState extends State<LokasiFasyankesPage> {
     return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
-  // ===========================================================================
-  // 6. NAVIGATION BAR FIXED (Tinggi 68dp, #F2EDED)
-  // ===========================================================================
-  Widget _buildFixedNavBar(bool isDark) {
-    final navItems = [
-      const _NavData(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavData(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavData(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavData(icon: Icons.person_outline_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2EDED),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(navItems.length, (i) {
-          final isSelected = i == _selectedNavIndex;
-          final item = navItems[i];
-
-          return GestureDetector(
-            onTap: () => _onNavTap(i),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 80,
-              height: 68,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSelected) ...[
-                    // State aktif: lingkaran putih dengan ikon biru #72A9F4
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0B1014) : Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1A000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        item.icon,
-                        size: 24,
-                        color: const Color(0xFF72A9F4),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                      ),
-                    ),
-                  ] else ...[
-                    Icon(
-                      item.icon,
-                      size: 24,
-                      color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.lato(
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                        color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-class _NavData {
-  final IconData icon;
-  final String label;
-
-  const _NavData({required this.icon, required this.label});
 }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/resume_medis_service.dart';
@@ -45,12 +46,19 @@ class BuatResumeMedisDokterPage extends StatefulWidget {
 
 class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color _colorTextBlack = Color(0xFF1A2228);
-  static const Color _colorLabelGrey = Color(0xFF667781);
-  static const Color _colorBorder = Color(0xFFE9EDEF);
-  static const Color _colorSoftBlue = Color(0xFFEBF5FF);
-  static const Color _colorReadOnlyBg = Color(0xFFF0F7FF);
-  static const Color _colorReadOnlyBorder = Color(0xFFD6E8FA);
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _colorTextBlack =>
+      _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+  Color get _colorLabelGrey =>
+      _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+  Color get _colorBorder =>
+      _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _colorSoftBlue =>
+      _isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF5FF);
+  Color get _colorReadOnlyBg =>
+      _isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F7FF);
+  Color get _colorReadOnlyBorder =>
+      _isDark ? const Color(0xFF334155) : const Color(0xFFD6E8FA);
 
   final _formKey = GlobalKey<FormState>();
 
@@ -273,6 +281,19 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
 
       final newId = await ResumeMedisService().saveOrUpdateResumeMedis(resume);
 
+      // Tandai booking sebagai selesai agar hilang dari antrean aktif dokter & pengguna
+      final currentChild = widget.child;
+      final bookingId = widget.booking?.id ??
+          BookingService().bookings.where((b) {
+            if (currentChild == null) return false;
+            return (b.child.id.isNotEmpty && b.child.id == currentChild.id) ||
+                b.child.name.toLowerCase().trim() ==
+                    currentChild.name.toLowerCase().trim();
+          }).firstOrNull?.id;
+      if (bookingId != null && bookingId.isNotEmpty) {
+        BookingService().updateBookingStatus(bookingId, 'Selesai');
+      }
+
       final savedResume = ResumeMedisModel(
         id: newId,
         childId: resume.childId,
@@ -327,12 +348,12 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: _colorTextBlack),
+          icon: Icon(Icons.arrow_back, color: _colorTextBlack),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: Text('Buat Resume Medis',
@@ -494,15 +515,17 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
       decoration: BoxDecoration(
         color: _colorSoftBlue,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD6E4FF)),
+        border: Border.all(
+            color: _isDark ? const Color(0xFF334155) : const Color(0xFFD6E4FF)),
       ),
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-                color: Colors.white, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF2C363D) : Colors.white,
+                shape: BoxShape.circle),
             child: const Icon(Icons.medical_information_rounded,
                 color: _colorPrimaryBlue, size: 26),
           ),
@@ -689,7 +712,11 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
             isDense: true,
             hintText: hint,
             hintStyle: GoogleFonts.lato(
-                fontSize: 13, color: const Color(0xFFB0BEC5), height: 1.4),
+                fontSize: 13,
+                color: _isDark
+                    ? const Color(0xFF667781)
+                    : const Color(0xFFB0BEC5),
+                height: 1.4),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(top: 2.0),
               child: Icon(icon, size: 20, color: _colorLabelGrey),
@@ -697,16 +724,18 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
             prefixIconConstraints:
                 const BoxConstraints(minWidth: 44, minHeight: 44),
             filled: true,
-            fillColor: const Color(0xFFF8FAFC),
+            fillColor: _isDark
+                ? const Color(0xFF1A2228)
+                : const Color(0xFFF8FAFC),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _colorBorder),
+              borderSide: BorderSide(color: _colorBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _colorBorder),
+              borderSide: BorderSide(color: _colorBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

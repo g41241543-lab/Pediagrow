@@ -278,6 +278,15 @@ class StaffAccount {
       return isPmikSuperadmin;
     }
     if (isSuperAdmin) return true;
+    if (isDokter) {
+      if (permissionKey == 'edit_resep_mpasi' ||
+          permissionKey == 'edit_artikel_kesehatan' ||
+          permissionKey == 'edit_daftar_artikel_kesehatan') {
+        return permissions[permissionKey] == true ||
+            (permissionKey == 'edit_artikel_kesehatan' &&
+                permissions['edit_daftar_artikel_kesehatan'] == true);
+      }
+    }
     if (permissions.isEmpty) return true;
     return permissions[permissionKey] ?? true;
   }

@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,10 +54,12 @@ class RichTextEditingController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultTextColor = isDark ? const Color(0xFFE9EDEF) : Colors.black;
     final effectiveStyle = style ??
         GoogleFonts.lato(
           fontSize: 13.5,
-          color: Colors.black,
+          color: defaultTextColor,
           height: 1.45,
         );
     return parseRichTextDocument(text, effectiveStyle, isEditor: true);
@@ -462,13 +464,23 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final editorBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final toolbarBg = isDark ? const Color(0xFF242E35) : const Color(0xFFFAFAFA);
     final borderColor = widget.hasError
         ? const Color(0xFFE53935)
-        : const Color(0xFFD1D5DB);
+        : isDark
+            ? const Color(0xFF334155)
+            : const Color(0xFFD1D5DB);
+    final dividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB);
+    final textColor = isDark ? const Color(0xFFE9EDEF) : Colors.black;
+    final hintColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E);
+    final iconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF4B5563);
+    final textBtnColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: editorBg,
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(color: borderColor, width: 1.0),
       ),
@@ -480,11 +492,11 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
           // -------------------------------------------------------------
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFAFAFA),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(7.0)),
+            decoration: BoxDecoration(
+              color: toolbarBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(7.0)),
               border: Border(
-                bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1.0),
+                bottom: BorderSide(color: dividerColor, width: 1.0),
               ),
             ),
             child: SingleChildScrollView(
@@ -496,16 +508,17 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                   DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _currentHeadingFormat,
-                      icon: const Icon(
+                      dropdownColor: isDark ? const Color(0xFF242E35) : Colors.white,
+                      icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 18.0,
-                        color: Color(0xFF4B5563),
+                        color: iconColor,
                       ),
                       isDense: true,
                       style: GoogleFonts.lato(
                         fontSize: 13.0,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF374151),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF374151),
                       ),
                       items: const [
                         DropdownMenuItem(
@@ -531,7 +544,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                     ),
                   ),
 
-                  _buildVerticalDivider(),
+                  _buildVerticalDivider(dividerColor),
 
                   // Tombol Bold (B) Aktif
                   _ToolbarButton(
@@ -549,7 +562,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                         fontWeight: FontWeight.bold,
                         color: _isBoldActive
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFF1A2228),
+                            : textBtnColor,
                       ),
                     ),
                   ),
@@ -573,7 +586,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                         fontStyle: FontStyle.italic,
                         color: _isItalicActive
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFF1A2228),
+                            : textBtnColor,
                       ),
                     ),
                   ),
@@ -597,7 +610,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                         decoration: TextDecoration.underline,
                         color: _isUnderlineActive
                             ? const Color(0xFF2563EB)
-                            : const Color(0xFF1A2228),
+                            : textBtnColor,
                       ),
                     ),
                   ),
@@ -608,10 +621,10 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                   _ToolbarButton(
                     tooltip: 'Daftar Poin (Bullet List)',
                     onTap: () => _toggleLinePrefix('• '),
-                    child: const Icon(
+                    child: Icon(
                       Icons.format_list_bulleted_rounded,
                       size: 19.0,
-                      color: Color(0xFF4B5563),
+                      color: iconColor,
                     ),
                   ),
 
@@ -621,14 +634,14 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                   _ToolbarButton(
                     tooltip: 'Daftar Bernomor (Numbered List)',
                     onTap: () => _toggleLinePrefix('1. '),
-                    child: const Icon(
+                    child: Icon(
                       Icons.format_list_numbered_rounded,
                       size: 19.0,
-                      color: Color(0xFF4B5563),
+                      color: iconColor,
                     ),
                   ),
 
-                  _buildVerticalDivider(),
+                  _buildVerticalDivider(dividerColor),
 
                   // Tombol Undo (↩)
                   _ToolbarButton(
@@ -640,8 +653,8 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                       Icons.undo_rounded,
                       size: 18.0,
                       color: widget.controller.canUndo
-                          ? const Color(0xFF4B5563)
-                          : const Color(0xFFD1D5DB),
+                          ? iconColor
+                          : (isDark ? const Color(0xFF475569) : const Color(0xFFD1D5DB)),
                     ),
                   ),
 
@@ -657,8 +670,8 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                       Icons.redo_rounded,
                       size: 18.0,
                       color: widget.controller.canRedo
-                          ? const Color(0xFF4B5563)
-                          : const Color(0xFFD1D5DB),
+                          ? iconColor
+                          : (isDark ? const Color(0xFF475569) : const Color(0xFFD1D5DB)),
                     ),
                   ),
                 ],
@@ -680,14 +693,14 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
               keyboardType: TextInputType.multiline,
               style: GoogleFonts.lato(
                 fontSize: 13.5,
-                color: Colors.black,
+                color: textColor,
                 height: 1.45,
               ),
               decoration: InputDecoration(
                 hintText: widget.placeholder,
                 hintStyle: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF9E9E9E),
+                  color: hintColor,
                   fontWeight: FontWeight.normal,
                   height: 1.45,
                 ),
@@ -702,12 +715,12 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
     );
   }
 
-  Widget _buildVerticalDivider() {
+  Widget _buildVerticalDivider(Color color) {
     return Container(
       width: 1.0,
       height: 20.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
-      color: const Color(0xFFE5E7EB),
+      color: color,
     );
   }
 }
@@ -727,10 +740,14 @@ class _ToolbarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeBg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEBF3FE);
+    final activeBorder = isDark ? const Color(0xFF2563EB) : const Color(0xFF93C5FD);
+
     return Tooltip(
       message: tooltip ?? '',
       child: Material(
-        color: isActive ? const Color(0xFFEBF3FE) : Colors.transparent,
+        color: isActive ? activeBg : Colors.transparent,
         borderRadius: BorderRadius.circular(6.0),
         child: InkWell(
           onTap: onTap,
@@ -742,7 +759,7 @@ class _ToolbarButton extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6.0),
               border: Border.all(
-                color: isActive ? const Color(0xFF93C5FD) : Colors.transparent,
+                color: isActive ? activeBorder : Colors.transparent,
                 width: 1.0,
               ),
             ),

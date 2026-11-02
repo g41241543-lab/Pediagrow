@@ -7,10 +7,9 @@ import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../auth/auth_choice_page.dart';
-import '../beranda/beranda_superadmin_page.dart';
-import '../konsultasi/konsultasi_superadmin_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../../pengaturan/pengaturan_staff_page.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
 ///
@@ -42,7 +41,6 @@ class ProfilSuperadminPage extends StatefulWidget {
 }
 
 class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
-  final int _selectedIndex = 3; // Menu Profil aktif
   final ImagePicker _picker = ImagePicker();
   String? _superadminAvatarPath;
   StaffAccount? _superadmin;
@@ -255,7 +253,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       context: context,
       builder: (dialogCtx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1A2228)
+            : Colors.white,
         elevation: 8,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
@@ -269,7 +269,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFFE9EDEF)
+                      : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -278,7 +280,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF667781),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -292,7 +296,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD1D7DB)),
+                          side: BorderSide(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF2C363D)
+                                : const Color(0xFFD1D7DB),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -303,7 +311,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C363D),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFFE9EDEF)
+                                : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -360,97 +370,25 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     );
   }
 
-  void _onBottomNavTap(int index) {
-    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
-    if (widget.inShell) return;
-    if (index == _selectedIndex) return;
-
-    final staff = StaffAuthService().currentStaff;
-    if (index == 1 && staff != null && !staff.hasPermission('konsultasi')) {
-      LocalPushService().show(
-        title: 'Akses Terbatas',
-        body: 'Akses fitur "Konsultasi" dinonaktifkan oleh Superadmin.',
-        targetRole: PushRole.superadmin,
-      );
-      return;
-    }
-    if (index == 2 &&
-        staff != null &&
-        !staff.isSuperAdmin &&
-        !staff.hasPermission('riwayat_konsultasi')) {
-      LocalPushService().show(
-        title: 'Akses Terbatas',
-        body: 'Akses fitur "Riwayat Konsultasi" dinonaktifkan oleh Superadmin.',
-        targetRole: PushRole.superadmin,
-      );
-      return;
-    }
-
-    Widget targetPage;
-    switch (index) {
-      case 0:
-        targetPage = const BerandaSuperadminPage();
-        break;
-      case 1:
-        targetPage = const KonsultasiSuperadminPage();
-        break;
-      case 2:
-        targetPage = const DaftarRiwayatKonsultasiAdminPage();
-        break;
-      default:
-        return;
-    }
-
-    final isLeft = index < _selectedIndex;
-    final beginOffset = Offset(isLeft ? -0.25 : 0.25, 0.0);
-
-    final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 280),
-      reverseTransitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, _, _) => targetPage,
-      transitionsBuilder: (_, animation, secondaryAnimation, child) {
-        final curvedAnimation = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: beginOffset,
-            end: Offset.zero,
-          ).animate(curvedAnimation),
-          child: FadeTransition(
-            opacity: Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(curvedAnimation),
-            child: child,
-          ),
-        );
-      },
-    );
-
-    if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(route, (route) => false);
-    } else {
-      Navigator.of(context).pushReplacement(route);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       // Custom Header permanen 56dp di bagian paling atas layar
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildCustomHeader(),
+        child: _buildCustomHeader(isDark),
       ),
       // Konten utama scrollable anti-overflow
       body: SafeArea(
         top: false,
         bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+        child: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -458,7 +396,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
               const SizedBox(height: 16.0),
 
               // 1. KARTU PROFIL DENGAN AVATAR MELAYANG
-              _buildProfileCard(),
+              _buildProfileCard(isDark),
 
               const SizedBox(height: 24.0),
 
@@ -468,14 +406,14 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
 
               const SizedBox(height: 12.0),
 
               // 3. KARTU INFORMASI UMUM
-              _buildGeneralInfoCard(),
+              _buildGeneralInfoCard(isDark),
 
               const SizedBox(height: 20.0),
 
@@ -483,9 +421,15 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5),
+                  color: isDark
+                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                      : const Color(0xFFECFDF5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF059669).withValues(alpha: 0.5)
+                        : const Color(0xFFA7F3D0),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -501,7 +445,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         'Pengelolaan hak akses staf dan dokter dapat dilakukan melalui menu Kelola Hak Akses di Beranda.',
                         style: GoogleFonts.lato(
                           fontSize: 13,
-                          color: const Color(0xFF065F46),
+                          color: isDark
+                              ? const Color(0xFF6EE7B7)
+                              : const Color(0xFF065F46),
                           height: 1.4,
                         ),
                       ),
@@ -509,6 +455,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   ],
                 ),
               ),
+
+
 
               const SizedBox(height: 24.0),
 
@@ -541,36 +489,77 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
         ),
       ),
+      ),
       // Scaffold.bottomNavigationBar permanen 4 menu
-      bottomNavigationBar: widget.inShell ? null : _buildBottomNavigationBar(),
+      bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 3),
     );
   }
 
   /// Header kustom dengan tinggi tepat 56dp di bawah SafeArea atas.
   /// Judul "Profil" terletak tepat 16dp dari pojok layar kiri (tanpa tombol back).
-  Widget _buildCustomHeader() {
+  Widget _buildCustomHeader(bool isDark) {
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
           height: 56.0,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Profil',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.lato(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF000000),
-                  letterSpacing: -0.2,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Profil',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: headerTextColor,
+                    letterSpacing: -0.2,
+                  ),
                 ),
-              ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PengaturanStaffPage(
+                          staffRole: StaffRole.superadmin,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: settingCircleBg,
+                      shape: BoxShape.circle,
+                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.settings_outlined,
+                      color: settingIconColor,
+                      size: 19,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -579,7 +568,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   /// Kartu profil dengan avatar bulat melayang di bagian atas kartu
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(bool isDark) {
     const double avatarRadius = 46.0; // Diameter 92dp
 
     return Stack(
@@ -596,14 +585,17 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             bottom: 20.0,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1.0,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0F000000),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
                 blurRadius: 16.0,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -618,7 +610,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
 
@@ -631,7 +623,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
 
@@ -654,6 +646,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 children: [
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.work_rounded,
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
@@ -664,6 +657,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.badge_outlined,
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
@@ -690,7 +684,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                   height: avatarRadius * 2,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3.5),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                      width: 3.5,
+                    ),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x1A000000),
@@ -761,6 +758,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   Widget _buildStatChip({
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required Color bgColor,
@@ -773,7 +771,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isDark ? const Color(0xFF2C363D) : bgColor,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -789,7 +787,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: const Color(0xFF94A3B8),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF94A3B8),
                 ),
               ),
               Text(
@@ -799,7 +797,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
                 ),
               ),
             ],
@@ -810,17 +808,20 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   /// Kartu Informasi Umum (Tanggal Lahir dan Pendidikan)
-  Widget _buildGeneralInfoCard() {
+  Widget _buildGeneralInfoCard(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10.0,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -828,14 +829,26 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         children: [
           // Item 1: Tanggal Lahir
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 26.0,
-                  color: Color(0xFF8696A0),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(
@@ -847,7 +860,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0B1014),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -855,7 +868,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         _superadmin?.birthDate ?? '-',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: const Color(0xFF667781),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -866,18 +879,35 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
 
           // Garis pemisah tipis
-          const Divider(height: 1.0, thickness: 1.0, color: Color(0xFFE9EDEF)),
+          Divider(
+            height: 1.0,
+            thickness: 1.0,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            indent: 68.0,
+          ),
 
           // Item 2: Pendidikan
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.home_work_outlined,
-                  size: 26.0,
-                  color: Color(0xFF8696A0),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.school_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
                 ),
                 const SizedBox(width: 14.0),
                 Expanded(
@@ -889,7 +919,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0B1014),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -897,7 +927,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         _superadmin?.education ?? '-',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: const Color(0xFF667781),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -910,132 +940,4 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       ),
     );
   }
-
-  /// Scaffold.bottomNavigationBar permanen 4 menu konsisten dengan PediaGrow
-  Widget _buildBottomNavigationBar() {
-    final navItems = [
-      _BottomNavItemData(icon: Icons.home_rounded, label: 'Beranda'),
-      _BottomNavItemData(
-        icon: Icons.question_answer_rounded,
-        label: 'Konsultasi',
-      ),
-      _BottomNavItemData(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      _BottomNavItemData(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        // State aktif: bulatan putih dengan icon biru #72A9F4
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        // State tidak aktif: icon & teks abu-abu #9E9E9E
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavItemData {
-  final IconData icon;
-  final String label;
-
-  const _BottomNavItemData({required this.icon, required this.label});
 }

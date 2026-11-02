@@ -58,10 +58,11 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         body: SafeArea(
           child: Column(
             children: [
@@ -108,7 +109,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                                 Icon(
                                   Icons.search_off_rounded,
                                   size: 64,
-                                  color: Colors.grey.shade400,
+                                  color: isDark ? const Color(0xFF667781) : Colors.grey.shade400,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
@@ -118,7 +119,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.lato(
                                     fontSize: 15,
-                                    color: const Color(0xFF667781),
+                                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                                   ),
                                 ),
                               ],
@@ -152,10 +153,11 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   // 1. HEADER FIXED 56dp
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildFixedHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       height: 56,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1A2228) : Colors.white,
       padding: const EdgeInsets.only(left: 12, right: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -163,9 +165,13 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
           GestureDetector(
             onTap: () => Navigator.of(context).maybePop(),
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(4.0),
-              child: Icon(Icons.arrow_back, color: Colors.black, size: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: isDark ? const Color(0xFFE9EDEF) : Colors.black,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -177,7 +183,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               style: GoogleFonts.lato(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: isDark ? const Color(0xFFE9EDEF) : Colors.black,
               ),
             ),
           ),
@@ -190,13 +196,15 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   // 2. SEARCH BAR
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFFEFF3F8),
+          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEFF3F8),
           borderRadius: BorderRadius.circular(14),
+          border: isDark ? Border.all(color: const Color(0xFF2C363D), width: 1) : null,
         ),
         child: Row(
           children: [
@@ -213,7 +221,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                 focusNode: _searchFocusNode,
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
-                  color: const Color(0xFF1A2228),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Resume Medis',
@@ -253,8 +261,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   // 3. CARD RESUME MEDIS (Sesuai Gambar Mockup 1)
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildResumeCard(ResumeMedisModel resume) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1A2228) : Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: () {
@@ -272,12 +281,15 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0A000000),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                 blurRadius: 8,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -315,7 +327,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             style: GoogleFonts.lato(
                               fontSize: 15.5,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1A2228),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                             ),
                           ),
                           const SizedBox(height: 3),
@@ -325,7 +337,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             'Anak: ${resume.childName}',
                             style: GoogleFonts.lato(
                               fontSize: 13,
-                              color: const Color(0xFF2C363D),
+                              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -335,7 +347,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             'Keluhan: ${resume.complaintShort}',
                             style: GoogleFonts.lato(
                               fontSize: 13,
-                              color: const Color(0xFF2C363D),
+                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF2C363D),
                               height: 1.3,
                             ),
                           ),
@@ -347,7 +359,11 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               ),
 
               // Divider tipis
-              const Divider(height: 1, thickness: 1, color: Color(0xFFE9EDEF)),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              ),
 
               // Bagian Bawah: Tanggal & Badge "Selesai"
               Padding(
@@ -358,10 +374,10 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                     // Tanggal Konsultasi
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.calendar_month_outlined,
                           size: 18,
-                          color: Color(0xFF667781),
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -369,7 +385,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1A2228),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                           ),
                         ),
                       ],

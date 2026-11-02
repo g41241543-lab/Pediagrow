@@ -18,14 +18,13 @@ import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
 import 'permainan/permainan_admin_page.dart';
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
-import '../konsultasi/konsultasi_superadmin_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import '../profil/profil_superadmin_page.dart';
 import '../profil/hak_akses/hak_akses_page.dart';
 import '../../../widgets/hak_akses_logo.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Beranda PMIK Superadmin PediaGrow.
 ///
@@ -51,9 +50,6 @@ class BerandaSuperadminPage extends StatefulWidget {
 class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   List<ArtikelModel> _latestArticles = [];
   bool _isLoadingArticles = true;
-
-  // Indeks nav bar (0 = Beranda aktif)
-  final int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -134,39 +130,37 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeService.lightTheme,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // LAYER 0 — Background animasi awan & burung (full-page)
-              const Positioned.fill(child: FullPageSkyBackground()),
+    final isDark = ThemeService.isDark(context);
+    return Scaffold(
+      backgroundColor: isDark ? ThemeService.darkBg : Colors.white,
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // LAYER 0 — Background animasi awan & burung (full-page)
+            const Positioned.fill(child: FullPageSkyBackground()),
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Area Biru Seamless (Header + Card Superadmin)
-                  _buildSeamlessBlueArea(context),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Area Biru Seamless (Header + Card Superadmin)
+                _buildSeamlessBlueArea(context),
 
-                  // 2. Konten Putih (Menu, Card Slogan, Artikel)
-                  _buildWhiteContentSection(context),
+                // 2. Konten Putih (Menu, Card Slogan, Artikel)
+                _buildWhiteContentSection(context),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // 3. Ilustrasi Footer
-                  _buildFooterIllustration(),
-                ],
-              ),
-            ],
-          ),
+                // 3. Ilustrasi Footer
+                _buildFooterIllustration(),
+              ],
+            ),
+          ],
         ),
-        bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
       ),
+      bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
     );
   }
 
@@ -356,15 +350,17 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // Kiri: Teks PeGo + tagline; Kanan: Ilustrasi dokter
   // =========================================================================
   Widget _buildSuperadminCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 120,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? ThemeService.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -418,16 +414,24 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
+                            color: isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
+                                  : const Color(0xFFBFDBFE),
+                            ),
                           ),
                           child: Text(
                             roleText,
                             style: GoogleFonts.lato(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2563EB),
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : const Color(0xFF2563EB),
                             ),
                           ),
                         );
@@ -441,7 +445,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF2C363D),
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
                     height: 1.35,
                   ),
                 ),
@@ -489,7 +495,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
           // Card Slogan PeGo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildPeGoSloganCard(),
+            child: _buildPeGoSloganCard(context),
           ),
 
           const SizedBox(height: 24),
@@ -524,6 +530,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               children: [
                 Expanded(
                   child: _buildMenuItem(
+                    context: context,
                     title: 'Rekapitulasi',
                     customIcon: _buildRekapitulasiLogo(),
                     blobColor: const Color(0xFFD97706),
@@ -539,6 +546,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildMenuItem(
+                    context: context,
                     title: 'Data\nPasien',
                     imageAsset: 'assets/images/data_pasien_logo.png',
                     blobColor: const Color(0xFF3CC3A6),
@@ -553,6 +561,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildMenuItem(
+                    context: context,
                     title: 'Daftar Resep\nMPASI',
                     imageAsset: 'assets/images/resep_mpasi_logo.png',
                     blobColor: const Color(0xFF10B981),
@@ -576,6 +585,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               children: [
                 Expanded(
                   child: _buildMenuItem(
+                    context: context,
                     title: 'Daftar Artikel\nKesehatan',
                     imageAsset: 'assets/images/artikel_kesehatan_logo.png',
                     blobColor: const Color(0xFF6366F1),
@@ -591,6 +601,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildMenuItem(
+                    context: context,
                     title: 'Kelola\nHak Akses',
                     customIcon: HakAksesLogo(isDisabled: !canHakAkses),
                     blobColor: const Color(0xFF0284C7),
@@ -605,6 +616,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildMenuItem(
+                    context: context,
                     title: 'Permainan\n',
                     imageAsset: 'assets/images/permainan_logo.png',
                     blobColor: const Color(0xFFF59E0B),
@@ -709,6 +721,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   }
 
   Widget _buildMenuItem({
+    required BuildContext context,
     required String title,
     required VoidCallback onTap,
     required Color blobColor,
@@ -721,6 +734,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
+    final isDark = ThemeService.isDark(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -734,13 +748,18 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isLocked
-                      ? const Color(0xFFF8FAFC)
-                      : const Color(0xFFECF6FF),
+                  color: isDark
+                      ? (isLocked ? const Color(0xFF141C22) : ThemeService.darkCard)
+                      : (isLocked
+                          ? const Color(0xFFF8FAFC)
+                          : const Color(0xFFECF6FF)),
                   borderRadius: BorderRadius.circular(10),
+                  border: isDark
+                      ? Border.all(color: ThemeService.darkBorder)
+                      : null,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF3985E7).withValues(alpha: 0.06),
+                      color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.06),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -820,9 +839,13 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
-              color: isLocked
-                  ? const Color(0xFF8696A0)
-                  : const Color(0xFF000000),
+              color: isDark
+                  ? (isLocked
+                      ? ThemeService.darkTextMuted
+                      : ThemeService.darkTextPrimary)
+                  : (isLocked
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF000000)),
               height: 1.25,
             ),
           ),
@@ -868,16 +891,18 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // CARD SLOGAN PeGo SUPERADMIN
   // Identik dimensi dengan card PediaGrow pengguna (height 115, color #ECF6FF)
   // =========================================================================
-  Widget _buildPeGoSloganCard() {
+  Widget _buildPeGoSloganCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: const Color(0xFFECF6FF),
+        color: isDark ? ThemeService.darkCard : const Color(0xFFECF6FF),
         borderRadius: BorderRadius.circular(10),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3985E7).withValues(alpha: 0.07),
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.07),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -936,7 +961,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF2C363D),
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
                     height: 1.3,
                   ),
                   maxLines: 4,
@@ -955,6 +982,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // Identik dengan beranda pengguna
   // =========================================================================
   Widget _buildLatestArticlesSection(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -969,7 +997,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark
+                      ? ThemeService.darkTextPrimary
+                      : const Color(0xFF0B1014),
                 ),
               ),
               InkWell(
@@ -1040,15 +1070,19 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         .length;
     final readTimeMinutes = math.max(2, (wordCount / 50).ceil());
 
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: 220,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? ThemeService.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.2),
+        border: Border.all(
+          color: isDark ? ThemeService.darkBorder : const Color(0xFFE9EDEF),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1101,7 +1135,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFECF6FF),
+                                    color: isDark
+                                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                        : const Color(0xFFECF6FF),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -1109,7 +1145,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                                     style: GoogleFonts.lato(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF2563EB),
+                                      color: isDark
+                                          ? const Color(0xFF93C5FD)
+                                          : const Color(0xFF2563EB),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -1120,17 +1158,21 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.access_time_rounded,
                                     size: 11,
-                                    color: Color(0xFF8696A0),
+                                    color: isDark
+                                        ? ThemeService.darkTextSecondary
+                                        : const Color(0xFF8696A0),
                                   ),
                                   const SizedBox(width: 3),
                                   Text(
                                     '$readTimeMinutes mnt',
                                     style: GoogleFonts.lato(
                                       fontSize: 10.5,
-                                      color: const Color(0xFF667781),
+                                      color: isDark
+                                          ? ThemeService.darkTextSecondary
+                                          : const Color(0xFF667781),
                                     ),
                                   ),
                                 ],
@@ -1143,7 +1185,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0B1014),
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF0B1014),
                               height: 1.25,
                             ),
                             maxLines: 2,
@@ -1170,6 +1214,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   }
 
   Widget _buildArticleSkeletonList() {
+    final isDark = ThemeService.isDark(context);
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
@@ -1179,17 +1224,19 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
       itemBuilder: (ctx, _) => Container(
         width: 220,
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: isDark ? ThemeService.darkCard : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE9EDEF)),
+          border: Border.all(
+            color: isDark ? ThemeService.darkBorder : const Color(0xFFE9EDEF),
+          ),
         ),
         child: Column(
           children: [
             Container(
               height: 102,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE9EDEF),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
               ),
             ),
             Padding(
@@ -1201,7 +1248,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     width: 65,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE9EDEF),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1210,7 +1257,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     width: double.infinity,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE9EDEF),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -1224,18 +1271,24 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   }
 
   Widget _buildEmptyArticleState() {
+    final isDark = ThemeService.isDark(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? ThemeService.darkCard : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
+        border: Border.all(
+          color: isDark ? ThemeService.darkBorder : const Color(0xFFE9EDEF),
+        ),
       ),
       child: Center(
         child: Text(
-          'Belum ada artikel terbaru saat ini',
-          style: GoogleFonts.lato(fontSize: 13, color: const Color(0xFF667781)),
+          'Belum ada artikel terbaru',
+          style: GoogleFonts.lato(
+            fontSize: 13,
+            color: isDark ? ThemeService.darkTextSecondary : const Color(0xFF64748B),
+          ),
         ),
       ),
     );
@@ -1257,174 +1310,13 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // ILUSTRASI FOOTER (Full-Bleed, identik dengan beranda pengguna)
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // =========================================================================
   // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
-  // Warna #F2EDED, tinggi 68dp
   // =========================================================================
   Widget _buildFixedNavBar() {
-    final navItems = [
-      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
+    return const PediaBottomNavBar(selectedIndex: 0);
   }
-
-  void _onNavTap(int index) {
-    // Ketika berjalan di dalam shell, navigasi tab dikelola oleh SuperadminShell.
-    if (widget.inShell) return;
-    if (index == _selectedIndex) return;
-    switch (index) {
-      case 0:
-        // Sudah di Beranda
-        break;
-      case 1:
-        _handleMenuTap(
-          permissionKey: 'konsultasi',
-          featureName: 'Konsultasi',
-          onAllowed: () => _navigateTo(const KonsultasiSuperadminPage()),
-        );
-        break;
-      case 2:
-        _navigateTo(const DaftarRiwayatKonsultasiAdminPage());
-        break;
-      case 3:
-        _handleMenuTap(
-          permissionKey: 'profil',
-          featureName: 'Profil',
-          onAllowed: () => _navigateTo(const ProfilSuperadminPage()),
-        );
-        break;
-    }
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

@@ -5,7 +5,7 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
-import '../../../core/services/local_push_service.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
@@ -677,11 +677,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   void _showSnackbar(String msg) {
-    LocalPushService().show(
-      title: 'PediaGrow',
-      body: msg,
-      targetRole: PushRole.pengguna,
-    );
+    PediaBanner.showError(context, message: msg);
   }
 
   @override

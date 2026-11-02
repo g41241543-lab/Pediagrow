@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
@@ -28,12 +28,13 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isGirl =
         widget.child.gender.toLowerCase().contains('perempuan');
     final String currentAgeFormatted = _getShortAgeFormatted(widget.child);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       body: SafeArea(
         top: false,
         bottom: false,
@@ -87,10 +88,10 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                               horizontal: 16.0),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.access_time_rounded,
                                 size: 15,
-                                color: Color(0xFF7F7F7F),
+                                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                               ),
                               const SizedBox(width: 5),
                               Text(
@@ -98,7 +99,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF7F7F7F),
+                                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                                 ),
                               ),
                             ],
@@ -130,7 +131,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                             style: GoogleFonts.lato(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
                               letterSpacing: -0.2,
                             ),
                           ),
@@ -187,9 +188,10 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   // HEADER — tanpa tombol riwayat di pojok kanan atas
   // ===========================================================================
   Widget _buildHeader(BuildContext context, String ageFormatted) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1A2228) : Colors.white,
       padding: const EdgeInsets.only(top: 56.0, bottom: 12.0),
       child: Padding(
         padding: const EdgeInsets.only(left: 12.0, right: 16.0),
@@ -200,11 +202,11 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
             GestureDetector(
               onTap: () => Navigator.of(context).maybePop(),
               behavior: HitTestBehavior.opaque,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Icon(
                   Icons.arrow_back,
-                  color: Color(0xFF000000),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                   size: 24,
                 ),
               ),
@@ -223,7 +225,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -235,7 +237,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.normal,
-                      color: const Color(0xFF7F7F7F),
+                      color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
                     ),
                   ),
                 ],
@@ -258,21 +260,25 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
     required Color statusBgColor,
     required String statusDesc,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isNormal = statusGizi == 'Gizi Normal';
-    final Color cardBorderColor =
-        isNormal ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2);
-    final Color descColor =
-        isNormal ? const Color(0xFF1B4332) : const Color(0xFF7F1D1D);
+    final Color cardBorderColor = isDark
+        ? statusColor.withValues(alpha: 0.35)
+        : (isNormal ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2));
+    final Color descColor = isDark
+        ? const Color(0xFFE9EDEF)
+        : (isNormal ? const Color(0xFF1B4332) : const Color(0xFF7F1D1D));
+    final Color bgColor = isDark ? const Color(0xFF1A2228) : statusBgColor;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: statusBgColor,
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: cardBorderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.08),
+            color: isDark ? Colors.black.withValues(alpha: 0.25) : statusColor.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),

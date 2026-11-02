@@ -11,9 +11,11 @@ import '../../core/services/storage_service.dart';
 import '../../models/doctor_model.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
+import '../pengaturan/pengaturan_staff_page.dart';
 import 'beranda/beranda_dokter_page.dart';
 import 'konsultasi/konsultasi_dokter_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Dokter PediaGrow.
 ///
@@ -166,9 +168,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
 
   void _showImagePickerOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -183,7 +186,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -193,7 +196,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -201,7 +204,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -215,7 +218,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -223,12 +226,15 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     _pickImage(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFE9EDEF)),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                ),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -242,7 +248,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -311,11 +317,12 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
 
   // ─── LOGOUT ───────────────────────────────────────────────────────────────
   void _showLogoutConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
         elevation: 8,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
@@ -329,7 +336,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -338,7 +345,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -351,7 +358,9 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD1D7DB)),
+                          side: BorderSide(
+                            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -361,7 +370,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C363D),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -475,6 +484,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -482,16 +492,18 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         _onBottomNavTap(0);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFBFBFB),
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
-          child: _buildCustomHeader(),
+          child: _buildCustomHeader(isDark),
         ),
         body: SafeArea(
           top: false,
           bottom: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+          child: ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -499,7 +511,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 const SizedBox(height: 16.0),
 
                 // 1. KARTU PROFIL
-                _buildProfileCard(),
+                _buildProfileCard(isDark),
 
                 const SizedBox(height: 24.0),
 
@@ -510,7 +522,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       alignment: Alignment.center,
@@ -526,13 +538,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       style: GoogleFonts.lato(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0B1014),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12.0),
-                _buildEducationCard(),
+                _buildEducationCard(isDark),
 
                 const SizedBox(height: 24.0),
 
@@ -543,7 +555,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       alignment: Alignment.center,
@@ -559,18 +571,14 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       style: GoogleFonts.lato(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0B1014),
+                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12.0),
-                _buildPracticeLocationsCard(),
+                _buildPracticeLocationsCard(isDark),
 
-                const SizedBox(height: 20.0),
-
-                // 3. INFORMASI DIUBAH HANYA OLEH SUPERADMIN (Gaya PMIK Admin)
-                _buildSuperadminEditNotice(),
 
 
                 const SizedBox(height: 24.0),
@@ -604,45 +612,71 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             ),
           ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        ),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
       ),
     );
   }
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
-  Widget _buildCustomHeader() {
+  Widget _buildCustomHeader(bool isDark) {
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () => _onBottomNavTap(0),
-                  behavior: HitTestBehavior.opaque,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12.0),
                 Text(
-                  'Profil Dokter',
+                  'Profil',
                   style: GoogleFonts.lato(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: headerTextColor,
                     letterSpacing: -0.2,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PengaturanStaffPage(
+                          staffRole: StaffRole.dokter,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: settingCircleBg,
+                      shape: BoxShape.circle,
+                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.settings_outlined,
+                      color: settingIconColor,
+                      size: 19,
+                    ),
                   ),
                 ),
               ],
@@ -654,7 +688,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   }
 
   // ─── PROFILE CARD (Default gaya pmik_superadmin) ──────────────────────────
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(bool isDark) {
     const double avatarRadius = 46.0;
     final name = _doctorModel?.name.isNotEmpty == true
         ? _doctorModel!.name
@@ -689,7 +723,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        // Kartu putih
+        // Kartu
         Container(
           margin: const EdgeInsets.only(top: avatarRadius),
           padding: const EdgeInsets.only(
@@ -699,14 +733,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
             bottom: 20.0,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1.0,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0F000000),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
                 blurRadius: 16.0,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -719,7 +756,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -729,7 +766,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -749,6 +786,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 children: [
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.work_rounded,
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
@@ -759,6 +797,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.badge_outlined,
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
@@ -785,7 +824,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                   height: avatarRadius * 2,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3.5),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                      width: 3.5,
+                    ),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x1A000000),
@@ -801,7 +843,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       width: double.infinity,
                       height: double.infinity,
                       errorWidget: Container(
-                        color: const Color(0xFFE2E8F0),
+                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0),
                         alignment: Alignment.center,
                         child: const Icon(
                           Icons.person_rounded,
@@ -821,7 +863,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF3985E7),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                        width: 2,
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x33000000),
@@ -846,6 +891,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
   }
 
   Widget _buildStatChip({
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required Color bgColor,
@@ -858,7 +904,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isDark ? const Color(0xFF2C363D) : bgColor,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -884,46 +930,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  // ─── BANNER INFORMASI SUPERADMIN (Gaya PMIK Admin) ────────────────────────
-  Widget _buildSuperadminEditNotice() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFED7AA)),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.info_outline_rounded,
-            color: Color(0xFFF97316),
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Informasi profil hanya dapat diubah oleh Superadmin. '
-              'Hubungi Superadmin jika perlu pembaruan data.',
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                color: const Color(0xFF92400E),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -959,7 +972,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     return const [];
   }
 
-  Widget _buildEducationCard() {
+  Widget _buildEducationCard(bool isDark) {
     final edus = _resolvedPendidikan;
 
     if (edus.isEmpty) {
@@ -967,14 +980,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-          boxShadow: const [
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1.0,
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x0A000000),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 12.0,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -984,14 +1000,14 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
               child: const Icon(
                 Icons.school_outlined,
                 size: 20,
-                color: Color(0xFF8696A0),
+                color: Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 12),
@@ -1000,7 +1016,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 'Belum ada riwayat pendidikan yang ditambahkan oleh Superadmin.',
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ),
@@ -1012,14 +1028,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -1041,7 +1060,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
@@ -1058,7 +1077,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1A2228),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                         ),
                       ),
                     ),
@@ -1066,11 +1085,11 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 ),
               ),
               if (!isLast)
-                const Divider(
+                Divider(
                   height: 1,
                   thickness: 1,
                   indent: 68,
-                  color: Color(0xFFE9EDEF),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                 ),
             ],
           );
@@ -1108,7 +1127,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     return const [];
   }
 
-  Widget _buildPracticeLocationsCard() {
+  Widget _buildPracticeLocationsCard(bool isDark) {
     final places = _resolvedPlacesOfPractice;
 
     if (places.isEmpty) {
@@ -1116,14 +1135,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-          boxShadow: const [
+          border: Border.all(
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            width: 1.0,
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x0A000000),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 12.0,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -1133,14 +1155,14 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
               child: const Icon(
                 Icons.apartment_rounded,
                 size: 20,
-                color: Color(0xFF8696A0),
+                color: Color(0xFF3985E7),
               ),
             ),
             const SizedBox(width: 12),
@@ -1149,7 +1171,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 'Belum ada tempat praktik yang ditambahkan oleh Superadmin.',
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
             ),
@@ -1161,14 +1183,17 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -1190,7 +1215,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
@@ -1207,7 +1232,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1A2228),
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                         ),
                       ),
                     ),
@@ -1215,11 +1240,11 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                 ),
               ),
               if (!isLast)
-                const Divider(
+                Divider(
                   height: 1,
                   thickness: 1,
                   indent: 68,
-                  color: Color(0xFFE9EDEF),
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                 ),
             ],
           );
@@ -1228,125 +1253,4 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
-  Widget _buildBottomNavigationBar() {
-    final navItems = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

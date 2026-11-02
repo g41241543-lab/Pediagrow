@@ -16,9 +16,8 @@ import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart'
 import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
 import 'data_pasien/data_pasien_page.dart';
 import '../jadwal/atur_jadwal_dokter_page.dart';
-import '../konsultasi/konsultasi_dokter_page.dart';
-import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
-import '../profil_dokter_page.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Beranda Dokter PediaGrow.
 ///
@@ -40,9 +39,6 @@ class BerandaDokterPage extends StatefulWidget {
 }
 
 class _BerandaDokterPageState extends State<BerandaDokterPage> {
-  // Indeks nav bar (0 = Beranda aktif)
-  final int _selectedIndex = 0;
-
   void _navigateTo(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
@@ -77,39 +73,37 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeService.lightTheme,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: false,
-        body: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // LAYER 0 — Background animasi awan & burung (full-page)
-              const Positioned.fill(child: FullPageSkyBackground()),
+    final isDark = ThemeService.isDark(context);
+    return Scaffold(
+      backgroundColor: isDark ? ThemeService.darkBg : Colors.white,
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // LAYER 0 — Background animasi awan & burung (full-page)
+            const Positioned.fill(child: FullPageSkyBackground()),
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Area Biru Seamless (Header + Card Dokter PeGo)
-                  _buildSeamlessBlueArea(context),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Area Biru Seamless (Header + Card Dokter PeGo)
+                _buildSeamlessBlueArea(context),
 
-                  // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
-                  _buildWhiteContentSection(context),
+                // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
+                _buildWhiteContentSection(context),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                  // 3. Ilustrasi Footer (Daun)
-                  _buildFooterIllustration(),
-                ],
-              ),
-            ],
-          ),
+                // 3. Ilustrasi Footer (Daun)
+                _buildFooterIllustration(),
+              ],
+            ),
+          ],
         ),
-        bottomNavigationBar: _buildFixedNavBar(),
       ),
+      bottomNavigationBar: _buildFixedNavBar(),
     );
   }
 
@@ -297,15 +291,17 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // Kiri: Teks PeGo + tagline; Kanan: Ilustrasi dokter
   // =========================================================================
   Widget _buildDokterCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 120,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? ThemeService.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -359,16 +355,24 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
+                            color: isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
+                                  : const Color(0xFFBFDBFE),
+                            ),
                           ),
                           child: Text(
                             roleText,
                             style: GoogleFonts.lato(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2563EB),
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : const Color(0xFF2563EB),
                             ),
                           ),
                         );
@@ -382,7 +386,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF2C363D),
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
                     height: 1.35,
                   ),
                 ),
@@ -430,7 +436,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           // Card Slogan PeGo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildPeGoSloganCard(),
+            child: _buildPeGoSloganCard(context),
           ),
         ],
       ),
@@ -455,6 +461,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           children: [
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Rekapitulasi',
                 customIcon: _buildRekapitulasiLogo(),
                 blobColor: const Color(0xFFD97706),
@@ -466,6 +473,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Data\nPasien',
                 imageAsset: 'assets/images/data_pasien_logo.png',
                 blobColor: const Color(0xFF3CC3A6),
@@ -476,6 +484,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Jadwal\nPraktik',
                 customIcon: _buildJadwalPraktikLogo(),
                 blobColor: const Color(0xFF0284C7),
@@ -494,6 +503,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           children: [
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Resep\nMPASI',
                 imageAsset: 'assets/images/resep_mpasi_logo.png',
                 blobColor: const Color(0xFFF97316),
@@ -504,6 +514,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Daftar Artikel\nKesehatan',
                 imageAsset: 'assets/images/artikel_kesehatan_logo.png',
                 blobColor: const Color(0xFF10B981),
@@ -514,6 +525,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildMenuItem(
+                context: context,
                 title: 'Permainan\n',
                 imageAsset: 'assets/images/permainan_logo.png',
                 blobColor: const Color(0xFFF59E0B),
@@ -675,6 +687,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   }
 
   Widget _buildMenuItem({
+    required BuildContext context,
     required String title,
     required VoidCallback onTap,
     required Color blobColor,
@@ -687,6 +700,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
+    final isDark = ThemeService.isDark(context);
     final Widget baseContent = _buildTileContent(
       imageAsset: imageAsset,
       icon: icon,
@@ -711,19 +725,25 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  // Abu-abu jika terkunci, biru muda (#ECF6FF) jika aktif
-                  color: isLocked
-                      ? const Color(0xFFD1D7DB)
-                      : const Color(0xFFECF6FF),
+                  color: isDark
+                      ? (isLocked ? const Color(0xFF141C22) : ThemeService.darkCard)
+                      : (isLocked
+                          ? const Color(0xFFD1D7DB)
+                          : const Color(0xFFECF6FF)),
                   borderRadius: BorderRadius.circular(10),
-                  border: isLocked
-                      ? Border.all(color: const Color(0xFFCBD5E1), width: 1.0)
-                      : null,
+                  border: isDark
+                      ? Border.all(color: ThemeService.darkBorder)
+                      : (isLocked
+                          ? Border.all(
+                              color: const Color(0xFFCBD5E1),
+                              width: 1.0,
+                            )
+                          : null),
                   boxShadow: [
                     BoxShadow(
                       color: isLocked
                           ? const Color(0x0A000000)
-                          : const Color(0xFF3985E7).withValues(alpha: 0.06),
+                          : const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.06),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -787,9 +807,13 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
-              color: isLocked
-                  ? const Color(0xFF8696A0)
-                  : const Color(0xFF000000),
+              color: isDark
+                  ? (isLocked
+                      ? ThemeService.darkTextMuted
+                      : ThemeService.darkTextPrimary)
+                  : (isLocked
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF000000)),
               height: 1.25,
             ),
           ),
@@ -839,16 +863,18 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // CARD SLOGAN PeGo DOKTER
   // Dimensi: height 115, color #ECF6FF, corner radius 10
   // =========================================================================
-  Widget _buildPeGoSloganCard() {
+  Widget _buildPeGoSloganCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: const Color(0xFFECF6FF),
+        color: isDark ? ThemeService.darkCard : const Color(0xFFECF6FF),
         borderRadius: BorderRadius.circular(10),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3985E7).withValues(alpha: 0.07),
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.07),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -907,7 +933,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
-                    color: const Color(0xFF2C363D),
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
                     height: 1.3,
                   ),
                   maxLines: 4,
@@ -925,166 +953,13 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // ILUSTRASI FOOTER (Full-Bleed, daun hijau bawah)
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 80,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // =========================================================================
   // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
-  // Warna #F2EDED, tinggi 68dp
   // =========================================================================
   Widget _buildFixedNavBar() {
-    final navItems = [
-      _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      _NavItem(icon: Icons.manage_search_rounded, label: 'Riwayat Konsultasi'),
-      _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1A2228),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
+    return const PediaBottomNavBar(selectedIndex: 0);
   }
-
-  void _onNavTap(int index) {
-    if (index == _selectedIndex) return;
-    switch (index) {
-      case 0:
-        // Beranda aktif
-        break;
-      case 1:
-        _navigateTo(const KonsultasiDokterPage());
-        break;
-      case 2:
-        _navigateTo(const DaftarRiwayatKonsultasiAdminPage());
-        break;
-      case 3:
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
-        );
-        break;
-    }
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

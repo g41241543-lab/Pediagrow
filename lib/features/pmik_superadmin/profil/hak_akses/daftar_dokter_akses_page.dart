@@ -157,18 +157,21 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
+        child: _buildHeader(context, isDark),
       ),
       body: SafeArea(
         top: false,
         child: Column(
           children: [
             // SEARCH BAR (Cari Dokter)
-            _buildSearchBar(),
+            _buildSearchBar(isDark),
 
             // DAFTAR KARTU DOKTER
             Expanded(
@@ -196,7 +199,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                   }).toList();
 
                   if (filteredDoctors.isEmpty) {
-                    return _buildEmptyState();
+                    return _buildEmptyState(isDark);
                   }
 
                   return RefreshIndicator(
@@ -214,7 +217,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                       itemBuilder: (context, index) {
                         final doctor = filteredDoctors[index];
                         final staff = _staffCache[doctor.staffAccountId];
-                        return _buildDokterCard(doctor, staff);
+                        return _buildDokterCard(doctor, staff, isDark);
                       },
                     ),
                   );
@@ -231,10 +234,13 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // HEADER 56DP
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: headerBg,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -265,10 +271,10 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     alignment: Alignment.center,
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -283,7 +289,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -315,14 +321,19 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // SEARCH BAR
   // ---------------------------------------------------------------------------
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isDark) {
+    final searchBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
+    final searchBorder = isDark ? const Color(0xFF2C363D) : Colors.transparent;
+    final textColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
       child: Container(
         height: 46.0,
         decoration: BoxDecoration(
-          color: const Color(0xFFE9EDEF),
+          color: searchBg,
           borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: searchBorder),
         ),
         child: TextField(
           controller: _searchCtrl,
@@ -333,7 +344,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           },
           style: GoogleFonts.lato(
             fontSize: 14.0,
-            color: const Color(0xFF0B1014),
+            color: textColor,
           ),
           decoration: InputDecoration(
             isDense: true,
@@ -376,17 +387,23 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU DOKTER
   // ---------------------------------------------------------------------------
-  Widget _buildDokterCard(DoctorModel doctor, StaffAccount? staff) {
+  Widget _buildDokterCard(DoctorModel doctor, StaffAccount? staff, bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final nameColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final specColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: borderColor),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
             blurRadius: 8.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -406,13 +423,13 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFE9EDEF),
+                      color: borderColor,
                       width: 1.2,
                     ),
-                    color: const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC),
                   ),
                   child: ClipOval(
-                    child: _buildDoctorAvatar(doctor),
+                    child: _buildDoctorAvatar(doctor, isDark),
                   ),
                 ),
                 const SizedBox(width: 14.0),
@@ -429,7 +446,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                         style: GoogleFonts.lato(
                           fontSize: 15.0,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF000000),
+                          color: nameColor,
                         ),
                       ),
                       const SizedBox(height: 4.0),
@@ -439,7 +456,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                             : 'Spesialis Anak',
                         style: GoogleFonts.lato(
                           fontSize: 13.0,
-                          color: const Color(0xFF667781),
+                          color: specColor,
                         ),
                       ),
                     ],
@@ -450,10 +467,10 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
           ),
 
           // Garis Pemisah
-          const Divider(
+          Divider(
             height: 1.0,
             thickness: 0.8,
-            color: Color(0xFFE9EDEF),
+            color: dividerColor,
           ),
 
           // Bagian Bawah: Aksi Hapus (Sampah) & Edit (Pensil)
@@ -482,9 +499,15 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     height: 36.0,
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0F9FF),
+                      color: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.15)
+                          : const Color(0xFFF0F9FF),
                       borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: const Color(0xFFBAE6FD)),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF0284C7).withValues(alpha: 0.3)
+                            : const Color(0xFFBAE6FD),
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: Row(
@@ -517,9 +540,15 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEF2F2),
+                      color: isDark
+                          ? const Color(0xFFEF4444).withValues(alpha: 0.15)
+                          : const Color(0xFFFEF2F2),
                       borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: const Color(0xFFFECACA)),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.3)
+                            : const Color(0xFFFECACA),
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
@@ -539,9 +568,15 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: isDark
+                          ? const Color(0xFF3985E7).withValues(alpha: 0.15)
+                          : const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF3985E7).withValues(alpha: 0.3)
+                            : const Color(0xFFBFDBFE),
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: const Icon(
@@ -559,20 +594,20 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     );
   }
 
-  Widget _buildDoctorAvatar(DoctorModel doctor) {
+  Widget _buildDoctorAvatar(DoctorModel doctor, bool isDark) {
     final avatar = doctor.avatarUrl ?? doctor.assetImagePath;
     return StorageService.buildImageWidget(
       avatar,
       fit: BoxFit.cover,
       width: 58.0,
       height: 58.0,
-      errorWidget: _buildAvatarFallback(),
+      errorWidget: _buildAvatarFallback(isDark),
     );
   }
 
-  Widget _buildAvatarFallback() {
+  Widget _buildAvatarFallback(bool isDark) {
     return Container(
-      color: const Color(0xFFEFF6FF),
+      color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
       alignment: Alignment.center,
       child: const Icon(
         Icons.person_rounded,
@@ -582,7 +617,11 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+    final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final circleBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFEFF6FF);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -592,8 +631,8 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
             Container(
               width: 72.0,
               height: 72.0,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEFF6FF),
+              decoration: BoxDecoration(
+                color: circleBg,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -610,7 +649,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0B1014),
+                color: titleColor,
               ),
             ),
             const SizedBox(height: 6.0),
@@ -621,7 +660,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13.0,
-                color: const Color(0xFF667781),
+                color: subtitleColor,
               ),
             ),
           ],

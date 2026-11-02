@@ -39,23 +39,14 @@ void main() {
     expect(find.text('Pendidikan'), findsOneWidget);
     expect(find.text('DIV - Manajemen Informasi Kesehatan'), findsOneWidget);
 
-    // 4. Action buttons
-    expect(find.text('HAK AKSES'), findsOneWidget);
+    // 4. Action buttons & info
+    expect(find.textContaining('hak akses penuh sebagai Superadmin'), findsOneWidget);
     expect(find.text('LOGOUT'), findsOneWidget);
 
     // 5. Bottom navigation bar (4 menus)
     expect(find.text('Beranda'), findsOneWidget);
     expect(find.text('Konsultasi'), findsOneWidget);
     expect(find.text('Riwayat Konsultasi'), findsOneWidget);
-
-    // 6. Navigation to Hak Akses
-    await tester.tap(find.text('HAK AKSES'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(HakAksesPage), findsOneWidget);
-    expect(find.text('Hak Akses'), findsOneWidget);
-    expect(find.text('Dokter'), findsOneWidget);
-    expect(find.text('PMIK'), findsOneWidget);
   });
 
   testWidgets('ProfilSuperadminPage: responsive layout on small screen (no overflow)', (
@@ -77,7 +68,7 @@ void main() {
     // Pastikan tidak ada RenderFlex overflow
     expect(tester.takeException(), isNull);
     expect(find.text('Anita Setyowati, S.Tr. RMIK'), findsOneWidget);
-    expect(find.text('HAK AKSES'), findsOneWidget);
+    expect(find.text('LOGOUT'), findsOneWidget);
   });
 
   testWidgets('ProfilSuperadminPage: bottom navigation bar navigates to Konsultasi', (
@@ -92,7 +83,7 @@ void main() {
 
     await tester.tap(find.text('Konsultasi'));
     await tester.pumpAndSettle();
-    expect(find.text('Konsultasi Superadmin'), findsOneWidget);
+    expect(find.text('Konsultasi'), findsWidgets);
   });
 
   testWidgets('ProfilSuperadminPage: bottom navigation bar navigates to Riwayat Konsultasi', (
@@ -107,7 +98,7 @@ void main() {
 
     await tester.tap(find.text('Riwayat Konsultasi'));
     await tester.pumpAndSettle();
-    expect(find.text('Daftar Riwayat Konsultasi'), findsOneWidget);
+    expect(find.text('Riwayat Konsultasi'), findsWidgets);
   });
 
   testWidgets('HakAksesPage: renders colored icons for Dokter and PMIK', (

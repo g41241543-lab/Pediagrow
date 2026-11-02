@@ -11,11 +11,9 @@ import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../models/child_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
-import '../../Grafik_Pertumbuhan/pertumbuhan_grafik_page.dart';
 import '../beranda/beranda_page.dart';
-import '../cek_stunting/pilih_anak_page.dart';
-import '../konsultasi/daftar_dokter_page.dart';
 import 'hapus_anak_dialog.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Ubah Data Profil Anak PediaGrow.
 ///
@@ -730,7 +728,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
             ),
           ],
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       ),
     );
   }
@@ -1624,91 +1622,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // BOTTOM NAVIGATION BAR TETAP DI HALAMAN
-  // ---------------------------------------------------------------------------
-  Widget _buildBottomNavigationBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    const navItems = [
-      _NavData(icon: Icons.home_rounded, label: 'Beranda'),
-      _NavData(icon: Icons.favorite_border_rounded, label: 'Cek Stunting'),
-      _NavData(icon: Icons.insert_chart_outlined_rounded, label: 'Grafik'),
-      _NavData(icon: Icons.chat_outlined, label: 'Konsultasi'),
-    ];
 
-    return Container(
-      height: 68,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(navItems.length, (index) {
-          final item = navItems[index];
-          final isSelected = index == 0;
-
-          return GestureDetector(
-            onTap: () {
-              if (index == 0) {
-                _handleBackNavigation();
-              } else if (index == 1) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const PilihAnakPage()),
-                );
-              } else if (index == 2) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => PertumbuhanGrafikPage(child: widget.child),
-                  ),
-                );
-              } else if (index == 3) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-                );
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 64,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    item.icon,
-                    size: 22,
-                    color: isSelected
-                        ? const Color(0xFF3985E7)
-                        : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 10,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected
-                          ? const Color(0xFF3985E7)
-                          : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
 
   // ---------------------------------------------------------------------------
   // HELPER WIDGETS
@@ -1805,12 +1719,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
       ),
     );
   }
-}
-
-class _NavData {
-  final IconData icon;
-  final String label;
-  const _NavData({required this.icon, required this.label});
 }
 
 // ---------------------------------------------------------------------------

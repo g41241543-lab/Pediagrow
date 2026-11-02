@@ -4,15 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/stunting_limit_service.dart';
 import '../../../models/child_model.dart';
-import '../konsultasi/daftar_dokter_page.dart';
-import '../profil/menu_profil_page.dart';
-import '../riwayat_konsultasi/daftar_riwayat_page.dart';
 import 'hasil_cek_stunting_page.dart';
 import 'services/stunting_ml_service.dart';
 import 'widgets/pego_analysis_overlay.dart';
 import '../../Grafik_Pertumbuhan/services/growth_service.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Formulir Cek Stunting PediaGrow.
 ///
@@ -48,7 +46,6 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
   static const Color colorTextBlack = Color(0xFF000000);
   static const Color colorBorderGrey = Color(0xFFC5C5C5);
   static const Color colorReadOnlyBg = Color(0xFFF7F8FA);
-  static const Color colorNavBarBg = Color(0xFFF2EDED);
 
   // Controllers & Focus Nodes
   final TextEditingController _beratBadanSekarangController =
@@ -529,7 +526,7 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
           ),
         ),
         // Navigation Bar tetap di Scaffold.bottomNavigationBar
-        bottomNavigationBar: _buildBottomNavigationBar(isDark),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       ),
     );
   }
@@ -1193,122 +1190,6 @@ class _FormCekStuntingPageState extends State<FormCekStuntingPage>
     );
   }
 
-  // ===========================================================================
-  // 6. BOTTOM NAVIGATION BAR FIXED (4 Menu: Beranda, Konsultasi, Riwayat, Profil)
-  // Diletakkan di Scaffold.bottomNavigationBar
-  // ===========================================================================
-
-  Widget _buildBottomNavigationBar(bool isDark) {
-    return Container(
-      width: double.infinity,
-      height: 68,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : colorNavBarBg,
-        border: isDark ? const Border(top: BorderSide(color: Color(0xFF2C363D))) : null,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // 1. Beranda
-          _buildNavItem(
-            icon: Icons.home_rounded,
-            label: 'Beranda',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-          ),
-          // 2. Konsultasi
-          _buildNavItem(
-            icon: Icons.question_answer_rounded,
-            label: 'Konsultasi',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DaftarDokterPage()),
-              );
-            },
-          ),
-          // 3. Riwayat Konsultasi
-          _buildNavItem(
-            icon: Icons.manage_search_rounded,
-            label: 'Riwayat Konsultasi',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DaftarRiwayatPage()),
-              );
-            },
-          ),
-          // 4. Profil Ibu
-          _buildNavItem(
-            icon: Icons.person_outline_rounded,
-            label: 'Profil',
-            isActive: false,
-            isDark: isDark,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MenuProfilPage()),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    final inactiveColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 80,
-        height: 68,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isActive ? colorPrimaryBlue : inactiveColor,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.lato(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? colorPrimaryBlue : inactiveColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // =============================================================================

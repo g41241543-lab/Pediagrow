@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -323,19 +323,24 @@ class _SheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenH = MediaQuery.sizeOf(context).height;
+
+    final textColor = isDark ? const Color(0xFFE9EDEF) : _black;
+    final subtitleClr = isDark ? const Color(0xFF8696A0) : _subtitleColor;
+    final dividerClr = isDark ? const Color(0xFF2C363D) : _divider;
 
     return Container(
       // Kompak: maksimum 65% tinggi layar agar tidak full-screen di Android
       constraints: BoxConstraints(maxHeight: screenH * 0.65),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x30000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.5) : const Color(0x30000000),
             blurRadius: 28,
-            offset: Offset(0, -6),
+            offset: const Offset(0, -6),
           ),
         ],
       ),
@@ -346,16 +351,16 @@ class _SheetContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── HEADER ────────────────────────────────────────────────────
-            _buildHeader(),
+            _buildHeader(isDark, textColor, subtitleClr),
 
             // ── GARIS PEMBATAS ────────────────────────────────────────────
-            const Divider(height: 1, thickness: 1, color: _divider),
+            Divider(height: 1, thickness: 1, color: dividerClr),
 
             // ── DAFTAR ANAK / STATE KOSONG ────────────────────────────────
             if (children.isNotEmpty)
-              Flexible(child: _buildList())
+              Flexible(child: _buildList(isDark, textColor, subtitleClr))
             else
-              _buildEmptyState(context),
+              _buildEmptyState(context, isDark, textColor, subtitleClr, dividerClr),
 
             const SizedBox(height: 16),
           ],
@@ -366,7 +371,7 @@ class _SheetContent extends StatelessWidget {
 
   // ── HEADER ─────────────────────────────────────────────────────────────────
   // Title (Lato Bold 20, #000000) + Subtitle (Lato Medium 14) + Close X
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDark, Color textColor, Color subtitleClr) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
       child: Row(
@@ -382,7 +387,7 @@ class _SheetContent extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: _black,
+                    color: textColor,
                     height: 1.2,
                   ),
                 ),
@@ -393,7 +398,7 @@ class _SheetContent extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: _subtitleColor,
+                    color: subtitleClr,
                     height: 1.2,
                   ),
                 ),
@@ -404,9 +409,13 @@ class _SheetContent extends StatelessWidget {
           GestureDetector(
             onTap: onClose,
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.all(6.0),
-              child: Icon(Icons.close_rounded, size: 22, color: _black),
+            child: Padding(
+              padding: const EdgeInsets.all(6.0),
+              child: Icon(
+                Icons.close_rounded,
+                size: 22,
+                color: textColor,
+              ),
             ),
           ),
         ],
@@ -415,22 +424,22 @@ class _SheetContent extends StatelessWidget {
   }
 
   // ── DAFTAR ANAK ────────────────────────────────────────────────────────────
-  Widget _buildList() {
+  Widget _buildList(bool isDark, Color textColor, Color subtitleClr) {
     return ListView.separated(
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(vertical: 4),
       physics: const BouncingScrollPhysics(),
       itemCount: children.length,
-      separatorBuilder: (_, _) => const Divider(
+      separatorBuilder: (_, _) => Divider(
         height: 1,
         thickness: 1,
-        color: Color(0xFFE9EDEF),
+        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
       ),
-      itemBuilder: (_, index) => _buildRow(children[index]),
+      itemBuilder: (_, index) => _buildRow(children[index], isDark, textColor, subtitleClr),
     );
   }
 
-  Widget _buildRow(ChildModel child) {
+  Widget _buildRow(ChildModel child, bool isDark, Color textColor, Color subtitleClr) {
     final isBoy = child.gender.toLowerCase().contains('laki');
 
     // Hitung umur otomatis dari tanggal lahir; fallback ke ageDescription
@@ -473,7 +482,7 @@ class _SheetContent extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: _black,
+                        color: textColor,
                         height: 1.2,
                       ),
                     ),
@@ -486,7 +495,7 @@ class _SheetContent extends StatelessWidget {
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.normal,
-                        color: _black,
+                        color: subtitleClr,
                         height: 1.2,
                       ),
                     ),
@@ -500,14 +509,14 @@ class _SheetContent extends StatelessWidget {
               Container(
                 width: 28,
                 height: 28,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE9EDEF),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.chevron_right_rounded,
                   size: 18,
-                  color: Color(0xFF2C363D),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                 ),
               ),
             ],
@@ -550,7 +559,13 @@ class _SheetContent extends StatelessWidget {
   }
 
   // ── STATE KOSONG ────────────────────────────────────────────────────────────
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    bool isDark,
+    Color textColor,
+    Color subtitleClr,
+    Color dividerClr,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
       child: Column(
@@ -560,9 +575,12 @@ class _SheetContent extends StatelessWidget {
             width: 68,
             height: 68,
             decoration: BoxDecoration(
-              color: const Color(0xFFE9EDEF),
+              color: isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE9EDEF), width: 1.5),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                width: 1.5,
+              ),
             ),
             child: const Icon(
               Icons.child_care_rounded,
@@ -579,7 +597,7 @@ class _SheetContent extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: _black,
+              color: textColor,
             ),
           ),
 
@@ -594,7 +612,7 @@ class _SheetContent extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.normal,
-              color: _black,
+              color: subtitleClr,
               height: 1.45,
             ),
           ),
@@ -608,7 +626,7 @@ class _SheetContent extends StatelessWidget {
             child: OutlinedButton(
               onPressed: onClose,
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: _divider, width: 1.2),
+                side: BorderSide(color: dividerClr, width: 1.2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -618,7 +636,7 @@ class _SheetContent extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: _subtitleColor,
+                  color: subtitleClr,
                 ),
               ),
             ),

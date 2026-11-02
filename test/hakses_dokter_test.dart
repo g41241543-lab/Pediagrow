@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/core/services/doctor_service.dart';
+import 'package:pediagrow/core/services/staff_auth_service.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
 import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/daftar_dokter_akses_page.dart';
 import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/edit_dokter_akses_page.dart';
 import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/hapus_dokter_akses_page.dart';
 import 'package:pediagrow/features/pmik_superadmin/profil/hak_akses/tambah_dokter_akses_page.dart';
 import 'package:pediagrow/models/doctor_model.dart';
 import 'package:pediagrow/models/doctor_permissions.dart';
+import 'package:pediagrow/models/staff_account_model.dart';
+import 'package:pediagrow/pmik_superadmin/kelola_artikel/daftar_artikel_page.dart';
+import 'package:pediagrow/shared/widgets/pedia_bottom_nav_bar.dart';
 
 void main() {
   group('Hakses Dokter Pages Tests', () {
@@ -59,6 +64,10 @@ void main() {
       for (final p in DoctorPermissions.allPermissions.take(5)) {
         expect(find.text(p.label), findsWidgets);
       }
+      expect(find.text('Daftar Resep MPASI'), findsOneWidget);
+      expect(find.text('Edit Resep MPASI'), findsOneWidget);
+      expect(find.text('Daftar Artikel Kesehatan'), findsOneWidget);
+      expect(find.text('Edit Artikel Kesehatan'), findsOneWidget);
     });
 
     testWidgets('EditDokterAksesPage renders prefilled doctor data',
@@ -116,6 +125,110 @@ void main() {
       );
       expect(find.text('Ya'), findsOneWidget);
       expect(find.text('Tidak'), findsOneWidget);
+    });
+
+    testWidgets('DaftarResepMpasiAdminPage shows navbar and controls CRUD by doctor edit permission',
+        (tester) async {
+      // 1. Tanpa izin edit (view only)
+      StaffAuthService().setStaff(
+        const StaffAccount(
+          id: 'staff-doc-1',
+          name: 'dr. Budi',
+          email: 'budi@pediagrow.com',
+          passwordHash: 'dummy_hash',
+          createdBy: 'superadmin',
+          role: StaffRole.dokter,
+          permissions: {'edit_resep_mpasi': false},
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DaftarResepMpasiAdminPage(),
+        ),
+      );
+      await tester.pump();
+
+      // Navbar harus tetap ada
+      expect(find.byType(PediaBottomNavBar), findsOneWidget);
+      // Tombol tambah (+) tidak ada
+      expect(find.byIcon(Icons.add), findsNothing);
+
+      // 2. Dengan izin edit (plek ketiplek PMIK)
+      StaffAuthService().setStaff(
+        const StaffAccount(
+          id: 'staff-doc-1',
+          name: 'dr. Budi',
+          email: 'budi@pediagrow.com',
+          passwordHash: 'dummy_hash',
+          createdBy: 'superadmin',
+          role: StaffRole.dokter,
+          permissions: {'edit_resep_mpasi': true},
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DaftarResepMpasiAdminPage(),
+        ),
+      );
+      await tester.pump();
+
+      // Navbar ada & tombol tambah (+) muncul
+      expect(find.byType(PediaBottomNavBar), findsOneWidget);
+      expect(find.byIcon(Icons.add), findsOneWidget);
+    });
+
+    testWidgets('DaftarArtikelPage shows navbar and controls CRUD by doctor edit permission',
+        (tester) async {
+      // 1. Tanpa izin edit (view only)
+      StaffAuthService().setStaff(
+        const StaffAccount(
+          id: 'staff-doc-1',
+          name: 'dr. Budi',
+          email: 'budi@pediagrow.com',
+          passwordHash: 'dummy_hash',
+          createdBy: 'superadmin',
+          role: StaffRole.dokter,
+          permissions: {'edit_artikel_kesehatan': false},
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DaftarArtikelPage(),
+        ),
+      );
+      await tester.pump();
+
+      // Navbar harus tetap ada
+      expect(find.byType(PediaBottomNavBar), findsOneWidget);
+      // Tombol tambah (+) tidak ada
+      expect(find.byIcon(Icons.add), findsNothing);
+
+      // 2. Dengan izin edit (plek ketiplek PMIK)
+      StaffAuthService().setStaff(
+        const StaffAccount(
+          id: 'staff-doc-1',
+          name: 'dr. Budi',
+          email: 'budi@pediagrow.com',
+          passwordHash: 'dummy_hash',
+          createdBy: 'superadmin',
+          role: StaffRole.dokter,
+          permissions: {'edit_artikel_kesehatan': true},
+        ),
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DaftarArtikelPage(),
+        ),
+      );
+      await tester.pump();
+
+      // Navbar ada & tombol tambah (+) muncul
+      expect(find.byType(PediaBottomNavBar), findsOneWidget);
+      expect(find.byIcon(Icons.add), findsOneWidget);
     });
   });
 }

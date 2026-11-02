@@ -130,7 +130,9 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       perms['hak_akses'] = item['hak_akses'] as bool;
       perms['download_dataset_rekapitulasi'] = true;
       perms['daftar_resep_mpasi'] = true;
+      perms['edit_resep_mpasi'] = true;
       perms['daftar_artikel_kesehatan'] = true;
+      perms['edit_artikel_kesehatan'] = true;
       perms['download_dataset_pengguna'] = true;
       perms['permainan'] = true;
       perms['edit_resume_medis'] = false;
@@ -229,18 +231,21 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
-        child: _buildHeader(context),
+        child: _buildHeader(context, isDark),
       ),
       body: SafeArea(
         top: false,
         child: Column(
           children: [
             // SEARCH BAR (Cari PMIK)
-            _buildSearchBar(),
+            _buildSearchBar(isDark),
 
             // DAFTAR KARTU PMIK
             Expanded(
@@ -263,7 +268,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                         }).toList();
 
                         if (filtered.isEmpty) {
-                          return _buildEmptyState();
+                          return _buildEmptyState(isDark);
                         }
 
                         return RefreshIndicator(
@@ -280,7 +285,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                                 const SizedBox(height: 14.0),
                             itemBuilder: (context, index) {
                               final pmik = filtered[index];
-                              return _buildPmikCard(pmik);
+                              return _buildPmikCard(pmik, isDark);
                             },
                           ),
                         );
@@ -297,10 +302,13 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // HEADER 56DP
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    final headerBg = isDark ? const Color(0xFF0B1014) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: headerBg,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -331,10 +339,10 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                     width: 36.0,
                     height: 36.0,
                     alignment: Alignment.center,
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back,
                       size: 24.0,
-                      color: Color(0xFF000000),
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -349,7 +357,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                     style: GoogleFonts.lato(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
+                      color: textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -381,14 +389,19 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // SEARCH BAR (Cari PMIK)
   // ---------------------------------------------------------------------------
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isDark) {
+    final searchBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
+    final searchBorder = isDark ? const Color(0xFF2C363D) : Colors.transparent;
+    final textColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         height: 46.0,
         decoration: BoxDecoration(
-          color: const Color(0xFFE9EDEF),
+          color: searchBg,
           borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: searchBorder),
         ),
         child: TextField(
           controller: _searchCtrl,
@@ -399,7 +412,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           },
           style: GoogleFonts.lato(
             fontSize: 14.5,
-            color: const Color(0xFF1A2228),
+            color: textColor,
           ),
           decoration: InputDecoration(
             hintText: 'Cari PMIK',
@@ -439,17 +452,23 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // KARTU PMIK (Sesuai Desain Referensi)
   // ---------------------------------------------------------------------------
-  Widget _buildPmikCard(StaffAccount pmik) {
+  Widget _buildPmikCard(StaffAccount pmik, bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+    final nameColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final roleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF)),
-        boxShadow: const [
+        border: Border.all(color: borderColor),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
+            color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0A000000),
             blurRadius: 8.0,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -469,13 +488,13 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFE9EDEF),
+                      color: borderColor,
                       width: 1.2,
                     ),
-                    color: const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF242E35) : const Color(0xFFF8FAFC),
                   ),
                   child: ClipOval(
-                    child: _buildPmikAvatar(pmik),
+                    child: _buildPmikAvatar(pmik, isDark),
                   ),
                 ),
                 const SizedBox(width: 14.0),
@@ -492,7 +511,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                         style: GoogleFonts.lato(
                           fontSize: 15.5,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF000000),
+                          color: nameColor,
                         ),
                       ),
                       const SizedBox(height: 4.0),
@@ -501,7 +520,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                         style: GoogleFonts.lato(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF667781),
+                          color: roleColor,
                         ),
                       ),
                     ],
@@ -512,10 +531,10 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
           ),
 
           // Garis Pemisah Tipis
-          const Divider(
+          Divider(
             height: 1.0,
             thickness: 0.8,
-            color: Color(0xFFE9EDEF),
+            color: dividerColor,
           ),
 
           // Bagian Bawah: Aksi Hapus (Sampah) & Edit (Pensil)
@@ -535,10 +554,14 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                     width: 34.0,
                     height: 34.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2), // Merah muda lembut
+                      color: isDark
+                          ? const Color(0xFFEF4444).withValues(alpha: 0.15)
+                          : const Color(0xFFFEE2E2), // Merah muda lembut
                       borderRadius: BorderRadius.circular(8.0),
                       border: Border.all(
-                        color: const Color(0xFFFECACA),
+                        color: isDark
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.3)
+                            : const Color(0xFFFECACA),
                         width: 0.8,
                       ),
                     ),
@@ -560,10 +583,14 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                     width: 34.0,
                     height: 34.0,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE0F2FE), // Biru muda lembut
+                      color: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.15)
+                          : const Color(0xFFE0F2FE), // Biru muda lembut
                       borderRadius: BorderRadius.circular(8.0),
                       border: Border.all(
-                        color: const Color(0xFFBAE6FD),
+                        color: isDark
+                            ? const Color(0xFF0284C7).withValues(alpha: 0.3)
+                            : const Color(0xFFBAE6FD),
                         width: 0.8,
                       ),
                     ),
@@ -583,24 +610,24 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
     );
   }
 
-  Widget _buildPmikAvatar(StaffAccount pmik) {
+  Widget _buildPmikAvatar(StaffAccount pmik, bool isDark) {
     return StorageService.buildImageWidget(
       pmik.avatarPath,
       fit: BoxFit.cover,
       width: 58.0,
       height: 58.0,
-      errorWidget: _buildFallbackAvatarIcon(),
+      errorWidget: _buildFallbackAvatarIcon(isDark),
     );
   }
 
-  Widget _buildFallbackAvatarIcon() {
+  Widget _buildFallbackAvatarIcon(bool isDark) {
     return Container(
-      color: const Color(0xFFECF6FF),
+      color: isDark ? const Color(0xFF242E35) : const Color(0xFFECF6FF),
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         Icons.person_rounded,
         size: 36.0,
-        color: Color(0xFF3985E7),
+        color: isDark ? const Color(0xFF8696A0) : const Color(0xFF3985E7),
       ),
     );
   }
@@ -608,7 +635,11 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
   // ---------------------------------------------------------------------------
   // EMPTY STATE
   // ---------------------------------------------------------------------------
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final circleBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
+
     return Center(
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -620,8 +651,8 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
               Container(
                 width: 76.0,
                 height: 76.0,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFECF6FF),
+                decoration: BoxDecoration(
+                  color: circleBg,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -638,7 +669,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                 style: GoogleFonts.lato(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1A2228),
+                  color: titleColor,
                 ),
               ),
               const SizedBox(height: 6.0),
@@ -649,7 +680,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.5,
-                  color: const Color(0xFF667781),
+                  color: subtitleColor,
                 ),
               ),
             ],

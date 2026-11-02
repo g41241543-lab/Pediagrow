@@ -66,7 +66,7 @@ class ProfilDokterPage extends StatelessWidget {
         );
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
           body: SafeArea(
             child: Column(
               children: [
@@ -82,11 +82,11 @@ class ProfilDokterPage extends StatelessWidget {
                         InkWell(
                           onTap: () => Navigator.of(context).pop(),
                           borderRadius: BorderRadius.circular(8),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6.0),
                             child: Icon(
                               Icons.arrow_back,
-                              color: Color(0xFF000000),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                               size: 24,
                             ),
                           ),
@@ -100,7 +100,7 @@ class ProfilDokterPage extends StatelessWidget {
                             style: GoogleFonts.lato(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF000000),
+                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
                             ),
                           ),
                         ),

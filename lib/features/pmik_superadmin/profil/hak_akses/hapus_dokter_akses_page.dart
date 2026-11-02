@@ -70,12 +70,22 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final textPrimary = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final textSecondary = isDark ? const Color(0xFF8696A0) : const Color(0xFF1A2228);
+    final outlineBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
+    final outlineBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.0),
+        side: isDark
+            ? const BorderSide(color: Color(0xFF2C363D), width: 1.0)
+            : BorderSide.none,
       ),
       elevation: 10,
-      backgroundColor: Colors.white,
+      backgroundColor: dialogBg,
       insetPadding: const EdgeInsets.symmetric(horizontal: 28.0),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(22.0, 24.0, 22.0, 20.0),
@@ -89,7 +99,7 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF000000),
+                color: textPrimary,
               ),
             ),
             const SizedBox(height: 14.0),
@@ -101,7 +111,7 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
               style: GoogleFonts.lato(
                 fontSize: 14.0,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF1A2228),
+                color: textSecondary,
                 height: 1.45,
               ),
             ),
@@ -117,14 +127,14 @@ class _HapusDokterAksesPageState extends State<HapusDokterAksesPage> {
                     child: OutlinedButton(
                       onPressed: _isDeleting ? null : _handleDelete,
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Color(0xFFD1D7DB),
+                        side: BorderSide(
+                          color: outlineBorder,
                           width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
-                        backgroundColor: Colors.white,
+                        backgroundColor: outlineBg,
                         elevation: 0,
                         padding: EdgeInsets.zero,
                       ),

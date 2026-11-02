@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/services/booking_service.dart';
 import '../../../core/services/chat_message_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../core/services/staff_auth_service.dart';
@@ -79,14 +80,16 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     with TickerProviderStateMixin {
   // Design Tokens Resmi PediaGrow
   static const Color colorPrimaryBlue = Color(0xFF2A85FF);
-  static const Color colorWhite = Color(0xFFFFFFFF);
-  static const Color colorSoftBlue = Color(0xFFEBF5FF);
-  static const Color colorSoftGrey = Color(0xFFF8FAFC);
-  static const Color colorTextPrimary = Color(0xFF1A202C);
-  static const Color colorTextSecondary = Color(0xFF718096);
-  static const Color colorBorder = Color(0xFFE9EDEF);
   static const Color colorOnlineGreen = Color(0xFF48BB78);
   static const Color colorEndRed = Color(0xFFE53E3E);
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get colorWhite => _isDark ? const Color(0xFF1A2228) : const Color(0xFFFFFFFF);
+  Color get colorSoftBlue => _isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF5FF);
+  Color get colorSoftGrey => _isDark ? const Color(0xFF2C363D) : const Color(0xFFF8FAFC);
+  Color get colorTextPrimary => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A202C);
+  Color get colorTextSecondary => _isDark ? const Color(0xFF8696A0) : const Color(0xFF718096);
+  Color get colorBorder => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
 
   final TextEditingController _textController = TextEditingController();
   final FocusNode _inputFocusNode = FocusNode();
@@ -497,7 +500,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   void _showAttachmentPickerOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: _isDark ? const Color(0xFF1A2228) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -512,7 +515,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: _isDark ? const Color(0xFF334155) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -522,7 +525,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -530,7 +533,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -544,7 +547,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -552,12 +555,12 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     _pickAttachment(ImageSource.camera);
                   },
                 ),
-                const Divider(height: 1, color: Color(0xFFE9EDEF)),
+                Divider(height: 1, color: colorBorder),
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECF6FF),
+                      color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -571,7 +574,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     style: GoogleFonts.lato(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0B1014),
+                      color: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                     ),
                   ),
                   onTap: () {
@@ -700,9 +703,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       isScrollControlled: true,
       builder: (ctx) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: _isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
           child: Column(
@@ -715,7 +718,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1D7DB),
+                    color: _isDark ? const Color(0xFF334155) : const Color(0xFFD1D7DB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -762,13 +765,17 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: Icon(
+                      Icons.close,
+                      size: 20,
+                      color: _isDark ? const Color(0xFF8696A0) : null,
+                    ),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              const Divider(height: 1, color: Color(0xFFE9EDEF)),
+              Divider(height: 1, color: colorBorder),
               const SizedBox(height: 16),
 
               // Field 1: Nama Anak
@@ -823,7 +830,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: colorSoftGrey,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: colorBorder),
                 ),
@@ -851,7 +858,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: colorSoftGrey,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorBorder),
       ),
@@ -896,9 +903,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       isScrollControlled: true,
       builder: (ctx) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: _isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
           child: SafeArea(
@@ -911,8 +918,8 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 Container(
                   width: 56,
                   height: 56,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFFECEC),
+                  decoration: BoxDecoration(
+                    color: _isDark ? const Color(0xFF3B1E1E) : const Color(0xFFFFECEC),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -931,7 +938,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   style: GoogleFonts.lato(
                     fontSize: 18.5,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A202C),
+                    color: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A202C),
                     letterSpacing: -0.2,
                   ),
                   textAlign: TextAlign.center,
@@ -945,7 +952,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     'Setelah konsultasi diakhiri, Anda akan langsung diarahkan ke halaman pembuatan Resume Medis untuk pasien anak ini.',
                     style: GoogleFonts.lato(
                       fontSize: 14,
-                      color: const Color(0xFF4A5568),
+                      color: _isDark ? const Color(0xFF8696A0) : const Color(0xFF4A5568),
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -962,8 +969,8 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(ctx),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE9EDEF),
-                            foregroundColor: const Color(0xFF718096),
+                            backgroundColor: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                            foregroundColor: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF718096),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -993,6 +1000,22 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                               _sessionEndedByUs = true; // kita yang mengakhiri
                               KonsultasiService.instance.akhiriSesi(
                                 widget.sessionId!,
+                              );
+                            }
+
+                            // Tandai booking sebagai selesai agar langsung hilang dari antrean aktif
+                            final activeChild = widget.child;
+                            final targetBooking = widget.booking ??
+                                BookingService().bookings.where((b) {
+                                  if (activeChild == null) return false;
+                                  return (b.child.id.isNotEmpty && b.child.id == activeChild.id) ||
+                                      b.child.name.toLowerCase().trim() ==
+                                          activeChild.name.toLowerCase().trim();
+                                }).firstOrNull;
+                            if (targetBooking != null) {
+                              BookingService().updateBookingStatus(
+                                targetBooking.id,
+                                'Selesai',
                               );
                             }
 
@@ -1048,11 +1071,14 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     );
 
     if (widget.isEmbedded) {
-      return Container(color: colorWhite, child: bodyContent);
+      return Container(
+        color: _isDark ? const Color(0xFF0B1014) : colorWhite,
+        child: bodyContent,
+      );
     }
 
     return Scaffold(
-      backgroundColor: colorWhite,
+      backgroundColor: _isDark ? const Color(0xFF0B1014) : colorWhite,
       resizeToAvoidBottomInset: true,
       body: bodyContent,
     );
@@ -1063,19 +1089,19 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8FAFC),
-        border: Border(top: BorderSide(color: Color(0xFFE9EDEF))),
+      decoration: BoxDecoration(
+        color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
+        border: Border(top: BorderSide(color: colorBorder)),
       ),
       child: SafeArea(
         top: false,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.lock_clock_rounded,
               size: 16,
-              color: Color(0xFF667781),
+              color: _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
             ),
             const SizedBox(width: 8),
             Flexible(
@@ -1084,7 +1110,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 style: GoogleFonts.lato(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF667781),
+                  color: _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -1854,13 +1880,13 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   Widget _buildInputArea() {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: colorWhite,
         boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
+            color: _isDark ? Colors.black.withValues(alpha: 0.3) : const Color(0x08000000),
             blurRadius: 8,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -1915,11 +1941,11 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         return Container(
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
+                color: Colors.black.withValues(alpha: _isDark ? 0.3 : 0.12),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -1934,7 +1960,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1963,9 +1989,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   },
                 ),
                 if (text.isNotEmpty) ...[
-                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  Divider(height: 1, color: colorBorder),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.copy_rounded,
                       color: colorTextSecondary,
                     ),
@@ -1979,16 +2005,6 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: text));
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Pesan disalin ke clipboard',
-                            style: GoogleFonts.lato(),
-                          ),
-                          duration: const Duration(seconds: 1),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
                     },
                   ),
                 ],
@@ -2024,7 +2040,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F4F9),
+        color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F4F9),
         borderRadius: BorderRadius.circular(12),
         border: const Border(
           left: BorderSide(color: colorPrimaryBlue, width: 4),
@@ -2061,7 +2077,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
             ),
           ),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.close_rounded,
               size: 18,
               color: colorTextSecondary,
@@ -2098,7 +2114,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
 
     final quoteBg = isDocSender
         ? Colors.black.withValues(alpha: 0.20)
-        : const Color(0xFFF1F5F9);
+        : (_isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
@@ -2212,7 +2228,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         shape: BoxShape.circle,
         color: colorWhite,
         border: Border.all(
-          color: isActive ? colorPrimaryBlue : const Color(0xFFD1D7DB),
+          color: isActive
+              ? colorPrimaryBlue
+              : (_isDark ? const Color(0xFF334155) : const Color(0xFFD1D7DB)),
           width: 1.8,
         ),
       ),
@@ -2224,7 +2242,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           child: Center(
             child: Icon(
               Icons.add,
-              color: isActive ? colorPrimaryBlue : const Color(0xFF8696A0),
+              color: isActive
+                  ? colorPrimaryBlue
+                  : (_isDark ? const Color(0xFF667781) : const Color(0xFF8696A0)),
               size: 22,
             ),
           ),
@@ -2238,7 +2258,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     return Container(
       height: 42,
       decoration: BoxDecoration(
-        color: isActive ? colorSoftGrey : const Color(0xFFE9EDEF),
+        color: isActive
+            ? colorSoftGrey
+            : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFE9EDEF)),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: colorBorder, width: 1.0),
       ),
@@ -2258,7 +2280,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
               : 'Sedang tidak ada sesi konsultasi yang sedang berlangsung',
           hintStyle: GoogleFonts.lato(
             fontSize: isActive ? 13.5 : 12,
-            color: const Color(0xFFA0AEC0),
+            color: _isDark ? const Color(0xFF667781) : const Color(0xFFA0AEC0),
           ),
           border: InputBorder.none,
         ),
@@ -2276,9 +2298,12 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: const Color(0xFFFFECEC),
+          color: _isDark ? const Color(0xFF3B1E1E) : const Color(0xFFFFECEC),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFED7D7), width: 1.0),
+          border: Border.all(
+            color: _isDark ? const Color(0xFF5C2626) : const Color(0xFFFED7D7),
+            width: 1.0,
+          ),
         ),
         child: Material(
           color: Colors.transparent,
@@ -2304,7 +2329,9 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: isActive ? colorPrimaryBlue : const Color(0xFFD1D7DB),
+        color: isActive
+            ? colorPrimaryBlue
+            : (_isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB)),
         shape: BoxShape.circle,
       ),
       child: Material(
@@ -2313,7 +2340,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           borderRadius: BorderRadius.circular(19),
           onTap: isActive ? () => _sendMessage() : null,
           child: const Center(
-            child: Icon(Icons.send_rounded, color: colorWhite, size: 19),
+            child: Icon(Icons.send_rounded, color: Colors.white, size: 19),
           ),
         ),
       ),

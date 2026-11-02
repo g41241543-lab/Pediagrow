@@ -9,9 +9,11 @@ import '../../core/services/staff_auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../models/staff_account_model.dart';
 import '../auth/auth_choice_page.dart';
+import '../pengaturan/pengaturan_staff_page.dart';
 import 'beranda/beranda_pmik_page.dart';
 import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil PMIK Admin PediaGrow.
 ///
@@ -202,11 +204,12 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
 
   // ─── LOGOUT ───────────────────────────────────────────────────────────────
   void _showLogoutConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
         elevation: 8,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
@@ -220,7 +223,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 8),
@@ -229,7 +232,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 14,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                   height: 1.4,
                 ),
               ),
@@ -242,7 +245,9 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD1D7DB)),
+                          side: BorderSide(
+                            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -252,7 +257,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C363D),
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
                           ),
                         ),
                       ),
@@ -366,6 +371,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   // ─── BUILD ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -373,16 +379,18 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
         _onBottomNavTap(0);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFBFBFB),
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
-          child: _buildCustomHeader(),
+          child: _buildCustomHeader(isDark),
         ),
         body: SafeArea(
           top: false,
           bottom: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+          child: ScrollConfiguration(
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -390,7 +398,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 const SizedBox(height: 16.0),
 
                 // 1. KARTU PROFIL
-                _buildProfileCard(),
+                _buildProfileCard(isDark),
 
                 const SizedBox(height: 24.0),
 
@@ -400,44 +408,13 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0B1014),
+                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                   ),
                 ),
                 const SizedBox(height: 12.0),
-                _buildGeneralInfoCard(),
+                _buildGeneralInfoCard(isDark),
 
-                const SizedBox(height: 20.0),
 
-                // 3. INFO hanya superadmin yang bisa edit
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7ED),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFED7AA)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        color: Color(0xFFF97316),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Informasi profil hanya dapat diubah oleh Superadmin. '
-                          'Hubungi Superadmin jika perlu pembaruan data.',
-                          style: GoogleFonts.lato(
-                            fontSize: 13,
-                            color: const Color(0xFF92400E),
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
                 const SizedBox(height: 24.0),
 
@@ -470,45 +447,73 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             ),
           ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        ),
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
       ),
     );
   }
 
   // ─── HEADER ───────────────────────────────────────────────────────────────
-  Widget _buildCustomHeader() {
+  Widget _buildCustomHeader(bool isDark) {
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF0B1014) : Colors.white,
       child: SafeArea(
         bottom: false,
         child: SizedBox(
           height: 56.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () => _onBottomNavTap(0),
-                  behavior: HitTestBehavior.opaque,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 24.0,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12.0),
                 Text(
                   'Profil',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.lato(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: headerTextColor,
                     letterSpacing: -0.2,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PengaturanStaffPage(
+                          staffRole: StaffRole.admin,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: settingCircleBg,
+                      shape: BoxShape.circle,
+                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.settings_outlined,
+                      color: settingIconColor,
+                      size: 19,
+                    ),
                   ),
                 ),
               ],
@@ -520,7 +525,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 
   // ─── PROFILE CARD ─────────────────────────────────────────────────────────
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(bool isDark) {
     const double avatarRadius = 46.0;
     final name = _pmik?.name ?? '';
     final email = _pmik?.email ?? '';
@@ -539,14 +544,17 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
             bottom: 20.0,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-            boxShadow: const [
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+              width: 1.0,
+            ),
+            boxShadow: [
               BoxShadow(
-                color: Color(0x0F000000),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
                 blurRadius: 16.0,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -559,7 +567,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
               const SizedBox(height: 4.0),
@@ -569,7 +577,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF667781),
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                 ),
               ),
               if (email.isNotEmpty) ...[
@@ -588,18 +596,18 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 children: [
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.work_rounded,
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _pmik?.experience != null
-                          ? '${_pmik!.experience} thn'
-                          : '-',
+                      value: _formatExperience(_pmik?.experience),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildStatChip(
+                      isDark: isDark,
                       icon: Icons.badge_outlined,
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
@@ -622,7 +630,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
               children: [
                 CircleAvatar(
                   radius: avatarRadius,
-                  backgroundColor: const Color(0xFFE0F2FE),
+                  backgroundColor: isDark ? const Color(0xFF2C363D) : const Color(0xFFE0F2FE),
                   backgroundImage: StorageService.buildImageProvider(
                     _avatarPath,
                   ),
@@ -643,7 +651,10 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF0891B2),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                        width: 2,
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x33000000),
@@ -668,6 +679,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
   }
 
   Widget _buildStatChip({
+    required bool isDark,
     required IconData icon,
     required Color iconColor,
     required Color bgColor,
@@ -680,7 +692,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: isDark ? const Color(0xFF2C363D) : bgColor,
             borderRadius: BorderRadius.circular(10),
           ),
           alignment: Alignment.center,
@@ -706,7 +718,7 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0B1014),
+                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                 ),
               ),
             ],
@@ -716,228 +728,146 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
     );
   }
 
-  // ─── GENERAL INFO CARD ────────────────────────────────────────────────────
-  Widget _buildGeneralInfoCard() {
-    final items = [
-      _InfoItem(
-        icon: Icons.cake_rounded,
-        iconColor: const Color(0xFFEC4899),
-        bgColor: const Color(0xFFFDF2F8),
-        label: 'Tanggal Lahir',
-        value: _pmik?.birthDate ?? '-',
-      ),
-      _InfoItem(
-        icon: Icons.school_rounded,
-        iconColor: const Color(0xFF7C3AED),
-        bgColor: const Color(0xFFF5F3FF),
-        label: 'Pendidikan',
-        value: _pmik?.education ?? '-',
-      ),
-    ];
+  String _formatExperience(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '-';
+    final digits = RegExp(r'\d+').stringMatch(raw);
+    if (digits != null) return '$digits tahun';
+    return raw;
+  }
 
+  // ─── GENERAL INFO CARD ────────────────────────────────────────────────────
+  Widget _buildGeneralInfoCard(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+          width: 1.0,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 12.0,
-            offset: Offset(0, 2),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10.0,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
-        children: List.generate(items.length, (i) {
-          final item = items[i];
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 14.0,
+        children: [
+          // Item 1: Tanggal Lahir
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: item.bgColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(item.icon, size: 20, color: item.iconColor),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.label,
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            color: const Color(0xFF8696A0),
-                          ),
-                        ),
-                        Text(
-                          item.value,
-                          style: GoogleFonts.lato(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1A2228),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (i < items.length - 1)
-                const Divider(height: 1, indent: 66, color: Color(0xFFE9EDEF)),
-            ],
-          );
-        }),
-      ),
-    );
-  }
-
-  // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
-  Widget _buildBottomNavigationBar() {
-    final navItems = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Beranda'),
-      const _NavItem(icon: Icons.question_answer_rounded, label: 'Konsultasi'),
-      const _NavItem(
-        icon: Icons.manage_search_rounded,
-        label: 'Riwayat Konsultasi',
-      ),
-      const _NavItem(icon: Icons.person_rounded, label: 'Profil'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      height: 68.0,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF2EDED),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 8.0,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(navItems.length, (i) {
-            final isSelected = i == _selectedIndex;
-            final item = navItems[i];
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _onBottomNavTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  height: 68.0,
+                const SizedBox(width: 14.0),
+                Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isSelected) ...[
-                        Container(
-                          width: 36.0,
-                          height: 36.0,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x1A000000),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            item.icon,
-                            size: 22.0,
-                            color: const Color(0xFF72A9F4),
-                          ),
+                      Text(
+                        'Tanggal Lahir',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
                         ),
-                        const SizedBox(height: 2.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        _pmik?.birthDate ?? '16/09/2005',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
                         ),
-                      ] else ...[
-                        Icon(
-                          item.icon,
-                          size: 24.0,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        const SizedBox(height: 3.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              item.label,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.normal,
-                                color: const Color(0xFF9E9E9E),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-              ),
-            );
-          }),
-        ),
+              ],
+            ),
+          ),
+
+          // Garis pemisah tipis
+          Divider(
+            height: 1.0,
+            thickness: 1.0,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+            indent: 68.0,
+          ),
+
+          // Item 2: Pendidikan
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.school_rounded,
+                    size: 20,
+                    color: Color(0xFF3985E7),
+                  ),
+                ),
+                const SizedBox(width: 14.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pendidikan',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                        ),
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        _pmik?.education ??
+                            'DIV Manajemen Informasi Kesehatan (MIK) - Politeknik Negeri Jember',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.0,
+                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
-}
 
-// ─── DATA CLASS ───────────────────────────────────────────────────────────────
-class _InfoItem {
-  final IconData icon;
-  final Color iconColor;
-  final Color bgColor;
-  final String label;
-  final String value;
-  const _InfoItem({
-    required this.icon,
-    required this.iconColor,
-    required this.bgColor,
-    required this.label,
-    required this.value,
-  });
-}
-
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem({required this.icon, required this.label});
 }

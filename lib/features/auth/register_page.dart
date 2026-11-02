@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/services/google_auth_service.dart';
@@ -234,20 +235,31 @@ class _RegisterPageState extends State<RegisterPage> {
     final footerTextColor =
         isDark ? const Color(0xFFD1D7DB) : const Color(0xFF000000);
 
+    final systemOverlay = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: bgColor,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+    );
+
     // Scaffold dengan resizeToAvoidBottomInset: true agar terdorong keyboard
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.opaque,
-      child: Scaffold(
-        backgroundColor: bgColor,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: Column(
-            children: [
-              // ---------------------------------------------------------------
-              // HEADER TETAP BERADA PADA POSISI ATAS (56dp)
-              // ---------------------------------------------------------------
-              _buildFixedHeader(context, isDark),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlay,
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Scaffold(
+          backgroundColor: bgColor,
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // ---------------------------------------------------------------
+                // HEADER TETAP BERADA PADA POSISI ATAS (56dp) - WARNA PERSIS DENGAN BACKGROUND
+                // ---------------------------------------------------------------
+                _buildFixedHeader(context, isDark, bgColor),
 
               // ---------------------------------------------------------------
               // KONTEN FORMULIR YANG DAPAT DI-SCROLL
@@ -264,23 +276,21 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         const SizedBox(height: 8),
 
-                        // 1. Gambar Ilustrasi Keluarga (weight/width 247, height 155)
+                        // 1. Gambar Ilustrasi Keluarga Adaptif Light & Dark Mode (height 155, model 11/12 family_illustration)
                         Center(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: SizedBox(
-                              width: 247,
-                              height: 155,
-                              child: Image.asset(
-                                'assets/images/register_family.png',
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Image.asset(
-                                    'assets/images/family_illustration.png',
-                                    fit: BoxFit.contain,
-                                  );
-                                },
-                              ),
+                          child: SizedBox(
+                            height: 155,
+                            child: Image.asset(
+                              isDark
+                                  ? 'assets/images/register_family_dark.png'
+                                  : 'assets/images/register_family.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/register_family.png',
+                                  fit: BoxFit.contain,
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -689,12 +699,13 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   /// Header yang TETAP BERADA PADA POSISI ATAS (56dp) saat konten di-scroll.
-  Widget _buildFixedHeader(BuildContext context, bool isDark) {
-    final headerBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+  /// Warna headerBg disamakan persis 100% dengan background halaman di bawahnya.
+  Widget _buildFixedHeader(BuildContext context, bool isDark, Color headerBg) {
     final headerTextColor =
         isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
 
