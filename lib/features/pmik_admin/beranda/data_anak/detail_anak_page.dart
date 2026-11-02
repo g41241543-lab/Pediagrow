@@ -10,6 +10,7 @@ import 'pilih_anak_button_sheet.dart';
 import 'superadmin_grafik_page.dart';
 import 'tab_detail_pasien/resume_medis/daftar_resume_medis_page.dart';
 import 'detail_pengguna_page.dart';
+import '../../../../widgets/data_orangtua_logo.dart';
 
 /// Halaman Data Pasien Anak untuk POV Admin.
 ///
@@ -429,8 +430,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       usiaText = '0 tahun 4 bulan 14 hari';
     }
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -520,7 +523,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               // 3. Data Orangtua
               _buildFeatureButton(
                 title: 'Data\nOrangtua',
-                icon: Icons.badge_outlined,
+                imageAsset: 'assets/images/data_orangtua_logo.png',
+                customIcon: const DataOrangtuaLogo(size: 36),
                 onTap: _navigateToDataOrangtua,
               ),
             ],
@@ -532,6 +536,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           _buildBiodataAnakCard(),
         ],
       ),
+    ),
     );
   }
 
@@ -543,11 +548,24 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     required String title,
     String? imageAsset,
     IconData? icon,
+    Widget? customIcon,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     Widget iconWidget;
-    if (imageAsset != null && imageAsset.isNotEmpty) {
+    if (customIcon != null) {
+      if (imageAsset != null && imageAsset.isNotEmpty) {
+        iconWidget = Image.asset(
+          imageAsset,
+          width: 36,
+          height: 36,
+          fit: BoxFit.contain,
+          errorBuilder: (_, _, _) => customIcon,
+        );
+      } else {
+        iconWidget = customIcon;
+      }
+    } else if (imageAsset != null && imageAsset.isNotEmpty) {
       iconWidget = Image.asset(
         imageAsset,
         width: 36,
