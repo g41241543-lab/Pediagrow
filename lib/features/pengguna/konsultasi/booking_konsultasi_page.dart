@@ -626,7 +626,8 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       ),
                     ),
                     onPressed: () {
-                      final url = booking.googleCalendarUrl ??
+                      final url =
+                          booking.googleCalendarUrl ??
                           GoogleCalendarService().generateCalendarUrl(booking);
                       BookingService().launchGoogleCalendar(url);
                     },
@@ -930,16 +931,17 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? (isDark
-                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                                ? const Color(0xFF1E3A8A)
+                                      .withValues(alpha: 0.35)
                                 : const Color(0xFFEFF6FF))
-                          : (isDark
-                                ? const Color(0xFF1A2228)
-                                : Colors.white),
+                          : (isDark ? const Color(0xFF1A2228) : Colors.white),
                       borderRadius: BorderRadius.circular(12.0),
                       border: Border.all(
                         color: isSelected
                             ? _kPrimaryBlue
-                            : (isDark ? const Color(0xFF2C363D) : _kBorderLight),
+                            : (isDark
+                                  ? const Color(0xFF2C363D)
+                                  : _kBorderLight),
                         width: isSelected ? 1.8 : 1.0,
                       ),
                     ),
@@ -948,14 +950,22 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         CircleAvatar(
                           radius: 18.0,
                           backgroundColor: isBoy
-                              ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFD6E8FE))
-                              : (isDark ? const Color(0xFF831843) : const Color(0xFFFFDFD9)),
+                              ? (isDark
+                                    ? const Color(0xFF1E3A8A)
+                                    : const Color(0xFFD6E8FE))
+                              : (isDark
+                                    ? const Color(0xFF831843)
+                                    : const Color(0xFFFFDFD9)),
                           child: Icon(
                             Icons.child_care_rounded,
                             size: 20.0,
                             color: isBoy
-                                ? (isDark ? const Color(0xFF93C5FD) : const Color(0xFF2B7AE8))
-                                : (isDark ? const Color(0xFFF472B6) : const Color(0xFFF87171)),
+                                ? (isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : const Color(0xFF2B7AE8))
+                                : (isDark
+                                      ? const Color(0xFFF472B6)
+                                      : const Color(0xFFF87171)),
                           ),
                         ),
                         const SizedBox(width: 10.0),
@@ -970,7 +980,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 13.0,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
+                                  color: isDark
+                                      ? const Color(0xFFE9EDEF)
+                                      : _kTextDark,
                                 ),
                               ),
                               Text(
@@ -981,7 +993,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.lato(
                                   fontSize: 11.0,
-                                  color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                                  color: isDark
+                                      ? const Color(0xFF8696A0)
+                                      : _kTextMuted,
                                 ),
                               ),
                             ],
@@ -1067,7 +1081,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : (isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7)),
+                        : (isDark
+                              ? const Color(0xFF451A03)
+                              : const Color(0xFFFEF3C7)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -1077,7 +1093,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
+                          : (isDark
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFFD97706)),
                     ),
                   ),
                 );
@@ -1091,7 +1109,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
-                        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+                        : (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFE9EDEF)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -1122,8 +1142,12 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.22)
                         : isPenuh
-                            ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9))
-                            : (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5)),
+                        ? (isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFF1F5F9))
+                        : (isDark
+                              ? const Color(0xFF064E3B)
+                              : const Color(0xFFD1FAE5)),
                     borderRadius: BorderRadius.circular(4.0),
                   ),
                   child: Text(
@@ -1134,8 +1158,12 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       color: isSelected
                           ? Colors.white
                           : isPenuh
-                              ? (isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B))
-                              : (isDark ? const Color(0xFF4ADE80) : const Color(0xFF059669)),
+                          ? (isDark
+                                ? const Color(0xFF8696A0)
+                                : const Color(0xFF64748B))
+                          : (isDark
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF059669)),
                     ),
                   ),
                 );
@@ -1152,7 +1180,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? _kPrimaryBlue
-                        : (isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC)),
+                        : (isDark
+                              ? const Color(0xFF1A2228)
+                              : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(12.0),
                     border: Border.all(
                       color: isSelected
@@ -1170,7 +1200,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           fontWeight: FontWeight.w600,
                           color: isSelected
                               ? Colors.white70
-                              : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
+                              : (isDark
+                                    ? const Color(0xFF8696A0)
+                                    : _kTextMuted),
                         ),
                       ),
                       const SizedBox(height: 4.0),
@@ -1191,7 +1223,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           fontSize: 11.0,
                           color: isSelected
                               ? Colors.white70
-                              : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
+                              : (isDark
+                                    ? const Color(0xFF8696A0)
+                                    : _kTextMuted),
                         ),
                       ),
                       statusBadge,
@@ -1267,12 +1301,18 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                         : (isDark ? const Color(0xFF8696A0) : _kTextMuted),
                   ),
                   selectedColor: _kPrimaryBlue,
-                  backgroundColor: isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF),
+                  backgroundColor: isDark
+                      ? const Color(0xFF1A2228)
+                      : const Color(0xFFE9EDEF),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   side: isDark
-                      ? BorderSide(color: isFilterSelected ? _kPrimaryBlue : const Color(0xFF2C363D))
+                      ? BorderSide(
+                          color: isFilterSelected
+                              ? _kPrimaryBlue
+                              : const Color(0xFF2C363D),
+                        )
                       : BorderSide.none,
                 ),
               );
@@ -1303,14 +1343,18 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       : const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(12.0),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF92400E) : const Color(0xFFFCD34D),
+                    color: isDark
+                        ? const Color(0xFF92400E)
+                        : const Color(0xFFFCD34D),
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.event_busy_rounded,
-                      color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+                      color: isDark
+                          ? const Color(0xFFFBBF24)
+                          : const Color(0xFFD97706),
                       size: 26,
                     ),
                     const SizedBox(width: 10),
@@ -1323,7 +1367,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13.0,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                              color: isDark
+                                  ? const Color(0xFFFDE68A)
+                                  : const Color(0xFF92400E),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -1331,7 +1377,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             '${widget.doctor.name} sedang cuti: ${cuti.alasan} (${cuti.rentangTanggalStr}). Silakan pilih tanggal lain yang tersedia.',
                             style: GoogleFonts.lato(
                               fontSize: 11.5,
-                              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
+                              color: isDark
+                                  ? const Color(0xFFFCD34D)
+                                  : const Color(0xFFB45309),
                             ),
                           ),
                         ],
@@ -1357,7 +1405,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14.0),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF1A2228)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12.0),
                   border: Border.all(
                     color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
@@ -1380,7 +1430,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             style: GoogleFonts.lato(
                               fontSize: 13.0,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : _kTextDark,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -1388,7 +1440,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             'Dokter tidak memiliki jadwal praktik reguler pada hari $dayName. Silakan lihat jadwal praktik dokter pada profil atau pilih tanggal lain.',
                             style: GoogleFonts.lato(
                               fontSize: 11.5,
-                              color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                              color: isDark
+                                  ? const Color(0xFF8696A0)
+                                  : _kTextMuted,
                             ),
                           ),
                         ],
@@ -1418,7 +1472,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(14.0),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
+                color: isDark
+                    ? const Color(0xFF1A2228)
+                    : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
                   color: isDark ? const Color(0xFF2C363D) : _kBorderLight,
@@ -1441,7 +1497,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13.0,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFE9EDEF) : _kTextDark,
+                            color: isDark
+                                ? const Color(0xFFE9EDEF)
+                                : _kTextDark,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1449,7 +1507,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           'Semua slot jadwal konsultasi dokter pada tanggal ini telah terisi atau jam praktik telah selesai. Silakan pilih tanggal berikutnya.',
                           style: GoogleFonts.lato(
                             fontSize: 11.5,
-                            color: isDark ? const Color(0xFF8696A0) : _kTextMuted,
+                            color: isDark
+                                ? const Color(0xFF8696A0)
+                                : _kTextMuted,
                           ),
                         ),
                       ],
@@ -1478,15 +1538,23 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     color: isSelected
                         ? _kPrimaryBlue
                         : (isAvail
-                              ? (isDark ? const Color(0xFF1A2228) : Colors.white)
-                              : (isDark ? const Color(0xFF0B1014) : const Color(0xFFE9EDEF))),
+                              ? (isDark
+                                    ? const Color(0xFF1A2228)
+                                    : Colors.white)
+                              : (isDark
+                                    ? const Color(0xFF0B1014)
+                                    : const Color(0xFFE9EDEF))),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
                       color: isSelected
                           ? _kPrimaryBlue
                           : (isAvail
-                                ? (isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB))
-                                : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF))),
+                                ? (isDark
+                                      ? const Color(0xFF2C363D)
+                                      : const Color(0xFFD1D7DB))
+                                : (isDark
+                                      ? const Color(0xFF2C363D)
+                                      : const Color(0xFFE9EDEF))),
                       width: 1.0,
                     ),
                   ),
@@ -1500,7 +1568,9 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             ? Colors.white
                             : (isAvail
                                   ? _kPrimaryBlue
-                                  : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0))),
+                                  : (isDark
+                                        ? const Color(0xFF667781)
+                                        : const Color(0xFF8696A0))),
                       ),
                       const SizedBox(width: 6.0),
                       Text(
@@ -1511,20 +1581,15 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           color: isSelected
                               ? Colors.white
                               : (isAvail
-                                    ? (isDark ? const Color(0xFFE9EDEF) : _kTextDark)
-                                    : (isDark ? const Color(0xFF667781) : const Color(0xFF8696A0))),
+                                    ? (isDark
+                                          ? const Color(0xFFE9EDEF)
+                                          : _kTextDark)
+                                    : (isDark
+                                          ? const Color(0xFF667781)
+                                          : const Color(0xFF8696A0))),
                         ),
                       ),
-                      if (!isAvail) ...[
-                        const SizedBox(width: 4.0),
-                        Text(
-                          '(Penuh)',
-                          style: GoogleFonts.lato(
-                            fontSize: 10.0,
-                            color: isDark ? const Color(0xFF667781) : const Color(0xFF8696A0),
-                          ),
-                        ),
-                      ],
+                      if (!isAvail) ...[const SizedBox(width: 4.0)],
                     ],
                   ),
                 ),

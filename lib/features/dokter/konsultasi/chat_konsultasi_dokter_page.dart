@@ -18,6 +18,7 @@ import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/user_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/pesan_cepat_widget.dart';
 import 'buat_resume_medis_dokter_page.dart';
 
 /// Halaman Ruang Obrolan Konsultasi dari POV DOKTER.
@@ -1063,6 +1064,20 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
 
         // 3. Input Area Pesan di Bawah
         // Dokter hanya dapat mengirim pesan, foto/lampiran, dan akhiri konsul saat sesi aktif / jadwal booking tiba!
+        if (widget.hasActiveSession)
+          PesanCepatWidget(
+            isDoctor: true,
+            isDark: _isDark,
+            focusNode: _inputFocusNode,
+            onSendMessage: (text) => _sendMessage(text),
+            onSelectToInput: (text) {
+              _textController.text = text;
+              _textController.selection = TextSelection.fromPosition(
+                TextPosition(offset: text.length),
+              );
+              _inputFocusNode.requestFocus();
+            },
+          ),
         if (widget.hasActiveSession)
           _buildInputArea()
         else
