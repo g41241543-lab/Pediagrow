@@ -44,6 +44,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   final ImagePicker _picker = ImagePicker();
   String? _superadminAvatarPath;
   StaffAccount? _superadmin;
+  /// Guard: mencegah rebuild saat proses logout sedang berlangsung.
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -62,7 +64,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   void _onStaffUpdated() {
-    if (!mounted) return;
+    // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+    if (!mounted || _isLoggingOut) return;
     setState(() {
       _superadmin = StaffAuthService().currentStaff;
       if (_superadmin?.avatarPath != null &&
@@ -323,14 +326,21 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
+                          // Set guard sebelum menutup dialog agar _onStaffUpdated
+                          // tidak memicu rebuild halaman Profil selama transisi.
+                          _isLoggingOut = true;
                           Navigator.of(dialogCtx).pop();
-                          StaffAuthService().logout();
+                          // Navigasi ke halaman awal terlebih dahulu (hapus seluruh stack),
+                          // baru reset sesi setelah frame selesai dirender.
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => const AuthChoicePage(),
                             ),
                             (route) => false,
                           );
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            StaffAuthService().logout();
+                          });
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFDC2626),
@@ -594,9 +604,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             children: [
               // Nama Superadmin
               Text(
-                _superadmin?.name.isNotEmpty == true
-                    ? _superadmin!.name
-                    : 'Anita Setyowati, S.Tr. RMIK',
+                _superadmin?.name ?? '',
+                // Tampilkan kosong jika data belum tersedia — jangan fallback ke nama lain.
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
@@ -622,9 +631,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               // Email
               Text(
-                _superadmin?.email.isNotEmpty == true
-                    ? _superadmin!.email
-                    : 'g41241509@student.polije.ac.id',
+                _superadmin?.email ?? '',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
@@ -644,7 +651,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _superadmin?.experience ?? '7 tahun',
+                      value: _superadmin?.experience ?? '-',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -655,7 +662,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
-                      value: _superadmin?.strNumber ?? '3511201402012222',
+                      value: _superadmin?.strNumber ?? '-',
                     ),
                   ),
                 ],
@@ -858,7 +865,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        _superadmin?.birthDate ?? '16/07/2006',
+                        _superadmin?.birthDate ?? '-',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
@@ -917,8 +924,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        _superadmin?.education ??
-                            'DIV - Manajemen Informasi Kesehatan',
+                        _superadmin?.education ?? '-',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),

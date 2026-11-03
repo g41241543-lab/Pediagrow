@@ -747,7 +747,11 @@ class StaffAuthService {
     }
   }
 
-  /// Mendapatkan akun Superadmin aktif saat ini dari Firestore
+  /// Mendapatkan akun Superadmin aktif saat ini dari Firestore.
+  ///
+  /// Hanya memperbarui [currentStaffNotifier] jika ada sesi aktif
+  /// (currentStaff != null). Tidak boleh menulis ke notifier saat tidak ada
+  /// user yang login agar tidak memicu rebuild kartu profil dengan data asing.
   Future<StaffAccount?> getSuperadminAccount() async {
     try {
       final db = _db;
@@ -757,10 +761,15 @@ class StaffAuthService {
             await db.collection(_collection).doc(currentStaff!.id).get();
         if (doc.exists && doc.data() != null) {
           final acc = StaffAccount.fromMap(doc.id, doc.data()!);
-          currentStaffNotifier.value = acc;
+          // Hanya update notifier jika sesi masih aktif (belum logout).
+          if (currentStaffNotifier.value != null) {
+            currentStaffNotifier.value = acc;
+          }
           return acc;
         }
       }
+      // Fallback: kembalikan data tanpa meng-update notifier agar tidak
+      // memicu rebuild UI dengan data akun superadmin yang tidak sedang login.
       final query = await db
           .collection(_collection)
           .where('role', isEqualTo: StaffRole.superadmin.name)
@@ -769,7 +778,7 @@ class StaffAuthService {
       if (query.docs.isNotEmpty) {
         final doc = query.docs.first;
         final acc = StaffAccount.fromMap(doc.id, doc.data());
-        currentStaffNotifier.value = acc;
+        // Tidak mengubah notifier di sini — hanya kembalikan data.
         return acc;
       }
       return currentStaff;
