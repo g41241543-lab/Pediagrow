@@ -2,6 +2,9 @@
 class ChildModel {
   final String id;
   final String ownerId; // ID pengguna (Firestore 'users') pemilik profil ini
+  final String? noKk; // Nomor Kartu Keluarga (16 digit)
+  final String? nik; // NIK Anak (16 digit)
+  final List<String> parentIds; // ID orang tua/wali yang terhubung dengan anak ini
   final String name;
   final String gender; // 'Perempuan' atau 'Laki-laki'
   final String ageDescription; // e.g. '1 tahun 3 bulan 3 hari'
@@ -21,6 +24,9 @@ class ChildModel {
   const ChildModel({
     required this.id,
     this.ownerId = '',
+    this.noKk,
+    this.nik,
+    this.parentIds = const [],
     required this.name,
     this.gender = 'Perempuan',
     this.ageDescription = '1 tahun 3 bulan 3 hari',
@@ -104,6 +110,13 @@ class ChildModel {
     return ChildModel(
       id: map['id']?.toString() ?? '',
       ownerId: (map['owner_id'] ?? map['ownerId'] ?? '').toString(),
+      noKk: (map['no_kk'] ?? map['noKk'] ?? map['nomor_kk'])?.toString(),
+      nik: (map['nik'] ?? map['nik_anak'])?.toString(),
+      parentIds: (map['parent_ids'] is List)
+          ? (map['parent_ids'] as List).map((e) => e.toString()).toList()
+          : ((map['owner_id'] ?? map['ownerId']) != null
+              ? [(map['owner_id'] ?? map['ownerId']).toString()]
+              : const []),
       name: (map['name'] ?? map['nama'] ?? '').toString(),
       gender: genderStr,
       ageDescription: desc,
@@ -134,6 +147,9 @@ class ChildModel {
   ChildModel copyWith({
     String? id,
     String? ownerId,
+    String? noKk,
+    String? nik,
+    List<String>? parentIds,
     String? name,
     String? gender,
     String? ageDescription,
@@ -153,6 +169,9 @@ class ChildModel {
     return ChildModel(
       id: id ?? this.id,
       ownerId: ownerId ?? this.ownerId,
+      noKk: noKk ?? this.noKk,
+      nik: nik ?? this.nik,
+      parentIds: parentIds ?? this.parentIds,
       name: name ?? this.name,
       gender: gender ?? this.gender,
       ageDescription: ageDescription ?? this.ageDescription,
@@ -175,6 +194,9 @@ class ChildModel {
     return {
       'id': id,
       'owner_id': ownerId,
+      if (noKk != null) 'no_kk': noKk,
+      if (nik != null) 'nik': nik,
+      'parent_ids': parentIds.isNotEmpty ? parentIds : (ownerId.isNotEmpty ? [ownerId] : []),
       'name': name,
       'gender': gender,
       'age_description': ageDescription,
