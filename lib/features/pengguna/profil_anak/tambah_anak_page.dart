@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
 import '../beranda/beranda_page.dart';
 import '../../../shared/widgets/pedia_banner.dart';
@@ -43,6 +44,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   final ScrollController _scrollController = ScrollController();
 
   // GlobalKeys untuk auto-scroll ke field yang error
+  final GlobalKey _noKkKey = GlobalKey();
+  final GlobalKey _nikKey = GlobalKey();
   final GlobalKey _namaKey = GlobalKey();
   final GlobalKey _tanggalLahirKey = GlobalKey();
   final GlobalKey _genderKey = GlobalKey();
@@ -55,6 +58,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   final GlobalKey _alergiDetailKey = GlobalKey();
 
   // Controllers
+  final TextEditingController _noKkController = TextEditingController();
+  final TextEditingController _nikController = TextEditingController();
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
   final TextEditingController _usiaKehamilanController =
@@ -66,6 +71,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   final TextEditingController _alergiController = TextEditingController();
 
   // FocusNodes
+  final FocusNode _noKkFocusNode = FocusNode();
+  final FocusNode _nikFocusNode = FocusNode();
   final FocusNode _namaFocusNode = FocusNode();
   final FocusNode _usiaKehamilanFocusNode = FocusNode();
   final FocusNode _beratBadanFocusNode = FocusNode();
@@ -85,6 +92,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   String? _fotoKelahiranPath;
 
   // State error message manual untuk radio / date
+  String? _noKkError;
+  String? _nikError;
   String? _namaError;
   String? _birthDateError;
   String? _genderError;
@@ -108,6 +117,11 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   void initState() {
     super.initState();
 
+    final currentUserNoKk = UserService().currentUser.noKk;
+    if (currentUserNoKk != null && currentUserNoKk.isNotEmpty) {
+      _noKkController.text = currentUserNoKk;
+    }
+
     _beratBadanController.addListener(_checkBeratBadanRange);
     _tinggiBadanController.addListener(_checkTinggiBadanRange);
     _lingkarKepalaController.addListener(_checkLingkarKepalaRange);
@@ -116,6 +130,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
   @override
   void dispose() {
+    _noKkController.dispose();
+    _nikController.dispose();
     _namaController.dispose();
     _birthDateController.dispose();
     _usiaKehamilanController.dispose();
@@ -124,6 +140,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     _lingkarKepalaController.dispose();
     _alergiController.dispose();
 
+    _noKkFocusNode.dispose();
+    _nikFocusNode.dispose();
     _namaFocusNode.dispose();
     _usiaKehamilanFocusNode.dispose();
     _beratBadanFocusNode.dispose();
@@ -844,6 +862,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   Future<void> _handleSave() async {
     FocusScope.of(context).unfocus();
 
+    String? noKkErr;
+    String? nikErr;
     String? namaErr;
     String? dateErr;
     String? genderErr;
@@ -856,6 +876,23 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     String? alergiDetailErr;
 
     GlobalKey? firstErrorKey;
+
+    // 0. Nomor KK (Wajib 16 digit angka)
+    final noKkInput = _noKkController.text.trim();
+    if (noKkInput.isEmpty) {
+      noKkErr = 'Nomor Kartu Keluarga wajib diisi';
+      firstErrorKey ??= _noKkKey;
+    } else if (noKkInput.length != 16) {
+      noKkErr = 'Nomor Kartu Keluarga harus 16 digit angka';
+      firstErrorKey ??= _noKkKey;
+    }
+
+    // 0b. NIK Anak (Opsional, jika diisi harus 16 digit angka)
+    final nikInput = _nikController.text.trim();
+    if (nikInput.isNotEmpty && nikInput.length != 16) {
+      nikErr = 'NIK Anak harus 16 digit angka';
+      firstErrorKey ??= _nikKey;
+    }
 
     // 1. Nama Lengkap
     if (_namaController.text.trim().isEmpty) {
@@ -914,6 +951,8 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
     }
 
     setState(() {
+      _noKkError = noKkErr;
+      _nikError = nikErr;
       _namaError = namaErr;
       _birthDateError = dateErr;
       _genderError = genderErr;
@@ -953,7 +992,56 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           ? int.tryParse(_usiaKehamilanController.text.trim())
           : null;
 
+      final cleanNoKk = _noKkController.text.trim();
+      final cleanNik = _nikController.text.trim().isNotEmpty
+          ? _nikController.text.trim()
+          : null;
+      final cleanNama = _namaController.text.trim();
+
+      // Cek apakah data anak dengan No KK dan NIK/Nama ini sudah pernah didaftarkan
+      final existingChild = await ChildService().findExistingChild(
+        noKk: cleanNoKk,
+        nik: cleanNik,
+        name: cleanNama,
+        birthDate: _selectedBirthDate,
+      );
+
+      if (existingChild != null) {
+        final currentUserId = UserService().currentUser.id;
+        final alreadyLinked = existingChild.ownerId == currentUserId ||
+            existingChild.parentIds.contains(currentUserId);
+
+        if (alreadyLinked) {
+          if (!mounted) return;
+          setState(() => _isSaving = false);
+          _showBanner('Ananda ${existingChild.name} sudah terdaftar dalam profil Anda.', isError: true);
+          return;
+        }
+
+        if (!mounted) return;
+        setState(() => _isSaving = false);
+        final shouldLink = await _showDuplicateChildDialog(existingChild);
+        if (shouldLink == true) {
+          if (!mounted) return;
+          setState(() => _isSaving = true);
+          await ChildService().linkChildToCurrentUser(existingChild);
+          if (!mounted) return;
+          setState(() => _isSaving = false);
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => const BerandaPage(showAddSuccessSnackbar: true),
+            ),
+            (route) => false,
+          );
+        }
+        return;
+      }
+
       final newChild = ChildModel(
+        ownerId: UserService().currentUser.id,
+        noKk: cleanNoKk,
+        nik: cleanNik,
+        parentIds: [UserService().currentUser.id],
         id: 'child_${DateTime.now().millisecondsSinceEpoch}',
         name: _namaController.text.trim(),
         gender: _selectedGender!,
@@ -971,7 +1059,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       );
 
       // Simpan ke ChildService reaktif
-      ChildService().addChild(newChild);
+      await ChildService().addChild(newChild);
 
       if (!mounted) return;
 
@@ -993,6 +1081,75 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
   void _showBanner(String message, {bool isError = false}) {
     PediaBanner.show(context, message: message, isError: isError);
+  }
+
+  /// Dialog konfirmasi saat data anak dengan No KK yang sama ditemukan di database
+  Future<bool?> _showDuplicateChildDialog(ChildModel child) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
+          title: Row(
+            children: [
+              const Icon(Icons.family_restroom, color: Color(0xFF3985E7), size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Data Anak Ditemukan',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0B1014),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Ananda "${child.name}" dalam Nomor Kartu Keluarga ini sudah didaftarkan sebelumnya di PediaGrow.\n\nApakah Anda ingin menghubungkan akun Anda sebagai orang tua pendamping anak ini?',
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              height: 1.4,
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
+            ),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.lato(
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3985E7),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                'Ya, Hubungkan',
+                style: GoogleFonts.lato(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -1040,6 +1197,16 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                           _buildAgeBadge(),
                           const SizedBox(height: 14),
                         ],
+
+                        // Nomor Kartu Keluarga (KK)*
+                        Container(key: _noKkKey),
+                        _buildNoKkField(),
+                        const SizedBox(height: 14),
+
+                        // NIK Anak (Opsional)
+                        Container(key: _nikKey),
+                        _buildNikField(),
+                        const SizedBox(height: 14),
 
                         // Nama Lengkap*
                         Container(key: _namaKey),
@@ -1307,6 +1474,93 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // FIELD: NAMA LENGKAP*
+  // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // FIELD: NOMOR KARTU KELUARGA (KK)*
+  // ---------------------------------------------------------------------------
+  Widget _buildNoKkField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel('Nomor Kartu Keluarga (KK)', isRequired: true),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _noKkController,
+          focusNode: _noKkFocusNode,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          maxLength: 16,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(16),
+          ],
+          onFieldSubmitted: (_) => _nikFocusNode.requestFocus(),
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
+          ),
+          decoration: _inputDecoration(
+            hint: '16 digit Nomor Kartu Keluarga',
+            errorText: _noKkError,
+          ).copyWith(
+            counterText: '',
+          ),
+          onChanged: (val) {
+            if (_noKkError != null && val.trim().length == 16) {
+              setState(() => _noKkError = null);
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // FIELD: NIK ANAK (OPSIONAL)
+  // ---------------------------------------------------------------------------
+  Widget _buildNikField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel('NIK Anak (KIA / Dokumen KK)', isRequired: false),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _nikController,
+          focusNode: _nikFocusNode,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          maxLength: 16,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(16),
+          ],
+          onFieldSubmitted: (_) => _namaFocusNode.requestFocus(),
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
+          ),
+          decoration: _inputDecoration(
+            hint: '16 digit NIK Anak (opsional)',
+            errorText: _nikError,
+          ).copyWith(
+            counterText: '',
+          ),
+          onChanged: (val) {
+            if (_nikError != null) {
+              setState(() => _nikError = null);
+            }
+          },
+        ),
+      ],
     );
   }
 
