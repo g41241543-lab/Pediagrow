@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -34,6 +34,14 @@ class PermainanAdminPage extends StatefulWidget {
 
 class _PermainanAdminPageState extends State<PermainanAdminPage>
     with TickerProviderStateMixin {
+  // ── THEME GETTERS (DARK MODE SUPPORT) ──────────────────────────────
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
   // ──────────────────────────────────────────────────────────────────
   // STATE
   // ──────────────────────────────────────────────────────────────────

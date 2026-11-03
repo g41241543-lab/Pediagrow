@@ -733,18 +733,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     }).toList();
   }
 
-  List<StuntingRecordRow> get _filteredStuntingRows {
-    if (_searchStuntingQuery.isEmpty) return _stuntingRows;
-    final q = _searchStuntingQuery.toLowerCase();
-    return _stuntingRows.where((r) {
-      return r.namaAnak.toLowerCase().contains(q) ||
-          r.umur.toLowerCase().contains(q) ||
-          r.bb.toLowerCase().contains(q) ||
-          r.tb.toLowerCase().contains(q) ||
-          r.hasil.toLowerCase().contains(q);
-    }).toList();
-  }
-
   void _onSearchPenggunaChanged(String value) {
     _searchPenggunaDebounce?.cancel();
     _searchPenggunaDebounce = Timer(const Duration(milliseconds: 300), () {
@@ -792,18 +780,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   /// Row stunting yang sudah difilter berdasarkan search query dan bulan
   List<StuntingRecordRow> get _filteredStuntingRows {
+    final query = _searchStuntingQuery.isNotEmpty
+        ? _searchStuntingQuery
+        : _stuntingSearchQuery;
+
     return _stuntingRows.where((r) {
-      // Filter bulan
+      // Filter bulan jika dipilih
       if (_selectedStuntingMonth != null &&
           r.tanggalCek.month != _selectedStuntingMonth) {
         return false;
       }
-      // Filter search
-      if (_stuntingSearchQuery.isNotEmpty) {
-        final q = _stuntingSearchQuery.toLowerCase();
+      // Filter search (mencakup semua kolom: nama anak, umur, bb, tb, hasil)
+      if (query.isNotEmpty) {
+        final q = query.toLowerCase();
         final nameMatch = r.namaAnak.toLowerCase().contains(q);
+        final umurMatch = r.umur.toLowerCase().contains(q);
+        final bbMatch = r.bb.toLowerCase().contains(q);
+        final tbMatch = r.tb.toLowerCase().contains(q);
         final hasilMatch = r.hasil.toLowerCase().contains(q);
-        if (!nameMatch && !hasilMatch) return false;
+        if (!nameMatch && !umurMatch && !bbMatch && !tbMatch && !hasilMatch) {
+          return false;
+        }
       }
       return true;
     }).toList();
