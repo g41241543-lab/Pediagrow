@@ -12,6 +12,7 @@ class UserModel {
   final String? district;
   final String? subDistrict;
   final String? passwordHash;
+  final String? noKk;
 
   const UserModel({
     required this.id,
@@ -27,6 +28,7 @@ class UserModel {
     this.district,
     this.subDistrict,
     this.passwordHash,
+    this.noKk,
   });
 
   /// Nama/username untuk teks sapaan di header Beranda (`"Hai, <greetingName>"`)
@@ -61,6 +63,7 @@ class UserModel {
     String? district,
     String? subDistrict,
     String? passwordHash,
+    String? noKk,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -76,6 +79,7 @@ class UserModel {
       district: district ?? this.district,
       subDistrict: subDistrict ?? this.subDistrict,
       passwordHash: passwordHash ?? this.passwordHash,
+      noKk: noKk ?? this.noKk,
     );
   }
 
@@ -94,6 +98,7 @@ class UserModel {
       'district': district,
       'subDistrict': subDistrict,
       'passwordHash': passwordHash,
+      if (noKk != null) 'no_kk': noKk,
     };
   }
 
@@ -122,6 +127,7 @@ class UserModel {
       district: (map['district'] ?? map['kecamatan'])?.toString(),
       subDistrict: (map['subDistrict'] ?? map['kelurahan'] ?? map['desa'] ?? map['kelurahan_desa'])?.toString(),
       passwordHash: (map['passwordHash'] ?? map['password'])?.toString(),
+      noKk: (map['no_kk'] ?? map['noKk'] ?? map['nomor_kk'])?.toString(),
     );
   }
 }

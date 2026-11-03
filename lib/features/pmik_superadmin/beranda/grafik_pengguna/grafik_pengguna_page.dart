@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+﻿// ignore_for_file: use_build_context_synchronously
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -152,6 +152,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   final ScrollController _scrollController1 = ScrollController();
   final ScrollController _scrollController2 = ScrollController();
 
+  // ── Search State: Dataset Pengguna ─────────────────────────────────────────
+  final TextEditingController _searchPenggunaController = TextEditingController();
+  final FocusNode _searchPenggunaFocusNode = FocusNode();
+  String _searchPenggunaQuery = '';
+  Timer? _searchPenggunaDebounce;
+
+  // ── Search State: Dataset Stunting ─────────────────────────────────────────
+  final TextEditingController _searchStuntingController = TextEditingController();
+  final FocusNode _searchStuntingFocusNode = FocusNode();
+  String _searchStuntingQuery = '';
+  Timer? _searchStuntingDebounce;
+
   bool _isLoading = true;
   String? _errorMessage;
   bool _isDownloading = false;
@@ -263,6 +275,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     _growthSub?.cancel();
     ChildService().childrenNotifier.removeListener(_onServiceDataUpdated);
     GrowthService().recordsNotifier.removeListener(_onServiceDataUpdated);
+    _searchPenggunaDebounce?.cancel();
+    _searchStuntingDebounce?.cancel();
+    _searchPenggunaController.dispose();
+    _searchStuntingController.dispose();
+    _searchPenggunaFocusNode.dispose();
+    _searchStuntingFocusNode.dispose();
     _tabController.dispose();
     _scrollController1.dispose();
     _scrollController2.dispose();
@@ -700,6 +718,53 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return 'Perempuan';
   }
 
+  // ── Filtered Lists dari Searchbar ───────────────────────────────────────────
+  List<UserDemographicRow> get _filteredUserRows {
+    if (_searchPenggunaQuery.isEmpty) return _userRows;
+    final q = _searchPenggunaQuery.toLowerCase();
+    return _userRows.where((u) {
+      return u.namaLengkap.toLowerCase().contains(q) ||
+          u.jenisKelamin.toLowerCase().contains(q) ||
+          u.umur.toLowerCase().contains(q) ||
+          u.provinsi.toLowerCase().contains(q) ||
+          u.kota.toLowerCase().contains(q) ||
+          u.kecamatan.toLowerCase().contains(q) ||
+          u.kelurahanDesa.toLowerCase().contains(q);
+    }).toList();
+  }
+
+  void _onSearchPenggunaChanged(String value) {
+    _searchPenggunaDebounce?.cancel();
+    _searchPenggunaDebounce = Timer(const Duration(milliseconds: 300), () {
+      final q = value.trim();
+      if (q != _searchPenggunaQuery) {
+        setState(() => _searchPenggunaQuery = q);
+      }
+    });
+  }
+
+  void _onSearchStuntingChanged(String value) {
+    _searchStuntingDebounce?.cancel();
+    _searchStuntingDebounce = Timer(const Duration(milliseconds: 300), () {
+      final q = value.trim();
+      if (q != _searchStuntingQuery) {
+        setState(() => _searchStuntingQuery = q);
+      }
+    });
+  }
+
+  void _clearSearchPengguna() {
+    _searchPenggunaController.clear();
+    _searchPenggunaFocusNode.unfocus();
+    setState(() => _searchPenggunaQuery = '');
+  }
+
+  void _clearSearchStunting() {
+    _searchStuntingController.clear();
+    _searchStuntingFocusNode.unfocus();
+    setState(() => _searchStuntingQuery = '');
+  }
+
   /// Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna maupun stunting
   bool get _canDownloadDataset {
     final staff = StaffAuthService().currentStaff;
@@ -715,18 +780,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   /// Row stunting yang sudah difilter berdasarkan search query dan bulan
   List<StuntingRecordRow> get _filteredStuntingRows {
+    final query = _searchStuntingQuery.isNotEmpty
+        ? _searchStuntingQuery
+        : _stuntingSearchQuery;
+
     return _stuntingRows.where((r) {
-      // Filter bulan
+      // Filter bulan jika dipilih
       if (_selectedStuntingMonth != null &&
           r.tanggalCek.month != _selectedStuntingMonth) {
         return false;
       }
-      // Filter search
-      if (_stuntingSearchQuery.isNotEmpty) {
-        final q = _stuntingSearchQuery.toLowerCase();
+      // Filter search (mencakup semua kolom: nama anak, umur, bb, tb, hasil)
+      if (query.isNotEmpty) {
+        final q = query.toLowerCase();
         final nameMatch = r.namaAnak.toLowerCase().contains(q);
+        final umurMatch = r.umur.toLowerCase().contains(q);
+        final bbMatch = r.bb.toLowerCase().contains(q);
+        final tbMatch = r.tb.toLowerCase().contains(q);
         final hasilMatch = r.hasil.toLowerCase().contains(q);
-        if (!nameMatch && !hasilMatch) return false;
+        if (!nameMatch && !umurMatch && !bbMatch && !tbMatch && !hasilMatch) {
+          return false;
+        }
       }
       return true;
     }).toList();
@@ -2564,6 +2638,72 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
+  // ── Searchbar Reusable untuk Dataset (gaya konsisten MPASI) ──────────────────
+  Widget _buildDatasetSearchBar({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required String currentQuery,
+    required ValueChanged<String> onChanged,
+    required VoidCallback onClear,
+  }) {
+    return Container(
+      height: 48.0,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F2F6),
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.search_rounded,
+            size: 20.0,
+            color: Color(0xFF9E9E9E),
+          ),
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              onChanged: onChanged,
+              style: GoogleFonts.lato(
+                fontSize: 14.0,
+                color: _kTextDark,
+              ),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: GoogleFonts.lato(
+                  fontSize: 14.0,
+                  color: _kTextMuted,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              textInputAction: TextInputAction.search,
+            ),
+          ),
+          if (currentQuery.isNotEmpty)
+            GestureDetector(
+              onTap: onClear,
+              child: const Padding(
+                padding: EdgeInsets.all(4.0),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 18.0,
+                  color: Color(0xFF9E9E9E),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   // ── Dataset Pengguna (Tabel & Unduh) ────────────────────────────────────────
   Widget _buildDatasetPenggunaSection() {
     return Column(
@@ -2592,6 +2732,17 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ],
         ),
         const SizedBox(height: 12.0),
+
+        // Searchbar Dataset Pengguna
+        _buildDatasetSearchBar(
+          controller: _searchPenggunaController,
+          focusNode: _searchPenggunaFocusNode,
+          hintText: 'Cari pengguna...',
+          currentQuery: _searchPenggunaQuery,
+          onChanged: _onSearchPenggunaChanged,
+          onClear: _clearSearchPengguna,
+        ),
+        const SizedBox(height: 10.0),
 
         // Tabel Data Pengguna yang dapat digeser horizontal
         Container(
@@ -2665,13 +2816,15 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
           Divider(height: 1, thickness: 1, color: _borderColor),
 
-          if (_userRows.isEmpty)
+          if (_filteredUserRows.isEmpty)
             Container(
               width: minTableWidth,
               padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
               alignment: Alignment.center,
               child: Text(
-                'Belum ada data pengguna terdaftar di database',
+                _searchPenggunaQuery.isNotEmpty
+                    ? 'Data tidak ditemukan'
+                    : 'Belum ada data pengguna terdaftar di database',
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
                   color: _textSecondary,
@@ -2680,9 +2833,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             ),
 
           // Data Rows
-          ...List.generate(_userRows.length, (idx) {
-            final u = _userRows[idx];
-            final isLast = idx == _userRows.length - 1;
+          ...List.generate(_filteredUserRows.length, (idx) {
+            final u = _filteredUserRows[idx];
+            final isLast = idx == _filteredUserRows.length - 1;
             final cells = [
               u.namaLengkap,
               u.jenisKelamin,
@@ -2782,7 +2935,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               ],
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10.0),
+
+          // Searchbar Dataset Hasil Cek Stunting
+          _buildDatasetSearchBar(
+            controller: _searchStuntingController,
+            focusNode: _searchStuntingFocusNode,
+            hintText: 'Cari nama anak...',
+            currentQuery: _searchStuntingQuery,
+            onChanged: _onSearchStuntingChanged,
+            onClear: _clearSearchStunting,
+          ),
+          const SizedBox(height: 10.0),
 
           // 5. Tabel Dataset — dikabrangkan berdasarkan role
           if (isDokter)
@@ -3883,9 +4047,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
                 alignment: Alignment.center,
                 child: Text(
-                  _stuntingRows.isEmpty
-                      ? 'Belum ada data riwayat cek stunting di database'
-                      : 'Tidak ada data yang cocok dengan pencarian',
+                  _searchStuntingQuery.isNotEmpty
+                      ? 'Data tidak ditemukan'
+                      : 'Belum ada data riwayat cek stunting di database',
                   style: GoogleFonts.lato(
                     fontSize: 13.0,
                     color: _textSecondary,
@@ -3893,7 +4057,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ),
               ),
 
-            // Baris Data (menggunakan filtered rows)
+            // Baris Data
             ...List.generate(_filteredStuntingRows.length, (idx) {
               final row = _filteredStuntingRows[idx];
               final isLast = idx == _filteredStuntingRows.length - 1;

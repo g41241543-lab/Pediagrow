@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -512,6 +512,15 @@ class _GameSoalPageState extends State<GameSoalPage> {
     final Color warnaBenar = _colorForTombolHasil(pilihan: true, isDark: isDark);
     final Color warnaSalah = _colorForTombolHasil(pilihan: false, isDark: isDark);
 
+    // Warna teks/ikon: putih jika tombol ini adalah tombol yang dipilih
+    // (hijau atau merah), abu-abu jika tombol lawan yang tidak dipilih.
+    final Color warnaTeksBenar = _pilihanPengguna == true
+        ? Colors.white
+        : const Color(0xFF8696A0);
+    final Color warnaTeksSalah = _pilihanPengguna == false
+        ? Colors.white
+        : const Color(0xFF8696A0);
+
     return Row(
       children: [
         Expanded(
@@ -519,6 +528,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
             label: 'Benar',
             icon: Icons.check_rounded,
             bgColor: warnaBenar,
+            foregroundColor: warnaTeksBenar,
           ),
         ),
         const SizedBox(width: 16),
@@ -527,6 +537,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
             label: 'Salah',
             icon: Icons.close_rounded,
             bgColor: warnaSalah,
+            foregroundColor: warnaTeksSalah,
           ),
         ),
       ],
@@ -760,16 +771,20 @@ class _TombolHasilBadge extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color bgColor;
+  /// Warna teks dan ikon yang ditampilkan. Selalu diisi secara eksplisit
+  /// dari parent agar tidak bergantung pada perbandingan warna latar.
+  final Color foregroundColor;
 
   const _TombolHasilBadge({
     required this.label,
     required this.icon,
     required this.bgColor,
+    required this.foregroundColor,
   });
 
-  bool get _isHighlighted =>
-      bgColor == const Color(0xFF3985E7) ||
-      bgColor == const Color(0xFFEF4444);
+  /// Tombol dianggap menonjol jika foregroundColor-nya putih
+  /// (artinya dipilih oleh pengguna — hijau benar atau merah salah).
+  bool get _isHighlighted => foregroundColor == Colors.white;
 
   @override
   Widget build(BuildContext context) {
@@ -794,7 +809,7 @@ class _TombolHasilBadge extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: _isHighlighted ? Colors.white : const Color(0xFF8696A0),
+            color: foregroundColor,
           ),
           const SizedBox(width: 6),
           Text(
@@ -802,7 +817,7 @@ class _TombolHasilBadge extends StatelessWidget {
             style: GoogleFonts.lato(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: _isHighlighted ? Colors.white : const Color(0xFF8696A0),
+              color: foregroundColor,
             ),
           ),
         ],

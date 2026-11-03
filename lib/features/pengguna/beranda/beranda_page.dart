@@ -218,7 +218,12 @@ class _BerandaPageState extends State<BerandaPage> {
                     _buildSeamlessBlueArea(context),
 
                     // -------------------------------------------------------------
-                    // 2. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
+                    // 2. BANNER PERINGATAN NOMOR KK BELUM LENGKAP (Reaktif)
+                    // Tampil jika activeChild.noKk kosong/null
+                    // -------------------------------------------------------------
+                    _buildNoKkWarningBanner(context),
+
+                    // 3. KONTEN PUTIH (6 Card Menu & Card PediaGrow)
                     // -------------------------------------------------------------
                     _buildWhiteContentSection(context),
 
@@ -321,6 +326,112 @@ class _BerandaPageState extends State<BerandaPage> {
           ),
         ),
       ),
+    );
+  }
+
+  // ===================================================================
+  // BANNER PERINGATAN NOMOR KK BELUM DILENGKAPI
+  // Tampil di antara Area Biru dan Konten Putih jika activeChild.noKk kosong/null.
+  // Reaktif via ValueListenableBuilder terhadap activeChildNotifier dan childrenNotifier.
+  // ===================================================================
+  Widget _buildNoKkWarningBanner(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ValueListenableBuilder<ChildModel?>(
+      valueListenable: ChildService().activeChildNotifier,
+      builder: (context, activeChild, _) {
+        // Hanya tampil jika ada anak aktif dan noKk-nya belum diisi
+        if (activeChild == null) return const SizedBox.shrink();
+        final noKkMissing =
+            activeChild.noKk == null || activeChild.noKk!.trim().isEmpty;
+        if (!noKkMissing) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF78350F).withValues(alpha: 0.25)
+                  : const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFFD97706).withValues(alpha: 0.6)
+                    : const Color(0xFFFBBF24),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFD97706),
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lengkapi Data Kartu Keluarga Ananda',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? const Color(0xFFFBBF24)
+                              : const Color(0xFF92400E),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Nomor KK Ananda belum dilengkapi. Lengkapi agar data terlindungi dari duplikasi.',
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
+                          color: isDark
+                              ? const Color(0xFFFDE68A)
+                              : const Color(0xFFB45309),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => UbahAnakPage(child: activeChild),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD97706),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Lengkapi Sekarang',
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
