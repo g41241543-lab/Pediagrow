@@ -813,7 +813,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, bookings, _) {
             // Cari jadwal booking yang cocok untuk anak ini
-            BookingConsultationModel? matchedBooking = widget.booking;
+            BookingConsultationModel? matchedBooking;
+            if (widget.booking != null) {
+              matchedBooking = bookings.where((b) => b.id == widget.booking!.id).firstOrNull ?? widget.booking;
+            }
             if (matchedBooking == null) {
               for (final b in bookings) {
                 final bChildName = b.child.name.toLowerCase();
@@ -859,7 +862,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             final bool isCurrentlyActive = !isBookingBeforeStart &&
                 (isFirestoreActive ||
                     isBookingActive ||
-                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null));
+                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null && matchedSession?.status != KonsultasiStatus.selesai));
 
             final effectiveSessionId = widget.sessionId ??
                 matchedBooking?.sessionId ??
@@ -888,7 +891,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               // Dokter dapat langsung mengirim pesan & foto saat konsultasi berlangsung.
               return ChatKonsultasiDokterPage(
                 isEmbedded: true,
-                topCard: _buildJadwalInfoCard(
+                topCard: isCurrentlyActive
+                    ? null
+                    : _buildJadwalInfoCard(
                   booking: matchedBooking,
                   session: matchedSession,
                   parentDisplayName: parentDisplayName,
