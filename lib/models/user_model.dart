@@ -13,6 +13,7 @@ class UserModel {
   final String? subDistrict;
   final String? passwordHash;
   final String? noKk;
+  final String? nik;
 
   const UserModel({
     required this.id,
@@ -29,6 +30,7 @@ class UserModel {
     this.subDistrict,
     this.passwordHash,
     this.noKk,
+    this.nik,
   });
 
   /// Nama/username untuk teks sapaan di header Beranda (`"Hai, <greetingName>"`)
@@ -64,6 +66,7 @@ class UserModel {
     String? subDistrict,
     String? passwordHash,
     String? noKk,
+    String? nik,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -80,6 +83,7 @@ class UserModel {
       subDistrict: subDistrict ?? this.subDistrict,
       passwordHash: passwordHash ?? this.passwordHash,
       noKk: noKk ?? this.noKk,
+      nik: nik ?? this.nik,
     );
   }
 
@@ -99,6 +103,7 @@ class UserModel {
       'subDistrict': subDistrict,
       'passwordHash': passwordHash,
       if (noKk != null) 'no_kk': noKk,
+      if (nik != null) 'nik': nik,
     };
   }
 
@@ -118,7 +123,7 @@ class UserModel {
       name: rawName,
       username: rawUsername,
       email: map['email']?.toString() ?? '',
-      avatarPath: (map['avatarPath'] ?? map['avatar_url'] ?? map['photoUrl'])?.toString(),
+      avatarPath: (map['avatarPath'] ?? map['avatar_url'] ?? map['avatar'] ?? map['photoUrl'] ?? map['photo_url'] ?? map['foto'] ?? map['foto_url'])?.toString(),
       phone: (map['phone'] ?? map['nomor_telepon'] ?? map['no_hp'])?.toString(),
       gender: (map['gender'] ?? map['jenis_kelamin'] ?? map['jk'])?.toString(),
       birthDate: (map['birthDate'] ?? map['tanggal_lahir'] ?? map['tgl_lahir'])?.toString(),
@@ -127,7 +132,8 @@ class UserModel {
       district: (map['district'] ?? map['kecamatan'])?.toString(),
       subDistrict: (map['subDistrict'] ?? map['kelurahan'] ?? map['desa'] ?? map['kelurahan_desa'])?.toString(),
       passwordHash: (map['passwordHash'] ?? map['password'])?.toString(),
-      noKk: (map['no_kk'] ?? map['noKk'] ?? map['nomor_kk'])?.toString(),
+      noKk: (map['no_kk'] ?? map['noKk'] ?? map['nomor_kk'] ?? map['nomorKk'] ?? map['kk'])?.toString(),
+      nik: (map['nik'] ?? map['nik_ortu'] ?? map['nik_orangtua'] ?? map['nik_ibu'] ?? map['nomor_nik'] ?? map['nik_user'])?.toString(),
     );
   }
 }

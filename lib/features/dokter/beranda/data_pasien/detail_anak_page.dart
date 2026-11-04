@@ -229,21 +229,41 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   Future<void> _navigateToDataOrangtua() async {
     UserModel? userToOpen = _parentUser;
-    if (userToOpen == null && _currentChild.ownerId.isNotEmpty) {
+    if (userToOpen == null || userToOpen.name.isEmpty || userToOpen.name == 'Orang Tua' || userToOpen.name == 'Orang Tua Pasien') {
       try {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(_currentChild.ownerId)
-            .get();
-        if (doc.exists && doc.data() != null) {
-          userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+        final db = FirebaseFirestore.instance;
+        if (_currentChild.ownerId.isNotEmpty) {
+          final doc = await db.collection('users').doc(_currentChild.ownerId).get();
+          if (doc.exists && doc.data() != null) {
+            userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+          } else if (_currentChild.ownerId.contains('@')) {
+            final q = await db.collection('users').where('email', isEqualTo: _currentChild.ownerId).limit(1).get();
+            if (q.docs.isNotEmpty) {
+              userToOpen = UserModel.fromMap({...q.docs.first.data(), 'id': q.docs.first.id});
+            }
+          }
+        }
+        if (userToOpen == null && _currentChild.parentIds.isNotEmpty) {
+          for (final pid in _currentChild.parentIds) {
+            final doc = await db.collection('users').doc(pid).get();
+            if (doc.exists && doc.data() != null) {
+              userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+              break;
+            }
+          }
+        }
+        if (userToOpen == null && _currentChild.noKk != null && _currentChild.noKk!.trim().isNotEmpty) {
+          final q = await db.collection('users').where('no_kk', isEqualTo: _currentChild.noKk!.trim()).limit(1).get();
+          if (q.docs.isNotEmpty) {
+            userToOpen = UserModel.fromMap({...q.docs.first.data(), 'id': q.docs.first.id});
+          }
         }
       } catch (_) {}
     }
 
     userToOpen ??= UserModel(
       id: _currentChild.ownerId,
-      name: 'Orang Tua',
+      name: 'Orang Tua Pasien',
       email: '-',
     );
 
@@ -710,7 +730,21 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           _buildTableRow(label: 'Nama Lengkap', value: namaLengkap),
           Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
-          // Baris 2: Tanggal Lahir
+          // Baris 2: Nomor Kartu Keluarga (KK)
+          _buildTableRow(
+            label: 'Nomor Kartu Keluarga (KK)',
+            value: child.noKk?.isNotEmpty == true ? child.noKk! : '-',
+          ),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
+
+          // Baris 3: NIK Anak
+          _buildTableRow(
+            label: 'NIK Anak',
+            value: child.nik?.isNotEmpty == true ? child.nik! : '-',
+          ),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
+
+          // Baris 4: Tanggal Lahir
           _buildTableRow(label: 'Tanggal Lahir', value: tanggalLahir),
           Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 

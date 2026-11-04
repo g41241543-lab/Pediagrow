@@ -110,8 +110,8 @@ class ChildModel {
     return ChildModel(
       id: map['id']?.toString() ?? '',
       ownerId: (map['owner_id'] ?? map['ownerId'] ?? '').toString(),
-      noKk: (map['no_kk'] ?? map['noKk'] ?? map['nomor_kk'])?.toString(),
-      nik: (map['nik'] ?? map['nik_anak'])?.toString(),
+      noKk: (map['no_kk'] ?? map['noKk'] ?? map['nomor_kk'] ?? map['nomorKk'] ?? map['kk'])?.toString(),
+      nik: (map['nik'] ?? map['nik_anak'] ?? map['nikAnak'] ?? map['nomor_nik'])?.toString(),
       parentIds: (map['parent_ids'] is List)
           ? (map['parent_ids'] as List).map((e) => e.toString()).toList()
           : ((map['owner_id'] ?? map['ownerId']) != null
@@ -126,9 +126,9 @@ class ChildModel {
       headCircumferenceCm: parsedHead,
       birthWeightKg: parsedBirthWeight,
       birthHeightCm: parsedBirthHeight,
-      photoUrl: (map['photo_url'] ?? map['foto_url'] ?? map['avatar'])
+      photoUrl: (map['photo_url'] ?? map['photoUrl'] ?? map['foto_url'] ?? map['fotoUrl'] ?? map['avatar'] ?? map['avatar_url'] ?? map['avatarPath'] ?? map['foto'])
           ?.toString(),
-      birthPhotoUrl: map['birth_photo_url']?.toString(),
+      birthPhotoUrl: (map['birth_photo_url'] ?? map['birthPhotoUrl'] ?? map['foto_kelahiran'])?.toString(),
       isPremature: map['is_premature'] == null
           ? null
           : (map['is_premature'] == 1 ||

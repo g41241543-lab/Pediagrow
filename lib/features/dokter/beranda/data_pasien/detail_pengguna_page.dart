@@ -299,6 +299,16 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
         value: u.name.isNotEmpty ? u.name : '-',
       ),
       _TableRowData(
+        icon: Icons.family_restroom_rounded,
+        label: 'Nomor Kartu Keluarga (KK)',
+        value: u.noKk?.isNotEmpty == true ? u.noKk! : '-',
+      ),
+      _TableRowData(
+        icon: Icons.badge_outlined,
+        label: 'NIK',
+        value: u.nik?.isNotEmpty == true ? u.nik! : '-',
+      ),
+      _TableRowData(
         icon: Icons.email_outlined,
         label: 'Email',
         value: u.email.isNotEmpty ? u.email : '-',
@@ -369,36 +379,14 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card: Icon kotak biru + Judul
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF242E35)
-                      : const Color(0xFFEBF3FF),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.badge_outlined,
-                  color: _colorPrimaryBlue,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Biodata Orangtua',
-                  style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                  ),
-                ),
-              ),
-            ],
+          // Header Card: Judul
+          Text(
+            'Biodata Orangtua',
+            style: GoogleFonts.lato(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+            ),
           ),
 
           const SizedBox(height: 14),
