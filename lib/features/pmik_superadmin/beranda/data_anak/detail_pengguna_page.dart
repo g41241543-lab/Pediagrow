@@ -295,47 +295,46 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
 
     final rows = <_TableRowData>[
       _TableRowData(
-        icon: Icons.person_outline_rounded,
         label: 'Nama Lengkap',
         value: u.name.isNotEmpty ? u.name : '-',
       ),
       _TableRowData(
-        icon: Icons.email_outlined,
+        label: 'Nomor Kartu Keluarga (KK)',
+        value: u.noKk?.isNotEmpty == true ? u.noKk! : '-',
+      ),
+      _TableRowData(
+        label: 'NIK',
+        value: u.nik?.isNotEmpty == true ? u.nik! : '-',
+      ),
+      _TableRowData(
         label: 'Email',
         value: u.email.isNotEmpty ? u.email : '-',
       ),
       _TableRowData(
-        icon: Icons.phone_outlined,
         label: 'Nomor Telepon',
         value: u.phone?.isNotEmpty == true ? u.phone! : '-',
       ),
       _TableRowData(
-        icon: Icons.wc_outlined,
         label: 'Jenis Kelamin',
         value: _formatGender(u.gender),
       ),
       _TableRowData(
-        icon: Icons.calendar_today_outlined,
         label: 'Tanggal Lahir',
         value: _formatDate(u.birthDate),
       ),
       _TableRowData(
-        icon: Icons.map_outlined,
         label: 'Provinsi',
         value: u.province?.isNotEmpty == true ? u.province! : '-',
       ),
       _TableRowData(
-        icon: Icons.location_city_outlined,
         label: 'Kota / Kabupaten',
         value: u.city?.isNotEmpty == true ? u.city! : '-',
       ),
       _TableRowData(
-        icon: Icons.holiday_village_outlined,
         label: 'Kecamatan',
         value: u.district?.isNotEmpty == true ? u.district! : '-',
       ),
       _TableRowData(
-        icon: Icons.home_work_outlined,
         label: 'Kelurahan / Desa',
         value: u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-',
       ),
@@ -370,36 +369,14 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card: Icon kotak biru + Judul
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF242E35)
-                      : const Color(0xFFEBF3FF),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.badge_outlined,
-                  color: _colorPrimaryBlue,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Biodata Orangtua',
-                  style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                  ),
-                ),
-              ),
-            ],
+          // Header Card: Judul
+          Text(
+            'Biodata Orangtua',
+            style: GoogleFonts.lato(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+            ),
           ),
 
           const SizedBox(height: 14),
@@ -435,11 +412,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          item.icon,
-          size: 18,
-          color: _colorPrimaryBlue.withValues(alpha: 0.75),
-        ),
         const SizedBox(width: 10),
         SizedBox(
           width: 125,
@@ -504,12 +476,10 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
 }
 
 class _TableRowData {
-  final IconData icon;
   final String label;
   final String value;
 
   _TableRowData({
-    required this.icon,
     required this.label,
     required this.value,
   });

@@ -22,7 +22,15 @@ class DaftarResumeMedisPage extends StatefulWidget {
   State<DaftarResumeMedisPage> createState() => _DaftarResumeMedisPageState();
 }
 
-class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
+class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage>
+    with SingleTickerProviderStateMixin {
+  // Palet Warna Resmi PediaGrow
+  static const Color _colorPrimaryBlue = Color(0xFF3985E7);
+  static const Color _colorTextBlack = Color(0xFF1A2228);
+  static const Color _colorLabelGrey = Color(0xFF667781);
+  static const Color _colorCardBg = Color(0xFFFFFFFF);
+  static const Color _colorBorder = Color(0xFFE9EDEF);
+
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -32,7 +40,10 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   @override
   void initState() {
     super.initState();
-    _initialData = ResumeMedisService().getCached(widget.child.id, widget.child.name);
+    _initialData = ResumeMedisService().getCached(
+      widget.child.id,
+      widget.child.name,
+    );
     _resumeStream = ResumeMedisService().streamResumeMedis(
       child: widget.child,
       userId: widget.user?.id,
@@ -64,7 +75,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                   style: GoogleFonts.lato(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -73,7 +86,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.lato(
                     fontSize: 14,
-                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F),
+                    color: isDark
+                        ? const Color(0xFF8696A0)
+                        : const Color(0xFF7F7F7F),
                     height: 1.4,
                   ),
                 ),
@@ -86,9 +101,13 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                         child: OutlinedButton(
                           onPressed: () => Navigator.of(dialogCtx).pop(true),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: isDark ? const Color(0xFF242E35) : Colors.white,
+                            backgroundColor: isDark
+                                ? const Color(0xFF242E35)
+                                : Colors.white,
                             side: BorderSide(
-                              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFC5C5C5),
+                              color: isDark
+                                  ? const Color(0xFF2C363D)
+                                  : const Color(0xFFC5C5C5),
                               width: 1.0,
                             ),
                             shape: RoundedRectangleBorder(
@@ -101,7 +120,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             style: GoogleFonts.lato(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
@@ -231,7 +252,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                                 Icon(
                                   Icons.search_off_rounded,
                                   size: 64,
-                                  color: isDark ? const Color(0xFF667781) : Colors.grey.shade400,
+                                  color: isDark
+                                      ? const Color(0xFF667781)
+                                      : Colors.grey.shade400,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
@@ -241,7 +264,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.lato(
                                     fontSize: 15,
-                                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                                    color: isDark
+                                        ? const Color(0xFF8696A0)
+                                        : const Color(0xFF667781),
                                   ),
                                 ),
                               ],
@@ -326,7 +351,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEFF3F8),
           borderRadius: BorderRadius.circular(14),
-          border: isDark ? Border.all(color: const Color(0xFF2C363D), width: 1) : null,
+          border: isDark
+              ? Border.all(color: const Color(0xFF2C363D), width: 1)
+              : null,
         ),
         child: Row(
           children: [
@@ -343,7 +370,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                 focusNode: _searchFocusNode,
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
-                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                  color: isDark
+                      ? const Color(0xFFE9EDEF)
+                      : const Color(0xFF1A2228),
                 ),
                 decoration: InputDecoration(
                   hintText: 'Cari Resume Medis',
@@ -388,6 +417,10 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       color: isDark ? const Color(0xFF1A2228) : Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
+        highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
+        hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
         onTap: () async {
           final result = await Navigator.of(context).push(
             MaterialPageRoute(
@@ -405,7 +438,6 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
             );
           }
         },
-        borderRadius: BorderRadius.circular(14),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
@@ -455,7 +487,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             style: GoogleFonts.lato(
                               fontSize: 15.5,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                              color: isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : const Color(0xFF1A2228),
                             ),
                           ),
                           const SizedBox(height: 3),
@@ -465,7 +499,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             'Anak: ${resume.childName}',
                             style: GoogleFonts.lato(
                               fontSize: 13,
-                              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
+                              color: isDark
+                                  ? const Color(0xFFD1D7DB)
+                                  : const Color(0xFF2C363D),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -475,7 +511,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                             'Keluhan: ${resume.complaintShort}',
                             style: GoogleFonts.lato(
                               fontSize: 13,
-                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF2C363D),
+                              color: isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF2C363D),
                               height: 1.3,
                             ),
                           ),
@@ -490,7 +528,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
               Divider(
                 height: 1,
                 thickness: 1,
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
               ),
 
               // Bagian Bawah: Tanggal & Badge "Selesai"
@@ -505,7 +545,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                         Icon(
                           Icons.calendar_month_outlined,
                           size: 18,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF667781),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -513,7 +555,9 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                           style: GoogleFonts.lato(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                            color: isDark
+                                ? const Color(0xFFE9EDEF)
+                                : const Color(0xFF1A2228),
                           ),
                         ),
                       ],
@@ -551,17 +595,23 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                               width: 32.0,
                               height: 32.0,
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF3F1B1B) : const Color(0xFFFFEBEE),
+                                color: isDark
+                                    ? const Color(0xFF3F1B1B)
+                                    : const Color(0xFFFFEBEE),
                                 borderRadius: BorderRadius.circular(8.0),
                                 border: Border.all(
-                                  color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFFCDD2),
+                                  color: isDark
+                                      ? const Color(0xFF7F1D1D)
+                                      : const Color(0xFFFFCDD2),
                                   width: 1.0,
                                 ),
                               ),
                               alignment: Alignment.center,
                               child: Icon(
                                 Icons.delete_outline_rounded,
-                                color: isDark ? const Color(0xFFF87171) : const Color(0xFFE53935),
+                                color: isDark
+                                    ? const Color(0xFFF87171)
+                                    : const Color(0xFFE53935),
                                 size: 18.0,
                               ),
                             ),
@@ -579,4 +629,3 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
     );
   }
 }
-
