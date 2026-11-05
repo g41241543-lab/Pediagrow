@@ -262,119 +262,210 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildResumeCard(ResumeMedisModel resume) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark ? const Color(0xFF1A2228) : Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () async {
-          final result = await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => DetailResumeMedisPage(
-                resume: resume,
-                child: widget.child,
-                parentUser: widget.user,
+    bool isHovered = false;
+
+    return StatefulBuilder(
+      builder: (context, setHoverState) {
+        const primaryBlue = Color(0xFF2B7AE8);
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setHoverState(() => isHovered = true),
+          onExit: (_) => setHoverState(() => isHovered = false),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            transform: Matrix4.translationValues(0, isHovered ? -2.5 : 0, 0),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A2228) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isHovered
+                    ? primaryBlue
+                    : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
+                width: isHovered ? 1.5 : 1.0,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: isHovered
+                      ? primaryBlue.withValues(alpha: isDark ? 0.35 : 0.16)
+                      : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                  blurRadius: isHovered ? 14 : 8,
+                  offset: isHovered ? const Offset(0, 5) : const Offset(0, 3),
+                ),
+              ],
             ),
-          );
-          if (result == 'deleted' && mounted) {
-            PediaBanner.showSuccess(
-              context,
-              message: 'Berhasil Menghapus Resume Medis',
-            );
-          }
-        },
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Bagian Atas: Avatar Dokter, Nama Dokter, Info Anak & Keluhan
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Avatar Dokter
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF2B7AE8)
-                              .withValues(alpha: 0.15),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child:
-                            resume.doctorPhoto != null &&
-                                resume.doctorPhoto!.isNotEmpty
-                            ? (resume.doctorPhoto!.startsWith('http')
-                                  ? Image.network(
-                                      resume.doctorPhoto!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) =>
-                                          _buildDoctorAvatarFallback(),
-                                    )
-                                  : Image.asset(
-                                      resume.doctorPhoto!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) =>
-                                          _buildDoctorAvatarFallback(),
-                                    ))
-                            : _buildDoctorAvatarFallback(),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                splashColor: primaryBlue.withValues(alpha: 0.08),
+                highlightColor: primaryBlue.withValues(alpha: 0.04),
+                hoverColor: Colors.transparent,
+                onTap: () async {
+                  final result = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => DetailResumeMedisPage(
+                        resume: resume,
+                        child: widget.child,
+                        parentUser: widget.user,
                       ),
                     ),
-                    const SizedBox(width: 12),
-
-                    // Teks Kanan
-                    Expanded(
-                      child: Column(
+                  );
+                  if (result == 'deleted' && mounted) {
+                    PediaBanner.showSuccess(
+                      context,
+                      message: 'Berhasil Menghapus Resume Medis',
+                    );
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Bagian Atas: Avatar Dokter, Nama Dokter, Info Anak & Keluhan
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Nama Dokter (Bold)
-                          Text(
-                            resume.doctorName,
-                            style: GoogleFonts.lato(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1E293B),
+                          // Avatar Dokter
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color(0xFF2B7AE8)
+                                    .withValues(alpha: 0.15),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child:
+                                  resume.doctorPhoto != null &&
+                                      resume.doctorPhoto!.isNotEmpty
+                                  ? (resume.doctorPhoto!.startsWith('http')
+                                        ? Image.network(
+                                            resume.doctorPhoto!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) =>
+                                                _buildDoctorAvatarFallback(),
+                                          )
+                                        : Image.asset(
+                                            resume.doctorPhoto!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) =>
+                                                _buildDoctorAvatarFallback(),
+                                          ))
+                                  : _buildDoctorAvatarFallback(),
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(width: 12),
 
-                          // Nama Anak
-                          Text(
-                            'Anak: ${resume.childName}',
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF475569),
+                          // Teks Kanan
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Nama Dokter (Bold)
+                                Text(
+                                  resume.doctorName,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 15.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? const Color(0xFFE9EDEF)
+                                        : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+
+                                // Nama Anak
+                                Text(
+                                  'Anak: ',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? const Color(0xFFD1D7DB)
+                                        : const Color(0xFF2C363D),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+
+                                // Keluhan
+                                Text(
+                                  'Keluhan: ',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? const Color(0xFF8696A0)
+                                        : const Color(0xFF2C363D),
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 2),
+                        ],
+                      ),
+                    ),
 
-                          // Keluhan
-                          Text(
-                            'Keluhan: ${resume.complaintShort}',
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF475569),
-                              height: 1.3,
+                    // Divider tipis
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: isDark
+                          ? const Color(0xFF2C363D)
+                          : const Color(0xFFE2E8F0),
+                    ),
+
+                    // Bagian Bawah: Tanggal & Badge "Selesai"
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Tanggal Konsultasi
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_month_outlined,
+                                size: 18,
+                                color: isDark
+                                    ? const Color(0xFF8696A0)
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                resume.consultationDate,
+                                style: GoogleFonts.lato(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? const Color(0xFFE9EDEF)
+                                      : const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Badge Selesai (Hijau Toska)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF26B89D),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              resume.status,
+                              style: GoogleFonts.lato(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -383,69 +474,12 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
                   ],
                 ),
               ),
-
-              // Divider tipis
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF1F5F9),
-              ),
-
-              // Bagian Bawah: Tanggal & Badge "Selesai"
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Tanggal Konsultasi
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_month_outlined,
-                          size: 18,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          resume.consultationDate,
-                          style: GoogleFonts.lato(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1E293B),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Badge Selesai (Hijau Toska)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF26B89D),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        resume.status,
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
-
   Widget _buildDoctorAvatarFallback() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(

@@ -683,15 +683,17 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   // ===========================================================================
   // C. TABEL BIODATA ANAK
-  // Menyajikan 8 field lengkap (tanpa tanda bintang):
+  // Menyajikan 10 field lengkap (format sama persis dengan tabel Biodata Orangtua):
   // 1. Nama Lengkap
-  // 2. Tanggal Lahir
-  // 3. Jenis Kelamin
-  // 4. Prematur (Ya, Minggu ke-XX / -)
-  // 5. Berat Badan Saat Lahir (kg)
-  // 6. Tinggi Badan Saat Lahir (cm)
-  // 7. Lingkar Kepala Saat Lahir (cm)
-  // 8. Alergi
+  // 2. Nomor Kartu Keluarga (KK)
+  // 3. NIK Anak
+  // 4. Tanggal Lahir
+  // 5. Jenis Kelamin
+  // 6. Prematur (Ya, Minggu ke-XX / -)
+  // 7. Berat Badan Saat Lahir (kg)
+  // 8. Tinggi Badan Saat Lahir (cm)
+  // 9. Lingkar Kepala Saat Lahir (cm)
+  // 10. Alergi
   // ===========================================================================
   Widget _buildBiodataAnakCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -719,6 +721,49 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         child.allergies != null && child.allergies!.trim().isNotEmpty
         ? child.allergies!.trim()
         : '-';
+
+    final rows = <_TableChildRowData>[
+      _TableChildRowData(
+        label: 'Nama Lengkap',
+        value: namaLengkap,
+      ),
+      _TableChildRowData(
+        label: 'Nomor Kartu Keluarga (KK)',
+        value: child.noKk?.isNotEmpty == true ? child.noKk! : '-',
+      ),
+      _TableChildRowData(
+        label: 'NIK Anak',
+        value: child.nik?.isNotEmpty == true ? child.nik! : '-',
+      ),
+      _TableChildRowData(
+        label: 'Tanggal Lahir',
+        value: tanggalLahir,
+      ),
+      _TableChildRowData(
+        label: 'Jenis Kelamin',
+        value: jenisKelamin,
+      ),
+      _TableChildRowData(
+        label: 'Prematur',
+        value: prematur,
+      ),
+      _TableChildRowData(
+        label: 'Berat Badan Saat Lahir (kg)',
+        value: bbLahir,
+      ),
+      _TableChildRowData(
+        label: 'Tinggi Badan Saat Lahir (cm)',
+        value: tbLahir,
+      ),
+      _TableChildRowData(
+        label: 'Lingkar Kepala Saat Lahir (cm)',
+        value: lkLahir,
+      ),
+      _TableChildRowData(
+        label: 'Alergi',
+        value: alergi,
+      ),
+    ];
 
     return Container(
       width: double.infinity,
@@ -759,122 +804,66 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             ),
           ),
 
+          const SizedBox(height: 14),
           Divider(
             height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
+            thickness: 1,
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
           ),
+          const SizedBox(height: 14),
 
-          // Baris 1: Nama Lengkap
-          _buildTableRow(label: 'Nama Lengkap', value: namaLengkap),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 2: Nomor Kartu Keluarga (KK)
-          _buildTableRow(
-            label: 'Nomor Kartu Keluarga (KK)',
-            value: child.noKk?.isNotEmpty == true ? child.noKk! : '-',
-          ),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 3: NIK Anak
-          _buildTableRow(
-            label: 'NIK Anak',
-            value: child.nik?.isNotEmpty == true ? child.nik! : '-',
-          ),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 4: Tanggal Lahir
-          _buildTableRow(label: 'Tanggal Lahir', value: tanggalLahir),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 3: Jenis Kelamin
-          _buildTableRow(label: 'Jenis Kelamin', value: jenisKelamin),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 4: Prematur
-          _buildTableRow(label: 'Prematur', value: prematur),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 5: Berat Badan Saat Lahir (kg)
-          _buildTableRow(label: 'Berat Badan Saat Lahir (kg)', value: bbLahir),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 6: Tinggi Badan Saat Lahir (cm)
-          _buildTableRow(label: 'Tinggi Badan Saat Lahir (cm)', value: tbLahir),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 7: Lingkar Kepala Saat Lahir (cm)
-          _buildTableRow(
-            label: 'Lingkar Kepala Saat Lahir (cm)',
-            value: lkLahir,
-          ),
-          Divider(
-            height: 1,
-            color: isDark ? const Color(0xFF2C363D) : _colorTableBorder,
-          ),
-
-          // Baris 8: Alergi
-          _buildTableRow(label: 'Alergi', value: alergi),
+          // Baris-baris Data Key-Value
+          for (int i = 0; i < rows.length; i++) ...[
+            if (i > 0) ...[
+              const SizedBox(height: 10),
+              Divider(
+                height: 1,
+                thickness: 0.7,
+                color: isDark
+                    ? const Color(0xFF242E35)
+                    : const Color(0xFFF1F5F9),
+              ),
+              const SizedBox(height: 10),
+            ],
+            _buildTableRow(rows[i]),
+          ],
         ],
       ),
     );
   }
 
-  /// Baris dalam tabel biodata anak:
-  /// - Label abu-abu
-  /// - Nilai di bawahnya (font semi-bold hitam 14)
-  Widget _buildTableRow({required String label, required String value}) {
+  /// Baris dalam tabel biodata anak: dua kolom (label di kiri, nilai di kanan)
+  Widget _buildTableRow(_TableChildRowData item) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 4),
+        SizedBox(
+          width: 140,
+          child: Text(
+            item.label,
             style: GoogleFonts.lato(
               fontSize: 13,
-              fontWeight: FontWeight.normal,
+              fontWeight: FontWeight.w500,
               color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value.isNotEmpty ? value : '-',
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            item.value,
             style: GoogleFonts.lato(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
               color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-
   // ===========================================================================
   // 5. KONTEN TAB "RUANG OBROLAN" (TERKUNCI)
   // ===========================================================================
@@ -922,4 +911,14 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       ),
     );
   }
+}
+
+class _TableChildRowData {
+  final String label;
+  final String value;
+
+  _TableChildRowData({
+    required this.label,
+    required this.value,
+  });
 }
