@@ -20,6 +20,7 @@ import '../../../models/consultation_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/resume_medis_model.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
+import '../../../shared/widgets/pesan_cepat_widget.dart';
 import 'konfirmasi_selesai_dialog.dart';
 import 'konsultasi_selesai_dialog.dart';
 import '../../../shared/widgets/pedia_banner.dart';
@@ -359,13 +360,13 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   // LOGIKA PENGIRIMAN PESAN & ENGINE BALASAN DOKTER MEDIS FORMAL
   // ===========================================================================
 
-  void _sendMessage() {
-    final text = _textController.text.trim();
+  void _sendMessage([String? customText]) {
+    final text = customText ?? _textController.text.trim();
     if (text.isEmpty) return;
-    _textController.clear();
+    if (customText == null) _textController.clear();
 
     final replyTarget = _replyingTo;
-    if (replyTarget != null) {
+    if (replyTarget != null && customText == null) {
       setState(() {
         _replyingTo = null;
       });
@@ -1341,6 +1342,19 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
             Expanded(child: _buildChatList(isDark)),
 
             // 4. Input Pesan Fixed di Bagian Bawah
+            PesanCepatWidget(
+              isDoctor: false,
+              isDark: isDark,
+              focusNode: _inputFocusNode,
+              onSendMessage: (text) => _sendMessage(text),
+              onSelectToInput: (text) {
+                _textController.text = text;
+                _textController.selection = TextSelection.fromPosition(
+                  TextPosition(offset: text.length),
+                );
+                _inputFocusNode.requestFocus();
+              },
+            ),
             _buildInputArea(isDark),
           ],
         ),

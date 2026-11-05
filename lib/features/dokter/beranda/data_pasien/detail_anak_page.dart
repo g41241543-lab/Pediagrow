@@ -11,6 +11,7 @@ import 'pilih_anak_button_sheet.dart';
 import 'superadmin_grafik_page.dart';
 import 'tab_detail_pasien/resume_medis/daftar_resume_medis_page.dart';
 import 'detail_pengguna_page.dart';
+import '../../../../widgets/data_orangtua_logo.dart';
 import '../../../../core/services/booking_service.dart';
 import '../../../../core/services/konsultasi_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
@@ -228,21 +229,41 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   Future<void> _navigateToDataOrangtua() async {
     UserModel? userToOpen = _parentUser;
-    if (userToOpen == null && _currentChild.ownerId.isNotEmpty) {
+    if (userToOpen == null || userToOpen.name.isEmpty || userToOpen.name == 'Orang Tua' || userToOpen.name == 'Orang Tua Pasien') {
       try {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(_currentChild.ownerId)
-            .get();
-        if (doc.exists && doc.data() != null) {
-          userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+        final db = FirebaseFirestore.instance;
+        if (_currentChild.ownerId.isNotEmpty) {
+          final doc = await db.collection('users').doc(_currentChild.ownerId).get();
+          if (doc.exists && doc.data() != null) {
+            userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+          } else if (_currentChild.ownerId.contains('@')) {
+            final q = await db.collection('users').where('email', isEqualTo: _currentChild.ownerId).limit(1).get();
+            if (q.docs.isNotEmpty) {
+              userToOpen = UserModel.fromMap({...q.docs.first.data(), 'id': q.docs.first.id});
+            }
+          }
+        }
+        if (userToOpen == null && _currentChild.parentIds.isNotEmpty) {
+          for (final pid in _currentChild.parentIds) {
+            final doc = await db.collection('users').doc(pid).get();
+            if (doc.exists && doc.data() != null) {
+              userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
+              break;
+            }
+          }
+        }
+        if (userToOpen == null && _currentChild.noKk != null && _currentChild.noKk!.trim().isNotEmpty) {
+          final q = await db.collection('users').where('no_kk', isEqualTo: _currentChild.noKk!.trim()).limit(1).get();
+          if (q.docs.isNotEmpty) {
+            userToOpen = UserModel.fromMap({...q.docs.first.data(), 'id': q.docs.first.id});
+          }
         }
       } catch (_) {}
     }
 
     userToOpen ??= UserModel(
       id: _currentChild.ownerId,
-      name: 'Orang Tua',
+      name: 'Orang Tua Pasien',
       email: '-',
     );
 
@@ -440,8 +461,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       usiaText = '0 tahun 4 bulan 14 hari';
     }
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,7 +554,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               // 3. Data Orangtua
               _buildFeatureButton(
                 title: 'Data\nOrangtua',
-                icon: Icons.badge_outlined,
+                imageAsset: 'assets/images/data_orangtua_logo.png',
+                customIcon: const DataOrangtuaLogo(size: 36),
                 onTap: _navigateToDataOrangtua,
               ),
             ],
@@ -543,6 +567,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           _buildBiodataAnakCard(),
         ],
       ),
+    ),
     );
   }
 
@@ -554,11 +579,24 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     required String title,
     String? imageAsset,
     IconData? icon,
+    Widget? customIcon,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     Widget iconWidget;
-    if (imageAsset != null && imageAsset.isNotEmpty) {
+    if (customIcon != null) {
+      if (imageAsset != null && imageAsset.isNotEmpty) {
+        iconWidget = Image.asset(
+          imageAsset,
+          width: 36,
+          height: 36,
+          fit: BoxFit.contain,
+          errorBuilder: (_, _, _) => customIcon,
+        );
+      } else {
+        iconWidget = customIcon;
+      }
+    } else if (imageAsset != null && imageAsset.isNotEmpty) {
       iconWidget = Image.asset(
         imageAsset,
         width: 36,
@@ -692,7 +730,21 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           _buildTableRow(label: 'Nama Lengkap', value: namaLengkap),
           Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
-          // Baris 2: Tanggal Lahir
+          // Baris 2: Nomor Kartu Keluarga (KK)
+          _buildTableRow(
+            label: 'Nomor Kartu Keluarga (KK)',
+            value: child.noKk?.isNotEmpty == true ? child.noKk! : '-',
+          ),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
+
+          // Baris 3: NIK Anak
+          _buildTableRow(
+            label: 'NIK Anak',
+            value: child.nik?.isNotEmpty == true ? child.nik! : '-',
+          ),
+          Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
+
+          // Baris 4: Tanggal Lahir
           _buildTableRow(label: 'Tanggal Lahir', value: tanggalLahir),
           Divider(height: 1, color: isDark ? const Color(0xFF2C363D) : _colorTableBorder),
 
@@ -795,7 +847,10 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           valueListenable: BookingService().bookingsNotifier,
           builder: (context, bookings, _) {
             // Cari jadwal booking yang cocok untuk anak ini
-            BookingConsultationModel? matchedBooking = widget.booking;
+            BookingConsultationModel? matchedBooking;
+            if (widget.booking != null) {
+              matchedBooking = bookings.where((b) => b.id == widget.booking!.id).firstOrNull ?? widget.booking;
+            }
             if (matchedBooking == null) {
               for (final b in bookings) {
                 final bChildName = b.child.name.toLowerCase();
@@ -841,7 +896,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             final bool isCurrentlyActive = !isBookingBeforeStart &&
                 (isFirestoreActive ||
                     isBookingActive ||
-                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null));
+                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null && matchedSession?.status != KonsultasiStatus.selesai));
 
             final effectiveSessionId = widget.sessionId ??
                 matchedBooking?.sessionId ??
@@ -870,7 +925,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               // Dokter dapat langsung mengirim pesan & foto saat konsultasi berlangsung.
               return ChatKonsultasiDokterPage(
                 isEmbedded: true,
-                topCard: _buildJadwalInfoCard(
+                topCard: isCurrentlyActive
+                    ? null
+                    : _buildJadwalInfoCard(
                   booking: matchedBooking,
                   session: matchedSession,
                   parentDisplayName: parentDisplayName,

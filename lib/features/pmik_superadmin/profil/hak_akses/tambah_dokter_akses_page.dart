@@ -325,7 +325,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB);
+    final scaffoldBg = isDark ? const Color(0xFF0B1014) : Colors.white;
 
     return Scaffold(
       backgroundColor: scaffoldBg,

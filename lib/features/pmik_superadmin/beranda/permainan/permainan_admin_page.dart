@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -33,7 +33,15 @@ class PermainanAdminPage extends StatefulWidget {
 }
 
 class _PermainanAdminPageState extends State<PermainanAdminPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  // ── THEME GETTERS (DARK MODE SUPPORT) ──────────────────────────────
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
+  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+
   // ──────────────────────────────────────────────────────────────────
   // STATE
   // ──────────────────────────────────────────────────────────────────
@@ -46,12 +54,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   late AnimationController _notifController;
   late Animation<Offset> _notifSlide;
 
-  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-  Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
-  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
-  Color get _borderColor => _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
-  Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
-  Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+  // Shimmer pulse animation untuk skeleton loading frame pertama
+  late AnimationController _skeletonController;
+  late Animation<double> _skeletonOpacity;
 
   @override
   void initState() {
@@ -68,43 +73,104 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       curve: Curves.easeOut,
       reverseCurve: Curves.easeIn,
     ));
-    _loadSoal();
+
+    _skeletonController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _skeletonOpacity = Tween<double>(begin: 0.45, end: 0.90).animate(
+      CurvedAnimation(parent: _skeletonController, curve: Curves.easeInOut),
+    );
+
+    // Stale-While-Revalidate:
+    // Cek cache memory terlebih dahulu. Jika sudah ada, render 0 ms!
+    final cached = SoalService.cachedSoal;
+    if (cached != null && cached.isNotEmpty) {
+      _soalList = cached.take(10).toList();
+      _isLoading = false;
+      _syncInBackground();
+    } else {
+      _loadSoalFast();
+    }
   }
 
   @override
   void dispose() {
     _notifController.dispose();
+    _skeletonController.dispose();
     super.dispose();
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // LOAD DATA
+  // LOAD DATA CEPAT (STALE-WHILE-REVALIDATE)
   // ──────────────────────────────────────────────────────────────────
-  Future<void> _loadSoal() async {
+
+  /// Memuat data instan dari cache / asset lokal (< 25 ms)
+  /// lalu menjalankan sinkronisasi latar belakang tanpa memblokir UI.
+  Future<void> _loadSoalFast() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = _soalList.isEmpty;
       _errorMsg = null;
     });
+
     try {
-      final soal = await SoalService.getAllSoal();
+      // 1. Ambil data awal secepat kilat (0 - 25 ms)
+      final initial = await SoalService.loadInitialSoal();
       if (!mounted) return;
-      setState(() {
-        // Revisi S-1: Tampilkan hanya 10 soal pertama (ID 1–10).
-        // Soal 11–20 tetap ada di database, tidak dihapus.
-        // Untuk mengaktifkan kembali, ubah batas di sini.
-        _soalList = soal.take(10).toList();
-        _isLoading = false;
-      });
+
+      if (initial.isNotEmpty) {
+        setState(() {
+          _soalList = initial.take(10).toList();
+          _isLoading = false;
+        });
+      }
+
+      // 2. Sinkronisasi data server secara halus di latar belakang
+      await _syncInBackground();
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _errorMsg = 'Gagal memuat soal: $e';
-        _isLoading = false;
-      });
+      if (_soalList.isEmpty) {
+        setState(() {
+          _errorMsg = 'Gagal memuat soal: ';
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  /// Sinkronisasi dengan database di latar belakang
+  Future<void> _syncInBackground() async {
+    try {
+      final updated = await SoalService.syncInBackground();
+      if (!mounted || updated == null || updated.isEmpty) return;
+
+      final top10 = updated.take(10).toList();
+      if (!_isListEqual(_soalList, top10)) {
+        setState(() {
+          _soalList = top10;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {}
+  }
+
+  bool _isListEqual(List<SoalModel> a, List<SoalModel> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id ||
+          a[i].pertanyaan != b[i].pertanyaan ||
+          a[i].jawabanBenar != b[i].jawabanBenar ||
+          a[i].penjelasan != b[i].penjelasan) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Fungsi refresh manual untuk tombol "Coba Lagi"
+  Future<void> _loadSoal() async {
+    await _loadSoalFast();
+  }
   // NAVIGASI KE EDIT SOAL
   // ──────────────────────────────────────────────────────────────────
   Future<void> _bukaEditSoal(int index) async {
@@ -117,7 +183,8 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
 
     if (!mounted) return;
     if (result != null) {
-      // Perbarui kartu soal langsung di list
+      // Perbarui kartu soal langsung di list & cache
+      SoalService.updateCache(result);
       setState(() {
         _soalList[index] = result;
       });
@@ -190,17 +257,10 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                     // 1. Area Biru Seamless (Header + Ilustrasi Langit)
                     _buildSeamlessBlueArea(context),
 
-                    // 2. Konten Utama
+                                        // 2. Konten Utama
                     if (_isLoading)
-                      const SizedBox(
-                        height: 350,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF3985E7),
-                          ),
-                        ),
-                      )
-                    else if (_errorMsg != null)
+                      _buildSkeletonLoading()
+                    else if (_errorMsg != null && _soalList.isEmpty)
                       _buildError()
                     else
                       _buildContentSection(),
@@ -307,6 +367,216 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
 
   // ──────────────────────────────────────────────────────────────────
   // 2. KONTEN UTAMA
+  // ──────────────────────────────────────────────────────────────────
+  // SKELETON LOADING (LANGSUNG TAMPIL DI FRAME PERTAMA TANPA SCREEN KOSONG)
+  // ──────────────────────────────────────────────────────────────────
+  Widget _buildSkeletonLoading() {
+    return AnimatedBuilder(
+      animation: _skeletonOpacity,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _skeletonOpacity.value,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              // Header Skeleton: Avatar Otak
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFBFDBFE),
+                          width: 2,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.psychology_rounded,
+                        size: 48,
+                        color: Color(0xFF93C5FD),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Bar Judul
+                    Container(
+                      width: 220,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Bar Subjudul
+                    Container(
+                      width: 280,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 200,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    // Chip Skeleton
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 110,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE0EDFD),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 150,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Divider(
+                  color: Color(0xFFE9EDEF),
+                  thickness: 1,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Label "Daftar Soal" skeleton
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Container(
+                  width: 120,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 3 Kartu Soal Skeleton
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: List.generate(3, (index) => _buildSkeletonCard()),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE0EDFD),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 180,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 90,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              Container(
+                width: 70,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
   // ──────────────────────────────────────────────────────────────────
   Widget _buildContentSection() {
     return Column(

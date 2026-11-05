@@ -7,8 +7,8 @@ import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../auth/auth_choice_page.dart';
+import '../../pengaturan/pengaturan_staff_page.dart';
 import '../../../models/staff_account_model.dart';
-import '../../pengguna/profil/tampilan_page.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
@@ -44,6 +44,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   final ImagePicker _picker = ImagePicker();
   String? _superadminAvatarPath;
   StaffAccount? _superadmin;
+  /// Guard: mencegah rebuild saat proses logout sedang berlangsung.
+  bool _isLoggingOut = false;
 
   @override
   void initState() {
@@ -62,7 +64,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   void _onStaffUpdated() {
-    if (!mounted) return;
+    // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+    if (!mounted || _isLoggingOut) return;
     setState(() {
       _superadmin = StaffAuthService().currentStaff;
       if (_superadmin?.avatarPath != null &&
@@ -323,14 +326,21 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
+                          // Set guard sebelum menutup dialog agar _onStaffUpdated
+                          // tidak memicu rebuild halaman Profil selama transisi.
+                          _isLoggingOut = true;
                           Navigator.of(dialogCtx).pop();
-                          StaffAuthService().logout();
+                          // Navigasi ke halaman awal terlebih dahulu (hapus seluruh stack),
+                          // baru reset sesi setelah frame selesai dirender.
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => const AuthChoicePage(),
                             ),
                             (route) => false,
                           );
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            StaffAuthService().logout();
+                          });
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFDC2626),
@@ -365,7 +375,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFFBFBFB),
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
       // Custom Header permanen 56dp di bagian paling atas layar
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
@@ -375,8 +385,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+        child: ScrollConfiguration(
+          behavior: const ScrollBehavior().copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -444,10 +456,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 ),
               ),
 
-              const SizedBox(height: 20.0),
 
-              // 4.5 PENGATURAN TAMPILAN
-              _buildTampilanMenuCard(isDark),
 
               const SizedBox(height: 24.0),
 
@@ -480,6 +489,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           ),
         ),
       ),
+      ),
       // Scaffold.bottomNavigationBar permanen 4 menu
       bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 3),
     );
@@ -488,6 +498,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   /// Header kustom dengan tinggi tepat 56dp di bawah SafeArea atas.
   /// Judul "Profil" terletak tepat 16dp dari pojok layar kiri (tanpa tombol back).
   Widget _buildCustomHeader(bool isDark) {
+    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+
     return Container(
       width: double.infinity,
       color: isDark ? const Color(0xFF0B1014) : Colors.white,
@@ -497,101 +511,53 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
           height: 56.0,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Profil',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.lato(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── MENU TAMPILAN ─────────────────────────────────────────────────────────
-  Widget _buildTampilanMenuCard(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10.0,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16.0),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const TampilanPage(),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.palette_outlined,
-                    color: Color(0xFF3985E7),
-                    size: 20,
+                Text(
+                  'Profil',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: headerTextColor,
+                    letterSpacing: -0.2,
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tampilan',
-                        style: GoogleFonts.lato(
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PengaturanStaffPage(
+                          staffRole: StaffRole.superadmin,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Pilih tema terang, gelap, atau sistem',
-                        style: GoogleFonts.lato(
-                          fontSize: 12.0,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                    );
+                  },
+                  child: Container(
+                    width: 31,
+                    height: 31,
+                    decoration: BoxDecoration(
+                      color: settingCircleBg,
+                      shape: BoxShape.circle,
+                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.settings_outlined,
+                      color: settingIconColor,
+                      size: 19,
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 15,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
                 ),
               ],
             ),
@@ -638,9 +604,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             children: [
               // Nama Superadmin
               Text(
-                _superadmin?.name.isNotEmpty == true
-                    ? _superadmin!.name
-                    : 'Anita Setyowati, S.Tr. RMIK',
+                _superadmin?.name ?? '',
+                // Tampilkan kosong jika data belum tersedia — jangan fallback ke nama lain.
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
@@ -666,9 +631,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               // Email
               Text(
-                _superadmin?.email.isNotEmpty == true
-                    ? _superadmin!.email
-                    : 'g41241509@student.polije.ac.id',
+                _superadmin?.email ?? '',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
@@ -688,7 +651,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _superadmin?.experience ?? '7 tahun',
+                      value: _superadmin?.experience ?? '-',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -699,7 +662,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
-                      value: _superadmin?.strNumber ?? '3511201402012222',
+                      value: _superadmin?.strNumber ?? '-',
                     ),
                   ),
                 ],
@@ -902,7 +865,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        _superadmin?.birthDate ?? '16/07/2006',
+                        _superadmin?.birthDate ?? '-',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
@@ -961,8 +924,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        _superadmin?.education ??
-                            'DIV - Manajemen Informasi Kesehatan',
+                        _superadmin?.education ?? '-',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),

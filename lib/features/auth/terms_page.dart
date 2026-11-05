@@ -1,14 +1,17 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../models/staff_account_model.dart';
+
 /// Halaman Syarat & Ketentuan PediaGrow.
-///
-/// Header TETAP BERADA PADA POSISI ATAS (56dp):
-/// - Button back terletak 12dp dari pinggir kiri layar.
-/// - Nama halaman terletak 12dp setelah button back.
-/// Konten dapat di-scroll secara independen tanpa menggeser header.
+/// Menyesuaikan klausul syarat & ketentuan sesuai peran pengguna/staf.
 class TermsPage extends StatelessWidget {
-  const TermsPage({super.key});
+  final StaffRole? staffRole;
+
+  const TermsPage({
+    super.key,
+    this.staffRole,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +51,7 @@ class TermsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Syarat & Ketentuan Penggunaan PediaGrow',
+                      _getPageHeading(),
                       style: GoogleFonts.lato(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -57,7 +60,7 @@ class TermsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Selamat datang di aplikasi PediaGrow. Dengan mendaftar dan menggunakan aplikasi ini, Anda menyetujui syarat dan ketentuan berikut:',
+                      _getPageIntro(),
                       style: GoogleFonts.lato(
                         fontSize: 15,
                         height: 1.5,
@@ -65,34 +68,7 @@ class TermsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildSection(
-                      title: '1. Akun Pengguna',
-                      content:
-                          'Anda wajib memberikan informasi yang akurat dan lengkap saat mendaftar. Keamanan akun dan kata sandi menjadi tanggung jawab pribadi Anda.',
-                      titleColor: titleColor,
-                      contentColor: sectionContentColor,
-                    ),
-                    _buildSection(
-                      title: '2. Privasi & Data Anak',
-                      content:
-                          'Data tumbuh kembang anak yang Anda masukkan dilindungi dan digunakan semata-mata untuk keperluan pemantauan status gizi dan pencegahan stunting.',
-                      titleColor: titleColor,
-                      contentColor: sectionContentColor,
-                    ),
-                    _buildSection(
-                      title: '3. Layanan Konsultasi & Edukasi',
-                      content:
-                          'Informasi dalam aplikasi ini ditujukan sebagai panduan edukasi awal dan pemantauan berkala, bukan pengganti rujukan medis darurat dokter spesialis.',
-                      titleColor: titleColor,
-                      contentColor: sectionContentColor,
-                    ),
-                    _buildSection(
-                      title: '4. Perubahan Ketentuan',
-                      content:
-                          'Tim PediaGrow berhak memperbarui syarat dan ketentuan ini sewaktu-waktu demi peningkatan layanan dan keamanan sistem aplikasi.',
-                      titleColor: titleColor,
-                      contentColor: sectionContentColor,
-                    ),
+                    ..._buildRoleSections(titleColor, sectionContentColor),
                     const SizedBox(height: 24),
                     Center(
                       child: SizedBox(
@@ -129,7 +105,132 @@ class TermsPage extends StatelessWidget {
     );
   }
 
-  /// Header yang TETAP BERADA PADA POSISI ATAS (56dp) saat konten di-scroll.
+  String _getPageHeading() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Syarat & Ketentuan Tenaga Medis (Dokter)';
+      case StaffRole.admin:
+        return 'Syarat & Ketentuan Staf PMIK';
+      case StaffRole.superadmin:
+        return 'Syarat & Ketentuan Administrator Sistem';
+      case null:
+        return 'Syarat & Ketentuan Penggunaan PediaGrow';
+    }
+  }
+
+  String _getPageIntro() {
+    switch (staffRole) {
+      case StaffRole.dokter:
+        return 'Selamat datang di Portal Dokter PediaGrow. Dengan mengakses dan menggunakan akun dokter, Anda menyetujui ketentuan etika pelayanan berikut:';
+      case StaffRole.admin:
+        return 'Selamat datang di Portal PMIK PediaGrow. Pengelolaan data kesehatan dan rekam medis tunduk pada kepatuhan ketentuan berikut:';
+      case StaffRole.superadmin:
+        return 'Ketentuan tata kelola dan integritas sistem PediaGrow bagi Administrator Utama:';
+      case null:
+        return 'Selamat datang di aplikasi PediaGrow. Dengan mendaftar dan menggunakan aplikasi ini, Anda menyetujui syarat dan ketentuan berikut:';
+    }
+  }
+
+  List<Widget> _buildRoleSections(Color titleColor, Color sectionContentColor) {
+    if (staffRole == StaffRole.dokter) {
+      return [
+        _buildSection(
+          title: '1. Akun Tenaga Medis & Kredensial',
+          content:
+              'Dokter wajib menjaga kerahasiaan kredensial akun dan keamanan akses rekam medis sesuai kode etik kedokteran yang berlaku.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+        _buildSection(
+          title: '2. Layanan Konsultasi & Telemedisin',
+          content:
+              'Konsultasi telemedis diberikan secara profesional, objektif, dan berorientasi pada keselamatan pasien balita sesuai standar pelayanan medis anak.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+        _buildSection(
+          title: '3. Kerahasiaan Medis & Privasi Pasien',
+          content:
+              'Seluruh catatan konsultasi, diagnosa awal, dan data medis pasien dilindungi undang-undang kesehatan dan kode etik kerahasiaan medis.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+        _buildSection(
+          title: '4. Komitmen Jadwal Praktik',
+          content:
+              'Dokter berkomitmen melayani sesi konsultasi sesuai jadwal praktik aktif yang telah ditetapkan dan mengabari permohonan cuti tepat waktu jika berhalangan.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+      ];
+    }
+
+    if (staffRole == StaffRole.admin || staffRole == StaffRole.superadmin) {
+      return [
+        _buildSection(
+          title: '1. Akun Pengelola Informasi Kesehatan',
+          content:
+              'Staf PMIK bertanggung jawab penuh atas integritas, keakuratan, dan validitas pengelolaan data kesehatan anak pada sistem.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+        _buildSection(
+          title: '2. Tata Kelola Data Rekam Medis',
+          content:
+              'Pengelolaan rekam medis dan data pasien wajib mematuhi standar privasi data dan regulasi fasilitas pelayanan kesehatan.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+        _buildSection(
+          title: '3. Hak Akses & Wewenang Sistem',
+          content:
+              'Penggunaan fitur sistem dibatasi sesuai dengan peran dan wewenang hak akses yang diberikan secara resmi oleh fasilitas kesehatan.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+        _buildSection(
+          title: '4. Keamanan & Kerahasiaan Data',
+          content:
+              'Dilarang keras menyebarluaskan data internal, riwayat medis pasien, atau kredensial akun kepada pihak yang tidak berkepentingan.',
+          titleColor: titleColor,
+          contentColor: sectionContentColor,
+        ),
+      ];
+    }
+
+    // Default Pengguna
+    return [
+      _buildSection(
+        title: '1. Akun Pengguna',
+        content:
+            'Anda wajib memberikan informasi yang akurat dan lengkap saat mendaftar. Keamanan akun dan kata sandi menjadi tanggung jawab pribadi Anda.',
+        titleColor: titleColor,
+        contentColor: sectionContentColor,
+      ),
+      _buildSection(
+        title: '2. Privasi & Data Anak',
+        content:
+            'Data tumbuh kembang anak yang Anda masukkan dilindungi dan digunakan semata-mata untuk keperluan pemantauan status gizi dan pencegahan stunting.',
+        titleColor: titleColor,
+        contentColor: sectionContentColor,
+      ),
+      _buildSection(
+        title: '3. Layanan Konsultasi & Edukasi',
+        content:
+            'Informasi dalam aplikasi ini ditujukan sebagai panduan edukasi awal dan pemantauan berkala, bukan pengganti rujukan medis darurat dokter spesialis.',
+        titleColor: titleColor,
+        contentColor: sectionContentColor,
+      ),
+      _buildSection(
+        title: '4. Perubahan Ketentuan',
+        content:
+            'Tim PediaGrow berhak memperbarui syarat dan ketentuan ini sewaktu-waktu demi peningkatan layanan dan keamanan sistem aplikasi.',
+        titleColor: titleColor,
+        contentColor: sectionContentColor,
+      ),
+    ];
+  }
+
   Widget _buildFixedHeader(BuildContext context, bool isDark, Color headerBg,
       Color headerTitleColor) {
     return Container(
@@ -138,23 +239,21 @@ class TermsPage extends StatelessWidget {
       padding: const EdgeInsets.only(left: 12.0, right: 12.0),
       child: Row(
         children: [
-          // Button back terletak 12dp dari pinggir kiri layar
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
+          InkWell(
+            onTap: () => Navigator.of(context).pop(),
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Icon(Icons.arrow_back, color: headerTitleColor, size: 24),
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.arrow_back,
+                color: headerTitleColor,
+                size: 24,
+              ),
             ),
           ),
-          // Nama halaman terletak 12dp setelah button back
-          const SizedBox(width: 12.0),
+          const SizedBox(width: 4),
           Text(
-            'Syarat & Ketentuan',
+            'Syarat dan Ketentuan',
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -173,24 +272,24 @@ class TermsPage extends StatelessWidget {
     required Color contentColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: GoogleFonts.lato(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: titleColor,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             content,
             style: GoogleFonts.lato(
               fontSize: 14,
-              height: 1.4,
+              height: 1.5,
               color: contentColor,
             ),
           ),

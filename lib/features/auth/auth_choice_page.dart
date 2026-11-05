@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'login_page.dart';
@@ -8,12 +9,14 @@ import 'register_page.dart';
 
 /// Halaman pilihan autentikasi (Masuk / Daftar Akun Baru).
 ///
-/// Memenuhi tata letak resmi PediaGrow (Tahap 8):
-/// 1. Judul "PediaGrow" (Baloo 2 Bold 50, "Pedia" #4B83D6, "Grow" #3CC3A6).
-/// 2. Tagline (Lato regular 18, color #1E293B).
-/// 3. Tombol "Masuk" (350x52, #3985E7, Lato bold 20 putih) -> membuka LoginPage.
-/// 4. Tombol "Daftar Akun Baru" (350x52, border #3985E7, Lato bold 20 biru) -> membuka RegisterPage.
-/// 5. Ilustrasi keluarga di bagian bawah layar tanpa scroll.
+/// Memenuhi tata letak resmi PediaGrow dengan estetika modern, elegan, dan luxury:
+/// 1. Judul "PediaGrow" (Baloo 2 Bold, "Pedia" #4B83D6, "Grow" #3CC3A6).
+/// 2. Tagline edukatif (Lato regular 18 / 15.5 pada layar pendek).
+/// 3. Tombol "Masuk" (350x52, #3985E7, Lato bold 20 putih, dengan luxury soft shadow).
+/// 4. Tombol "Daftar Akun Baru" (350x52, border #3985E7, Lato bold 20 biru).
+/// 5. Ilustrasi keluarga PNG Ultra-HD adaptif Light Mode & Dark Mode:
+///    - Light Mode: `family_illustration.png` (cerah, awan lembut, bukit rumput segar).
+///    - Dark Mode: `family_illustration_dark.png` (nuansa malam teduh, bukit rumput malam, dan langit berbintang).
 class AuthChoicePage extends StatelessWidget {
   /// Callback opsional jika tombol "Masuk" ditekan (default: membuka LoginPage).
   final VoidCallback? onLoginPressed;
@@ -61,19 +64,38 @@ class AuthChoicePage extends StatelessWidget {
     // Lebar tombol responsif (target 350 dp, aman di layar kecil)
     final double buttonWidth = math.min(350.0, screenW - 32.0);
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      body: Stack(
-        children: [
-          // -------------------------------------------------------------------
-          // 1. ILUSTRASI KELUARGA DI BAGIAN BAWAH
-          // -------------------------------------------------------------------
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildFamilyIllustration(size, vScale),
-          ),
+    final double daftarBottom = daftarY + 52.0;
+    final double availableIllustHeight =
+        screenH - daftarBottom - 16.0 - mediaQuery.padding.bottom;
+
+    final systemOverlay = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: bgColor,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlay,
+      child: Scaffold(
+        backgroundColor: bgColor,
+        body: Stack(
+          children: [
+            // -------------------------------------------------------------------
+            // 1. ILUSTRASI KELUARGA (PNG Ultra-HD Adaptif Light/Dark Mode)
+            // -------------------------------------------------------------------
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: -6.0 * vScale,
+              child: _buildFamilyIllustration(
+                size,
+                vScale,
+                isDark,
+                availableIllustHeight,
+              ),
+            ),
 
           // -------------------------------------------------------------------
           // 2. JUDUL PEDIA GROW (Baloo 2 Bold 50, "Pedia" #4B83D6, "Grow" #3CC3A6)
@@ -115,7 +137,7 @@ class AuthChoicePage extends StatelessWidget {
           ),
 
           // -------------------------------------------------------------------
-          // 4. TOMBOL MASUK (350x52, #3985E7, Lato Bold 20 Putih)
+          // 4. TOMBOL MASUK (350x52, #3985E7, Lato Bold 20 Putih dengan Shadow Halus)
           // -------------------------------------------------------------------
           Positioned(
             top: masukY,
@@ -128,6 +150,7 @@ class AuthChoicePage extends StatelessWidget {
                 height: 52.0,
                 backgroundColor: colorButtonPrimary,
                 textColor: Colors.white,
+                isDark: isDark,
                 onPressed: () {
                   if (onLoginPressed != null) {
                     onLoginPressed!();
@@ -142,7 +165,7 @@ class AuthChoicePage extends StatelessWidget {
           ),
 
           // -------------------------------------------------------------------
-          // 5. TOMBOL DAFTAR AKUN BARU (350x52, Putih border #3985E7, Lato Bold 20)
+          // 5. TOMBOL DAFTAR AKUN BARU (350x52, Border #3985E7, Lato Bold 20)
           // -------------------------------------------------------------------
           Positioned(
             top: daftarY,
@@ -170,8 +193,9 @@ class AuthChoicePage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   /// Teks "PediaGrow" menggunakan font Baloo 2 Bold 50 dengan 2 warna resmi.
   Widget _buildPediaGrowTitle(double fontSize) {
@@ -209,18 +233,28 @@ class AuthChoicePage extends StatelessWidget {
     required double height,
     required Color backgroundColor,
     required Color textColor,
+    required bool isDark,
     required VoidCallback onPressed,
   }) {
-    return SizedBox(
+    return Container(
       width: width,
       height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: backgroundColor.withValues(alpha: isDark ? 0.35 : 0.28),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
           elevation: 0,
-          shadowColor: backgroundColor.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(26),
           ),
@@ -273,27 +307,59 @@ class AuthChoicePage extends StatelessWidget {
     );
   }
 
-  /// Ilustrasi Keluarga di bagian bawah layar (lebar 412, tinggi +- 292 dp).
-  Widget _buildFamilyIllustration(Size size, double vScale) {
-    final double illustH = math.min(292.0 * vScale, size.height * 0.35);
+  /// Ilustrasi Keluarga di bagian bawah layar (PNG Ultra-HD adaptif Light & Dark Mode).
+  ///
+  /// - Light Mode: Memakai `family_illustration.png` (HD, cerah, rumput segar, awan lembut).
+  /// - Dark Mode: Memakai `family_illustration_dark.png` (HD, nuansa malam, rumput malam, dan langit berbintang).
+  /// - ShaderMask: Memastikan bagian atas ilustrasi memudar secara lembut (feathered fade)
+  ///   sehingga menyatu 100% mulus dengan warna latar belakang tanpa ada garis potong kotak.
+  Widget _buildFamilyIllustration(
+    Size size,
+    double vScale,
+    bool isDark,
+    double availableHeight,
+  ) {
+    final double maxH = math.max(280.0, availableHeight + 6.0 * vScale);
+    final double illustH = math.min(360.0 * vScale, maxH);
 
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Image.asset(
-        'assets/images/family_illustration.png',
-        width: size.width,
-        height: illustH,
-        fit: BoxFit.cover,
-        alignment: Alignment.topCenter,
-        errorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            'assets/design_reference/splash_screen/8.png',
-            width: size.width,
-            height: illustH,
-            fit: BoxFit.cover,
-            alignment: Alignment.bottomCenter,
-          );
-        },
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        return const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Color(0x0D000000), // 5%
+            Color(0x2B000000), // 17%
+            Color(0x66000000), // 40%
+            Color(0xB3000000), // 70%
+            Color(0xF2000000), // 95%
+            Colors.black,      // 100%
+          ],
+          stops: [0.0, 0.05, 0.11, 0.18, 0.26, 0.34, 0.42], // Multi-stop ease-out fade tanpa garis batas
+        ).createShader(bounds);
+      },
+      blendMode: BlendMode.dstIn,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Image.asset(
+          isDark
+              ? 'assets/images/family_illustration_dark.png'
+              : 'assets/images/family_illustration.png',
+          width: size.width,
+          height: illustH,
+          fit: BoxFit.fitWidth,
+          alignment: Alignment.bottomCenter,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/images/family_illustration.png',
+              width: size.width,
+              height: illustH,
+              fit: BoxFit.fitWidth,
+              alignment: Alignment.bottomCenter,
+            );
+          },
+        ),
       ),
     );
   }
