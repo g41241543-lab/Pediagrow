@@ -435,6 +435,8 @@ class UserService {
     String? city,
     String? district,
     String? subDistrict,
+    String? noKk,
+    String? nik,
   }) async {
     currentUserNotifier.value = currentUserNotifier.value.copyWith(
       name: name,
@@ -446,6 +448,16 @@ class UserService {
       city: city,
       district: district,
       subDistrict: subDistrict,
+      noKk: noKk,
+      nik: nik,
+    );
+    await _syncCurrentUserToFirestore();
+  }
+
+  /// Memperbarui Nomor Kartu Keluarga (KK) pengguna (lokal + Firestore)
+  Future<void> updateNoKk(String noKk) async {
+    currentUserNotifier.value = currentUserNotifier.value.copyWith(
+      noKk: noKk.trim(),
     );
     await _syncCurrentUserToFirestore();
   }

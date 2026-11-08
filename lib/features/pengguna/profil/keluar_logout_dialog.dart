@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/user_service.dart';
@@ -16,8 +16,16 @@ Future<bool?> showKeluarLogoutDialog(BuildContext context) {
 }
 
 /// Widget dialog konfirmasi keluar (logout) dengan desain modern & compact.
-class KeluarLogoutDialog extends StatelessWidget {
+class KeluarLogoutDialog extends StatefulWidget {
   const KeluarLogoutDialog({super.key});
+
+  @override
+  State<KeluarLogoutDialog> createState() => _KeluarLogoutDialogState();
+}
+
+class _KeluarLogoutDialogState extends State<KeluarLogoutDialog> {
+  /// Guard: mencegah tap ganda dan memastikan logout hanya diproses sekali.
+  bool _isLoggingOut = false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +60,9 @@ class KeluarLogoutDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14,
-                color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                color: isDark
+                    ? const Color(0xFF8696A0)
+                    : const Color(0xFF667781),
                 height: 1.4,
               ),
             ),
@@ -66,10 +76,14 @@ class KeluarLogoutDialog extends StatelessWidget {
                   child: SizedBox(
                     height: 44,
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: _isLoggingOut
+                          ? null
+                          : () => Navigator.of(context).pop(false),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
-                          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+                          color: isDark
+                              ? const Color(0xFF2C363D)
+                              : const Color(0xFFD1D7DB),
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -81,7 +95,9 @@ class KeluarLogoutDialog extends StatelessWidget {
                         style: GoogleFonts.lato(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF2C363D),
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF2C363D),
                         ),
                       ),
                     ),
@@ -94,17 +110,34 @@ class KeluarLogoutDialog extends StatelessWidget {
                   child: SizedBox(
                     height: 44,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                        UserService().logout();
+                      onPressed: _isLoggingOut
+                          ? null
+                          : () {
+                              // Set guard: nonaktifkan kedua tombol, cegah double-tap.
+                              setState(() => _isLoggingOut = true);
 
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const LoginPage()),
-                          (route) => false,
-                        );
-                      },
+                              // Tutup dialog terlebih dahulu.
+                              Navigator.of(context).pop(true);
+
+                              // Navigasi ke halaman Login sambil menghapus seluruh
+                              // stack. Halaman MenuProfil sudah dibekukan oleh
+                              // _isLoggingOut guard-nya sendiri, jadi tidak akan
+                              // rebuild ke "Tamu" selama transisi animasi berlangsung.
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                    builder: (_) => const LoginPage()),
+                                (route) => false,
+                              );
+
+                              // Reset sesi setelah navigasi dimulai.
+                              // MenuProfilPage sudah terlindungi oleh guard-nya,
+                              // sehingga panggilan ini tidak menyebabkan kedipan.
+                              UserService().logout();
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFDC2626),
+                        disabledBackgroundColor:
+                            const Color(0xFFDC2626).withValues(alpha: 0.6),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:flutter/services.dart';
+
+import '../../../core/services/child_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
@@ -44,6 +47,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   late TextEditingController _cityController;
   late TextEditingController _districtController;
   late TextEditingController _subDistrictController;
+  late TextEditingController _noKkController;
+  late TextEditingController _nikController;
 
   String _selectedGender = 'Perempuan';
   bool _isSaving = false;
@@ -65,6 +70,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       text: user.subDistrict ?? '',
     );
 
+    _noKkController = TextEditingController(text: user.noKk ?? '');
+    _nikController = TextEditingController(text: user.nik ?? '');
+
     if (user.gender != null && user.gender!.isNotEmpty) {
       _selectedGender = user.gender!;
     }
@@ -79,6 +87,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     _cityController.dispose();
     _districtController.dispose();
     _subDistrictController.dispose();
+    _noKkController.dispose();
+    _nikController.dispose();
     super.dispose();
   }
 
@@ -287,10 +297,20 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
         district: _districtController.text.trim().isNotEmpty
             ? _districtController.text.trim()
             : null,
+        noKk: _noKkController.text.trim().isNotEmpty
+            ? _noKkController.text.trim()
+            : null,
+        nik: _nikController.text.trim().isNotEmpty
+            ? _nikController.text.trim()
+            : null,
         subDistrict: _subDistrictController.text.trim().isNotEmpty
             ? _subDistrictController.text.trim()
             : null,
       );
+
+      if (_noKkController.text.trim().isNotEmpty) {
+        ChildService().loadChildrenForCurrentUser();
+      }
 
       Future.delayed(const Duration(milliseconds: 300), () {
         if (!mounted) return;
@@ -384,6 +404,54 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                               );
                               if (!emailRegex.hasMatch(val.trim())) {
                                 return 'Format email tidak valid';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Nomor Kartu Keluarga (KK)
+                          _buildTextField(
+                            isDark: isDark,
+                            controller: _noKkController,
+                            label: 'Nomor Kartu Keluarga (KK)',
+                            hint: '16 digit Nomor Kartu Keluarga',
+                            prefixIcon: Icons.family_restroom_rounded,
+                            keyboardType: TextInputType.number,
+                            maxLength: 16,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(16),
+                            ],
+                            isRequired: false,
+                            validator: (val) {
+                              if (val != null &&
+                                  val.trim().isNotEmpty &&
+                                  val.trim().length != 16) {
+                                return 'Nomor KK harus 16 digit angka';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          _buildTextField(
+                            isDark: isDark,
+                            controller: _nikController,
+                            label: 'NIK (Nomor Induk Kependudukan)',
+                            hint: '16 digit NIK Orang Tua',
+                            prefixIcon: Icons.badge_outlined,
+                            keyboardType: TextInputType.number,
+                            maxLength: 16,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(16),
+                            ],
+                            isRequired: false,
+                            validator: (val) {
+                              if (val != null &&
+                                  val.trim().isNotEmpty &&
+                                  val.trim().length != 16) {
+                                return 'NIK harus 16 digit angka';
                               }
                               return null;
                             },
@@ -749,6 +817,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     required IconData prefixIcon,
     bool isRequired = false,
     TextInputType keyboardType = TextInputType.text,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -759,12 +829,14 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLength: maxLength,
+          inputFormatters: inputFormatters,
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
           ),
-          decoration: _inputDecoration(isDark: isDark, hint: hint, prefixIcon: prefixIcon),
+          decoration: _inputDecoration(isDark: isDark, hint: hint, prefixIcon: prefixIcon).copyWith(counterText: maxLength != null ? '' : null),
           validator: validator,
         ),
       ],

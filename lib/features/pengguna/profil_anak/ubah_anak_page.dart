@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
 import '../beranda/beranda_page.dart';
@@ -49,16 +50,22 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   // Controller input untuk field yang editable
   late final TextEditingController _namaController;
   late final TextEditingController _alergiController;
+  late final TextEditingController _noKkController;
+  late final TextEditingController _nikController;
 
   // Focus nodes
   final FocusNode _namaFocus = FocusNode();
   final FocusNode _alergiFocus = FocusNode();
+  final FocusNode _noKkFocus = FocusNode();
+  final FocusNode _nikFocus = FocusNode();
 
   // Scroll controller & GlobalKey untuk auto-scroll
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _namaKey = GlobalKey();
   final GlobalKey _alergiKey = GlobalKey();
   final GlobalKey _alergiDetailKey = GlobalKey();
+  final GlobalKey _noKkKey = GlobalKey();
+  final GlobalKey _nikKey = GlobalKey();
 
   // Form states (Editable)
   String? _fotoProfilPath;
@@ -79,6 +86,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   String? _namaError;
   String? _alergiError;
   String? _alergiDetailError;
+  String? _noKkError;
+  String? _nikError;
 
   bool _isSaving = false;
   bool _isLockedSheetShowing = false;
@@ -94,6 +103,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     _alergiController = TextEditingController(
       text: widget.child.allergies ?? '',
     );
+    _noKkController = TextEditingController(text: widget.child.noKk ?? '');
+    _nikController = TextEditingController(text: widget.child.nik ?? '');
 
     // 2. Inisialisasi field locked dari data tersimpan
     _selectedBirthDate = widget.child.birthDate;
@@ -132,8 +143,12 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   void dispose() {
     _namaController.dispose();
     _alergiController.dispose();
+    _noKkController.dispose();
+    _nikController.dispose();
     _namaFocus.dispose();
     _alergiFocus.dispose();
+    _noKkFocus.dispose();
+    _nikFocus.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -171,6 +186,8 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
         _alergiController.text.trim() != (widget.child.allergies ?? '')) {
       return true;
     }
+    if (_noKkController.text.trim() != (widget.child.noKk ?? '')) return true;
+    if (_nikController.text.trim() != (widget.child.nik ?? '')) return true;
     return false;
   }
 
@@ -545,12 +562,14 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // SIMPAN DATA (HANYA VALIDASI 3 FIELD EDITABLE)
+  // SIMPAN DATA (VALIDASI 5 FIELD EDITABLE: No KK, NIK, Nama, Foto, Alergi)
   // ---------------------------------------------------------------------------
   Future<void> _handleSave() async {
     FocusScope.of(context).unfocus();
 
     setState(() {
+      _noKkError = null;
+      _nikError = null;
       _namaError = null;
       _alergiError = null;
       _alergiDetailError = null;
@@ -558,6 +577,26 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
 
     bool hasError = false;
     GlobalKey? firstErrorKey;
+
+    // Validasi Nomor KK (wajib, 16 digit angka)
+    final noKk = _noKkController.text.trim();
+    if (noKk.isEmpty) {
+      _noKkError = 'Nomor KK wajib diisi';
+      hasError = true;
+      firstErrorKey ??= _noKkKey;
+    } else if (noKk.length != 16) {
+      _noKkError = 'Nomor KK harus 16 digit';
+      hasError = true;
+      firstErrorKey ??= _noKkKey;
+    }
+
+    // Validasi NIK Anak (opsional, jika diisi harus 16 digit angka)
+    final nik = _nikController.text.trim();
+    if (nik.isNotEmpty && nik.length != 16) {
+      _nikError = 'NIK Anak harus 16 digit';
+      hasError = true;
+      firstErrorKey ??= _nikKey;
+    }
 
     final nama = _namaController.text.trim();
     if (nama.isEmpty) {
@@ -597,9 +636,16 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
         photoUrl: _fotoProfilPath,
         hasAllergies: _hasAllergies,
         allergies: _hasAllergies == true ? _alergiController.text.trim() : null,
+        noKk: noKk.isNotEmpty ? noKk : null,
+        nik: nik.isNotEmpty ? nik : null,
       );
 
       await ChildService().updateChild(updatedChild);
+
+      // Sinkronisasi Nomor KK ke profil orang tua jika diisi
+      if (noKk.isNotEmpty) {
+        await UserService().updateNoKk(noKk);
+      }
 
       if (!mounted) return;
       setState(() => _isSaving = false);
@@ -672,7 +718,17 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
                       const SizedBox(height: 14),
                     ],
 
-                    // 2. Nama Lengkap* [EDITABLE]
+                    // 2. Nomor KK* [EDITABLE, WAJIB]
+                    Container(key: _noKkKey),
+                    _buildNoKkField(),
+                    const SizedBox(height: 14),
+
+                    // 3. NIK Anak [EDITABLE, OPSIONAL]
+                    Container(key: _nikKey),
+                    _buildNikField(),
+                    const SizedBox(height: 14),
+
+                    // 4. Nama Lengkap* [EDITABLE]
                     Container(key: _namaKey),
                     _buildNamaLengkapField(),
                     const SizedBox(height: 14),
@@ -1579,6 +1635,90 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           },
         ),
         if (_alergiDetailError != null) _buildErrorText(_alergiDetailError!),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // FIELD: NOMOR KK* [EDITABLE, WAJIB]
+  // ---------------------------------------------------------------------------
+  Widget _buildNoKkField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel('Nomor KK (Kartu Keluarga)', isRequired: true),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _noKkController,
+          focusNode: _noKkFocus,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          maxLength: 16,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(16),
+          ],
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
+          ),
+          decoration: _inputDecoration(
+            hint: '16 digit Nomor Kartu Keluarga',
+            suffixIcon: Icons.family_restroom_rounded,
+            hasError: _noKkError != null,
+          ).copyWith(counterText: ''),
+          onChanged: (val) {
+            if (_noKkError != null && val.trim().isNotEmpty) {
+              setState(() => _noKkError = null);
+            }
+          },
+          onFieldSubmitted: (_) => _nikFocus.requestFocus(),
+        ),
+        if (_noKkError != null) _buildErrorText(_noKkError!),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // FIELD: NIK ANAK [EDITABLE, OPSIONAL]
+  // ---------------------------------------------------------------------------
+  Widget _buildNikField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel('NIK Anak (Opsional)'),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _nikController,
+          focusNode: _nikFocus,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          maxLength: 16,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(16),
+          ],
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : const Color(0xFF0B1014),
+          ),
+          decoration: _inputDecoration(
+            hint: '16 digit NIK Anak (jika tersedia)',
+            suffixIcon: Icons.badge_outlined,
+            hasError: _nikError != null,
+          ).copyWith(counterText: ''),
+          onChanged: (val) {
+            if (_nikError != null) {
+              setState(() => _nikError = null);
+            }
+          },
+          onFieldSubmitted: (_) => _namaFocus.requestFocus(),
+        ),
+        if (_nikError != null) _buildErrorText(_nikError!),
       ],
     );
   }

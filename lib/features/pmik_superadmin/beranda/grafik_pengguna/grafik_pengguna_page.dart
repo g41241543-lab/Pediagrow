@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+﻿// ignore_for_file: use_build_context_synchronously
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -100,16 +100,6 @@ class StuntingRecordRow {
 }
 
 /// Model grouped per anak untuk tampilan dokter (accordion/dropdown)
-class GroupedChildStuntingRecord {
-  final String namaAnak;
-  final List<StuntingRecordRow> records;
-
-  const GroupedChildStuntingRecord({
-    required this.namaAnak,
-    required this.records,
-  });
-}
-
 class MonthlyStuntingData {
   final String month;
   final int tidakStunting;
@@ -151,6 +141,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   late TabController _tabController;
   final ScrollController _scrollController1 = ScrollController();
   final ScrollController _scrollController2 = ScrollController();
+
+  // ── Search State: Dataset Pengguna ─────────────────────────────────────────
+  final TextEditingController _searchPenggunaController = TextEditingController();
+  final FocusNode _searchPenggunaFocusNode = FocusNode();
+  String _searchPenggunaQuery = '';
+  Timer? _searchPenggunaDebounce;
+
+  // ── Search State: Dataset Stunting ─────────────────────────────────────────
+  final TextEditingController _searchStuntingController = TextEditingController();
+  final FocusNode _searchStuntingFocusNode = FocusNode();
+  String _searchStuntingQuery = '';
+  Timer? _searchStuntingDebounce;
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -197,7 +199,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       TextEditingController();
   String _stuntingSearchQuery = '';
   int? _selectedStuntingMonth; // null = Semua Bulan, 1-12 = Jan-Des
-  final Set<String> _expandedDokterChildNames = {};
 
   StreamSubscription<QuerySnapshot>? _usersSub;
   StreamSubscription<QuerySnapshot>? _childrenSub;
@@ -263,6 +264,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     _growthSub?.cancel();
     ChildService().childrenNotifier.removeListener(_onServiceDataUpdated);
     GrowthService().recordsNotifier.removeListener(_onServiceDataUpdated);
+    _searchPenggunaDebounce?.cancel();
+    _searchStuntingDebounce?.cancel();
+    _searchPenggunaController.dispose();
+    _searchStuntingController.dispose();
+    _searchPenggunaFocusNode.dispose();
+    _searchStuntingFocusNode.dispose();
     _tabController.dispose();
     _scrollController1.dispose();
     _scrollController2.dispose();
@@ -700,6 +707,53 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return 'Perempuan';
   }
 
+  // ── Filtered Lists dari Searchbar ───────────────────────────────────────────
+  List<UserDemographicRow> get _filteredUserRows {
+    if (_searchPenggunaQuery.isEmpty) return _userRows;
+    final q = _searchPenggunaQuery.toLowerCase();
+    return _userRows.where((u) {
+      return u.namaLengkap.toLowerCase().contains(q) ||
+          u.jenisKelamin.toLowerCase().contains(q) ||
+          u.umur.toLowerCase().contains(q) ||
+          u.provinsi.toLowerCase().contains(q) ||
+          u.kota.toLowerCase().contains(q) ||
+          u.kecamatan.toLowerCase().contains(q) ||
+          u.kelurahanDesa.toLowerCase().contains(q);
+    }).toList();
+  }
+
+  void _onSearchPenggunaChanged(String value) {
+    _searchPenggunaDebounce?.cancel();
+    _searchPenggunaDebounce = Timer(const Duration(milliseconds: 300), () {
+      final q = value.trim();
+      if (q != _searchPenggunaQuery) {
+        setState(() => _searchPenggunaQuery = q);
+      }
+    });
+  }
+
+  void _onSearchStuntingChanged(String value) {
+    _searchStuntingDebounce?.cancel();
+    _searchStuntingDebounce = Timer(const Duration(milliseconds: 300), () {
+      final q = value.trim();
+      if (q != _searchStuntingQuery) {
+        setState(() => _searchStuntingQuery = q);
+      }
+    });
+  }
+
+  void _clearSearchPengguna() {
+    _searchPenggunaController.clear();
+    _searchPenggunaFocusNode.unfocus();
+    setState(() => _searchPenggunaQuery = '');
+  }
+
+  void _clearSearchStunting() {
+    _searchStuntingController.clear();
+    _searchStuntingFocusNode.unfocus();
+    setState(() => _searchStuntingQuery = '');
+  }
+
   /// Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna maupun stunting
   bool get _canDownloadDataset {
     final staff = StaffAuthService().currentStaff;
@@ -715,41 +769,33 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   /// Row stunting yang sudah difilter berdasarkan search query dan bulan
   List<StuntingRecordRow> get _filteredStuntingRows {
+    final query = _searchStuntingQuery.isNotEmpty
+        ? _searchStuntingQuery
+        : _stuntingSearchQuery;
+
     return _stuntingRows.where((r) {
-      // Filter bulan
+      // Filter bulan jika dipilih
       if (_selectedStuntingMonth != null &&
           r.tanggalCek.month != _selectedStuntingMonth) {
         return false;
       }
-      // Filter search
-      if (_stuntingSearchQuery.isNotEmpty) {
-        final q = _stuntingSearchQuery.toLowerCase();
+      // Filter search (mencakup semua kolom: nama anak, umur, bb, tb, hasil)
+      if (query.isNotEmpty) {
+        final q = query.toLowerCase();
         final nameMatch = r.namaAnak.toLowerCase().contains(q);
+        final umurMatch = r.umur.toLowerCase().contains(q);
+        final bbMatch = r.bb.toLowerCase().contains(q);
+        final tbMatch = r.tb.toLowerCase().contains(q);
         final hasilMatch = r.hasil.toLowerCase().contains(q);
-        if (!nameMatch && !hasilMatch) return false;
+        if (!nameMatch && !umurMatch && !bbMatch && !tbMatch && !hasilMatch) {
+          return false;
+        }
       }
       return true;
     }).toList();
   }
 
   /// Grouped rows untuk tampilan dokter
-  List<GroupedChildStuntingRecord> get _groupedStuntingRows {
-    final filtered = _filteredStuntingRows;
-    final Map<String, List<StuntingRecordRow>> map = {};
-    for (final r in filtered) {
-      map.putIfAbsent(r.namaAnak, () => []).add(r);
-    }
-    // Sort tiap group dari terbaru ke terlama
-    final groups = map.entries.map((e) {
-      final sorted = List<StuntingRecordRow>.from(e.value)
-        ..sort((a, b) => b.tanggalCek.compareTo(a.tanggalCek));
-      return GroupedChildStuntingRecord(namaAnak: e.key, records: sorted);
-    }).toList();
-    // Urutkan grup berdasarkan nama anak (A-Z)
-    groups.sort((a, b) => a.namaAnak.compareTo(b.namaAnak));
-    return groups;
-  }
-
   // ══════════════════════════════════════════════════════════════════════════
   // FITUR UNDUH DATASET PENGGUNA (PDF, EXCEL, CSV)
   // ══════════════════════════════════════════════════════════════════════════
@@ -2564,6 +2610,72 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
+  // ── Searchbar Reusable untuk Dataset (gaya konsisten MPASI) ──────────────────
+  Widget _buildDatasetSearchBar({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required String currentQuery,
+    required ValueChanged<String> onChanged,
+    required VoidCallback onClear,
+  }) {
+    return Container(
+      height: 48.0,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F2F6),
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.search_rounded,
+            size: 20.0,
+            color: Color(0xFF9E9E9E),
+          ),
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              onChanged: onChanged,
+              style: GoogleFonts.lato(
+                fontSize: 14.0,
+                color: _kTextDark,
+              ),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: GoogleFonts.lato(
+                  fontSize: 14.0,
+                  color: _kTextMuted,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              textInputAction: TextInputAction.search,
+            ),
+          ),
+          if (currentQuery.isNotEmpty)
+            GestureDetector(
+              onTap: onClear,
+              child: const Padding(
+                padding: EdgeInsets.all(4.0),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 18.0,
+                  color: Color(0xFF9E9E9E),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   // ── Dataset Pengguna (Tabel & Unduh) ────────────────────────────────────────
   Widget _buildDatasetPenggunaSection() {
     return Column(
@@ -2592,6 +2704,17 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ],
         ),
         const SizedBox(height: 12.0),
+
+        // Searchbar Dataset Pengguna
+        _buildDatasetSearchBar(
+          controller: _searchPenggunaController,
+          focusNode: _searchPenggunaFocusNode,
+          hintText: 'Cari pengguna...',
+          currentQuery: _searchPenggunaQuery,
+          onChanged: _onSearchPenggunaChanged,
+          onClear: _clearSearchPengguna,
+        ),
+        const SizedBox(height: 10.0),
 
         // Tabel Data Pengguna yang dapat digeser horizontal
         Container(
@@ -2665,13 +2788,15 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
           Divider(height: 1, thickness: 1, color: _borderColor),
 
-          if (_userRows.isEmpty)
+          if (_filteredUserRows.isEmpty)
             Container(
               width: minTableWidth,
               padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
               alignment: Alignment.center,
               child: Text(
-                'Belum ada data pengguna terdaftar di database',
+                _searchPenggunaQuery.isNotEmpty
+                    ? 'Data tidak ditemukan'
+                    : 'Belum ada data pengguna terdaftar di database',
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
                   color: _textSecondary,
@@ -2680,9 +2805,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             ),
 
           // Data Rows
-          ...List.generate(_userRows.length, (idx) {
-            final u = _userRows[idx];
-            final isLast = idx == _userRows.length - 1;
+          ...List.generate(_filteredUserRows.length, (idx) {
+            final u = _filteredUserRows[idx];
+            final isLast = idx == _filteredUserRows.length - 1;
             final cells = [
               u.namaLengkap,
               u.jenisKelamin,
@@ -2782,13 +2907,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               ],
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10.0),
 
-          // 5. Tabel Dataset — dikabrangkan berdasarkan role
-          if (isDokter)
-            _buildGroupedDokterTable()
-          else
-            _buildStuntingTable(),
+          // Searchbar Dataset Hasil Cek Stunting
+          _buildDatasetSearchBar(
+            controller: _searchStuntingController,
+            focusNode: _searchStuntingFocusNode,
+            hintText: 'Cari nama anak...',
+            currentQuery: _searchStuntingQuery,
+            onChanged: _onSearchStuntingChanged,
+            onClear: _clearSearchStunting,
+          ),
+          const SizedBox(height: 10.0),
+
+          // 5. Tabel Dataset Hasil Cek Stunting
+          _buildStuntingTable(),
           const SizedBox(height: 32),
         ],
       ),
@@ -3201,430 +3334,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Tabel 2 Kolom Khusus Dokter (Kolom 1: Nama, Kolom 2: Keterangan / Dropdown) ──
-  Widget _buildGroupedDokterTable() {
-    final groups = _groupedStuntingRows;
-
-    if (groups.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 16.0),
-        decoration: BoxDecoration(
-          color: _cardBg,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: _borderColor),
-        ),
-        alignment: Alignment.center,
-        child: Column(
-          children: [
-            Icon(
-              Icons.child_care_rounded,
-              size: 44.0,
-              color: _textSecondary.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 10.0),
-            Text(
-              'Tidak ada data hasil cek stunting yang cocok',
-              style: GoogleFonts.lato(
-                fontSize: 13.5,
-                color: _textSecondary,
-              ),
-            ),
-            if (_stuntingSearchQuery.isNotEmpty || _selectedStuntingMonth != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: Text(
-                  'Coba ubah kata kunci atau reset filter bulan',
-                  style: GoogleFonts.lato(
-                    fontSize: 12.0,
-                    color: _textSecondary.withValues(alpha: 0.7),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: _borderColor),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(9.0),
-        child: Column(
-          children: [
-            // ── HEADER TABEL 2 KOLOM (Nama | Keterangan) ──
-            Container(
-              decoration: BoxDecoration(
-                color: _isDark ? const Color(0xFF242E35) : const Color(0xFFF9FAFB),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-                      child: Text(
-                        'Nama',
-                        style: GoogleFonts.lato(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-                      child: Text(
-                        'Keterangan',
-                        style: GoogleFonts.lato(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w600,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(height: 1, thickness: 1, color: _borderColor),
-
-            // ── BARIS TABEL: 1 Baris per Anak Unik (Cek berkali-kali tetap 1 baris) ──
-            ...List.generate(groups.length, (idx) {
-              final group = groups[idx];
-              final isLast = idx == groups.length - 1;
-              final isExpanded = _expandedDokterChildNames.contains(group.namaAnak);
-
-              return Column(
-                children: [
-                  // Baris Utama (Kolom 1: Nama, Kolom 2: Keterangan)
-                  Container(
-                    color: isExpanded
-                        ? (_isDark ? const Color(0xFF1E2830) : const Color(0xFFF4F7FB))
-                        : _cardBg,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Kolom 1: Nama Anak
-                        Expanded(
-                          flex: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-                            child: Text(
-                              group.namaAnak,
-                              style: GoogleFonts.lato(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Kolom 2: Keterangan (Dropdown Detail Hasil Cek)
-                        Expanded(
-                          flex: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
-                            alignment: Alignment.centerLeft,
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  if (isExpanded) {
-                                    _expandedDokterChildNames.remove(group.namaAnak);
-                                  } else {
-                                    _expandedDokterChildNames.add(group.namaAnak);
-                                  }
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                                decoration: BoxDecoration(
-                                  color: isExpanded
-                                      ? _kBluePrimary.withValues(alpha: 0.12)
-                                      : (_isDark ? const Color(0xFF242E35) : const Color(0xFFF1F5F9)),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  border: Border.all(
-                                    color: isExpanded ? _kBluePrimary : _borderColor,
-                                    width: 1.0,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        'Detail (${group.records.length}x Cek)',
-                                        style: GoogleFonts.lato(
-                                          fontSize: 12.0,
-                                          fontWeight: FontWeight.w600,
-                                          color: isExpanded ? _kBluePrimary : _textPrimary,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4.0),
-                                    Icon(
-                                      isExpanded
-                                          ? Icons.keyboard_arrow_up_rounded
-                                          : Icons.keyboard_arrow_down_rounded,
-                                      size: 18.0,
-                                      color: isExpanded ? _kBluePrimary : _textSecondary,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // ── DROPDOWN DETAIL DI BAWAH BARIS (Jika Expanded) ──
-                  if (isExpanded)
-                    _buildDokterChildDetailDropdown(group),
-
-                  if (!isLast)
-                    Divider(height: 1, thickness: 1, color: _borderColor),
-                ],
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Rincian Dropdown Hasil Cek Stunting Anak (Tanggal, Umur, BB, TB, Status Gizi) ──
-  Widget _buildDokterChildDetailDropdown(GroupedChildStuntingRecord group) {
-    const colWidthTgl = 95.0;
-    const colWidthUmur = 110.0;
-    const colWidthBb = 70.0;
-    const colWidthTb = 70.0;
-    const colWidthHasil = 100.0;
-    const minDetailWidth = colWidthTgl + colWidthUmur + colWidthBb + colWidthTb + colWidthHasil;
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF141C22) : const Color(0xFFF8FAFC),
-        border: Border(
-          top: BorderSide(color: _borderColor, width: 0.5),
-          bottom: BorderSide(color: _borderColor, width: 0.5),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.history_rounded,
-                size: 15.0,
-                color: _kBluePrimary,
-              ),
-              const SizedBox(width: 6.0),
-              Text(
-                'Riwayat Cek Stunting: ${group.namaAnak} (${group.records.length} data)',
-                style: GoogleFonts.lato(
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.bold,
-                  color: _kBluePrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8.0),
-
-          // Tabel Detail Mini
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: minDetailWidth),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: _cardBg,
-                  borderRadius: BorderRadius.circular(8.0),
-                  border: Border.all(color: _borderColor),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Detail: Tanggal Cek | Umur | BB | TB | Hasil (Status Gizi)
-                      Container(
-                        color: _isDark ? const Color(0xFF242E35) : const Color(0xFFEBF1F6),
-                        child: Row(
-                          children: [
-                            _buildMiniHeaderCell('Tanggal Cek', colWidthTgl),
-                            _buildMiniHeaderCell('Umur', colWidthUmur),
-                            _buildMiniHeaderCell('BB', colWidthBb),
-                            _buildMiniHeaderCell('TB', colWidthTb),
-                            _buildMiniHeaderCell('Hasil (Status Gizi)', colWidthHasil),
-                          ],
-                        ),
-                      ),
-                      Divider(height: 1, thickness: 1, color: _borderColor),
-
-                      // Baris Tiap Record Pengecekan
-                      ...List.generate(group.records.length, (ri) {
-                        final rec = group.records[ri];
-                        final isLastRec = ri == group.records.length - 1;
-                        final isGiziNormal = !rec.isStunting;
-                        final tgl =
-                            '${rec.tanggalCek.day.toString().padLeft(2, '0')} '
-                            '${_bulanPendek(rec.tanggalCek.month)} '
-                            '${rec.tanggalCek.year}';
-
-                        return Column(
-                          children: [
-                            Container(
-                              color: _cardBg,
-                              child: Row(
-                                children: [
-                                  // Tanggal Cek
-                                  Container(
-                                    width: colWidthTgl,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
-                                    child: Text(
-                                      tgl,
-                                      style: GoogleFonts.lato(
-                                        fontSize: 12.0,
-                                        color: _textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  // Umur
-                                  Container(
-                                    width: colWidthUmur,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
-                                    child: Text(
-                                      rec.umur,
-                                      style: GoogleFonts.lato(
-                                        fontSize: 12.0,
-                                        color: _textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  // BB
-                                  Container(
-                                    width: colWidthBb,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
-                                    child: Text(
-                                      rec.bb,
-                                      style: GoogleFonts.lato(
-                                        fontSize: 12.0,
-                                        color: _textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  // TB
-                                  Container(
-                                    width: colWidthTb,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
-                                    child: Text(
-                                      rec.tb,
-                                      style: GoogleFonts.lato(
-                                        fontSize: 12.0,
-                                        color: _textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  // Hasil (Status Gizi)
-                                  Container(
-                                    width: colWidthHasil,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 9.0),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0,
-                                          vertical: 3.0,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isGiziNormal
-                                              ? (_isDark
-                                                  ? const Color(0xFF064E3B)
-                                                  : const Color(0xFFDDF7F0))
-                                              : (_isDark
-                                                  ? const Color(0xFF450A0A)
-                                                  : const Color(0xFFFFECE8)),
-                                          borderRadius: BorderRadius.circular(10.0),
-                                        ),
-                                        child: Text(
-                                          isGiziNormal ? 'Gizi normal' : 'Gizi buruk',
-                                          style: GoogleFonts.lato(
-                                            fontSize: 11.0,
-                                            fontWeight: FontWeight.w600,
-                                            color: isGiziNormal
-                                                ? (_isDark
-                                                    ? const Color(0xFF34D399)
-                                                    : const Color(0xFF14B8A6))
-                                                : const Color(0xFFF87171),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!isLastRec)
-                              Divider(height: 1, thickness: 0.5, color: _borderColor),
-                          ],
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniHeaderCell(String text, double width) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-      child: Text(
-        text,
-        style: GoogleFonts.lato(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: _textSecondary,
-        ),
-      ),
-    );
-  }
-
   String _bulanPanjang(int month) {
     const names = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-    ];
-    return names[(month - 1).clamp(0, 11)];
-  }
-
-  /// Mengubah nomor bulan menjadi singkatan 3 huruf
-  String _bulanPendek(int month) {
-    const names = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
     ];
     return names[(month - 1).clamp(0, 11)];
   }
@@ -3871,7 +3584,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   _buildStuntingHeaderCell('Umur', colWidthUmur),
                   _buildStuntingHeaderCell('BB', colWidthBb),
                   _buildStuntingHeaderCell('TB', colWidthTb),
-                  _buildStuntingHeaderCell('Hasil', colWidthHasil),
+                  _buildStuntingHeaderCell('Status Gizi', colWidthHasil),
                 ],
               ),
             ),
@@ -3883,9 +3596,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
                 alignment: Alignment.center,
                 child: Text(
-                  _stuntingRows.isEmpty
-                      ? 'Belum ada data riwayat cek stunting di database'
-                      : 'Tidak ada data yang cocok dengan pencarian',
+                  _searchStuntingQuery.isNotEmpty
+                      ? 'Data tidak ditemukan'
+                      : 'Belum ada data riwayat cek stunting di database',
                   style: GoogleFonts.lato(
                     fontSize: 13.0,
                     color: _textSecondary,
@@ -3893,7 +3606,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ),
               ),
 
-            // Baris Data (menggunakan filtered rows)
+            // Baris Data
             ...List.generate(_filteredStuntingRows.length, (idx) {
               final row = _filteredStuntingRows[idx];
               final isLast = idx == _filteredStuntingRows.length - 1;

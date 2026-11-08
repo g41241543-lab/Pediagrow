@@ -330,6 +330,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
             child: widget.child,
             parentUser: widget.parentUser,
             initialSuccessMessage: 'Berhasil Membuat Resume Medis',
+            fromConsultationFlow: true,
           ),
         ),
       );
@@ -345,16 +346,107 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
     }
   }
 
+  /// Menampilkan dialog bahwa dokter wajib menyimpan resume medis sebelum keluar
+  void _showCannotLeaveDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: _isDark ? const Color(0xFF1A2228) : Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: _isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFEFF6FF),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.assignment_late_rounded,
+                      color: _colorPrimaryBlue,
+                      size: 28,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Resume Medis Wajib Disimpan',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: _colorTextBlack,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sesi konsultasi telah diakhiri. Dokter diwajibkan melengkapi dan menyimpan resume medis agar hasil pemeriksaan tercatat resmi pada rekam medis pasien anak.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    color: _colorLabelGrey,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _colorPrimaryBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Lanjutkan Mengisi',
+                      style: GoogleFonts.lato(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _showCannotLeaveDialog();
+      },
+      child: Scaffold(
       backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
       appBar: AppBar(
         backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: _colorTextBlack),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: _showCannotLeaveDialog,
         ),
         title: Text('Buat Resume Medis',
             style: GoogleFonts.lato(
@@ -504,6 +596,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

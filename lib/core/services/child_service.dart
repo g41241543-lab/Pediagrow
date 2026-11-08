@@ -67,14 +67,49 @@ class ChildService {
     if (db == null) return;
 
     try {
+      final Map<String, ChildModel> childMap = {};
+
       final query = await db
           .collection(_collection)
           .where('owner_id', isEqualTo: ownerId)
           .get();
 
-      final loadedChildren = query.docs
-          .map((doc) => ChildModel.fromMap({...doc.data(), 'id': doc.id}))
-          .toList();
+      for (final doc in query.docs) {
+        childMap[doc.id] = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+      }
+
+      // Query berdasarkan parent_ids (jika terhubung sebagai orang tua pendamping)
+      try {
+        final queryParents = await db
+            .collection(_collection)
+            .where('parent_ids', arrayContains: ownerId)
+            .get();
+        for (final doc in queryParents.docs) {
+          childMap[doc.id] = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+        }
+      } catch (e) {
+        debugPrint('[ChildService] parent_ids query warning: $e');
+      }
+
+      // Query berdasarkan no_kk
+      final userNoKk = UserService().currentUser.noKk;
+      if (userNoKk != null && userNoKk.trim().isNotEmpty) {
+        try {
+          final queryKk = await db
+              .collection(_collection)
+              .where('no_kk', isEqualTo: userNoKk.trim())
+              .get();
+          for (final doc in queryKk.docs) {
+            childMap[doc.id] = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+          }
+        } catch (e) {
+          debugPrint('[ChildService] no_kk query warning: $e');
+        }
+      }
+
+      final loadedChildren = childMap.values.toList();
+
+
 
       childrenNotifier.value = loadedChildren;
 
@@ -103,7 +138,13 @@ class ChildService {
         ? await StorageService.toPersistableString(child.birthPhotoUrl)
         : null;
 
+    final currentParents = List<String>.from(child.parentIds);
+    if (ownerId.isNotEmpty && !currentParents.contains(ownerId)) {
+      currentParents.add(ownerId);
+    }
+
     final childWithOwner = child.copyWith(
+      parentIds: currentParents,
       ownerId: ownerId,
       photoUrl: photoUrl,
       birthPhotoUrl: birthPhotoUrl,
@@ -127,6 +168,14 @@ class ChildService {
 
       // Otomatis jadikan anak yang baru diinput ini sebagai yang aktif
       activeChildNotifier.value = savedChild;
+
+      // Sinkronisasi otomatis No KK ke profil akun orang tua jika belum terisi
+      if (savedChild.noKk != null && savedChild.noKk!.trim().isNotEmpty) {
+        final currentNoKk = UserService().currentUser.noKk;
+        if (currentNoKk == null || currentNoKk.trim() != savedChild.noKk!.trim()) {
+          await UserService().updateNoKk(savedChild.noKk!.trim());
+        }
+      }
     } catch (e) {
       debugPrint('[ChildService] addChild error: $e');
     }
@@ -190,6 +239,108 @@ class ChildService {
       await db.collection(_collection).doc(id).delete();
     } catch (e) {
       debugPrint('[ChildService] deleteChild error: $e');
+    }
+  }
+
+  /// Mencari apakah ada profil anak dengan No KK dan NIK (atau Nama & Tanggal Lahir)
+  /// yang sudah terdaftar di Firestore untuk mencegah duplikasi data pasien.
+  Future<ChildModel?> findExistingChild({
+    required String noKk,
+    String? nik,
+    String? name,
+    DateTime? birthDate,
+  }) async {
+    final cleanKk = noKk.trim();
+    if (cleanKk.isEmpty) return null;
+
+    final db = _db;
+    if (db == null) return null;
+
+    try {
+      final query = await db
+          .collection(_collection)
+          .where('no_kk', isEqualTo: cleanKk)
+          .get();
+
+      if (query.docs.isEmpty) return null;
+
+      final cleanNik = nik?.trim() ?? '';
+      final cleanName = name?.trim().toLowerCase() ?? '';
+
+      for (final doc in query.docs) {
+        final existing = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+
+        // 1. Prioritas utama: jika NIK terisi dan sama persis
+        if (cleanNik.isNotEmpty &&
+            existing.nik != null &&
+            existing.nik!.trim().isNotEmpty) {
+          if (existing.nik!.trim() == cleanNik) {
+            return existing;
+          }
+        }
+
+        // 2. Jika Nama dan Tanggal Lahir cocok
+        if (cleanName.isNotEmpty &&
+            existing.name.trim().toLowerCase() == cleanName) {
+          if (birthDate != null && existing.birthDate != null) {
+            if (existing.birthDate!.year == birthDate.year &&
+                existing.birthDate!.month == birthDate.month &&
+                existing.birthDate!.day == birthDate.day) {
+              return existing;
+            }
+          } else {
+            return existing;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[ChildService] findExistingChild error: $e');
+    }
+    return null;
+  }
+
+  /// Menautkan profil anak yang sudah ada ke akun pengguna saat ini
+  /// (misal: Ibu menghubungkan akunnya ke data anak yang didaftarkan Ayah).
+  Future<void> linkChildToCurrentUser(ChildModel existingChild) async {
+    final currentUserId = UserService().currentUser.id;
+    if (currentUserId.isEmpty) return;
+
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      final updatedParents = List<String>.from(existingChild.parentIds);
+      if (!updatedParents.contains(currentUserId)) {
+        updatedParents.add(currentUserId);
+      }
+
+      await db.collection(_collection).doc(existingChild.id).update({
+        'parent_ids': updatedParents,
+      });
+
+      final updatedChild = existingChild.copyWith(parentIds: updatedParents);
+
+      // Perbarui state lokal
+      final currentList = List<ChildModel>.from(childrenNotifier.value);
+      final idx = currentList.indexWhere((c) => c.id == updatedChild.id);
+      if (idx == -1) {
+        currentList.add(updatedChild);
+      } else {
+        currentList[idx] = updatedChild;
+      }
+      childrenNotifier.value = currentList;
+      activeChildNotifier.value = updatedChild;
+
+      // Sinkronkan No KK ke profil akun pengguna jika ada
+      if (existingChild.noKk != null && existingChild.noKk!.trim().isNotEmpty) {
+        final currentNoKk = UserService().currentUser.noKk;
+        if (currentNoKk == null || currentNoKk.trim() != existingChild.noKk!.trim()) {
+          await UserService().updateNoKk(existingChild.noKk!.trim());
+        }
+      }
+    } catch (e) {
+      debugPrint('[ChildService] linkChildToCurrentUser error: $e');
+      rethrow;
     }
   }
 
