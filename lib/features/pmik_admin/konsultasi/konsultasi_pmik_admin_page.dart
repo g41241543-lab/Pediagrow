@@ -8,6 +8,7 @@ import '../../../models/booking_consultation_model.dart';
 import '../../../models/konsultasi_session_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../../shared/widgets/pedia_interactive_hover_card.dart';
 import '../beranda/beranda_pmik_page.dart';
 import '../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
 import '../profil_pmik_page.dart';
@@ -739,158 +740,127 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     );
   }
 
+
   Widget _buildBerlangsungCard(_KonsultasiItem item, bool isDark) {
     final isFemale = item.childGender == 'Perempuan';
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.02 : 0.08),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 6,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
-          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          onTap: _showLockedChatSheet,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-                child: Row(
-                  children: [
-                    _buildChildAvatar(
-                      photoUrl: item.childPhotoUrl,
-                      isFemale: isFemale,
-                      size: 44,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return PediaInteractiveHoverCard(
+      onTap: _showLockedChatSheet,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Row(
+              children: [
+                _buildChildAvatar(
+                  photoUrl: item.childPhotoUrl,
+                  isFemale: isFemale,
+                  size: 44,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  item.childName,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                                  ),
-                                ),
+                          Expanded(
+                            child: Text(
+                              item.childName,
+                              style: GoogleFonts.lato(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                               ),
-                              _buildStatusBadge(
-                                'Berlangsung',
-                                const Color(0xFF10B981),
-                                isDark
-                                    ? const Color(0xFF064E3B).withValues(alpha: 0.4)
-                                    : const Color(0xFFD1FAE5),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              Icon(
-                                isFemale ? Icons.female : Icons.male,
-                                size: 14,
-                                color: isFemale
-                                    ? const Color(0xFFEC4899)
-                                    : const Color(0xFF3B82F6),
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                item.childAge,
-                                style: GoogleFonts.lato(
-                                  fontSize: 12.5,
-                                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                                ),
-                              ),
-                            ],
+                          _buildStatusBadge(
+                            'Berlangsung',
+                            const Color(0xFF10B981),
+                            isDark
+                                ? const Color(0xFF064E3B).withValues(alpha: 0.4)
+                                : const Color(0xFFD1FAE5),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            isFemale ? Icons.female : Icons.male,
+                            size: 14,
+                            color: isFemale
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFF3B82F6),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            item.childAge,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.medical_services_rounded,
-                      size: 14,
+              ],
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.medical_services_rounded,
+                  size: 14,
+                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    item.doctorName,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
                       color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        item.doctorName,
-                        style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: _showLockedChatSheet,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _colorPrimaryBlue,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _colorPrimaryBlue.withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'Masuk Ruang Chat',
-                          style: GoogleFonts.lato(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: _showLockedChatSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _colorPrimaryBlue,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _colorPrimaryBlue.withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Masuk Ruang Chat',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -1077,193 +1047,162 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     );
   }
 
+
   Widget _buildUserBookingCard(BookingConsultationModel booking, bool isDark) {
     final isFemale = booking.child.gender.toLowerCase().contains('perempuan');
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.02 : 0.08),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 6,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
-          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          onTap: () => _showBookingDetailModal(booking),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildChildAvatar(
-                      photoUrl: booking.child.photoUrl,
-                      isFemale: isFemale,
-                      size: 44,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
+    return PediaInteractiveHoverCard(
+      onTap: () => _showBookingDetailModal(booking),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildChildAvatar(
+                  photoUrl: booking.child.photoUrl,
+                  isFemale: isFemale,
+                  size: 44,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  booking.child.name,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                                  ),
-                                ),
+                          Expanded(
+                            child: Text(
+                              booking.child.name,
+                              style: GoogleFonts.lato(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                               ),
-                              const SizedBox(width: 8),
-                              _buildStatusBadge(
-                                booking.isInTimeWindow
-                                    ? 'Mulai Konsultasi'
-                                    : 'Terjadwal',
-                                booking.isInTimeWindow
-                                    ? const Color(0xFF10B981)
-                                    : _colorPrimaryBlue,
-                                booking.isInTimeWindow
-                                    ? (isDark
-                                        ? const Color(0xFF064E3B).withValues(alpha: 0.3)
-                                        : const Color(0xFFD1FAE5))
-                                    : (isDark
-                                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                                        : const Color(0xFFEBF5FF)),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              Icon(
-                                isFemale ? Icons.female : Icons.male,
-                                size: 14,
-                                color: isFemale
-                                    ? const Color(0xFFEC4899)
-                                    : const Color(0xFF3B82F6),
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '${booking.child.gender} • ${booking.child.ageDescription}',
-                                style: GoogleFonts.lato(
-                                  fontSize: 12.5,
-                                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 8),
+                          _buildStatusBadge(
+                            booking.isInTimeWindow
+                                ? 'Mulai Konsultasi'
+                                : 'Terjadwal',
+                            booking.isInTimeWindow
+                                ? const Color(0xFF10B981)
+                                : _colorPrimaryBlue,
+                            booking.isInTimeWindow
+                                ? (isDark
+                                    ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                    : const Color(0xFFD1FAE5))
+                                : (isDark
+                                    ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                    : const Color(0xFFEBF5FF)),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F7FF),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
-                          : _colorPrimaryBlue.withValues(alpha: 0.18),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 14,
-                        color: _colorPrimaryBlue,
-                      ),
-                      const SizedBox(width: 7),
-                      Expanded(
-                        child: Text(
-                          booking.formattedDate,
-                          style: GoogleFonts.lato(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: _colorPrimaryBlue,
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            isFemale ? Icons.female : Icons.male,
+                            size: 14,
+                            color: isFemale
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFF3B82F6),
                           ),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 14,
-                        color: _colorPrimaryBlue,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        booking.scheduledTimeSlot,
-                        style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: _colorPrimaryBlue,
-                        ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${booking.child.gender} • ${booking.child.ageDescription}',
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.medical_services_rounded,
-                      size: 14,
-                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        booking.doctor.name,
-                        style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                        ),
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F7FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                      : _colorPrimaryBlue.withValues(alpha: 0.18),
+                  width: 1,
                 ),
               ),
-            ],
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 14,
+                    color: _colorPrimaryBlue,
+                  ),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      booking.formattedDate,
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: _colorPrimaryBlue,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 14,
+                    color: _colorPrimaryBlue,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    booking.scheduledTimeSlot,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: _colorPrimaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+          const SizedBox(height: 10),
+          Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.medical_services_rounded,
+                  size: 14,
+                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    booking.doctor.name,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1333,189 +1272,158 @@ class _KonsultasiPmikAdminPageState extends State<KonsultasiPmikAdminPage>
     );
   }
 
+
   Widget _buildJadwalCard(_KonsultasiItem item, bool isDark) {
     final isFemale = item.childGender == 'Perempuan';
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: isDark ? 0.02 : 0.08),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 6,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
-          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          onTap: () => _showJadwalDetailModal(item),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildChildAvatar(
-                      photoUrl: item.childPhotoUrl,
-                      isFemale: isFemale,
-                      size: 44,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
+    return PediaInteractiveHoverCard(
+      onTap: () => _showJadwalDetailModal(item),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildChildAvatar(
+                  photoUrl: item.childPhotoUrl,
+                  isFemale: isFemale,
+                  size: 44,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  item.childName,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                                  ),
-                                ),
+                          Expanded(
+                            child: Text(
+                              item.childName,
+                              style: GoogleFonts.lato(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
                               ),
-                              const SizedBox(width: 8),
-                              _buildStatusBadge(
-                                'Terjadwal',
-                                _colorPrimaryBlue,
-                                isDark
-                                    ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                                    : const Color(0xFFEBF5FF),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              Icon(
-                                isFemale ? Icons.female : Icons.male,
-                                size: 14,
-                                color: isFemale
-                                    ? const Color(0xFFEC4899)
-                                    : const Color(0xFF3B82F6),
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                item.childAge,
-                                style: GoogleFonts.lato(
-                                  fontSize: 12.5,
-                                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 8),
+                          _buildStatusBadge(
+                            'Terjadwal',
+                            _colorPrimaryBlue,
+                            isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEBF5FF),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            isFemale ? Icons.female : Icons.male,
+                            size: 14,
+                            color: isFemale
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFF3B82F6),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            item.childAge,
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (item.scheduledDate != null) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F7FF),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                        : _colorPrimaryBlue.withValues(alpha: 0.18),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
+                      color: _colorPrimaryBlue,
+                    ),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Text(
+                        item.scheduledDate!,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: _colorPrimaryBlue,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: _colorPrimaryBlue,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      item.scheduledTime ?? '-',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: _colorPrimaryBlue,
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (item.scheduledDate != null) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFF0F7FF),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isDark
-                            ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
-                            : _colorPrimaryBlue.withValues(alpha: 0.18),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_rounded,
-                          size: 14,
-                          color: _colorPrimaryBlue,
-                        ),
-                        const SizedBox(width: 7),
-                        Expanded(
-                          child: Text(
-                            item.scheduledDate!,
-                            style: GoogleFonts.lato(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: _colorPrimaryBlue,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.access_time_rounded,
-                          size: 14,
-                          color: _colorPrimaryBlue,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          item.scheduledTime ?? '-',
-                          style: GoogleFonts.lato(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: _colorPrimaryBlue,
-                          ),
-                        ),
-                      ],
+            ),
+            const SizedBox(height: 10),
+          ],
+          Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.medical_services_rounded,
+                  size: 14,
+                  color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    item.doctorName,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
               ],
-              Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.medical_services_rounded,
-                      size: 14,
-                      color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        item.doctorName,
-                        style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

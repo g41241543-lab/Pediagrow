@@ -321,10 +321,10 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
       ),
     );
   }
-}
 
-/// Card Item Resume Medis dengan efek Hover interaktif (Web/Desktop)
-/// dan efek Aktif Sentuh (Mobile/Touchscreen).
+
+/// Card Item Resume Medis dengan border biru muda lembut (seperti tema profil & jadwal dokter)
+/// serta efek Hover interaktif (Web/Desktop) dan efek Aktif Sentuh (Mobile/Touchscreen).
 class _ResumeCardItem extends StatefulWidget {
   final ResumeMedisModel resume;
   final VoidCallback onTap;
@@ -359,9 +359,10 @@ class _ResumeCardItemState extends State<_ResumeCardItem> {
         ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F7FF))
         : (isDark ? const Color(0xFF1A2228) : Colors.white);
 
+    // Garis tepi (border): biru muda lembut (#BFDBFE) saat normal, dan menyala biru tajam saat aktif
     final borderColor = _isActive
         ? primaryBlue
-        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF));
+        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE));
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -380,16 +381,22 @@ class _ResumeCardItemState extends State<_ResumeCardItem> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: borderColor,
-            width: _isActive ? 1.8 : 1.0,
+            width: _isActive ? 1.8 : 1.2,
           ),
           boxShadow: [
             BoxShadow(
               color: _isActive
                   ? primaryBlue.withValues(alpha: isDark ? 0.35 : 0.20)
-                  : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: _isActive ? 14 : 8,
+                  : primaryBlue.withValues(alpha: isDark ? 0.25 : 0.08),
+              blurRadius: _isActive ? 14 : 10,
               offset: _isActive ? const Offset(0, 5) : const Offset(0, 3),
             ),
+            if (!_isActive)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 1),
+              ),
           ],
         ),
         child: Material(
@@ -488,28 +495,47 @@ class _ResumeCardItemState extends State<_ResumeCardItem> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Tanggal Konsultasi
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            size: 18,
+                      // Tanggal Konsultasi berbingkai biru muda lembut (seperti di jadwal dokter)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
                             color: isDark
-                                ? const Color(0xFF8696A0)
-                                : const Color(0xFF667781),
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFBFDBFE),
+                            width: 0.8,
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            resume.consultationDate,
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_month_outlined,
+                              size: 15,
                               color: isDark
-                                  ? const Color(0xFFE9EDEF)
-                                  : const Color(0xFF1A2228),
+                                  ? const Color(0xFF93C5FD)
+                                  : primaryBlue,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            Text(
+                              resume.consultationDate,
+                              style: GoogleFonts.lato(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFFE9EDEF)
+                                    : const Color(0xFF1A2228),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
                       // Badge Selesai (Hijau Toska) + Tombol Hapus opsional
