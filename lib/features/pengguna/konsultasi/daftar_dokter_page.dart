@@ -672,42 +672,16 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: isDark
-                ? const Color(0xFF2C363D)
-                : const Color(0xFFE9EDEF),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: isDark
+                  ? const Color(0xFF2C363D)
+                  : const Color(0xFFE9EDEF),
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_month_outlined,
-                size: 14,
-                color: _colorPrimaryBlue,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  doctor.scheduleSummary.isNotEmpty
-                      ? doctor.scheduleSummary
-                      : 'Jadwal praktik tersedia',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? const Color(0xFF93C5FD)
-                        : _colorPrimaryBlue,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -972,37 +946,33 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => StatusBookingPage(bookingId: booking.id),
+            builder: (_) => StatusBookingPage(booking: booking),
           ),
         );
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header Kartu: Avatar Anak & Info Anak & Badge Status ──────────
+          // ── Baris Atas: Identitas Anak (Pasien) & Badge Status ──────────
           Padding(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildChildAvatar(
                   photoUrl: booking.child.photoUrl,
                   isFemale: isFemale,
-                  size: 46,
+                  size: 42,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Text(
                               booking.child.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.lato(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
@@ -1012,25 +982,62 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          _buildBookingStatusBadge(booking),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEBF5FF),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Text(
+                              booking.status,
+                              style: GoogleFonts.lato(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: _colorPrimaryBlue,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(
-                            isFemale
-                                ? Icons.female_rounded
-                                : Icons.male_rounded,
-                            size: 14,
-                            color: isFemale
-                                ? const Color(0xFFEC4899)
-                                : const Color(0xFF3B82F6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isFemale
+                                  ? const Color(0xFFFDF2F8)
+                                  : const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isFemale
+                                    ? const Color(0xFFFBCFE8)
+                                    : const Color(0xFFBFDBFE),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              isFemale
+                                  ? 'Anak Perempuan'
+                                  : 'Anak Laki-laki',
+                              style: GoogleFonts.lato(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: isFemale
+                                    ? const Color(0xFFDB2777)
+                                    : const Color(0xFF2563EB),
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 3),
+                          const SizedBox(width: 6),
                           Text(
-                            '${isFemale ? "Perempuan" : "Laki-laki"} • ${booking.child.ageText}',
+                            booking.child.ageDescription,
                             style: GoogleFonts.lato(
                               fontSize: 12,
                               color: _colorLabelGrey,
@@ -1045,7 +1052,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             ),
           ),
 
-          // ── Kotak Jadwal Tanggal & Jam ─────────────────────────────────────
+          // ── Kotak Jadwal Tanggal & Jam ────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Container(
@@ -1080,7 +1087,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                       style: GoogleFonts.lato(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: _colorPrimaryBlue,
+                        color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
                       ),
                     ),
                   ),
@@ -1095,7 +1102,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: _colorPrimaryBlue,
+                      color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
                     ),
                   ),
                 ],

@@ -289,6 +289,7 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
     );
   }
 
+}
 
 /// Card Item Resume Medis dengan border biru muda lembut (seperti tema profil & jadwal dokter)
 /// serta efek Hover interaktif (Web/Desktop) dan efek Aktif Sentuh (Mobile/Touchscreen).
