@@ -88,32 +88,9 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
     _resolveChildData();
     ChildService().activeChildNotifier.addListener(_onActiveChildChanged);
 
-    final selectedChild = _activeChild ?? widget.child;
-    final initWeight =
-        selectedChild?.weightKg != null && selectedChild!.weightKg! > 0
-        ? (selectedChild.weightKg! % 1 == 0
-              ? selectedChild.weightKg!.toInt().toString()
-              : selectedChild.weightKg!.toString())
-        : (selectedChild?.birthWeightKg != null &&
-                  selectedChild!.birthWeightKg! > 0
-              ? (selectedChild.birthWeightKg! % 1 == 0
-                    ? selectedChild.birthWeightKg!.toInt().toString()
-                    : selectedChild.birthWeightKg!.toString())
-              : '');
-    final initHeight =
-        selectedChild?.heightCm != null && selectedChild!.heightCm! > 0
-        ? (selectedChild.heightCm! % 1 == 0
-              ? selectedChild.heightCm!.toInt().toString()
-              : selectedChild.heightCm!.toString())
-        : (selectedChild?.birthHeightCm != null &&
-                  selectedChild!.birthHeightCm! > 0
-              ? (selectedChild.birthHeightCm! % 1 == 0
-                    ? selectedChild.birthHeightCm!.toInt().toString()
-                    : selectedChild.birthHeightCm!.toString())
-              : '');
-
-    _weightController = TextEditingController(text: initWeight);
-    _heightController = TextEditingController(text: initHeight);
+    // BB dan TB saat ini dibiarkan kosong agar diisi mandiri oleh pengguna
+    _weightController = TextEditingController();
+    _heightController = TextEditingController();
     _complaintController = TextEditingController();
 
     _complaintController.addListener(() {
@@ -160,20 +137,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
       _effectiveName = model.name;
       _effectiveGender = model.gender;
       _effectiveAge = _formatChildAge(model);
-      if (model.weightKg != null &&
-          model.weightKg! > 0 &&
-          _weightController.text.isEmpty) {
-        _weightController.text = model.weightKg! % 1 == 0
-            ? model.weightKg!.toInt().toString()
-            : model.weightKg!.toString();
-      }
-      if (model.heightCm != null &&
-          model.heightCm! > 0 &&
-          _heightController.text.isEmpty) {
-        _heightController.text = model.heightCm! % 1 == 0
-            ? model.heightCm!.toInt().toString()
-            : model.heightCm!.toString();
-      }
+      // BB dan TB saat ini sengaja tidak diisi otomatis (kosong) sesuai permintaan
     });
   }
 

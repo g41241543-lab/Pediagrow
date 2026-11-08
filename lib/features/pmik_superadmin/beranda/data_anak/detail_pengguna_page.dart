@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/user_model.dart';
-import '../../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Data Orangtua untuk POV Superadmin.
 ///
@@ -38,52 +37,31 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
           children: [
             // ── 1. Header Fixed 56dp ───────────────────────────────
             _buildFixedHeader(),
-
-            // ── 2. Konten Scrollable ──────────────────────────────
+            // Konten Scrollable
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 16),
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 16),
 
-                            // ── Card Profil Header Orang Tua ─────────
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: _buildProfileHeaderCard(),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // ── Tabel Biodata Lengkap Orang Tua ──────
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: _buildBiodataTable(),
-                            ),
-
-                            const SizedBox(height: 24),
-
-                            // Spacer agar ilustrasi menempel di dasar
-                            const Spacer(),
-
-                            // Ilustrasi footer landscape
-                            const IllustrationForestFooter(
-                              fit: BoxFit.fitWidth,
-                            ),
-                          ],
-                        ),
-                      ),
+                    // Card Profil Header Orang Tua
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildProfileHeaderCard(),
                     ),
-                  );
-                },
+
+                    const SizedBox(height: 16),
+
+                    // Tabel Biodata Lengkap Orang Tua
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildBiodataTable(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
