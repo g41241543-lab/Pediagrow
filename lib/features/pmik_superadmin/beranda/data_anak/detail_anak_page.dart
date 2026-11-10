@@ -50,8 +50,6 @@ class DetailAnakPage extends StatefulWidget {
 class _DetailAnakPageState extends State<DetailAnakPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorButtonBg = Color(0xFFEBF5FF);
-  static const Color _colorTableBorder = Color(0xFFE9EDEF);
-  static const Color _colorTableHeader = Color(0xFFE9F4FF);
   static const Color _colorLabelGrey = Color(0xFF667781);
   static const Color _colorTextBlack = Color(0xFF000000);
 

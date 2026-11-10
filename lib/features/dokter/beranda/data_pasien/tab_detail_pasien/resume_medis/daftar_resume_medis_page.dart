@@ -24,13 +24,6 @@ class DaftarResumeMedisPage extends StatefulWidget {
 
 class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage>
     with SingleTickerProviderStateMixin {
-  // Palet Warna Resmi PediaGrow
-  static const Color _colorPrimaryBlue = Color(0xFF3985E7);
-  static const Color _colorTextBlack = Color(0xFF1A2228);
-  static const Color _colorLabelGrey = Color(0xFF667781);
-  static const Color _colorCardBg = Color(0xFFFFFFFF);
-  static const Color _colorBorder = Color(0xFFE9EDEF);
-
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';

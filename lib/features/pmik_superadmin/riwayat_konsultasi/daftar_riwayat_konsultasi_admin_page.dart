@@ -730,9 +730,8 @@ class _AdminRiwayatConsultationCardState
     extends State<_AdminRiwayatConsultationCard> {
   bool _isHovered = false;
   bool _isPressed = false;
-  Offset? _pointerDownPos;
 
-  bool get _isActiveLift => _isHovered || _isPressed;
+  bool get _isActive => _isHovered || _isPressed;
 
   Widget _buildStatusBadge(String status, bool isDark) {
     return Container(
@@ -765,7 +764,17 @@ class _AdminRiwayatConsultationCardState
     final item = widget.item;
     final isDark = widget.isDark;
     final ageText = item.calculatedAge;
-    const hoverAccent = Color(0xFF72A9F4);
+    const primaryBlue = Color(0xFF2B7AE8);
+
+    // Latar belakang card: berubah menjadi biru muda lembut saat disentuh/di-hover
+    final cardBgColor = _isActive
+        ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F7FF))
+        : (isDark ? const Color(0xFF1A2228) : Colors.white);
+
+    // Garis tepi (border): biru muda lembut (#BFDBFE) saat normal, dan menyala biru tajam saat aktif
+    final borderColor = _isActive
+        ? primaryBlue
+        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE));
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -775,63 +784,55 @@ class _AdminRiwayatConsultationCardState
       onExit: (_) {
         if (mounted) setState(() => _isHovered = false);
       },
-      child: Listener(
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: (e) {
-          _pointerDownPos = e.position;
-          if (mounted) setState(() => _isPressed = true);
-        },
-        onPointerMove: (e) {
-          if (_pointerDownPos != null && _isPressed) {
-            final distance = (e.position - _pointerDownPos!).distance;
-            if (distance > 10.0) {
-              if (mounted) setState(() => _isPressed = false);
-            }
-          }
-        },
-        onPointerUp: (_) {
-          _pointerDownPos = null;
-          if (mounted) setState(() => _isPressed = false);
-        },
-        onPointerCancel: (_) {
-          _pointerDownPos = null;
-          if (mounted) setState(() => _isPressed = false);
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0, _isActiveLift ? -2.0 : 0.0, 0),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A2228) : Colors.white,
-            borderRadius: BorderRadius.circular(16.0),
-            border: Border.all(
-              color: _isActiveLift
-                  ? hoverAccent
-                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
-              width: _isActiveLift ? 1.4 : 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: _isActiveLift
-                    ? hoverAccent.withValues(alpha: isDark ? 0.25 : 0.14)
-                    : (isDark
-                        ? Colors.black.withValues(alpha: 0.20)
-                        : const Color(0x0A000000)),
-                blurRadius: _isActiveLift ? 12.0 : 8.0,
-                offset: Offset(0, _isActiveLift ? 4.0 : 2.0),
-              ),
-            ],
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(0, _isActive ? -3.0 : 0.0, 0),
+        decoration: BoxDecoration(
+          color: cardBgColor,
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(
+            color: borderColor,
+            width: _isActive ? 1.8 : 1.2,
           ),
-          child: Material(
-            color: Colors.transparent,
+          boxShadow: [
+            BoxShadow(
+              color: _isActive
+                  ? primaryBlue.withValues(alpha: isDark ? 0.35 : 0.20)
+                  : primaryBlue.withValues(alpha: isDark ? 0.25 : 0.08),
+              blurRadius: _isActive ? 14.0 : 10.0,
+              offset: _isActive ? const Offset(0, 5) : const Offset(0, 3),
+            ),
+            if (!_isActive)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 6.0,
+                offset: const Offset(0, 1),
+              ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16.0),
+          child: InkWell(
+            onTap: widget.onTap,
+            onTapDown: (_) {
+              if (mounted) setState(() => _isPressed = true);
+            },
+            onTapUp: (_) {
+              if (mounted) setState(() => _isPressed = false);
+            },
+            onTapCancel: () {
+              if (mounted) setState(() => _isPressed = false);
+            },
+            onHover: (hovering) {
+              if (mounted) setState(() => _isHovered = hovering);
+            },
+            mouseCursor: SystemMouseCursors.click,
+            splashColor: primaryBlue.withValues(alpha: 0.12),
+            highlightColor: primaryBlue.withValues(alpha: 0.08),
+            hoverColor: primaryBlue.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(16.0),
-            child: InkWell(
-              onTap: widget.onTap,
-              mouseCursor: SystemMouseCursors.click,
-              hoverColor: hoverAccent.withValues(alpha: 0.05),
-              splashColor: hoverAccent.withValues(alpha: 0.12),
-              highlightColor: hoverAccent.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(16.0),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -933,7 +934,7 @@ class _AdminRiwayatConsultationCardState
                     if (item.complaint.isNotEmpty) ...[
                       const SizedBox(height: 8.0),
                       Text(
-                        'Keluhan: ',
+                        'Keluhan: ${item.complaint}',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
@@ -951,7 +952,6 @@ class _AdminRiwayatConsultationCardState
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
