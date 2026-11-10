@@ -347,13 +347,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
                                       else
                                         _buildConsultationList(filtered),
 
-                                      const SizedBox(height: 14.0),
-
-                                      // 4. Banner Keterangan di BAGIAN BAWAH
-                                      _isDoctorMode
-                                          ? _buildDoctorInfoBanner()
-                                          : _buildInfoBanner(),
-                                      const SizedBox(height: 16.0),
                                     ],
                                   ),
                                 ),
@@ -401,89 +394,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
       ),
     );
   }
-
-  // ─── BANNER INFORMASI DI BAGIAN ATAS (MODE ADMIN/SUPERADMIN) ─────────────────
-  Widget _buildInfoBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: _isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2.0),
-            child: Icon(
-              Icons.info_outline_rounded,
-              size: 20.0,
-              color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-            ),
-          ),
-          const SizedBox(width: 10.0),
-          Expanded(
-            child: Text(
-              'Data menampilkan seluruh konsultasi dari seluruh dokter dan pasien.',
-              style: GoogleFonts.lato(
-                fontSize: 13.0,
-                fontWeight: FontWeight.w500,
-                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── BANNER INFORMASI DI BAGIAN ATAS (MODE DOKTER) ────────────────────────────
-  Widget _buildDoctorInfoBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: _isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2.0),
-            child: Icon(
-              Icons.assignment_ind_outlined,
-              size: 20.0,
-              color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-            ),
-          ),
-          const SizedBox(width: 10.0),
-          Expanded(
-            child: Text(
-              'Menampilkan riwayat konsultasi yang telah Anda tangani.',
-              style: GoogleFonts.lato(
-                fontSize: 13.0,
-                fontWeight: FontWeight.w500,
-                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ─── SEARCH BAR TANPA FILTER (PERSIS SEPERTI POV PENGGUNA) ───────────────────
   Widget _buildSearchBar() {
     final hint = _isDoctorMode
