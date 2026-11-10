@@ -270,7 +270,7 @@ class _PesanCepatWidgetState extends State<PesanCepatWidget> {
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
                   itemCount: templates.length,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, _) =>
                       Divider(height: 1, thickness: 0.8, color: dividerColor),
                   itemBuilder: (context, index) {
                     final item = templates[index];

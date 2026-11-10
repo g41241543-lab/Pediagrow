@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -23,6 +23,7 @@ import '../game_edukasi/game_mulai_page.dart';
 import '../profil/profil_ibu_page.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../core/services/artikel_service.dart';
+import '../../../core/services/soal_service.dart';
 import '../../../models/artikel_model.dart';
 import '../detail/detail_artikel_page.dart';
 import '../../../core/services/youtube_service.dart';
@@ -87,8 +88,12 @@ class _BerandaPageState extends State<BerandaPage> {
     _loadLatestArticles();
     _loadEducationalVideos();
     ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
-    UserService().init();
-    ChildService().loadChildrenForCurrentUser();
+    // UserService.init() dan ChildService.loadChildrenForCurrentUser() sudah
+    // dijalankan di background dari SplashPage, tidak perlu dipanggil ulang di sini.
+
+    // Prefetch soal kuis dari asset lokal agar GameMulaiPage langsung siap
+    // saat pengguna masuk (fire-and-forget, tidak di-await).
+    SoalService.loadInitialSoal();
   }
 
   @override

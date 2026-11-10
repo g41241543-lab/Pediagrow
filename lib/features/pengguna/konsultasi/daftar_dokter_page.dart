@@ -51,6 +51,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
   final FocusNode _searchFocusNode = FocusNode();
 
   String _searchQuery = '';
+  // Flag untuk membedakan "belum ada data" vs "sedang loading" di DoctorService
+  bool _isDoctorInitialized = false;
 
   @override
   void initState() {
@@ -60,6 +62,21 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
       vsync: this,
       initialIndex: widget.initialTabIndex.clamp(0, 1),
     );
+    // Tandai initialized setelah frame pertama agar skeleton tampil dulu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DoctorService().doctorsNotifier.addListener(_onDoctorsLoaded);
+      // Jika sudah ada data saat halaman dibuka (dari cache)
+      if (DoctorService().currentDoctors.isNotEmpty) {
+        if (mounted) setState(() => _isDoctorInitialized = true);
+      }
+    });
+  }
+
+  void _onDoctorsLoaded() {
+    if (!mounted) return;
+    if (DoctorService().currentDoctors.isNotEmpty && !_isDoctorInitialized) {
+      setState(() => _isDoctorInitialized = true);
+    }
   }
 
   @override
@@ -72,6 +89,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
 
   @override
   void dispose() {
+    DoctorService().doctorsNotifier.removeListener(_onDoctorsLoaded);
     _tabController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -461,6 +479,11 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                             ? allDoctors
                             : DoctorService().filterDoctors(_searchQuery);
 
+                        // Tampilkan skeleton saat listener baru dipasang dan belum ada data
+                        if (!_isDoctorInitialized && filteredDoctors.isEmpty) {
+                          return _buildDoctorSkeleton();
+                        }
+
                         if (filteredDoctors.isEmpty) {
                           return _buildEmptyState();
                         }
@@ -495,6 +518,82 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
           );
         },
       ),
+    );
+  }
+
+  /// Skeleton loading: beberapa kartu dokter abu-abu placeholder
+  Widget _buildDoctorSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? const Color(0xFF1A2228) : const Color(0xFFF5F7FA);
+    final shimmerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0);
+    return Column(
+      children: List.generate(4, (_) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : _colorBorder,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: shimmerColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 15,
+                      width: 160,
+                      decoration: BoxDecoration(
+                        color: shimmerColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 12,
+                      width: 110,
+                      decoration: BoxDecoration(
+                        color: baseColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      height: 12,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: baseColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 72,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: shimmerColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ],
+          ),
+        ),
+      )),
     );
   }
 

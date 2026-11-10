@@ -1,10 +1,12 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../auth/auth_choice_page.dart';
 import '../../core/services/session_service.dart';
+import '../../core/services/user_service.dart';
+import '../../core/services/child_service.dart';
 
 /// Halaman Splash Screen PediaGrow dengan opening modern, elegan, luxury, dan futuristik.
 ///
@@ -41,7 +43,7 @@ class SplashPage extends StatefulWidget {
 
   const SplashPage({
     super.key,
-    this.animationDuration = const Duration(milliseconds: 5200),
+    this.animationDuration = const Duration(milliseconds: 2800),
     this.enableTapToSkip = true,
   });
 
@@ -123,6 +125,16 @@ class _SplashPageState extends State<SplashPage>
     });
 
     _controller.forward();
+
+    // Muat data pengguna dan anak di background sambil animasi berjalan
+    _initUserInBackground();
+  }
+
+  Future<void> _initUserInBackground() async {
+    try {
+      await UserService().init();
+      ChildService().loadChildrenForCurrentUser();
+    } catch (_) {}
   }
 
   void _initAnimations() {

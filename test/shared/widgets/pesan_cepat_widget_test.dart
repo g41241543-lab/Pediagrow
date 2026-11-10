@@ -26,6 +26,7 @@ void main() {
     );
 
     // Initial state: header visible, collapsed
+    expect(copiedMessage, isNull);
     expect(find.text('Pesan Cepat'), findsOneWidget);
     expect(find.text('Lihat opsi'), findsOneWidget);
     expect(find.text('Terima kasih banyak, Dokter.'), findsNothing);

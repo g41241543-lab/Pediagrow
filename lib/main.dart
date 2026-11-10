@@ -1,4 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';
+﻿import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,24 +10,19 @@ import 'core/services/session_service.dart';
 import 'core/services/staff_auth_service.dart';
 import 'core/services/superadmin_notification_service.dart';
 import 'core/services/theme_service.dart';
-import 'core/services/user_service.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Firebase sebelum app dijalankan
+  // ── Fase 1: Inisialisasi WAJIB sebelum UI muncul ──────────────────────────
+  // Firebase harus selesai terlebih dahulu (prasyarat semua service lainnya).
   await Firebase.initializeApp();
-  await StaffAuthService().ensureSuperadminSeeded();
-  await SessionService().init();
-  await UserService().init();
 
-  // Inisialisasi notifikasi lokal HP & in-app service
-  await LocalPushService().init();
-  await NotificationService().init();
-  await SuperadminNotificationService().init();
-
-  // Inisialisasi preferensi tema aplikasi (Default Sistem / Terang / Gelap)
-  await ThemeService().init();
+  // ThemeService dan SessionService hanya membaca SharedPreferences (lokal, cepat).
+  // Jalankan paralel setelah Firebase siap — tidak ada dependensi antar keduanya.
+  await Future.wait([
+    ThemeService().init(),
+    SessionService().init(),
+  ]);
 
   // Mengatur status bar transparan dan ikon gelap agar menyatu dengan background putih
   SystemChrome.setSystemUIOverlayStyle(
@@ -37,6 +32,18 @@ void main() async {
     ),
   );
   runApp(const MyApp());
+
+  // ── Fase 2: Background init setelah UI sudah tampil ───────────────────────
+  // ensureSuperadminSeeded hanya perlu berjalan sekali setelah setup awal.
+  // Jalankan di background agar tidak memblokir startup.
+  StaffAuthService().ensureSuperadminSeeded();
+
+  // Service notifikasi (hanya baca local storage) — tidak perlu blocking.
+  Future.wait([
+    LocalPushService().init(),
+    NotificationService().init(),
+    SuperadminNotificationService().init(),
+  ]);
 }
 
 

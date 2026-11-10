@@ -153,11 +153,6 @@ class _DetailRiwayatKonsultasiAdminPageState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 14.0),
-
-                  // 1. Banner Mode Nonaktif di BAGIAN ATAS (Konsisten & Seragam)
-                  _buildReadOnlyBanner(),
-                  const SizedBox(height: 16.0),
-
                   // 2. Kartu Profil Pasien
                   _buildPatientProfileCard(isGirl),
                   const SizedBox(height: 16.0),
@@ -476,42 +471,4 @@ class _DetailRiwayatKonsultasiAdminPageState
       );
     }
   }
-
-  // ─── READ-ONLY BANNER ───────────────────────────────────────────────────────
-  Widget _buildReadOnlyBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F4FD),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: _isDark ? const Color(0xFF334155) : const Color(0xFF72A9F4),
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 22.0,
-            color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF3985E7),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Text(
-              'Mode nonaktif. Anda tidak dapat membalas atau mengubah riwayat konsultasi.',
-              style: GoogleFonts.lato(
-                fontSize: 13.5,
-                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF2B7CD6),
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 }

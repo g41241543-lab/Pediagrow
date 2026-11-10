@@ -17,7 +17,6 @@ import '../profil_pmik_page.dart';
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
 const Color _colorTextBlack = Color(0xFF1A2228);
 const Color _colorLabelGrey = Color(0xFF667781);
-const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk PMIK.
 class _KonsultasiItem {
