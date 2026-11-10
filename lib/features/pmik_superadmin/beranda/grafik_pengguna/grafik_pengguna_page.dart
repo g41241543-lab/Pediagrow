@@ -1525,12 +1525,14 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         : 'Kelola data pengguna dan\nanak secara keseluruhan';
 
 
-    // Kembalikan card sambutan ke implementasi awal (Stack dengan aset ilustrasi asli)
+    // Card sambutan: tinggi dinaikkan ke 144 agar nama panjang tidak mendorong subtitle keluar.
+    // Gambar menggunakan dokter_superadmin_card.png (portrait, HD 386x272) agar tidak melebar
+    // menutupi teks subtitle. Width gambar dibatasi eksplisit (110dp) supaya area teks aman.
     return ClipRRect(
       borderRadius: BorderRadius.circular(16.0),
       child: Container(
         width: double.infinity,
-        height: 132.0,
+        height: 144.0,
         decoration: BoxDecoration(
           color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFE2F3EE),
           borderRadius: BorderRadius.circular(16.0),
@@ -1538,10 +1540,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ),
         child: Stack(
           children: [
+            // Kolom teks: right dinaikkan ke 120 agar tidak overlap dengan gambar
             Positioned(
               left: 20.0,
               top: 16.0,
-              right: 125.0,
+              right: 120.0,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -1556,8 +1559,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   const SizedBox(height: 2.0),
                   Text(
                     displayName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.lato(
-                      fontSize: 16.0,
+                      fontSize: 15.0,
                       fontWeight: FontWeight.bold,
                       color: _textPrimary,
                     ),
@@ -1574,18 +1579,26 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ],
               ),
             ),
-            // Ilustrasi Super Admin dengan Tablet Sesuai Asset Referensi
+            // Ilustrasi dokter HD — portrait (386x272) dengan lebar eksplisit 110dp
+            // agar tidak meluber ke area teks. filterQuality.high untuk tampilan HD.
             Positioned(
-              right: 14.0,
+              right: 10.0,
               bottom: 0.0,
-              top: 8.0,
-              child: Image.asset(
-                'assets/images/admin_woman_tablet.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const Icon(
-                  Icons.analytics_rounded,
-                  size: 80.0,
-                  color: Color(0xFF2DD4BF),
+              child: SizedBox(
+                width: 110.0,
+                height: 144.0,
+                child: Image.asset(
+                  isDokter
+                      ? 'assets/images/dokter_superadmin_card.png'
+                      : 'assets/images/admin_woman_tablet.png',
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomCenter,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (_, _, _) => const Icon(
+                    Icons.analytics_rounded,
+                    size: 80.0,
+                    color: Color(0xFF2DD4BF),
+                  ),
                 ),
               ),
             ),

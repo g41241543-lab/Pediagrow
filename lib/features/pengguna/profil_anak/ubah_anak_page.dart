@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/utils/kk_nik_validator.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
@@ -578,24 +579,34 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
     bool hasError = false;
     GlobalKey? firstErrorKey;
 
-    // Validasi Nomor KK (wajib, 16 digit angka)
+    // Validasi Nomor KK (wajib, 16 digit angka + format valid)
     final noKk = _noKkController.text.trim();
     if (noKk.isEmpty) {
       _noKkError = 'Nomor KK wajib diisi';
       hasError = true;
       firstErrorKey ??= _noKkKey;
-    } else if (noKk.length != 16) {
-      _noKkError = 'Nomor KK harus 16 digit';
-      hasError = true;
-      firstErrorKey ??= _noKkKey;
+    } else {
+      final kkValidationError = KkNikValidator.validateNoKk(noKk);
+      if (kkValidationError != null) {
+        _noKkError = kkValidationError;
+        hasError = true;
+        firstErrorKey ??= _noKkKey;
+      }
     }
 
-    // Validasi NIK Anak (opsional, jika diisi harus 16 digit angka)
+    // Validasi NIK Anak (opsional — jika diisi, validasi format + cross-check tanggal lahir & gender)
     final nik = _nikController.text.trim();
-    if (nik.isNotEmpty && nik.length != 16) {
-      _nikError = 'NIK Anak harus 16 digit';
-      hasError = true;
-      firstErrorKey ??= _nikKey;
+    if (nik.isNotEmpty) {
+      final nikValidationError = KkNikValidator.validateNik(
+        nik,
+        birthDate: _selectedBirthDate,
+        gender: _selectedGender,
+      );
+      if (nikValidationError != null) {
+        _nikError = nikValidationError;
+        hasError = true;
+        firstErrorKey ??= _nikKey;
+      }
     }
 
     final nama = _namaController.text.trim();
