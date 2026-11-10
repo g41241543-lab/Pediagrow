@@ -442,8 +442,8 @@ class _BerandaPageState extends State<BerandaPage> {
   // Dilengkapi ilustrasi langit dinamis (matahari/bulan, awan cumulus, burung).
   // ===================================================================
   Widget _buildSeamlessBlueArea(BuildContext context) {
-    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
 
     return Container(
       width: double.infinity,

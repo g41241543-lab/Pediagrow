@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 
 /// Pilihan mode waktu langit pada header
 enum SkyTimeMode {
-  /// Otomatis berdasarkan jam perangkat:
-  /// - Siang (05:00 - 17:59)
-  /// - Malam (18:00 - 04:59)
+  /// Mengikuti mode tema aplikasi / perangkat:
+  /// - Light mode -> Matahari (day)
+  /// - Dark mode  -> Bulan sabit (night)
+  /// Aturan jam telah dihilangkan sepenuhnya.
   auto,
 
   /// Memaksa mode siang (matahari, burung, awan cerah)
   day,
 
-  /// Memaksa mode malam (bulan sabit, bintang berkelip, awan malam)
+  /// Memaksa mode malam (bulan sabit elegan, bintang berkelip, awan malam)
   night,
 }
 
@@ -32,12 +33,16 @@ class HeaderSkyIllustration extends StatefulWidget {
     this.renderBackgroundGradient = false,
   });
 
-  /// Helper untuk mengecek apakah saat ini mode malam berdasarkan waktu lokal
-  static bool checkIsNight(SkyTimeMode mode) {
+  /// Helper untuk mengecek apakah saat ini mode malam:
+  /// - Jika [SkyTimeMode.auto], otomatis mengikuti apakah mode gelap (isDark) aktif.
+  /// - Aturan jam perangkat (hour < 5 || hour >= 18) telah dihilangkan sepenuhnya.
+  static bool checkIsNight([
+    SkyTimeMode mode = SkyTimeMode.auto,
+    bool isDark = false,
+  ]) {
     if (mode == SkyTimeMode.day) return false;
     if (mode == SkyTimeMode.night) return true;
-    final hour = DateTime.now().hour;
-    return hour < 5 || hour >= 18;
+    return isDark;
   }
 
   /// Warna gradasi latar langit untuk siang hari (top to bottom):
@@ -208,8 +213,10 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
 
   @override
   Widget build(BuildContext context) {
-    final isNight = HeaderSkyIllustration.checkIsNight(widget.mode);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Mengikuti aturan tema: jika Light Mode -> matahari (day), jika Dark Mode -> bulan (night)
+    final isNight = widget.mode == SkyTimeMode.night ||
+        (widget.mode == SkyTimeMode.auto && isDark);
 
     return IgnorePointer(
       child: Stack(
@@ -237,182 +244,8 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
             ),
 
           // -----------------------------------------------------------
-          // ELEMEN LANGIT UTAMA: MATAHARI (SIANG) ATAU BULAN & BINTANG (MALAM)
+          // LAYER 1: AWAN LATAR BELAKANG (Di belakang Matahari/Bulan)
           // -----------------------------------------------------------
-          if (!isNight) ...[
-            // MATAHARI (Ukuran proporsional ~74x74, kanan atas tanpa menutupi notifikasi)
-            AnimatedBuilder(
-              animation: _floatController,
-              builder: (context, _) {
-                return Positioned(
-                  top: 8 + (_cloudFloat.value * 0.4),
-                  right: 48 + (_cloudDrift.value * 0.3),
-                  child: AnimatedBuilder(
-                    animation: _rotationController,
-                    builder: (context, _) {
-                      return _EnlargedSun(
-                        pulseValue: _sunPulse.value,
-                        rotateAngle: _rotationController.value * 2 * math.pi,
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-
-            // SILUET BURUNG-BURUNG TERBANG (Siang hari: terbang meluncur & kepakan sayap alami)
-            AnimatedBuilder(
-              animation: Listenable.merge([
-                _birdWingController,
-                _birdFlightController,
-              ]),
-              builder: (context, _) {
-                // Pergeseran horizontal terbang (offset -18 sampai +18 dp secara tenang)
-                final flightOffset =
-                    (_birdFlightController.value - 0.5) * 36.0;
-                final flightWave =
-                    math.sin(_birdFlightController.value * math.pi * 2) * 3.5;
-
-                return Stack(
-                  children: [
-                    // Burung 1 (Pemimpin formasi, meluncur elegan di antara sapaan & matahari)
-                    Positioned(
-                      top: 18 + (_birdWingFlap.value * 1.5) + flightWave,
-                      right: 145 + flightOffset,
-                      child: _FlyingBird(
-                        width: 16,
-                        height: 8.5,
-                        wingState: _birdWingFlap.value,
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.38),
-                      ),
-                    ),
-                    // Burung 2 (Mengikuti di belakang-atas burung 1, lebih kecil)
-                    Positioned(
-                      top: 12 - (_birdWingFlap.value * 1.2) + (flightWave * 0.8),
-                      right: 172 + (flightOffset * 0.9),
-                      child: _FlyingBird(
-                        width: 12.5,
-                        height: 6.5,
-                        wingState: -_birdWingFlap.value * 0.9,
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.30),
-                      ),
-                    ),
-                    // Burung 3 (Burung kecil yang meluncur santai di langit tengah-kiri)
-                    Positioned(
-                      top: 66 + (_birdWingFlap.value * 1.0) - (flightWave * 0.7),
-                      left: 175 - (flightOffset * 0.8),
-                      child: _FlyingBird(
-                        width: 13.5,
-                        height: 7.0,
-                        wingState: _birdWingFlap.value * 0.85,
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.26),
-                      ),
-                    ),
-                    // Burung 4 (Burung mungil di kejauhan dekat area transisi atas)
-                    Positioned(
-                      top: 42 + (_birdWingFlap.value * 0.8) + (flightWave * 0.5),
-                      right: 215 + (flightOffset * 0.7),
-                      child: _FlyingBird(
-                        width: 10.0,
-                        height: 5.5,
-                        wingState: -_birdWingFlap.value * 0.8,
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.20),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ] else ...[
-            // BULAN SABIT ELEGAN (Malam hari)
-            AnimatedBuilder(
-              animation: _floatController,
-              builder: (context, _) {
-                return Positioned(
-                  top: 8 + (_cloudFloat.value * 0.4),
-                  right: 48 + (_cloudDrift.value * 0.3),
-                  child: _CrescentMoon(pulseValue: _sunPulse.value),
-                );
-              },
-            ),
-
-            // TABURAN BINTANG BERKELIP (Malam hari)
-            AnimatedBuilder(
-              animation: _starController,
-              builder: (context, _) {
-                return Stack(
-                  children: [
-                    // Bintang 1 (dekat bulan, terang)
-                    Positioned(
-                      top: 22,
-                      right: 125,
-                      child: _TwinklingStar(size: 9, opacity: _starPulse.value),
-                    ),
-                    // Bintang 2 (kecil, di atas kanan bulan)
-                    Positioned(
-                      top: 10,
-                      right: 38,
-                      child: _TwinklingStar(
-                        size: 6,
-                        opacity: (1.35 - _starPulse.value).clamp(0.2, 1.0),
-                      ),
-                    ),
-                    // Bintang 3 (di tengah langit)
-                    Positioned(
-                      top: 36,
-                      right: 160,
-                      child: _TwinklingStar(
-                        size: 7,
-                        opacity: _starPulse.value * 0.85,
-                      ),
-                    ),
-                    // Bintang 4 (dekat sapaan di kiri)
-                    Positioned(
-                      top: 20,
-                      left: 165,
-                      child: _TwinklingStar(
-                        size: 8,
-                        opacity: (1.2 - _starPulse.value).clamp(0.25, 0.95),
-                      ),
-                    ),
-                    // Bintang 5 (di atas judul Profil Anak)
-                    Positioned(
-                      top: 68,
-                      left: 110,
-                      child: _TwinklingStar(
-                        size: 6,
-                        opacity: _starPulse.value * 0.75,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-
-          // -----------------------------------------------------------
-          // AWAN CUMULUS FLUFFY — Mengapung & Bergeser Halus (Natural Tone)
-          // Siluet utuh satu kesatuan (Path union) dengan shading lembut,
-          // posisinya tidak menutupi teks penting atau kartu profil anak.
-          // -----------------------------------------------------------
-
-          // Awan 1 — Sudut Kanan Atas (di belakang matahari / notifikasi)
-          AnimatedBuilder(
-            animation: _floatController,
-            builder: (context, _) {
-              return Positioned(
-                top: 4 + (_cloudFloat.value * 0.6),
-                right: -18 + _cloudDrift.value,
-                child: _CumulusCloud(
-                  width: 86,
-                  height: 36,
-                  isNight: isNight,
-                  opacity: isNight ? 0.50 : 0.60,
-                  flipHorizontal: false,
-                ),
-              );
-            },
-          ),
 
           // Awan 2 — Sudut Kiri Atas (di belakang sapaan "Hai, Susanti")
           AnimatedBuilder(
@@ -425,25 +258,7 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
                   width: 78,
                   height: 32,
                   isNight: isNight,
-                  opacity: isNight ? 0.45 : 0.55,
-                  flipHorizontal: true,
-                ),
-              );
-            },
-          ),
-
-          // Awan 3 — Tengah Atas (antara sapaan dan matahari)
-          AnimatedBuilder(
-            animation: _floatController,
-            builder: (context, _) {
-              return Positioned(
-                top: 48 - (_cloudFloat.value * 0.4),
-                right: -10 + (_cloudDrift.value * 0.6),
-                child: _CumulusCloud(
-                  width: 74,
-                  height: 32,
-                  isNight: isNight,
-                  opacity: isNight ? 0.42 : 0.50,
+                  opacity: isNight ? 0.35 : 0.55,
                   flipHorizontal: true,
                 ),
               );
@@ -461,7 +276,7 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
                   width: 82,
                   height: 34,
                   isNight: isNight,
-                  opacity: isNight ? 0.30 : 0.38,
+                  opacity: isNight ? 0.22 : 0.38,
                   flipHorizontal: false,
                 ),
               );
@@ -479,7 +294,191 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
                   width: 90,
                   height: 38,
                   isNight: isNight,
-                  opacity: isNight ? 0.28 : 0.35,
+                  opacity: isNight ? 0.20 : 0.35,
+                  flipHorizontal: true,
+                ),
+              );
+            },
+          ),
+
+          // -----------------------------------------------------------
+          // LAYER 2: ELEMEN CELESTIAL UTAMA: MATAHARI (LIGHT) ATAU BULAN & BINTANG (DARK)
+          // -----------------------------------------------------------
+          if (!isNight) ...[
+            // MATAHARI (Ukuran proporsional 82x82, memancarkan kehangatan ramah & cerah)
+            AnimatedBuilder(
+              animation: _floatController,
+              builder: (context, _) {
+                return Positioned(
+                  top: 10 + (_cloudFloat.value * 0.4),
+                  right: 52 + (_cloudDrift.value * 0.3),
+                  child: AnimatedBuilder(
+                    animation: _rotationController,
+                    builder: (context, _) {
+                      return _EnlargedSun(
+                        pulseValue: _sunPulse.value,
+                        rotateAngle: _rotationController.value * 2 * math.pi,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+
+            // SILUET BURUNG-BURUNG TERBANG (Siang hari: meluncur tenang dengan kepakan sayap alami)
+            AnimatedBuilder(
+              animation: Listenable.merge([
+                _birdWingController,
+                _birdFlightController,
+              ]),
+              builder: (context, _) {
+                final flightOffset =
+                    (_birdFlightController.value - 0.5) * 36.0;
+                final flightWave =
+                    math.sin(_birdFlightController.value * math.pi * 2) * 3.5;
+
+                return Stack(
+                  children: [
+                    // Burung 1 (Pemimpin formasi)
+                    Positioned(
+                      top: 18 + (_birdWingFlap.value * 1.5) + flightWave,
+                      right: 145 + flightOffset,
+                      child: _FlyingBird(
+                        width: 16,
+                        height: 8.5,
+                        wingState: _birdWingFlap.value,
+                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.38),
+                      ),
+                    ),
+                    // Burung 2 (Mengikuti di belakang-atas burung 1)
+                    Positioned(
+                      top: 12 - (_birdWingFlap.value * 1.2) + (flightWave * 0.8),
+                      right: 172 + (flightOffset * 0.9),
+                      child: _FlyingBird(
+                        width: 12.5,
+                        height: 6.5,
+                        wingState: -_birdWingFlap.value * 0.9,
+                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.30),
+                      ),
+                    ),
+                    // Burung 3 (Burung kecil yang meluncur di langit tengah)
+                    Positioned(
+                      top: 66 + (_birdWingFlap.value * 1.0) - (flightWave * 0.7),
+                      left: 175 - (flightOffset * 0.8),
+                      child: _FlyingBird(
+                        width: 13.5,
+                        height: 7.0,
+                        wingState: _birdWingFlap.value * 0.85,
+                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.26),
+                      ),
+                    ),
+                    // Burung 4 (Burung mungil di kejauhan)
+                    Positioned(
+                      top: 42 + (_birdWingFlap.value * 0.8) + (flightWave * 0.5),
+                      right: 215 + (flightOffset * 0.7),
+                      child: _FlyingBird(
+                        width: 10.0,
+                        height: 5.5,
+                        wingState: -_birdWingFlap.value * 0.8,
+                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.20),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ] else ...[
+            // BULAN SABIT ELEGAN (Malam hari / Dark Mode: kurva presisi anggun & berpendar)
+            AnimatedBuilder(
+              animation: _floatController,
+              builder: (context, _) {
+                return Positioned(
+                  top: 10 + (_cloudFloat.value * 0.4),
+                  right: 52 + (_cloudDrift.value * 0.3),
+                  child: _CrescentMoon(pulseValue: _sunPulse.value),
+                );
+              },
+            ),
+
+            // TABURAN BINTANG BERKELIP (Malam hari / Dark Mode: berkilau anggun di langit terbuka)
+            AnimatedBuilder(
+              animation: _starController,
+              builder: (context, _) {
+                return Stack(
+                  children: [
+                    // Bintang 1 (Bintang senja terang, dekat bulan)
+                    Positioned(
+                      top: 24,
+                      right: 124,
+                      child: _TwinklingStar(size: 8.5, opacity: _starPulse.value),
+                    ),
+                    // Bintang 2 (Bintang mungil di atas-kanan bulan)
+                    Positioned(
+                      top: 12,
+                      right: 42,
+                      child: _TwinklingStar(
+                        size: 5.5,
+                        opacity: (1.35 - _starPulse.value).clamp(0.2, 1.0),
+                      ),
+                    ),
+                    // Bintang 3 (Di langit tengah, lembut)
+                    Positioned(
+                      top: 46,
+                      right: 148,
+                      child: _TwinklingStar(
+                        size: 6.5,
+                        opacity: _starPulse.value * 0.85,
+                      ),
+                    ),
+                    // Bintang 4 (Di dekat transisi sapaan kiri)
+                    Positioned(
+                      top: 32,
+                      left: 175,
+                      child: _TwinklingStar(
+                        size: 6.0,
+                        opacity: (1.2 - _starPulse.value).clamp(0.25, 0.95),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+
+          // -----------------------------------------------------------
+          // LAYER 3: AWAN MENGAPUNG DEPAN (Drifting lembut tanpa menutupi wajah Bulan/Matahari)
+          // -----------------------------------------------------------
+
+          // Awan 1 — Sudut Kanan Atas (tepi luar kanan)
+          AnimatedBuilder(
+            animation: _floatController,
+            builder: (context, _) {
+              return Positioned(
+                top: 2 + (_cloudFloat.value * 0.6),
+                right: -24 + _cloudDrift.value,
+                child: _CumulusCloud(
+                  width: 86,
+                  height: 36,
+                  isNight: isNight,
+                  opacity: isNight ? 0.28 : 0.60,
+                  flipHorizontal: false,
+                ),
+              );
+            },
+          ),
+
+          // Awan 3 — Tengah Atas (antara sapaan dan matahari)
+          AnimatedBuilder(
+            animation: _floatController,
+            builder: (context, _) {
+              return Positioned(
+                top: 48 - (_cloudFloat.value * 0.4),
+                right: -10 + (_cloudDrift.value * 0.6),
+                child: _CumulusCloud(
+                  width: 74,
+                  height: 32,
+                  isNight: isNight,
+                  opacity: isNight ? 0.26 : 0.50,
                   flipHorizontal: true,
                 ),
               );
@@ -505,8 +504,8 @@ class _EnlargedSun extends StatelessWidget {
     return Transform.scale(
       scale: pulseValue,
       child: SizedBox(
-        width: 76,
-        height: 76,
+        width: 82,
+        height: 82,
         child: CustomPaint(
           painter: _EnlargedSunPainter(rotateAngle: rotateAngle),
         ),
@@ -525,29 +524,33 @@ class _EnlargedSunPainter extends CustomPainter {
     final cx = size.width / 2;
     final cy = size.height / 2;
     final center = Offset(cx, cy);
+    final rCore = size.width * 0.23;
 
     // 1. Multi-layered Ambient Glow (Pendaran cahaya luar yang hangat dan luas)
     final outerAura = Paint()
       ..color = const Color(0xFFFFE082).withValues(alpha: 0.22)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
-    canvas.drawCircle(center, size.width * 0.45, outerAura);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+    canvas.drawCircle(center, rCore * 1.95, outerAura);
 
     final midAura = Paint()
-      ..color = const Color(0xFFFFF9C4).withValues(alpha: 0.40)
+      ..color = const Color(0xFFFFF9C4).withValues(alpha: 0.42)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(center, size.width * 0.35, midAura);
+    canvas.drawCircle(center, rCore * 1.50, midAura);
 
-    // 2. Pancaran sinar matahari lembut yang berputar (10 Sinar)
-    final rayPaint = Paint()
-      ..color = const Color(0xFFFFD54F).withValues(alpha: 0.70)
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-
-    const numRays = 10;
-    final innerRayR = size.width * 0.28;
-    final outerRayR = size.width * 0.42;
-
+    // 2. Pancaran sinar matahari bergantian (12 Sinar: 6 Utama Panjang & 6 Sekunder Pendek)
+    const numRays = 12;
     for (int i = 0; i < numRays; i++) {
+      final isLong = (i % 2 == 0);
+      final rayPaint = Paint()
+        ..color = isLong
+            ? const Color(0xFFFFCA28).withValues(alpha: 0.88)
+            : const Color(0xFFFFE082).withValues(alpha: 0.68)
+        ..strokeWidth = isLong ? 3.0 : 2.2
+        ..strokeCap = StrokeCap.round;
+
+      final innerRayR = rCore * 1.16;
+      final outerRayR = isLong ? (rCore * 1.70) : (rCore * 1.46);
+
       final angle = rotateAngle + (i * 2 * math.pi) / numRays;
       final x1 = cx + innerRayR * math.cos(angle);
       final y1 = cy + innerRayR * math.sin(angle);
@@ -556,22 +559,33 @@ class _EnlargedSunPainter extends CustomPainter {
       canvas.drawLine(Offset(x1, y1), Offset(x2, y2), rayPaint);
     }
 
-    // 3. Inti matahari dengan gradient hangat (Kuning Emas -> Oranye Cerah)
+    // 3. Inti matahari dengan gradient hangat (Putih Inti -> Kuning Cerah -> Oranye Keemasan)
     const coreGradient = RadialGradient(
       colors: [
-        Color(0xFFFFFFFF), // Highlight putih di tengah
-        Color(0xFFFFF176), // Kuning cerah
-        Color(0xFFFFB74D), // Emas oranye hangat di tepi
+        Color(0xFFFFFFFF), // 0.0: Highlight putih di tengah
+        Color(0xFFFFF176), // 0.45: Kuning cerah matahari
+        Color(0xFFFFD54F), // 0.80: Kuning emas hangat
+        Color(0xFFFFB300), // 1.0: Emas oranye di tepi untuk kedalaman 3D
       ],
-      stops: [0.0, 0.55, 1.0],
+      stops: [0.0, 0.45, 0.80, 1.0],
     );
 
     final corePaint = Paint()
       ..shader = coreGradient.createShader(
-        Rect.fromCircle(center: center, radius: size.width * 0.24),
+        Rect.fromCircle(center: center, radius: rCore),
       );
 
-    canvas.drawCircle(center, size.width * 0.24, corePaint);
+    canvas.drawCircle(center, rCore, corePaint);
+
+    // 4. Specular gloss lengkung halus di kuadran kiri-atas inti matahari
+    final glossPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
+    final glossCenter = Offset(cx - rCore * 0.32, cy - rCore * 0.32);
+    canvas.save();
+    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: rCore)));
+    canvas.drawCircle(glossCenter, rCore * 0.42, glossPaint);
+    canvas.restore();
   }
 
   @override
@@ -592,8 +606,8 @@ class _CrescentMoon extends StatelessWidget {
     return Transform.scale(
       scale: pulseValue,
       child: SizedBox(
-        width: 68,
-        height: 68,
+        width: 76,
+        height: 76,
         child: CustomPaint(painter: _CrescentMoonPainter()),
       ),
     );
@@ -607,52 +621,84 @@ class _CrescentMoonPainter extends CustomPainter {
     final cy = size.height / 2;
     final center = Offset(cx, cy);
 
-    // 1. Pendaran lembut cahaya bulan (Silver Moonlight Glow)
-    final glowPaint = Paint()
-      ..color = const Color(0xFFBFDBFE).withValues(alpha: 0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
-    canvas.drawCircle(center, size.width * 0.40, glowPaint);
+    // 1. Pendaran lembut cahaya bulan (Silver Moonlight + Warm Lunar Glow)
+    final outerGlow = Paint()
+      ..color = const Color(0xFF93C5FD).withValues(alpha: 0.20)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    canvas.drawCircle(center, size.width * 0.42, outerGlow);
 
-    // 2. Bentuk Bulan Sabit (Crescent Path dengan kurva mulus)
-    final moonPath = Path();
-    final r = size.width * 0.28;
+    final innerGlow = Paint()
+      ..color = const Color(0xFFFEF3C7).withValues(alpha: 0.32)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9);
+    canvas.drawCircle(center, size.width * 0.32, innerGlow);
 
-    // Busur luar
-    moonPath.addArc(
-      Rect.fromCircle(center: center, radius: r),
-      -math.pi * 0.45,
-      math.pi * 1.45,
+    // 2. Bentuk Bulan Sabit Matematika Presisi (Boolean Difference Mask)
+    // Menghasilkan kurva sabit yang anggun dan ujung tanduk yang meruncing mulus sempurna
+    final rOuter = size.width * 0.30;
+    final outerPath = Path()
+      ..addOval(Rect.fromCircle(center: center, radius: rOuter));
+
+    final rInner = rOuter * 0.90;
+    // Offset cekungan lingkaran pemotong ke arah atas-kiri
+    final innerCenter = Offset(
+      center.dx - rOuter * 0.40,
+      center.dy - rOuter * 0.18,
+    );
+    final innerPath = Path()
+      ..addOval(Rect.fromCircle(center: innerCenter, radius: rInner));
+
+    final crescentPath = Path.combine(
+      PathOperation.difference,
+      outerPath,
+      innerPath,
     );
 
-    // Busur dalam (cekungan bulan sabit)
-    moonPath.arcToPoint(
-      Offset(
-        center.dx + r * math.cos(-math.pi * 0.45),
-        center.dy + r * math.sin(-math.pi * 0.45),
-      ),
-      radius: Radius.circular(r * 1.15),
-      clockwise: false,
-    );
-
-    // Gradient warna bulan sabit (Perak terang keemasan)
+    // 3. Gradient warna bulan sabit (Perak Luminous -> Krem Hangat -> Emas Lembut)
     const moonGradient = LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      begin: Alignment.topRight,
+      end: Alignment.bottomLeft,
       colors: [
-        Color(0xFFFFFFFF),
-        Color(0xFFFEF3C7), // Warm creamy gold
-        Color(0xFFFDE68A),
+        Color(0xFFFFFFFF), // Highlight kristal terang di punggung sabit
+        Color(0xFFFFFDE7), // Krem gading hangat
+        Color(0xFFFEF9C3), // Emas moonlight pastel lembut
+        Color(0xFFFDE68A), // Emas madu hangat di sisi dalam
       ],
-      stops: [0.0, 0.6, 1.0],
+      stops: [0.0, 0.32, 0.68, 1.0],
     );
 
     final moonPaint = Paint()
       ..shader = moonGradient.createShader(
-        Rect.fromCircle(center: center, radius: r),
+        Rect.fromCircle(center: center, radius: rOuter),
       )
       ..style = PaintingStyle.fill;
 
-    canvas.drawPath(moonPath, moonPaint);
+    canvas.drawPath(crescentPath, moonPaint);
+
+    // 4. Highlight tepi kurva luar (Specular Rim Light)
+    final rimPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.save();
+    canvas.clipPath(crescentPath);
+    canvas.drawOval(Rect.fromCircle(center: center, radius: rOuter), rimPaint);
+
+    // 5. Aksen kawah bulan halus transparan untuk tekstur ilustratif elegan
+    final craterPaint = Paint()
+      ..color = const Color(0xFFE2E8F0).withValues(alpha: 0.12)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2);
+    canvas.drawCircle(
+      Offset(center.dx + rOuter * 0.28, center.dy + rOuter * 0.20),
+      rOuter * 0.12,
+      craterPaint,
+    );
+    canvas.drawCircle(
+      Offset(center.dx + rOuter * 0.12, center.dy - rOuter * 0.24),
+      rOuter * 0.09,
+      craterPaint,
+    );
+    canvas.restore();
   }
 
   @override
@@ -690,11 +736,11 @@ class _StarPainter extends CustomPainter {
 
     // Pendaran lembut bintang
     final glow = Paint()
-      ..color = const Color(0xFFFEF08A).withValues(alpha: 0.6)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-    canvas.drawCircle(center, size.width * 0.35, glow);
+      ..color = const Color(0xFFFEF08A).withValues(alpha: 0.65)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
+    canvas.drawCircle(center, size.width * 0.38, glow);
 
-    // Bentuk kilau 4-titik (Cross glint)
+    // Bentuk kilau 4-titik elegan (Diamond sparkle)
     final starPath = Path();
     starPath.moveTo(cx, 0);
     starPath.quadraticBezierTo(cx, cy, size.width, cy);

@@ -217,7 +217,8 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   // 1. AREA BIRU SEAMLESS (Header + HeaderSkyIllustration)
   // ──────────────────────────────────────────────────────────────────
   Widget _buildSeamlessBlueArea(BuildContext context) {
-    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
 
     return Container(
       width: double.infinity,
@@ -226,12 +227,14 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isNight
-              ? HeaderSkyIllustration.nightGradientColors
-              : HeaderSkyIllustration.dayGradientColors,
-          stops: isNight
-              ? HeaderSkyIllustration.nightGradientStops
-              : HeaderSkyIllustration.dayGradientStops,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
         ),
       ),
       child: Stack(
