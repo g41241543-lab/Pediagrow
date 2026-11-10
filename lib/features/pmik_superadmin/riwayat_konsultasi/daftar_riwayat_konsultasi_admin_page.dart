@@ -1093,189 +1093,21 @@ class _DaftarRiwayatKonsultasiAdminPageState
 
   // ─── KARTU KONSULTASI SESUAI DESAIN ─────────────────────────────────────────
   Widget _buildConsultationCard(RiwayatKonsultasiAdminItem item) {
-    final ageText = item.calculatedAge;
-
-    return HoverLift(
-      borderRadius: BorderRadius.circular(16.0),
-      cursor: SystemMouseCursors.click,
-      child: Container(
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: _isDark ? 0.25 : 0.03),
-            blurRadius: 8.0,
-            offset: const Offset(0, 2),
+    return _AdminRiwayatConsultationCard(
+      item: item,
+      isDark: _isDark,
+      colorTextBlack: _colorTextBlack,
+      colorSecondaryGrey: _colorSecondaryGrey,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DetailRiwayatKonsultasiAdminPage(item: item),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16.0),
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => DetailRiwayatKonsultasiAdminPage(item: item),
-              ),
-            );
-          },
-          hoverColor: _isDark ? const Color(0xFF222E35) : const Color(0xFFF1F5F9),
-          splashColor: const Color(0xFF72A9F4).withValues(alpha: 0.12),
-          highlightColor: const Color(0xFF72A9F4).withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(16.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Baris Atas: Avatar + Nama & Usia + Badge Status
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Avatar Anak Profil Resmi
-                    ChildAvatar(
-                      gender: item.childGender,
-                      isGirl: item.isGirl,
-                      size: 46.0,
-                    ),
-                    const SizedBox(width: 12.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.childName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                              color: _colorTextBlack,
-                            ),
-                          ),
-                          const SizedBox(height: 3.0),
-                          Text(
-                            ageText,
-                            style: GoogleFonts.lato(
-                              fontSize: 12.5,
-                              color: _colorSecondaryGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8.0),
-                    _buildStatusBadge(item.status),
-                  ],
-                ),
-                const SizedBox(height: 12.0),
-                Divider(
-                  height: 1.0,
-                  thickness: 1.0,
-                  color: _isDark
-                      ? const Color(0xFF2C363D)
-                      : const Color(0xFFF1F5F9),
-                ),
-                const SizedBox(height: 10.0),
-
-                // Dokter & Tanggal
-                Row(
-                  children: [
-                    Icon(
-                      Icons.person_outline_rounded,
-                      size: 15.0,
-                      color: _colorSecondaryGrey,
-                    ),
-                    const SizedBox(width: 6.0),
-                    Expanded(
-                      child: Text(
-                        item.doctorName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 13.0,
-                          color: _colorSecondaryGrey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4.0),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14.0,
-                      color: _colorSecondaryGrey,
-                    ),
-                    const SizedBox(width: 6.0),
-                    Text(
-                      item.formattedDate,
-                      style: GoogleFonts.lato(
-                        fontSize: 12.5,
-                        color: _colorSecondaryGrey,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Ringkasan jika ada
-                if (item.complaint.isNotEmpty) ...[
-                  const SizedBox(height: 8.0),
-                  Text(
-                    'Keluhan: ${item.complaint}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 12.5,
-                      color: _isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF475569),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    ));
-  }
-
-  // ─── STATUS BADGE ─────────────────────────────────────────────────────────
-  Widget _buildStatusBadge(String status) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: _isDark
-            ? const Color(0xFF064E3B).withValues(alpha: 0.5)
-            : const Color(0xFFDCFCE7),
-        borderRadius: BorderRadius.circular(12.0),
-        border: _isDark
-            ? Border.all(
-                color: const Color(0xFF059669).withValues(alpha: 0.3),
-                width: 1.0,
-              )
-            : null,
-      ),
-      child: Text(
-        'Selesai',
-        style: GoogleFonts.lato(
-          fontSize: 11.5,
-          fontWeight: FontWeight.bold,
-          color: _isDark ? const Color(0xFF34D399) : const Color(0xFF15803D),
-        ),
-      ),
+        );
+      },
     );
   }
+
 
   // ─── EMPTY STATE ──────────────────────────────────────────────────────────
   Widget _buildEmptyState() {
@@ -1572,6 +1404,256 @@ class _HoverDoctorChildChipState extends State<_HoverDoctorChildChip> {
               color: widget.isSelected
                   ? const Color(0xFF3985E7)
                   : (isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Kartu Riwayat Konsultasi dengan Efek Hover & Touch Lift Responsif
+class _AdminRiwayatConsultationCard extends StatefulWidget {
+  final RiwayatKonsultasiAdminItem item;
+  final bool isDark;
+  final Color colorTextBlack;
+  final Color colorSecondaryGrey;
+  final VoidCallback onTap;
+
+  const _AdminRiwayatConsultationCard({
+    required this.item,
+    required this.isDark,
+    required this.colorTextBlack,
+    required this.colorSecondaryGrey,
+    required this.onTap,
+  });
+
+  @override
+  State<_AdminRiwayatConsultationCard> createState() =>
+      _AdminRiwayatConsultationCardState();
+}
+
+class _AdminRiwayatConsultationCardState
+    extends State<_AdminRiwayatConsultationCard> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+  Offset? _pointerDownPos;
+
+  bool get _isActiveLift => _isHovered || _isPressed;
+
+  Widget _buildStatusBadge(String status, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF064E3B).withValues(alpha: 0.5)
+            : const Color(0xFFDCFCE7),
+        borderRadius: BorderRadius.circular(12.0),
+        border: isDark
+            ? Border.all(
+                color: const Color(0xFF059669).withValues(alpha: 0.3),
+                width: 1.0,
+              )
+            : null,
+      ),
+      child: Text(
+        'Selesai',
+        style: GoogleFonts.lato(
+          fontSize: 11.5,
+          fontWeight: FontWeight.bold,
+          color: isDark ? const Color(0xFF34D399) : const Color(0xFF15803D),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final isDark = widget.isDark;
+    final ageText = item.calculatedAge;
+    const hoverAccent = Color(0xFF72A9F4);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        if (mounted) setState(() => _isHovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _isHovered = false);
+      },
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (e) {
+          _pointerDownPos = e.position;
+          if (mounted) setState(() => _isPressed = true);
+        },
+        onPointerMove: (e) {
+          if (_pointerDownPos != null && _isPressed) {
+            final distance = (e.position - _pointerDownPos!).distance;
+            if (distance > 10.0) {
+              if (mounted) setState(() => _isPressed = false);
+            }
+          }
+        },
+        onPointerUp: (_) {
+          _pointerDownPos = null;
+          if (mounted) setState(() => _isPressed = false);
+        },
+        onPointerCancel: (_) {
+          _pointerDownPos = null;
+          if (mounted) setState(() => _isPressed = false);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(
+              color: _isActiveLift
+                  ? hoverAccent
+                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
+              width: _isActiveLift ? 1.8 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _isActiveLift
+                    ? hoverAccent.withValues(alpha: isDark ? 0.35 : 0.22)
+                    : Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                blurRadius: _isActiveLift ? 14.0 : 8.0,
+                offset: Offset(0, _isActiveLift ? 4.0 : 2.0),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(16.0),
+            child: InkWell(
+              onTap: widget.onTap,
+              mouseCursor: SystemMouseCursors.click,
+              hoverColor: hoverAccent.withValues(alpha: 0.08),
+              splashColor: hoverAccent.withValues(alpha: 0.16),
+              highlightColor: hoverAccent.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(16.0),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Baris Atas: Avatar + Nama & Usia + Badge Status
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Avatar Anak Profil Resmi
+                        ChildAvatar(
+                          gender: item.childGender,
+                          isGirl: item.isGirl,
+                          size: 46.0,
+                        ),
+                        const SizedBox(width: 12.0),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.childName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.lato(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: widget.colorTextBlack,
+                                ),
+                              ),
+                              const SizedBox(height: 3.0),
+                              Text(
+                                ageText,
+                                style: GoogleFonts.lato(
+                                  fontSize: 12.5,
+                                  color: widget.colorSecondaryGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        _buildStatusBadge(item.status, isDark),
+                      ],
+                    ),
+                    const SizedBox(height: 12.0),
+                    Divider(
+                      height: 1.0,
+                      thickness: 1.0,
+                      color: isDark
+                          ? const Color(0xFF2C363D)
+                          : const Color(0xFFF1F5F9),
+                    ),
+                    const SizedBox(height: 10.0),
+
+                    // Dokter & Tanggal
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person_outline_rounded,
+                          size: 15.0,
+                          color: widget.colorSecondaryGrey,
+                        ),
+                        const SizedBox(width: 6.0),
+                        Expanded(
+                          child: Text(
+                            item.doctorName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 13.0,
+                              color: widget.colorSecondaryGrey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4.0),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 14.0,
+                          color: widget.colorSecondaryGrey,
+                        ),
+                        const SizedBox(width: 6.0),
+                        Text(
+                          item.formattedDate,
+                          style: GoogleFonts.lato(
+                            fontSize: 12.5,
+                            color: widget.colorSecondaryGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Ringkasan jika ada
+                    if (item.complaint.isNotEmpty) ...[
+                      const SizedBox(height: 8.0),
+                      Text(
+                        'Keluhan: ',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF475569),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/user_model.dart';
-import '../../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Data Orangtua untuk POV Dokter.
 ///
@@ -31,59 +30,40 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0B1014)
+          : Colors.white,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
             // ── 1. Header Fixed 56dp ───────────────────────────────
             _buildFixedHeader(),
-
-            // ── 2. Konten Scrollable ──────────────────────────────
+            // Konten Scrollable
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 16),
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 16),
 
-                            // ── Card Profil Header Orang Tua ─────────
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: _buildProfileHeaderCard(),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // ── Tabel Biodata Lengkap Orang Tua ──────
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: _buildBiodataTable(),
-                            ),
-
-                            const SizedBox(height: 24),
-
-                            // Spacer agar ilustrasi menempel di dasar
-                            const Spacer(),
-
-                            // Ilustrasi footer landscape
-                            const IllustrationForestFooter(
-                              fit: BoxFit.fitWidth,
-                            ),
-                          ],
-                        ),
-                      ),
+                    // Card Profil Header Orang Tua
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildProfileHeaderCard(),
                     ),
-                  );
-                },
+
+                    const SizedBox(height: 16),
+
+                    // Tabel Biodata Lengkap Orang Tua
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildBiodataTable(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -252,7 +232,10 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
                 const SizedBox(height: 8),
                 // Badge Terdaftar
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8F5E9),
                     borderRadius: BorderRadius.circular(6),
@@ -294,47 +277,37 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
 
     final rows = <_TableRowData>[
       _TableRowData(
-        icon: Icons.person_outline_rounded,
         label: 'Nama Lengkap',
         value: u.name.isNotEmpty ? u.name : '-',
       ),
       _TableRowData(
-        icon: Icons.email_outlined,
-        label: 'Email',
-        value: u.email.isNotEmpty ? u.email : '-',
+        label: 'Nomor Kartu Keluarga (KK)',
+        value: u.noKk?.isNotEmpty == true ? u.noKk! : '-',
       ),
       _TableRowData(
-        icon: Icons.phone_outlined,
+        label: 'NIK',
+        value: u.nik?.isNotEmpty == true ? u.nik! : '-',
+      ),
+      _TableRowData(label: 'Email', value: u.email.isNotEmpty ? u.email : '-'),
+      _TableRowData(
         label: 'Nomor Telepon',
         value: u.phone?.isNotEmpty == true ? u.phone! : '-',
       ),
+      _TableRowData(label: 'Jenis Kelamin', value: _formatGender(u.gender)),
+      _TableRowData(label: 'Tanggal Lahir', value: _formatDate(u.birthDate)),
       _TableRowData(
-        icon: Icons.wc_outlined,
-        label: 'Jenis Kelamin',
-        value: _formatGender(u.gender),
-      ),
-      _TableRowData(
-        icon: Icons.calendar_today_outlined,
-        label: 'Tanggal Lahir',
-        value: _formatDate(u.birthDate),
-      ),
-      _TableRowData(
-        icon: Icons.map_outlined,
         label: 'Provinsi',
         value: u.province?.isNotEmpty == true ? u.province! : '-',
       ),
       _TableRowData(
-        icon: Icons.location_city_outlined,
         label: 'Kota / Kabupaten',
         value: u.city?.isNotEmpty == true ? u.city! : '-',
       ),
       _TableRowData(
-        icon: Icons.holiday_village_outlined,
         label: 'Kecamatan',
         value: u.district?.isNotEmpty == true ? u.district! : '-',
       ),
       _TableRowData(
-        icon: Icons.home_work_outlined,
         label: 'Kelurahan / Desa',
         value: u.subDistrict?.isNotEmpty == true ? u.subDistrict! : '-',
       ),
@@ -369,36 +342,14 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card: Icon kotak biru + Judul
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF242E35)
-                      : const Color(0xFFEBF3FF),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.badge_outlined,
-                  color: _colorPrimaryBlue,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Biodata Orangtua',
-                  style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-                  ),
-                ),
-              ),
-            ],
+          // Header Card: Judul
+          Text(
+            'Biodata Orangtua',
+            style: GoogleFonts.lato(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+            ),
           ),
 
           const SizedBox(height: 14),
@@ -434,11 +385,6 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          item.icon,
-          size: 18,
-          color: _colorPrimaryBlue.withValues(alpha: 0.75),
-        ),
         const SizedBox(width: 10),
         SizedBox(
           width: 125,
@@ -503,13 +449,8 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
 }
 
 class _TableRowData {
-  final IconData icon;
   final String label;
   final String value;
 
-  _TableRowData({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+  _TableRowData({required this.label, required this.value});
 }
