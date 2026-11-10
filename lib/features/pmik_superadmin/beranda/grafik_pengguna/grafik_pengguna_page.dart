@@ -1,4 +1,4 @@
-﻿// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -158,12 +158,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   String _searchPenggunaQuery = '';
   Timer? _searchPenggunaDebounce;
 
-  // ── Search State: Dataset Stunting ─────────────────────────────────────────
-  final TextEditingController _searchStuntingController = TextEditingController();
-  final FocusNode _searchStuntingFocusNode = FocusNode();
-  String _searchStuntingQuery = '';
-  Timer? _searchStuntingDebounce;
-
   bool _isLoading = true;
   String? _errorMessage;
   bool _isDownloading = false;
@@ -276,11 +270,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     ChildService().childrenNotifier.removeListener(_onServiceDataUpdated);
     GrowthService().recordsNotifier.removeListener(_onServiceDataUpdated);
     _searchPenggunaDebounce?.cancel();
-    _searchStuntingDebounce?.cancel();
     _searchPenggunaController.dispose();
-    _searchStuntingController.dispose();
     _searchPenggunaFocusNode.dispose();
-    _searchStuntingFocusNode.dispose();
     _tabController.dispose();
     _scrollController1.dispose();
     _scrollController2.dispose();
@@ -743,26 +734,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     });
   }
 
-  void _onSearchStuntingChanged(String value) {
-    _searchStuntingDebounce?.cancel();
-    _searchStuntingDebounce = Timer(const Duration(milliseconds: 300), () {
-      final q = value.trim();
-      if (q != _searchStuntingQuery) {
-        setState(() => _searchStuntingQuery = q);
-      }
-    });
-  }
-
   void _clearSearchPengguna() {
     _searchPenggunaController.clear();
     _searchPenggunaFocusNode.unfocus();
     setState(() => _searchPenggunaQuery = '');
-  }
-
-  void _clearSearchStunting() {
-    _searchStuntingController.clear();
-    _searchStuntingFocusNode.unfocus();
-    setState(() => _searchStuntingQuery = '');
   }
 
   /// Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna maupun stunting
@@ -780,9 +755,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   /// Row stunting yang sudah difilter berdasarkan search query dan bulan
   List<StuntingRecordRow> get _filteredStuntingRows {
-    final query = _searchStuntingQuery.isNotEmpty
-        ? _searchStuntingQuery
-        : _stuntingSearchQuery;
+    final query = _stuntingSearchQuery;
 
     return _stuntingRows.where((r) {
       // Filter bulan jika dipilih
@@ -2638,69 +2611,90 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Searchbar Reusable untuk Dataset (gaya konsisten MPASI) ──────────────────
+  // ── Searchbar Reusable untuk Dataset (Theme-Aware, Konsisten Antar-Tab) ────
   Widget _buildDatasetSearchBar({
     required TextEditingController controller,
-    required FocusNode focusNode,
+    FocusNode? focusNode,
     required String hintText,
     required String currentQuery,
     required ValueChanged<String> onChanged,
     required VoidCallback onClear,
+    Widget? trailingAction,
   }) {
-    return Container(
-      height: 48.0,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F2F6),
-        borderRadius: BorderRadius.circular(20.0),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1.0),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.search_rounded,
-            size: 20.0,
-            color: Color(0xFF9E9E9E),
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 46.0,
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            decoration: BoxDecoration(
+              color: _isDark ? const Color(0xFF1E2C35) : Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(
+                color: _isDark ? const Color(0xFF2C363D) : _kBorderColor,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6.0,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_rounded,
+                  size: 20.0,
+                  color: _textSecondary,
+                ),
+                const SizedBox(width: 8.0),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    onChanged: onChanged,
+                    style: GoogleFonts.lato(
+                      fontSize: 13.5,
+                      color: _textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: hintText,
+                      hintStyle: GoogleFonts.lato(
+                        fontSize: 13.0,
+                        color: _textSecondary,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                if (currentQuery.isNotEmpty) ...[
+                  const SizedBox(width: 4.0),
+                  GestureDetector(
+                    onTap: onClear,
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 18.0,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
+        ),
+        if (trailingAction != null) ...[
           const SizedBox(width: 10.0),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              onChanged: onChanged,
-              style: GoogleFonts.lato(
-                fontSize: 14.0,
-                color: _kTextDark,
-              ),
-              decoration: InputDecoration(
-                hintText: hintText,
-                hintStyle: GoogleFonts.lato(
-                  fontSize: 14.0,
-                  color: _kTextMuted,
-                  fontWeight: FontWeight.w400,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              textInputAction: TextInputAction.search,
-            ),
-          ),
-          if (currentQuery.isNotEmpty)
-            GestureDetector(
-              onTap: onClear,
-              child: const Padding(
-                padding: EdgeInsets.all(4.0),
-                child: Icon(
-                  Icons.close_rounded,
-                  size: 18.0,
-                  color: Color(0xFF9E9E9E),
-                ),
-              ),
-            ),
+          trailingAction,
         ],
-      ),
+      ],
     );
   }
 
@@ -2733,14 +2727,71 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ),
         const SizedBox(height: 12.0),
 
-        // Searchbar Dataset Pengguna
-        _buildDatasetSearchBar(
-          controller: _searchPenggunaController,
-          focusNode: _searchPenggunaFocusNode,
-          hintText: 'Cari pengguna...',
-          currentQuery: _searchPenggunaQuery,
-          onChanged: _onSearchPenggunaChanged,
-          onClear: _clearSearchPengguna,
+        // Searchbar Dataset Pengguna (gaya dark/light sama dengan Grafik Stunting)
+        Container(
+          height: 46.0,
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          decoration: BoxDecoration(
+            color: _isDark ? const Color(0xFF1E2C35) : Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(
+              color: _isDark ? const Color(0xFF2C363D) : _kBorderColor,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6.0,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_rounded,
+                size: 20.0,
+                color: _textSecondary,
+              ),
+              const SizedBox(width: 8.0),
+              Expanded(
+                child: TextField(
+                  controller: _searchPenggunaController,
+                  focusNode: _searchPenggunaFocusNode,
+                  onChanged: _onSearchPenggunaChanged,
+                  style: GoogleFonts.lato(
+                    fontSize: 13.5,
+                    color: _textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: 'Cari pengguna...',
+                    hintStyle: GoogleFonts.lato(
+                      fontSize: 13.0,
+                      color: _textSecondary,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              if (_searchPenggunaQuery.isNotEmpty) ...[
+                const SizedBox(width: 4.0),
+                GestureDetector(
+                  onTap: _clearSearchPengguna,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 18.0,
+                      color: _textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
         const SizedBox(height: 10.0),
 
@@ -2906,10 +2957,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           _buildStuntingStackedBarChart(),
           const SizedBox(height: 24),
 
-          // 3. Search bar & Filter bulan
-          _buildStuntingSearchAndFilter(),
-          const SizedBox(height: 16),
-
           // 4. Dataset Header & Tombol Unduh (PMIK saja yang ada unduh)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2937,15 +2984,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
           const SizedBox(height: 10.0),
 
-          // Searchbar Dataset Hasil Cek Stunting
-          _buildDatasetSearchBar(
-            controller: _searchStuntingController,
-            focusNode: _searchStuntingFocusNode,
-            hintText: 'Cari nama anak...',
-            currentQuery: _searchStuntingQuery,
-            onChanged: _onSearchStuntingChanged,
-            onClear: _clearSearchStunting,
-          ),
+          // Search & Filter Dataset Hasil Cek Stunting
+          _buildStuntingSearchAndFilter(),
           const SizedBox(height: 10.0),
 
           // 5. Tabel Dataset — dikabrangkan berdasarkan role
@@ -2962,190 +3002,71 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // ── Search Bar & Filter Bulan ─────────────────────────────────────────────
   Widget _buildStuntingSearchAndFilter() {
     final isFiltered = _selectedStuntingMonth != null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            // 1. Search Bar dengan teks & hint yang presisi di tengah
-            Expanded(
-              child: Container(
-                height: 46.0,
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                decoration: BoxDecoration(
-                  color: _isDark ? const Color(0xFF1E2C35) : Colors.white,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(
-                    color: _isDark ? const Color(0xFF2C363D) : _kBorderColor,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 6.0,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_rounded,
-                      size: 20.0,
-                      color: _textSecondary,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Expanded(
-                      child: TextField(
-                        controller: _stuntingSearchController,
-                        onChanged: (v) => setState(() => _stuntingSearchQuery = v.trim()),
-                        style: GoogleFonts.lato(
-                          fontSize: 13.5,
-                          color: _textPrimary,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                          hintText: 'Cari nama anak atau status gizi...',
-                          hintStyle: GoogleFonts.lato(
-                            fontSize: 13.0,
-                            color: _textSecondary,
-                          ),
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    if (_stuntingSearchQuery.isNotEmpty) ...[
-                      const SizedBox(width: 4.0),
-                      GestureDetector(
-                        onTap: () {
-                          _stuntingSearchController.clear();
-                          setState(() => _stuntingSearchQuery = '');
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Icon(
-                            Icons.close_rounded,
-                            size: 18.0,
-                            color: _textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+    return _buildDatasetSearchBar(
+      controller: _stuntingSearchController,
+      hintText: 'Cari nama anak atau status gizi...',
+      currentQuery: _stuntingSearchQuery,
+      onChanged: (v) => setState(() => _stuntingSearchQuery = v.trim()),
+      onClear: () {
+        _stuntingSearchController.clear();
+        setState(() => _stuntingSearchQuery = '');
+      },
+      trailingAction: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _showStuntingMonthFilterBottomSheet,
+          borderRadius: BorderRadius.circular(12.0),
+          child: Container(
+            width: 46.0,
+            height: 46.0,
+            decoration: BoxDecoration(
+              color: isFiltered
+                  ? _kBluePrimary
+                  : (_isDark ? const Color(0xFF1E2C35) : Colors.white),
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(
+                color: isFiltered
+                    ? _kBluePrimary
+                    : (_isDark ? const Color(0xFF2C363D) : _kBorderColor),
               ),
-            ),
-            const SizedBox(width: 10.0),
-
-            // 2. Tombol Ikon Filter Corong di samping search bar (jarak ke sisi kanan layar 16dp)
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _showStuntingMonthFilterBottomSheet,
-                borderRadius: BorderRadius.circular(12.0),
-                child: Container(
-                  width: 46.0,
-                  height: 46.0,
-                  decoration: BoxDecoration(
-                    color: isFiltered
-                        ? _kBluePrimary
-                        : (_isDark ? const Color(0xFF1E2C35) : Colors.white),
-                    borderRadius: BorderRadius.circular(12.0),
-                    border: Border.all(
-                      color: isFiltered
-                          ? _kBluePrimary
-                          : (_isDark ? const Color(0xFF2C363D) : _kBorderColor),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isFiltered
-                            ? _kBluePrimary.withValues(alpha: 0.25)
-                            : Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 6.0,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(
-                        Icons.filter_alt_rounded,
-                        size: 21.0,
-                        color: isFiltered
-                            ? Colors.white
-                            : (_isDark ? const Color(0xFFE9EDEF) : _kBluePrimary),
-                      ),
-                      if (isFiltered)
-                        Positioned(
-                          top: 8.0,
-                          right: 8.0,
-                          child: Container(
-                            width: 7.0,
-                            height: 7.0,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFACC15),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: isFiltered
+                      ? _kBluePrimary.withValues(alpha: 0.25)
+                      : Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6.0,
+                  offset: const Offset(0, 2),
                 ),
-              ),
+              ],
             ),
-          ],
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  Icons.filter_alt_rounded,
+                  size: 21.0,
+                  color: isFiltered
+                      ? Colors.white
+                      : (_isDark ? const Color(0xFFE9EDEF) : _kBluePrimary),
+                ),
+                if (isFiltered)
+                  Positioned(
+                    top: 8.0,
+                    right: 8.0,
+                    child: Container(
+                      width: 7.0,
+                      height: 7.0,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFACC15),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
-
-        // Indikator status pencarian / filter bulan aktif
-        const SizedBox(height: 8.0),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${_filteredStuntingRows.length} data ditemukan'
-                '${_selectedStuntingMonth != null ? ' (Bulan: ${_bulanPanjang(_selectedStuntingMonth!)})' : ''}',
-                style: GoogleFonts.lato(
-                  fontSize: 11.5,
-                  color: _textSecondary,
-                ),
-              ),
-            ),
-            if (isFiltered)
-              GestureDetector(
-                onTap: () => setState(() => _selectedStuntingMonth = null),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
-                  decoration: BoxDecoration(
-                    color: _kBluePrimary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _bulanPanjang(_selectedStuntingMonth!),
-                        style: GoogleFonts.lato(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.w600,
-                          color: _kBluePrimary,
-                        ),
-                      ),
-                      const SizedBox(width: 4.0),
-                      const Icon(
-                        Icons.close_rounded,
-                        size: 13.0,
-                        color: _kBluePrimary,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
@@ -4047,7 +3968,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
                 alignment: Alignment.center,
                 child: Text(
-                  _searchStuntingQuery.isNotEmpty
+                  (_stuntingSearchQuery.isNotEmpty || _selectedStuntingMonth != null)
                       ? 'Data tidak ditemukan'
                       : 'Belum ada data riwayat cek stunting di database',
                   style: GoogleFonts.lato(

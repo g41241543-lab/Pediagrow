@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/resep_mpasi_service.dart';
@@ -388,14 +388,77 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
   // dan selalu berada tepat di bawah resep terakhir (bukan di lapisan belakang).
   // -------------------------------------------------------------------------
 
+  /// Skeleton loading: beberapa kartu abu-abu placeholder agar halaman
+  /// tidak terasa kosong saat data belum selesai dimuat dari Firestore.
+  Widget _buildSkeletonList(bool isDark) {
+    final baseColor = isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6);
+    final shimmerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE0E0E0);
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 6,
+      separatorBuilder: (_, _) => Divider(
+        height: 1,
+        thickness: 1,
+        color: isDark ? const Color(0xFF2C363D) : _colorDivider,
+        indent: 20,
+        endIndent: 20,
+      ),
+      itemBuilder: (_, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: shimmerColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 13,
+                    width: 140,
+                    decoration: BoxDecoration(
+                      color: baseColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    height: 13,
+                    width: 90,
+                    decoration: BoxDecoration(
+                      color: baseColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            Container(
+              width: 124,
+              height: 84,
+              decoration: BoxDecoration(
+                color: shimmerColor,
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildScrollableContent(bool isDark) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(_colorPrimaryBlue),
-        ),
-      );
+      return _buildSkeletonList(isDark);
     }
 
     if (_errorMessage != null) {

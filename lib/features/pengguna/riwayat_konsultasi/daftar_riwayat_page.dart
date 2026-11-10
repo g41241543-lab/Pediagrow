@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -362,13 +362,92 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
     );
   }
 
+  Widget _buildSkeletonList(bool isDark) {
+    final baseColor = isDark ? const Color(0xFF1A2228) : const Color(0xFFF5F7FA);
+    final shimmerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0);
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 5,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      itemBuilder: (_, _) => Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: baseColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EEF4),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: shimmerColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 14,
+                          width: 160,
+                          decoration: BoxDecoration(
+                            color: shimmerColor,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          height: 12,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            color: baseColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                height: 12,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: shimmerColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                height: 12,
+                width: 200,
+                decoration: BoxDecoration(
+                  color: baseColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBody(bool isDark) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF72A9F4)),
-        ),
-      );
+      return _buildSkeletonList(isDark);
     }
 
     if (_errorMessage != null) {

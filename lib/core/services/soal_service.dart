@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -74,7 +75,9 @@ class SoalService {
         }
       }
     } catch (e) {
-      debugPrint('SoalService.getAllSoal API error/timeout: $e — menggunakan cache/fallback');
+      debugPrint(
+        'SoalService.getAllSoal API error/timeout: $e — menggunakan cache/fallback',
+      );
     }
 
     // Jika sudah ada cache di memori, pakai itu
