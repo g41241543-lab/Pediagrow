@@ -1,7 +1,8 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/resep_mpasi_model.dart';
 import '../../models/staff_account_model.dart';
@@ -130,14 +131,24 @@ class ResepMpasiService {
   /// dijalankan dua perangkat bersamaan (tidak menghasilkan duplikat).
   Future<void> _seedIfEmpty() async {
     try {
+      // Flag lokal agar tidak perlu Firestore read ekstra setiap startup.
+      // Setelah pertama kali collection terisi, skip langsung tanpa round-trip.
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('resep_mpasi_seeded') == true) return;
+
       final col = _col;
       if (col == null) return;
       final check = await col.limit(1).get();
-      if (check.docs.isNotEmpty) return;
+      if (check.docs.isNotEmpty) {
+        // Data sudah ada — set flag agar startup berikutnya langsung skip.
+        await prefs.setBool('resep_mpasi_seeded', true);
+        return;
+      }
 
       final batch = FirebaseFirestore.instance.batch();
       _addSeedToBatch(batch, col);
       await batch.commit();
+      await prefs.setBool('resep_mpasi_seeded', true);
     } catch (e) {
       // Jangan menggagalkan pemuatan daftar hanya karena seed gagal
       // (misalnya pengguna tidak punya izin tulis).

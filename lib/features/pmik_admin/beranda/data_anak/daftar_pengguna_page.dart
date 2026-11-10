@@ -282,6 +282,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               builder: (context, userSnapshot) {
                 final userDocs = userSnapshot.data?.docs ?? [];
                 final Map<String, UserModel> usersById = {};
+                final List<UserModel> allUsersList = [];
 
                 for (final doc in userDocs) {
                   final data = doc.data();
@@ -290,16 +291,34 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   if (user.email.isNotEmpty) {
                     usersById[user.email.toLowerCase()] = user;
                   }
+                  allUsersList.add(user);
+                }
+
+                UserModel? resolveParent(ChildModel child) {
+                  if (child.ownerId.isNotEmpty) {
+                    final u = usersById[child.ownerId] ?? usersById[child.ownerId.toLowerCase()];
+                    if (u != null) return u;
+                  }
+                  for (final pId in child.parentIds) {
+                    final u = usersById[pId] ?? usersById[pId.toLowerCase()];
+                    if (u != null) return u;
+                  }
+                  if (child.noKk != null && child.noKk!.trim().isNotEmpty) {
+                    final cleanKk = child.noKk!.trim();
+                    for (final u in allUsersList) {
+                      if (u.noKk != null && u.noKk!.trim() == cleanKk) {
+                        return u;
+                      }
+                    }
+                  }
+                  return null;
                 }
 
                 final filteredChildren = allChildren.where((child) {
                   if (_searchQuery.isEmpty) return true;
                   final q = _searchQuery.toLowerCase();
                   final childMatch = child.name.toLowerCase().contains(q);
-                  final parentUser = usersById[child.ownerId] ??
-                      (child.ownerId.isNotEmpty
-                          ? usersById[child.ownerId.toLowerCase()]
-                          : null);
+                  final parentUser = resolveParent(child);
                   final parentMatch =
                       parentUser?.name.toLowerCase().contains(q) == true;
                   return childMatch || parentMatch;
@@ -311,7 +330,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
 
                 return _buildScrollableChildList(
                   filteredChildren,
-                  usersById,
+                  resolveParent,
                   constraints,
                 );
               },
@@ -324,7 +343,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
 
   Widget _buildScrollableChildList(
     List<ChildModel> children,
-    Map<String, UserModel> usersById,
+    UserModel? Function(ChildModel) resolveParent,
     BoxConstraints constraints,
   ) {
     return SingleChildScrollView(
@@ -339,10 +358,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               for (int i = 0; i < children.length; i++) ...[
                 _buildChildCard(
                   child: children[i],
-                  parentUser: usersById[children[i].ownerId] ??
-                      (children[i].ownerId.isNotEmpty
-                          ? usersById[children[i].ownerId.toLowerCase()]
-                          : null),
+                  parentUser: resolveParent(children[i]),
                 ),
               ],
               const Spacer(),
@@ -429,27 +445,11 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Avatar Anak
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: ChildAvatar.bgColorFor(gender: child.gender),
-                    shape: BoxShape.circle,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: child.photoUrl != null && child.photoUrl!.isNotEmpty
-                      ? Image.network(
-                          child.photoUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => ChildAvatar(
-                            gender: child.gender,
-                            size: 48,
-                          ),
-                        )
-                      : ChildAvatar(
-                          gender: child.gender,
-                          size: 48,
-                        ),
+                ChildAvatar(
+                  child: child,
+                  photoUrl: child.photoUrl,
+                  gender: child.gender,
+                  size: 48,
                 ),
                 const SizedBox(width: 14),
 

@@ -390,23 +390,22 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                         const SizedBox(height: 8),
 
-                        // 1. Ilustrasi Login (width: 291, height: 163)
+                        // 1. Ilustrasi Login Adaptif Light & Dark Mode (width: 291, height: 163)
                         Center(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: SizedBox(
-                              width: 291,
-                              height: 163,
-                              child: Image.asset(
-                                'assets/images/login_illustration.jpg',
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Image.asset(
-                                    'assets/images/family_illustration.png',
-                                    fit: BoxFit.contain,
-                                  );
-                                },
-                              ),
+                          child: SizedBox(
+                            width: 291,
+                            height: 163,
+                            child: Image.asset(
+                              isDark
+                                  ? 'assets/images/login_illustration_dark.png'
+                                  : 'assets/images/login_illustration.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/family_illustration.png',
+                                  fit: BoxFit.contain,
+                                );
+                              },
                             ),
                           ),
                         ),
