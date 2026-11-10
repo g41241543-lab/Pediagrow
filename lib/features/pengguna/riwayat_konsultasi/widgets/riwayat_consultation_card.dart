@@ -49,12 +49,8 @@ class _RiwayatConsultationCardState extends State<RiwayatConsultationCard> {
         widget.riwayat.childGender.toLowerCase() == 'p' ||
         widget.riwayat.childGender.toLowerCase() == 'female';
 
-    // Warna aksen hover & border glow seragam dengan beranda_page:
-    // Laki-laki: Sky Blue (#60A5FA / #38BDF8)
-    // Perempuan: Soft Pink (#F472B6 / #FB7185)
-    final Color hoverColor = isGirl
-        ? (isDark ? const Color(0xFFFB7185) : const Color(0xFFF472B6))
-        : (isDark ? const Color(0xFF38BDF8) : const Color(0xFF60A5FA));
+    // Warna aksen hover seragam sesuai contoh resume medis resmi PediaGrow (#72A9F4)
+    const Color hoverColor = Color(0xFF72A9F4);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -89,24 +85,24 @@ class _RiwayatConsultationCardState extends State<RiwayatConsultationCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
+          transform: Matrix4.translationValues(0, _isActiveLift ? -2.0 : 0.0, 0),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(16.0),
             border: Border.all(
               color: _isActiveLift
                   ? hoverColor
-                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
-              width: _isActiveLift ? 1.8 : 1.0,
+                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF)),
+              width: _isActiveLift ? 1.4 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: _isActiveLift
-                    ? hoverColor.withValues(alpha: isDark ? 0.35 : 0.22)
+                    ? hoverColor.withValues(alpha: isDark ? 0.25 : 0.14)
                     : (isDark
-                        ? Colors.black.withValues(alpha: 0.25)
-                        : const Color(0x08000000)),
-                blurRadius: _isActiveLift ? 14.0 : 8.0,
+                        ? Colors.black.withValues(alpha: 0.20)
+                        : const Color(0x0A000000)),
+                blurRadius: _isActiveLift ? 12.0 : 8.0,
                 offset: Offset(0, _isActiveLift ? 4.0 : 2.0),
               ),
             ],
@@ -117,9 +113,9 @@ class _RiwayatConsultationCardState extends State<RiwayatConsultationCard> {
             child: InkWell(
               onTap: widget.onTap,
               mouseCursor: SystemMouseCursors.click,
-              hoverColor: hoverColor.withValues(alpha: 0.08),
-              splashColor: hoverColor.withValues(alpha: 0.16),
-              highlightColor: hoverColor.withValues(alpha: 0.06),
+              hoverColor: hoverColor.withValues(alpha: 0.05),
+              splashColor: hoverColor.withValues(alpha: 0.12),
+              highlightColor: hoverColor.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16.0),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
