@@ -26,21 +26,37 @@ class IllustrationForestFooter extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: height,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: fit,
-        alignment: Alignment.bottomCenter,
-        color: isDark ? const Color(0xFF0B1014).withValues(alpha: 0.35) : null,
-        colorBlendMode: isDark ? BlendMode.srcATop : null,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: height ?? 100,
-          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: isDark ? const Color(0xFF10B981) : const Color(0xFF34D399),
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+          return const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Color(0x40000000),
+              Color(0xAA000000),
+              Colors.black,
+            ],
+            stops: [0.0, 0.04, 0.10, 0.18],
+          ).createShader(bounds);
+        },
+        blendMode: BlendMode.dstIn,
+        child: Image.asset(
+          isDark
+              ? 'assets/images/beranda_landscape_footer_dark.png'
+              : 'assets/images/beranda_landscape_footer_fiks.png',
+          width: double.infinity,
+          fit: fit,
+          alignment: Alignment.bottomCenter,
+          errorBuilder: (context, error, stackTrace) => Container(
+            height: height ?? 100,
+            color: isDark ? const Color(0xFF1A2228) : const Color(0xFFD1FAE5),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.park_outlined,
+              size: 44,
+              color: isDark ? const Color(0xFF10B981) : const Color(0xFF34D399),
+            ),
           ),
         ),
       ),

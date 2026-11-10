@@ -1073,7 +1073,7 @@ class _BerandaPageState extends State<BerandaPage> {
     required String imageAsset,
     required VoidCallback onTap,
     double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
-    double imageSize = 40, // ukuran logo, dikecilkan mengikuti card
+    double imageSize = 40, // ukuran logo pas & proporsional
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1084,19 +1084,23 @@ class _BerandaPageState extends State<BerandaPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card Menu: dikecilkan via padding horizontal, tetap kotak (1:1)
+          // Card Menu: tetap kotak (1:1), proporsional sesuai tema aplikasi Pediagrow
           Padding(
             padding: EdgeInsets.symmetric(horizontal: cardInset),
             child: AspectRatio(
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      isDark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF),
-                  borderRadius: BorderRadius.circular(10),
-                  border: isDark
-                      ? Border.all(color: const Color(0xFF2C363D))
-                      : null,
+                  color: isDark
+                      ? const Color(0xFF1A2228)
+                      : const Color(0xFFECF6FF),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF2C3943)
+                        : const Color(0xFFDCE8F4),
+                    width: 1.0,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: isDark
@@ -1108,11 +1112,11 @@ class _BerandaPageState extends State<BerandaPage> {
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Dekorasi ilustrasi/pola blob tematik halus di belakang icon
+                      // Dekorasi sudut tematik ramah anak (model awal diperbarui dengan kontur halus)
                       _buildThematicTileDecoration(title),
 
                       // Logo Icon Menu Utama
@@ -1950,199 +1954,246 @@ class _BerandaPageState extends State<BerandaPage> {
     );
   }
 
-  /// Dekorasi pola/blob tematik di dalam tile menu sesuai kategori
+  /// Dekorasi sudut tematik ramah anak (Pediatric Thematic Corner):
+  /// - Terinspirasi dari konsep awal Pediagrow namun dimodernisasi agar rapi, simetris, dan elegan
+  /// - Sudut kanan atas: Kurva petal/organik lembut yang menyatu anggun di sudut kartu dengan hairline accent
+  /// Dekorasi pola/blob tematik di dalam tile menu sesuai model awal
+  /// Menggunakan siluet geometris tematik orisinal:
+  /// - Stunting: Lingkaran & perisai kesehatan
+  /// - Grafik: Kurva lengkung pertumbuhan
+  /// - MPASI: Siluet mangkuk bernutrisi organik
+  /// - Artikel: Siluet lembaran dokumen bacaan
+  /// - Fasyankes: Radar fasyankes kesehatan
+  /// - Permainan: Tile ceria & bintang anak
+  /// Diperbarui dengan hairline border kontur halus dan directional gradient
+  /// agar di Dark Mode tampil terstruktur & rapi, BUKAN efek glow/hover AI.
   Widget _buildThematicTileDecoration(String title) {
     final cleanTitle = title.replaceAll('\n', ' ').trim().toLowerCase();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Color blobColor = const Color(0xFF3985E7).withValues(alpha: 0.08);
+    Color primaryAccent;
+    Color secondaryAccent;
+
+    if (cleanTitle.contains('stunting')) {
+      primaryAccent = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
+      secondaryAccent = isDark ? const Color(0xFF0284C7) : const Color(0xFF60A5FA);
+    } else if (cleanTitle.contains('grafik')) {
+      primaryAccent = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0D9488);
+      secondaryAccent = isDark ? const Color(0xFF059669) : const Color(0xFF5EEAD4);
+    } else if (cleanTitle.contains('mpasi')) {
+      primaryAccent = isDark ? const Color(0xFF34D399) : const Color(0xFF059669);
+      secondaryAccent = isDark ? const Color(0xFF10B981) : const Color(0xFF6EE7B7);
+    } else if (cleanTitle.contains('artikel')) {
+      primaryAccent = isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5);
+      secondaryAccent = isDark ? const Color(0xFF6366F1) : const Color(0xFFA5B4FC);
+    } else if (cleanTitle.contains('fasyankes')) {
+      primaryAccent = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7);
+      secondaryAccent = isDark ? const Color(0xFF0EA5E9) : const Color(0xFF7DD3FC);
+    } else {
+      primaryAccent = isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+      secondaryAccent = isDark ? const Color(0xFFF59E0B) : const Color(0xFFFDE68A);
+    }
+
+    Widget buildDeco({
+      required double width,
+      required double height,
+      BorderRadius? borderRadius,
+      bool isCircle = false,
+      double fillAlphaDark = 0.14,
+      double fillAlphaLight = 0.08,
+      double strokeAlphaDark = 0.28,
+      double strokeAlphaLight = 0.16,
+    }) {
+      return Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: isCircle ? null : borderRadius,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              primaryAccent.withValues(
+                alpha: isDark ? fillAlphaDark : fillAlphaLight,
+              ),
+              secondaryAccent.withValues(
+                alpha: isDark ? (fillAlphaDark * 0.4) : (fillAlphaLight * 0.4),
+              ),
+            ],
+          ),
+          border: Border.all(
+            color: primaryAccent.withValues(
+              alpha: isDark ? strokeAlphaDark : strokeAlphaLight,
+            ),
+            width: 1.0,
+          ),
+        ),
+      );
+    }
+
     Widget deco;
 
     if (cleanTitle.contains('stunting')) {
-      // Aksen perisai & lingkaran kesehatan
-      blobColor = const Color(0xFF3B82F6).withValues(alpha: 0.09);
+      // 1. Cek Stunting: Aksen lingkaran & perisai kesehatan
       deco = Stack(
         children: [
           Positioned(
             top: -12,
             right: -12,
-            child: Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor,
-              ),
-            ),
+            child: buildDeco(width: 46, height: 46, isCircle: true),
           ),
           Positioned(
             bottom: -8,
             left: -8,
-            child: Container(
+            child: buildDeco(
               width: 34,
               height: 34,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor.withValues(alpha: 0.06),
-              ),
+              isCircle: true,
+              fillAlphaDark: 0.10,
+              fillAlphaLight: 0.05,
+              strokeAlphaDark: 0.22,
+              strokeAlphaLight: 0.12,
             ),
           ),
         ],
       );
     } else if (cleanTitle.contains('grafik')) {
-      // Aksen kurva pertumbuhan
-      blobColor = const Color(0xFF2563EB).withValues(alpha: 0.09);
+      // 2. Grafik Pertumbuhan: Aksen kurva pertumbuhan
       deco = Stack(
         children: [
           Positioned(
             bottom: -15,
             right: -10,
-            child: Container(
+            child: buildDeco(
               width: 55,
               height: 55,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: blobColor,
-              ),
+              borderRadius: BorderRadius.circular(20),
             ),
           ),
           Positioned(
             top: -6,
             left: -6,
-            child: Container(
+            child: buildDeco(
               width: 28,
               height: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor.withValues(alpha: 0.05),
-              ),
+              isCircle: true,
+              fillAlphaDark: 0.10,
+              fillAlphaLight: 0.05,
+              strokeAlphaDark: 0.22,
+              strokeAlphaLight: 0.12,
             ),
           ),
         ],
       );
     } else if (cleanTitle.contains('mpasi')) {
-      // Aksen mangkuk bernutrisi organik
-      blobColor = const Color(0xFF10B981).withValues(alpha: 0.08);
+      // 3. Resep MPASI: Aksen mangkuk bernutrisi organik
       deco = Stack(
         children: [
           Positioned(
             top: -10,
             left: -10,
-            child: Container(
+            child: buildDeco(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  bottomRight: Radius.circular(30),
-                ),
-                color: blobColor,
+              borderRadius: const BorderRadius.only(
+                bottomRight: Radius.circular(30),
               ),
             ),
           ),
           Positioned(
             bottom: -10,
             right: -8,
-            child: Container(
+            child: buildDeco(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor.withValues(alpha: 0.06),
-              ),
+              isCircle: true,
+              fillAlphaDark: 0.10,
+              fillAlphaLight: 0.05,
+              strokeAlphaDark: 0.22,
+              strokeAlphaLight: 0.12,
             ),
           ),
         ],
       );
     } else if (cleanTitle.contains('artikel')) {
-      // Aksen lembaran dokumen bacaan
-      blobColor = const Color(0xFF6366F1).withValues(alpha: 0.08);
+      // 4. Artikel Kesehatan: Aksen lembaran dokumen bacaan
       deco = Stack(
         children: [
           Positioned(
             top: -10,
             right: -10,
-            child: Container(
+            child: buildDeco(
               width: 50,
               height: 50,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(25),
-                ),
-                color: blobColor,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(25),
               ),
             ),
           ),
           Positioned(
             bottom: 6,
             left: 6,
-            child: Container(
+            child: buildDeco(
               width: 14,
               height: 14,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor.withValues(alpha: 0.05),
-              ),
+              isCircle: true,
+              fillAlphaDark: 0.10,
+              fillAlphaLight: 0.05,
+              strokeAlphaDark: 0.22,
+              strokeAlphaLight: 0.12,
             ),
           ),
         ],
       );
     } else if (cleanTitle.contains('fasyankes')) {
-      // Aksen radar lingkaran fasyankes
-      blobColor = const Color(0xFF0EA5E9).withValues(alpha: 0.09);
+      // 5. Lokasi Fasyankes: Aksen radar fasyankes
       deco = Stack(
         children: [
           Positioned(
             top: -15,
             left: -15,
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor,
-              ),
-            ),
+            child: buildDeco(width: 56, height: 56, isCircle: true),
           ),
           Positioned(
             bottom: -6,
             right: -6,
-            child: Container(
+            child: buildDeco(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor.withValues(alpha: 0.05),
-              ),
+              isCircle: true,
+              fillAlphaDark: 0.10,
+              fillAlphaLight: 0.05,
+              strokeAlphaDark: 0.22,
+              strokeAlphaLight: 0.12,
             ),
           ),
         ],
       );
     } else {
-      // Permainan: Aksen ceria sparkle & bintang
-      blobColor = const Color(0xFFF59E0B).withValues(alpha: 0.09);
+      // 6. Permainan: Aksen ceria sparkle & bintang
       deco = Stack(
         children: [
           Positioned(
             top: -10,
             right: -10,
-            child: Container(
+            child: buildDeco(
               width: 45,
               height: 45,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: blobColor,
-              ),
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
           Positioned(
             bottom: -10,
             left: -8,
-            child: Container(
+            child: buildDeco(
               width: 38,
               height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: blobColor.withValues(alpha: 0.06),
-              ),
+              isCircle: true,
+              fillAlphaDark: 0.10,
+              fillAlphaLight: 0.05,
+              strokeAlphaDark: 0.22,
+              strokeAlphaLight: 0.12,
             ),
           ),
         ],
