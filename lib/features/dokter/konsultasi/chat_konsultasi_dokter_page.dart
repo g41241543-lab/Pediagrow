@@ -28,8 +28,8 @@ import 'buat_resume_medis_dokter_page.dart';
 /// - Formulir Keluhan Pasien di sisi kiri (dikirim oleh orang tua), dapat diklik untuk
 ///   membuka rincian data formulir lengkap.
 /// - Bubble pesan orang tua di sisi kiri, bubble balasan dokter di sisi kanan (biru).
-/// - Input area bawah: Tombol [+] untuk foto/kamera, TextField pesan, tombol Akhiri Konsultasi
-///   (icon bookmark/selesai merah muda), dan tombol kirim bulat biru.
+/// - Input area bawah: Tombol [+] untuk foto/kamera, TextField pesan, tombol kirim bulat biru,
+///   dan tombol Akhiri Konsultasi (icon bookmark/selesai merah muda).
 /// - Tombol "Akhiri Konsultasi" memunculkan dialog konfirmasi. Jika "Ya, Akhiri" ditekan,
 ///   dokter langsung diarahkan ke [BuatResumeMedisDokterPage].
 class ChatKonsultasiDokterPage extends StatefulWidget {
@@ -1921,12 +1921,13 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                 Expanded(child: _buildTextField()),
                 const SizedBox(width: 8),
 
-                // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri Merah Muda)
-                _buildEndConsultationButton(),
-                const SizedBox(width: 8),
-
-                // 4. Tombol Send Lingkaran Biru #2A85FF
+                // 3. Tombol Send Lingkaran Biru #2A85FF
                 _buildSendButton(),
+                if (widget.hasActiveSession) ...[
+                  const SizedBox(width: 8),
+                  // 4. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri Merah Muda)
+                  _buildEndConsultationButton(),
+                ],
               ],
             ),
           ],

@@ -2269,12 +2269,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 Expanded(child: _buildTextField(isDark)),
                 const SizedBox(width: 8),
 
-                // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
-                _buildEndConsultationButton(isDark),
+                // 3. Tombol Send (Lingkaran Biru #2A85FF)
+                _buildSendButton(),
                 const SizedBox(width: 8),
 
-                // 4. Tombol Send (Lingkaran Biru #2A85FF)
-                _buildSendButton(),
+                // 4. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
+                _buildEndConsultationButton(isDark),
               ],
             ),
           ],
