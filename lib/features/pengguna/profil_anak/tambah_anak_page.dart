@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/utils/kk_nik_validator.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
 import '../../../models/child_model.dart';
@@ -877,21 +878,31 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
     GlobalKey? firstErrorKey;
 
-    // 0. Nomor KK (Wajib 16 digit angka)
+    // 0. Nomor KK (Wajib 16 digit angka + format valid)
     final noKkInput = _noKkController.text.trim();
     if (noKkInput.isEmpty) {
       noKkErr = 'Nomor Kartu Keluarga wajib diisi';
       firstErrorKey ??= _noKkKey;
-    } else if (noKkInput.length != 16) {
-      noKkErr = 'Nomor Kartu Keluarga harus 16 digit angka';
-      firstErrorKey ??= _noKkKey;
+    } else {
+      final kkValidationError = KkNikValidator.validateNoKk(noKkInput);
+      if (kkValidationError != null) {
+        noKkErr = kkValidationError;
+        firstErrorKey ??= _noKkKey;
+      }
     }
 
-    // 0b. NIK Anak (Opsional, jika diisi harus 16 digit angka)
+    // 0b. NIK Anak (Opsional — jika diisi, validasi format + cross-check tanggal lahir & gender)
     final nikInput = _nikController.text.trim();
-    if (nikInput.isNotEmpty && nikInput.length != 16) {
-      nikErr = 'NIK Anak harus 16 digit angka';
-      firstErrorKey ??= _nikKey;
+    if (nikInput.isNotEmpty) {
+      final nikValidationError = KkNikValidator.validateNik(
+        nikInput,
+        birthDate: _selectedBirthDate,
+        gender: _selectedGender,
+      );
+      if (nikValidationError != null) {
+        nikErr = nikValidationError;
+        firstErrorKey ??= _nikKey;
+      }
     }
 
     // 1. Nama Lengkap
