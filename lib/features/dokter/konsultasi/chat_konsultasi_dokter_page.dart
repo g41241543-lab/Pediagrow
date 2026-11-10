@@ -18,6 +18,7 @@ import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
 import '../../../models/user_model.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/pesan_cepat_widget.dart';
 import 'buat_resume_medis_dokter_page.dart';
 
 /// Halaman Ruang Obrolan Konsultasi dari POV DOKTER.
@@ -896,8 +897,8 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
   }
 
   // Dialog Konfirmasi Akhiri Konsultasi -> Mengarahkan ke Buat Resume Medis
-  void _onAkhiriKonsultasiPressed() {
-    showModalBottomSheet(
+  Future<void> _onAkhiriKonsultasiPressed() async {
+    final shouldEnd = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -919,7 +920,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: _isDark ? const Color(0xFF3B1E1E) : const Color(0xFFFFECEC),
+                    color: _isDark ? const Color(0xFF450A0A) : const Color(0xFFFFECEC),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -967,7 +968,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                       child: SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () => Navigator.pop(ctx),
+                          onPressed: () => Navigator.pop(ctx, false),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
                             foregroundColor: _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF718096),
@@ -991,37 +992,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                       child: SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(ctx); // Tutup dialog
-
-                            // Jika ada sesi Firestore, tandai sebagai selesai
-                            if (widget.sessionId != null &&
-                                widget.sessionId!.isNotEmpty) {
-                              _sessionEndedByUs = true; // kita yang mengakhiri
-                              KonsultasiService.instance.akhiriSesi(
-                                widget.sessionId!,
-                              );
-                            }
-
-                            // Tandai booking sebagai selesai agar langsung hilang dari antrean aktif
-                            final activeChild = widget.child;
-                            final targetBooking = widget.booking ??
-                                BookingService().bookings.where((b) {
-                                  if (activeChild == null) return false;
-                                  return (b.child.id.isNotEmpty && b.child.id == activeChild.id) ||
-                                      b.child.name.toLowerCase().trim() ==
-                                          activeChild.name.toLowerCase().trim();
-                                }).firstOrNull;
-                            if (targetBooking != null) {
-                              BookingService().updateBookingStatus(
-                                targetBooking.id,
-                                'Selesai',
-                              );
-                            }
-
-                            // Navigasi ke halaman Buat Resume Medis Dokter
-                            _navigateToBuatResume();
-                          },
+                          onPressed: () => Navigator.pop(ctx, true),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFE53E3E),
                             foregroundColor: Colors.white,
@@ -1048,6 +1019,35 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         );
       },
     );
+
+    if (shouldEnd == true && mounted) {
+      // Jika ada sesi Firestore, tandai sebagai selesai
+      if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
+        _sessionEndedByUs = true; // kita yang mengakhiri
+        KonsultasiService.instance.akhiriSesi(
+          widget.sessionId!,
+        );
+      }
+
+      // Tandai booking sebagai selesai agar langsung hilang dari antrean aktif
+      final activeChild = widget.child;
+      final targetBooking = widget.booking ??
+          BookingService().bookings.where((b) {
+            if (activeChild == null) return false;
+            return (b.child.id.isNotEmpty && b.child.id == activeChild.id) ||
+                b.child.name.toLowerCase().trim() ==
+                    activeChild.name.toLowerCase().trim();
+          }).firstOrNull;
+      if (targetBooking != null) {
+        BookingService().updateBookingStatus(
+          targetBooking.id,
+          'Selesai',
+        );
+      }
+
+      // Navigasi ke halaman Buat Resume Medis Dokter menggantikan ruang chat
+      _navigateToBuatResume();
+    }
   }
 
   // ─── BUILD UTAMA ──────────────────────────────────────────────────────────
@@ -1063,6 +1063,20 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
 
         // 3. Input Area Pesan di Bawah
         // Dokter hanya dapat mengirim pesan, foto/lampiran, dan akhiri konsul saat sesi aktif / jadwal booking tiba!
+        if (widget.hasActiveSession)
+          PesanCepatWidget(
+            isDoctor: true,
+            isDark: _isDark,
+            focusNode: _inputFocusNode,
+            onSendMessage: (text) => _sendMessage(text),
+            onSelectToInput: (text) {
+              _textController.text = text;
+              _textController.selection = TextSelection.fromPosition(
+                TextPosition(offset: text.length),
+              );
+              _inputFocusNode.requestFocus();
+            },
+          ),
         if (widget.hasActiveSession)
           _buildInputArea()
         else
@@ -2298,10 +2312,10 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: _isDark ? const Color(0xFF3B1E1E) : const Color(0xFFFFECEC),
+          color: _isDark ? const Color(0xFF450A0A) : const Color(0xFFFFECEC),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _isDark ? const Color(0xFF5C2626) : const Color(0xFFFED7D7),
+            color: _isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFED7D7),
             width: 1.0,
           ),
         ),
@@ -2312,7 +2326,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
             onTap: _onAkhiriKonsultasiPressed,
             child: const Center(
               child: Icon(
-                Icons.bookmark_outline_rounded,
+                Icons.comments_disabled_rounded,
                 color: colorEndRed,
                 size: 20,
               ),

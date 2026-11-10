@@ -436,6 +436,7 @@ class UserService {
     String? district,
     String? subDistrict,
     String? noKk,
+    String? nik,
   }) async {
     currentUserNotifier.value = currentUserNotifier.value.copyWith(
       name: name,
@@ -448,6 +449,7 @@ class UserService {
       district: district,
       subDistrict: subDistrict,
       noKk: noKk,
+      nik: nik,
     );
     await _syncCurrentUserToFirestore();
   }

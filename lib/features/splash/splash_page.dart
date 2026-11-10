@@ -487,7 +487,7 @@ class _SplashPageState extends State<SplashPage>
                 // -------------------------------------------------------------
                 if (t >= 0.24)
                   Center(
-                    child: _buildBrandIdentity(logoSize),
+                    child: _buildBrandIdentity(logoSize, size),
                   ),
 
                 // -------------------------------------------------------------
@@ -550,46 +550,56 @@ class _SplashPageState extends State<SplashPage>
   /// - Jarak antara bagian bawah logo dan judul PediaGrow diperlebar menjadi 52dp (+52dp)
   ///   sehingga logo dan nama aplikasi bernapas lega, tidak berdekatan.
   /// - Dilapisi kilatan presisi menggunakan ShaderMask (BlendMode.srcIn)
-  ///   sehingga hanya menyapu piksel logo dan huruf (anti kotak).
-  Widget _buildBrandIdentity(double logoSize) {
-    // Konten visual utama (Base Tree)
-    final Widget brandContent = Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        // A. EMBLEM LOGO DENGAN ELEMEN BERTAHAP
-        Transform.translate(
-          offset: Offset(0, _logoOffsetYAnim.value),
-          child: _buildLayeredLogo(logoSize),
-        ),
+  ///   dengan bounding box penuh yang mencakup SELURUH logo emblem, teks PediaGrow,
+  ///   dan tagline laser bawah tanpa terpotong atau terpotong setengah.
+  Widget _buildBrandIdentity(double logoSize, Size screenSize) {
+    // Dimensi bounding box yang aman dan utuh untuk seluruh lockup (Logo + Title + Tagline)
+    final double lockupWidth = math.min(screenSize.width - 32.0, 360.0);
+    final double lockupHeight = math.max(logoSize * 1.88, 324.0);
 
-        // B. TYPOGRAPHY PEDIAGROW & TAGLINE
-        // Diberi jarak yang lega: (logoSize / 2) + 52.0 dp dari pusat logo
-        Transform.translate(
-          offset: Offset(
-            0,
-            _logoOffsetYAnim.value + (logoSize / 2) + 52.0 + _titleSlideAnim.value,
+    // Konten visual utama (Base Tree) dengan ukuran eksplisit agar ShaderMask
+    // memiliki bounds yang sempurna melingkupi emblem atas hingga garis tagline bawah
+    final Widget brandContent = SizedBox(
+      width: lockupWidth,
+      height: lockupHeight,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // A. EMBLEM LOGO DENGAN ELEMEN BERTAHAP
+          Transform.translate(
+            offset: Offset(0, _logoOffsetYAnim.value),
+            child: _buildLayeredLogo(logoSize),
           ),
-          child: Opacity(
-            opacity: _titleFadeAnim.value,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Judul PediaGrow
-                _buildPediaGrowTitle(46.0),
 
-                const SizedBox(height: 12.0),
+          // B. TYPOGRAPHY PEDIAGROW & TAGLINE
+          // Diberi jarak yang lega: (logoSize / 2) + 52.0 dp dari pusat logo
+          Transform.translate(
+            offset: Offset(
+              0,
+              _logoOffsetYAnim.value + (logoSize / 2) + 52.0 + _titleSlideAnim.value,
+            ),
+            child: Opacity(
+              opacity: _titleFadeAnim.value,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Judul PediaGrow
+                  _buildPediaGrowTitle(46.0),
 
-                // Tagline Futuristik dengan garis laser yang mengembang horizontal
-                Opacity(
-                  opacity: _taglineFadeAnim.value,
-                  child: _buildFuturisticTagline(),
-                ),
-              ],
+                  const SizedBox(height: 12.0),
+
+                  // Tagline Futuristik dengan garis laser yang mengembang horizontal
+                  Opacity(
+                    opacity: _taglineFadeAnim.value,
+                    child: _buildFuturisticTagline(),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
 
     final bool isSheenActive = _sheenAnim.value > 0.0 && _sheenAnim.value < 1.0;
@@ -601,7 +611,8 @@ class _SplashPageState extends State<SplashPage>
         // Pohon widget utama
         brandContent,
 
-        // Kilatan kilau presisi: hanya muncul di atas piksel logo dan teks
+        // Kilatan kilau presisi menyeluruh: menyapu diagonal dari sudut kiri atas
+        // emblem hingga kanan bawah garis tagline tanpa terpotong
         if (isSheenActive)
           Positioned.fill(
             child: IgnorePointer(
@@ -609,16 +620,20 @@ class _SplashPageState extends State<SplashPage>
                 blendMode: BlendMode.srcIn,
                 shaderCallback: (bounds) {
                   final sweep = _sheenAnim.value; // 0.0 -> 1.0
-                  final xPos = -1.2 + (sweep * 3.4);
+                  final xPos = -1.4 + (sweep * 3.8);
                   return LinearGradient(
-                    begin: Alignment(xPos - 0.45, -1.0),
-                    end: Alignment(xPos + 0.45, 1.0),
+                    begin: Alignment(xPos - 0.55, -1.0),
+                    end: Alignment(xPos + 0.55, 1.0),
                     colors: [
                       Colors.transparent,
-                      Colors.white.withValues(alpha: 0.75),
+                      Colors.white.withValues(alpha: 0.15),
+                      Colors.white.withValues(alpha: 0.85),
+                      const Color(0xFFFFF9E6).withValues(alpha: 0.95), // luxury bright sheen core
+                      Colors.white.withValues(alpha: 0.85),
+                      Colors.white.withValues(alpha: 0.15),
                       Colors.transparent,
                     ],
-                    stops: const [0.25, 0.50, 0.75],
+                    stops: const [0.0, 0.30, 0.46, 0.50, 0.54, 0.70, 1.0],
                   ).createShader(bounds);
                 },
                 child: brandContent,

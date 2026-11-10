@@ -14,6 +14,7 @@ import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../../shared/widgets/pedia_interactive_hover_card.dart';
 import '../beranda/beranda_page.dart';
 import '../beranda/notifikasi_page.dart';
 import 'chat_konsultasi_page.dart';
@@ -677,189 +678,146 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
 
   Widget _buildDoctorCard(DoctorModel doctor) {
     final badge = JadwalDokterService().getDoctorBadge(doctor.id);
-    final isAvailableSoon =
-        badge.type == DoctorBadgeType.tersediaHariIni ||
-        badge.type == DoctorBadgeType.tersediaBesok;
-    final borderColor = isAvailableSoon
-        ? const Color(0xFFBFDBFE)
-        : _colorBorder;
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? const Color(0xFF2C363D)
-              : (doctor.isOnline ? borderColor : _colorBorder),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : _colorPrimaryBlue.withValues(alpha: 0.08),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
+
+    return PediaInteractiveHoverCard(
+      onTap: () => _navigateToDetail(doctor),
+      padding: const EdgeInsets.all(14.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar Dokter
+              DoctorLiveAvatar(
+                doctorId: doctor.id,
+                doctorName: doctor.name,
+                fallbackPhoto: doctor.avatarUrl ?? doctor.assetImagePath,
+                size: 58,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF3985E7).withValues(alpha: 0.4)
+                      : _colorPrimaryBlue.withValues(alpha: 0.15),
+                  width: 1.5,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Badge Jadwal Dinamis
+                    _buildAvailabilityBadge(badge),
+                    const SizedBox(height: 3),
+                    Text(
+                      doctor.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.lato(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? const Color(0xFFE9EDEF)
+                            : _colorTextBlack,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFFBFDBFE),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Text(
+                        doctor.specialization,
+                        style: GoogleFonts.lato(
+                          fontSize: 11,
+                          color: _colorPrimaryBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.business_center_outlined,
+                          size: 13,
+                          color: _colorLabelGrey,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            '${doctor.experienceYears} tahun pengalaman',
+                            style: GoogleFonts.lato(
+                              fontSize: 11.5,
+                              color: _colorLabelGrey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: isDark
+                  ? const Color(0xFF2C363D)
+                  : const Color(0xFFE9EDEF),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: () => _navigateToDetail(doctor),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 7.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _colorPrimaryBlue,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _colorPrimaryBlue.withValues(alpha: 0.25),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'Detail Dokter',
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _navigateToDetail(doctor),
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Avatar Dokter
-                    DoctorLiveAvatar(
-                      doctorId: doctor.id,
-                      doctorName: doctor.name,
-                      fallbackPhoto: doctor.avatarUrl ?? doctor.assetImagePath,
-                      size: 58,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isDark
-                            ? const Color(0xFF3985E7).withValues(alpha: 0.4)
-                            : _colorPrimaryBlue.withValues(alpha: 0.15),
-                        width: 1.5,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Badge Jadwal Dinamis
-                          _buildAvailabilityBadge(badge),
-                          const SizedBox(height: 3),
-                          Text(
-                            doctor.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.lato(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? const Color(0xFFE9EDEF)
-                                  : _colorTextBlack,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: const Color(0xFFBFDBFE),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Text(
-                              doctor.specialization,
-                              style: GoogleFonts.lato(
-                                fontSize: 11,
-                                color: _colorPrimaryBlue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.business_center_outlined,
-                                size: 13,
-                                color: _colorLabelGrey,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  '${doctor.experienceYears} tahun pengalaman',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 11.5,
-                                    color: _colorLabelGrey,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: isDark
-                        ? const Color(0xFF2C363D)
-                        : const Color(0xFFE9EDEF),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () => _navigateToDetail(doctor),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 7.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _colorPrimaryBlue,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _colorPrimaryBlue.withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'Detail Dokter',
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
-
-  /// Membangun badge ketersediaan jadwal dokter dengan warna yang sesuai
   Widget _buildAvailabilityBadge(DoctorBadgeInfo badge) {
     Color dotColor;
     Color textColor;
@@ -1083,244 +1041,215 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
     final isFemale = booking.child.gender.toLowerCase() == 'perempuan';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : _colorCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _colorPrimaryBlue.withValues(alpha: 0.08),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
+    return PediaInteractiveHoverCard(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => StatusBookingPage(booking: booking),
           ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 6,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          splashColor: _colorPrimaryBlue.withValues(alpha: 0.08),
-          highlightColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          hoverColor: _colorPrimaryBlue.withValues(alpha: 0.04),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => StatusBookingPage(booking: booking),
-              ),
-            );
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Baris Atas: Identitas Anak (Pasien) & Badge Status ──────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-                child: Row(
-                  children: [
-                    _buildChildAvatar(
-                      photoUrl: booking.child.photoUrl,
-                      isFemale: isFemale,
-                      size: 42,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Baris Atas: Identitas Anak (Pasien) & Badge Status ──────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Row(
+              children: [
+                _buildChildAvatar(
+                  photoUrl: booking.child.photoUrl,
+                  isFemale: isFemale,
+                  size: 42,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  booking.child.name,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? const Color(0xFFE9EDEF)
-                                        : _colorTextBlack,
-                                  ),
-                                ),
+                          Expanded(
+                            child: Text(
+                              booking.child.name,
+                              style: GoogleFonts.lato(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? const Color(0xFFE9EDEF)
+                                    : _colorTextBlack,
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEBF5FF),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Text(
-                                  booking.status,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: _colorPrimaryBlue,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 1.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isFemale
-                                      ? const Color(0xFFFDF2F8)
-                                      : const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: isFemale
-                                        ? const Color(0xFFFBCFE8)
-                                        : const Color(0xFFBFDBFE),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Text(
-                                  isFemale
-                                      ? 'Anak Perempuan'
-                                      : 'Anak Laki-laki',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isFemale
-                                        ? const Color(0xFFDB2777)
-                                        : const Color(0xFF2563EB),
-                                  ),
-                                ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEBF5FF),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Text(
+                              booking.status,
+                              style: GoogleFonts.lato(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: _colorPrimaryBlue,
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                booking.child.ageDescription,
-                                style: GoogleFonts.lato(
-                                  fontSize: 12,
-                                  color: _colorLabelGrey,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Kotak Jadwal Tanggal & Jam ────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F7FF),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: _colorPrimaryBlue.withValues(alpha: 0.18),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 13,
-                        color: _colorPrimaryBlue,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          booking.formattedDate,
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _colorPrimaryBlue,
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isFemale
+                                  ? const Color(0xFFFDF2F8)
+                                  : const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isFemale
+                                    ? const Color(0xFFFBCFE8)
+                                    : const Color(0xFFBFDBFE),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              isFemale
+                                  ? 'Anak Perempuan'
+                                  : 'Anak Laki-laki',
+                              style: GoogleFonts.lato(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: isFemale
+                                    ? const Color(0xFFDB2777)
+                                    : const Color(0xFF2563EB),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 13,
-                        color: _colorPrimaryBlue,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        booking.scheduledTimeSlot,
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _colorPrimaryBlue,
-                        ),
+                          const SizedBox(width: 6),
+                          Text(
+                            booking.child.ageDescription,
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              color: _colorLabelGrey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
+              ],
+            ),
+          ),
 
-              const SizedBox(height: 10),
-              Divider(
-                height: 1,
-                thickness: 1,
+          // ── Kotak Jadwal Tanggal & Jam ────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF2C363D)
-                    : const Color(0xFFE9EDEF),
-              ),
-
-              // ── Baris Bawah: Dokter & Tombol Detail ────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.medical_services_rounded,
-                      size: 14,
-                      color: _colorLabelGrey,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        booking.doctor.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          color: _colorLabelGrey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildBookingActionButton(booking),
-                  ],
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF0F7FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : _colorPrimaryBlue.withValues(alpha: 0.18),
+                  width: 1,
                 ),
               ),
-            ],
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 13,
+                    color: _colorPrimaryBlue,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      booking.formattedDate,
+                      style: GoogleFonts.lato(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 13,
+                    color: _colorPrimaryBlue,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    booking.scheduledTimeSlot,
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+
+          const SizedBox(height: 10),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: isDark
+                ? const Color(0xFF2C363D)
+                : const Color(0xFFE9EDEF),
+          ),
+
+          // ── Baris Bawah: Dokter & Tombol Detail ────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.medical_services_rounded,
+                  size: 14,
+                  color: _colorLabelGrey,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    booking.doctor.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      color: _colorLabelGrey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _buildBookingActionButton(booking),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
-
   Widget _buildBookingActionButton(BookingConsultationModel booking) {
     final bool isReady =
         booking.isInTimeWindow || booking.status == 'Sedang Berlangsung';

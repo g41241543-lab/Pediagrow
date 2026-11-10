@@ -695,13 +695,24 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   Widget _buildSearchBar(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2F4F7),
-          borderRadius: BorderRadius.circular(20),
-          border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
-        ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.text,
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF2F4F7),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark
+                  ? (_searchFocusNode.hasFocus
+                      ? const Color(0xFF72A9F4)
+                      : const Color(0xFF2C363D))
+                  : (_searchFocusNode.hasFocus
+                      ? const Color(0xFF72A9F4)
+                      : const Color(0xFFE2E8F0)),
+              width: 1.0,
+            ),
+          ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -758,6 +769,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               ),
           ],
         ),
+      ),
       ),
     );
   }

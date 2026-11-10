@@ -261,162 +261,318 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   // 3. CARD RESUME MEDIS (Sesuai Gambar Mockup 1)
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildResumeCard(ResumeMedisModel resume) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Material(
-      color: isDark ? const Color(0xFF1A2228) : Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => DetailResumeMedisPage(
-                resume: resume,
-                child: widget.child,
-                parentUser: widget.user,
-              ),
+    return _ResumeCardItem(
+      resume: resume,
+      doctorAvatar: DoctorLiveAvatar(
+        doctorId: resume.doctorId,
+        doctorName: resume.doctorName,
+        fallbackPhoto: resume.doctorPhoto,
+        size: 52,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFF2B7AE8).withValues(alpha: 0.25),
+          width: 1.5,
+        ),
+      ),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DetailResumeMedisPage(
+              resume: resume,
+              child: widget.child,
+              parentUser: widget.user,
             ),
-          );
-        },
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Bagian Atas: Avatar Dokter, Nama Dokter, Info Anak & Keluhan
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Avatar Dokter Real-Time
-                    DoctorLiveAvatar(
-                      doctorId: resume.doctorId,
-                      doctorName: resume.doctorName,
-                      fallbackPhoto: resume.doctorPhoto,
-                      size: 52,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF2B7AE8).withValues(alpha: 0.25),
-                        width: 1.5,
+        );
+      },
+      onDelete: null,
+    );
+  }
+
+}
+
+/// Card Item Resume Medis dengan border biru muda lembut (seperti tema profil & jadwal dokter)
+/// serta efek Hover interaktif (Web/Desktop) dan efek Aktif Sentuh (Mobile/Touchscreen).
+class _ResumeCardItem extends StatefulWidget {
+  final ResumeMedisModel resume;
+  final VoidCallback onTap;
+  final VoidCallback? onDelete;
+  final Widget doctorAvatar;
+
+  const _ResumeCardItem({
+    required this.resume,
+    required this.onTap,
+    this.onDelete,
+    required this.doctorAvatar,
+  });
+
+  @override
+  State<_ResumeCardItem> createState() => _ResumeCardItemState();
+}
+
+class _ResumeCardItemState extends State<_ResumeCardItem> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  bool get _isActive => _isHovered || _isPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const primaryBlue = Color(0xFF2B7AE8);
+    final resume = widget.resume;
+
+    // Latar belakang card: berubah menjadi biru muda lembut saat disentuh/di-hover
+    final cardBgColor = _isActive
+        ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F7FF))
+        : (isDark ? const Color(0xFF1A2228) : Colors.white);
+
+    // Garis tepi (border): biru muda lembut (#BFDBFE) saat normal, dan menyala biru tajam saat aktif
+    final borderColor = _isActive
+        ? primaryBlue
+        : (isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE));
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        if (mounted) setState(() => _isHovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _isHovered = false);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(0, _isActive ? -3.0 : 0, 0),
+        decoration: BoxDecoration(
+          color: cardBgColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: borderColor,
+            width: _isActive ? 1.8 : 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _isActive
+                  ? primaryBlue.withValues(alpha: isDark ? 0.35 : 0.20)
+                  : primaryBlue.withValues(alpha: isDark ? 0.25 : 0.08),
+              blurRadius: _isActive ? 14 : 10,
+              offset: _isActive ? const Offset(0, 5) : const Offset(0, 3),
+            ),
+            if (!_isActive)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 1),
+              ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: widget.onTap,
+            onTapDown: (_) {
+              if (mounted) setState(() => _isPressed = true);
+            },
+            onTapUp: (_) {
+              if (mounted) setState(() => _isPressed = false);
+            },
+            onTapCancel: () {
+              if (mounted) setState(() => _isPressed = false);
+            },
+            onHover: (hovering) {
+              if (mounted) setState(() => _isHovered = hovering);
+            },
+            splashColor: primaryBlue.withValues(alpha: 0.12),
+            highlightColor: primaryBlue.withValues(alpha: 0.08),
+            hoverColor: primaryBlue.withValues(alpha: 0.04),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Bagian Atas: Avatar Dokter, Nama Dokter, Info Anak & Keluhan
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      widget.doctorAvatar,
+                      const SizedBox(width: 12),
+
+                      // Teks Kanan
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Nama Dokter (Bold)
+                            Text(
+                              resume.doctorName,
+                              style: GoogleFonts.lato(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? const Color(0xFFE9EDEF)
+                                    : const Color(0xFF1A2228),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+
+                            // Nama Anak
+                            Text(
+                              'Anak: ${resume.childName}',
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                color: isDark
+                                    ? const Color(0xFFD1D7DB)
+                                    : const Color(0xFF2C363D),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+
+                            // Keluhan
+                            Text(
+                              'Keluhan: ${resume.complaintShort}',
+                              style: GoogleFonts.lato(
+                                fontSize: 13,
+                                color: isDark
+                                    ? const Color(0xFF8696A0)
+                                    : const Color(0xFF2C363D),
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
+                    ],
+                  ),
+                ),
 
-                    // Teks Kanan
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // Divider tipis
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: isDark
+                      ? const Color(0xFF2C363D)
+                      : const Color(0xFFE9EDEF),
+                ),
+
+                // Bagian Bawah: Tanggal & Badge "Selesai"
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Tanggal Konsultasi berbingkai biru muda lembut (seperti di jadwal dokter)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFBFDBFE),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_month_outlined,
+                              size: 15,
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : primaryBlue,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              resume.consultationDate,
+                              style: GoogleFonts.lato(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFFE9EDEF)
+                                    : const Color(0xFF1A2228),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Badge Selesai (Hijau Toska) + Tombol Hapus opsional
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Nama Dokter (Bold)
-                          Text(
-                            resume.doctorName,
-                            style: GoogleFonts.lato(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF26B89D),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              resume.status,
+                              style: GoogleFonts.lato(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 3),
-
-                          // Nama Anak
-                          Text(
-                            'Anak: ${resume.childName}',
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF2C363D),
+                          if (widget.onDelete != null) ...[
+                            const SizedBox(width: 8),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: widget.onDelete,
+                                borderRadius: BorderRadius.circular(8.0),
+                                child: Container(
+                                  width: 32.0,
+                                  height: 32.0,
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF3F1B1B)
+                                        : const Color(0xFFFFEBEE),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? const Color(0xFF7F1D1D)
+                                          : const Color(0xFFFFCDD2),
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: isDark
+                                        ? const Color(0xFFF87171)
+                                        : const Color(0xFFE53935),
+                                    size: 18.0,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-
-                          // Keluhan
-                          Text(
-                            'Keluhan: ${resume.complaintShort}',
-                            style: GoogleFonts.lato(
-                              fontSize: 13,
-                              color: isDark ? const Color(0xFF8696A0) : const Color(0xFF2C363D),
-                              height: 1.3,
-                            ),
-                          ),
+                          ],
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-
-              // Divider tipis
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-              ),
-
-              // Bagian Bawah: Tanggal & Badge "Selesai"
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Tanggal Konsultasi
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_month_outlined,
-                          size: 18,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          resume.consultationDate,
-                          style: GoogleFonts.lato(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Badge Selesai (Hijau Toska)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF26B89D),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        resume.status,
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
+

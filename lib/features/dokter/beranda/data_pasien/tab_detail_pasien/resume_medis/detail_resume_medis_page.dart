@@ -19,6 +19,7 @@ class DetailResumeMedisPage extends StatefulWidget {
   final ChildModel? child;
   final UserModel? parentUser;
   final String? initialSuccessMessage;
+  final bool fromConsultationFlow;
 
   const DetailResumeMedisPage({
     super.key,
@@ -26,6 +27,7 @@ class DetailResumeMedisPage extends StatefulWidget {
     this.child,
     this.parentUser,
     this.initialSuccessMessage,
+    this.fromConsultationFlow = false,
   });
 
   @override
@@ -316,6 +318,14 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
     return numVal.toString();
   }
 
+  void _handleBack() {
+    if (widget.fromConsultationFlow) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } else {
+      Navigator.of(context).maybePop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final childName = _resume.childName.isNotEmpty
@@ -334,15 +344,21 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             ? _formatNum(widget.child!.heightCm!)
             : '-');
 
-    return Scaffold(
-      backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
-      appBar: AppBar(
+    return PopScope(
+      canPop: !widget.fromConsultationFlow,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
         backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: _colorTextBlack),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: _colorTextBlack),
+            onPressed: _handleBack,
+          ),
         title: Text(
           'Detail Resume Medis',
           style: GoogleFonts.lato(
@@ -511,6 +527,7 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

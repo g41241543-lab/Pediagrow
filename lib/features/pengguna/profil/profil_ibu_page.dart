@@ -48,6 +48,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   late TextEditingController _districtController;
   late TextEditingController _subDistrictController;
   late TextEditingController _noKkController;
+  late TextEditingController _nikController;
 
   String _selectedGender = 'Perempuan';
   bool _isSaving = false;
@@ -70,6 +71,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     );
 
     _noKkController = TextEditingController(text: user.noKk ?? '');
+    _nikController = TextEditingController(text: user.nik ?? '');
 
     if (user.gender != null && user.gender!.isNotEmpty) {
       _selectedGender = user.gender!;
@@ -86,6 +88,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     _districtController.dispose();
     _subDistrictController.dispose();
     _noKkController.dispose();
+    _nikController.dispose();
     super.dispose();
   }
 
@@ -297,6 +300,9 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
         noKk: _noKkController.text.trim().isNotEmpty
             ? _noKkController.text.trim()
             : null,
+        nik: _nikController.text.trim().isNotEmpty
+            ? _nikController.text.trim()
+            : null,
         subDistrict: _subDistrictController.text.trim().isNotEmpty
             ? _subDistrictController.text.trim()
             : null,
@@ -423,6 +429,29 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                                   val.trim().isNotEmpty &&
                                   val.trim().length != 16) {
                                 return 'Nomor KK harus 16 digit angka';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          _buildTextField(
+                            isDark: isDark,
+                            controller: _nikController,
+                            label: 'NIK (Nomor Induk Kependudukan)',
+                            hint: '16 digit NIK Orang Tua',
+                            prefixIcon: Icons.badge_outlined,
+                            keyboardType: TextInputType.number,
+                            maxLength: 16,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(16),
+                            ],
+                            isRequired: false,
+                            validator: (val) {
+                              if (val != null &&
+                                  val.trim().isNotEmpty &&
+                                  val.trim().length != 16) {
+                                return 'NIK harus 16 digit angka';
                               }
                               return null;
                             },
