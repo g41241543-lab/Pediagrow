@@ -204,8 +204,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                 clipBehavior: Clip.none,
                                 children: [
                                   Container(
-                                    width: 31,
-                                    height: 31,
+                                    width: 38,
+                                    height: 38,
                                     decoration: const BoxDecoration(
                                       color: Colors.white,
                                       shape: BoxShape.circle,
@@ -221,7 +221,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
                                       color: Color(0xFF1A2228),
-                                      size: 19,
+                                      size: 22,
                                     ),
                                   ),
                                   if (unreadCount > 0)
