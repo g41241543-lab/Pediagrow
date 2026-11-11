@@ -1272,7 +1272,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   Widget _buildHeader() {
     final isDokter = _isDokterView;
     final title = _tabController.index == 0
-        ? (isDokter ? 'Grafik Pasien Anak' : 'Grafik Pengguna')
+        ? (isDokter ? 'Grafik Anak' : 'Grafik Pengguna')
         : 'Grafik Stunting';
 
     return Container(
@@ -1364,7 +1364,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   size: 17,
                 ),
                 const SizedBox(width: 6),
-                Text(_isDokterView ? 'Grafik Pasien' : 'Grafik Pengguna'),
+                Text(_isDokterView ? 'Grafik Anak' : 'Grafik Pengguna'),
               ],
             ),
           ),
@@ -1597,10 +1597,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   Widget _buildDokterMetricCards() {
     return Row(
       children: [
-        // Card 1: Total Pasien
+        // Card 1: Total Anak
         Expanded(
           child: _buildDokterSingleMetricCard(
-            title: 'Total Pasien',
+            title: 'Total Anak',
             value: _formatNumber(_totalAnak),
             unit: 'Anak',
             accentColor: _kBluePrimary,
@@ -1611,10 +1611,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ),
         const SizedBox(width: 12.0),
 
-        // Card 2: Pasien Baru
+        // Card 2: Anak Baru
         Expanded(
           child: _buildDokterSingleMetricCard(
-            title: 'Pasien Baru',
+            title: 'Anak Baru',
             value: '+${_formatNumber(_anakBaruBulanIni)}',
             unit: 'Bulan Ini',
             accentColor: _kTealPrimary,
@@ -1888,7 +1888,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Kelompok Usia Pasien',
+                'Kelompok Usia Anak',
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
                   fontWeight: FontWeight.bold,
@@ -1902,7 +1902,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   borderRadius: BorderRadius.circular(6.0),
                 ),
                 child: Text(
-                  '${_formatNumber(_totalAnak)} Pasien',
+                  '${_formatNumber(_totalAnak)} Anak',
                   style: GoogleFonts.lato(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
@@ -2079,7 +2079,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Status Gizi Pasien Terdaftar',
+            'Status Gizi Anak Terdaftar',
             style: GoogleFonts.lato(
               fontSize: 14.5,
               fontWeight: FontWeight.bold,
@@ -2191,7 +2191,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               child: _buildMetricMiniCard(
                 title: 'Total Anak',
                 value: _formatNumber(_totalAnak),
-                unit: 'Pasien',
+                unit: 'Anak',
                 accentColor: _kTealPrimary,
                 bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
                 borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
@@ -2200,10 +2200,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             ),
             const SizedBox(width: 8.0),
 
-            // 3. Pasien Baru Bulan Ini
+            // 3. Anak Baru Bulan Ini
             Expanded(
               child: _buildMetricMiniCard(
-                title: 'Pasien Baru',
+                title: 'Anak Baru',
                 value: '+${_formatNumber(_anakBaruBulanIni)}',
                 unit: 'Bulan Ini',
                 accentColor: const Color(0xFF10B981),
@@ -2949,7 +2949,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               Expanded(
                 child: Text(
                   isDokter
-                      ? 'Data Cek Stunting Pasien'
+                      ? 'Data Cek Stunting Anak'
                       : 'Dataset Hasil Cek Stunting',
                   style: GoogleFonts.lato(
                     fontSize: 15.0,

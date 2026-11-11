@@ -962,7 +962,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sesi Konsultasi Pasien Aktif',
+                    'Sesi Konsultasi Anak Aktif',
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -1149,8 +1149,8 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                         child: _buildEmptyState(
                           title: 'Belum Ada Jadwal Booking',
                           subtitle: loggedInDoctorName.isNotEmpty
-                              ? 'Saat ini belum ada pasien yang memesan jadwal konsultasi untuk $loggedInDoctorName.'
-                              : 'Belum ada pasien yang memesan jadwal konsultasi.',
+                              ? 'Saat ini belum ada anak yang memesan jadwal konsultasi untuk $loggedInDoctorName.'
+                              : 'Belum ada anak yang memesan jadwal konsultasi.',
                           icon: Icons.event_busy_rounded,
                           isDark: isDark,
                         ),
@@ -1189,8 +1189,8 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
 
     Widget _buildScheduleBanner(String doctorName, bool isDark) {
       final title = doctorName.isNotEmpty
-          ? 'Jadwal Booking Pasien — $doctorName'
-          : 'Jadwal Booking Pasien';
+          ? 'Jadwal Booking Anak — $doctorName'
+          : 'Jadwal Booking Anak';
 
       return Container(
         width: double.infinity,
@@ -1239,7 +1239,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Hanya menampilkan pasien yang memiliki jadwal konsultasi dengan Anda.',
+                    'Hanya menampilkan anak yang memiliki jadwal konsultasi dengan Anda.',
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       color: isDark

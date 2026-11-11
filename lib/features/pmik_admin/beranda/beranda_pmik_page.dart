@@ -485,7 +485,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
             Expanded(
               child: _buildMenuItem(
                 context: context,
-                title: 'Data\nPasien',
+                title: 'Data\nAnak',
                 imageAsset: 'assets/images/data_pasien_logo.png',
                 blobColor: const Color(0xFF3CC3A6),
                 isLocked: false,

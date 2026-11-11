@@ -19,7 +19,7 @@ import '../../profil_pmik_page.dart';
 import 'detail_anak_page.dart';
 import 'pilih_anak_button_sheet.dart';
 
-/// Halaman Daftar Data Pasien Anak untuk POV PMIK ADMIN aplikasi PediaGrow.
+/// Halaman Daftar Data Anak untuk POV PMIK ADMIN aplikasi PediaGrow.
 ///
 /// Logika Baru:
 /// - List menampilkan seluruh daftar anak yang terdaftar di aplikasi (tersimpan di Firestore 'children').
@@ -170,7 +170,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Data Pasien Anak',
+              'Data Anak',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
@@ -461,7 +461,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                     children: [
                       // Nama Anak
                       Text(
-                        child.name.isNotEmpty ? child.name : 'Anak Pasien',
+                        child.name.isNotEmpty ? child.name : 'Anak',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
@@ -560,7 +560,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Belum Ada Data Pasien Anak',
+                          'Belum Ada Data Anak',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 18,
@@ -736,7 +736,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Gagal Memuat Data Pasien Anak',
+              'Gagal Memuat Data Anak',
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

@@ -320,7 +320,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       ),
                       _buildConfirmDetailRow(
                         icon: Icons.child_care_rounded,
-                        label: 'Pasien (Anak)',
+                        label: 'Data Anak',
                         value: childName,
                       ),
                       const Padding(
@@ -847,7 +847,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '1. Pilih Pasien Anak',
+              '1. Pilih Anak',
               style: GoogleFonts.lato(
                 fontSize: 15.5,
                 fontWeight: FontWeight.bold,

@@ -397,8 +397,8 @@ class _DaftarRiwayatKonsultasiAdminPageState
   // ─── SEARCH BAR TANPA FILTER (PERSIS SEPERTI POV PENGGUNA) ───────────────────
   Widget _buildSearchBar() {
     final hint = _isDoctorMode
-        ? 'Cari riwayat konsultasi pasien...'
-        : 'Cari riwayat konsultasi pasien atau dokter...';
+        ? 'Cari riwayat konsultasi anak...'
+        : 'Cari riwayat konsultasi anak atau dokter...';
 
     return MouseRegion(
       cursor: SystemMouseCursors.text,

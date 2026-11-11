@@ -550,13 +550,13 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 Expanded(
                   child: _buildMenuItem(
                     context: context,
-                    title: 'Data\nPasien',
+                    title: 'Data\nAnak',
                     imageAsset: 'assets/images/data_pasien_logo.png',
                     blobColor: const Color(0xFF3CC3A6),
                     isLocked: !canPasien,
                     onTap: () => _handleMenuTap(
                       permissionKey: 'data_pasien',
-                      featureName: 'Data Pasien',
+                      featureName: 'Data Anak',
                       onAllowed: () => _navigateTo(const DataPasienPage()),
                     ),
                   ),
