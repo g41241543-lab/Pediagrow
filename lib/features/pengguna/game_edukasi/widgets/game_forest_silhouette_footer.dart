@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 /// Widget ilustrasi footer khusus untuk Halaman Permainan (Start Kuis & Skor Akhir).
 ///
@@ -36,7 +36,9 @@ class GameForestSilhouetteFooter extends StatelessWidget {
             },
             blendMode: BlendMode.dstIn,
             child: Image.asset(
-              'assets/images/beranda_landscape_footer_fiks.png',
+              isDark
+                  ? 'assets/images/beranda_landscape_footer_dark.png'
+                  : 'assets/images/beranda_landscape_footer_fiks.png',
               width: double.infinity,
               height: height,
               fit: BoxFit.fitWidth,

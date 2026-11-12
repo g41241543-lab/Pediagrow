@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -233,8 +233,8 @@ class _BerandaPageState extends State<BerandaPage> {
                     _buildWhiteContentSection(context),
 
                     const SizedBox(
-                      height: 20,
-                    ), // jarak kecil sebelum ilustrasi footer
+                      height: 92,
+                    ), // ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
                     // -------------------------------------------------------------
                     // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
                     // -------------------------------------------------------------

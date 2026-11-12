@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -8,6 +8,7 @@ import '../../../../models/staff_account_model.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
 import 'edit_soal_permainan_page.dart';
@@ -913,28 +914,10 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // 3. ILUSTRASI FOOTER (Sama persis dengan Beranda Superadmin)
+  // 3. ILUSTRASI FOOTER (Format Terpusat: IllustrationForestFooter)
   // ──────────────────────────────────────────────────────────────────
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
   // ──────────────────────────────────────────────────────────────────

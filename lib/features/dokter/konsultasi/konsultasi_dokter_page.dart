@@ -13,6 +13,7 @@ import '../../../models/user_model.dart';
 import '../beranda/data_pasien/detail_anak_page.dart';
 import '../beranda/beranda_dokter_page.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../shared/widgets/pedia_interactive_hover_card.dart';
 
@@ -1703,27 +1704,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
       return fallback;
     }
 
-    // ─── FOOTER ILLUSTRATION (Format PMIK: Gambar Lanskap) ───────────────────
+    // ─── FOOTER ILLUSTRATION (Format Terpusat: IllustrationForestFooter) ─────
     Widget _buildFooterIllustration() {
-      return SizedBox(
-        width: double.infinity,
-        child: Image.asset(
-          'assets/images/beranda_landscape_footer_fiks.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-          alignment: Alignment.bottomCenter,
-          errorBuilder: (context, error, stackTrace) => Container(
-            height: 100,
-            color: const Color(0xFFD1FAE5),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.park_outlined,
-              size: 44,
-              color: Color(0xFF34D399),
-            ),
-          ),
-        ),
-      );
+      return const IllustrationForestFooter(fit: BoxFit.fitWidth);
     }
 
 }
