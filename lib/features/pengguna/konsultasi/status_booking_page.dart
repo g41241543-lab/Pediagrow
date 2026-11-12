@@ -749,7 +749,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'PASIEN ANAK',
+                            'DATA ANAK',
                             style: GoogleFonts.lato(
                               fontSize: 11.0,
                               fontWeight: FontWeight.bold,

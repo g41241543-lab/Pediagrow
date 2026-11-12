@@ -386,8 +386,8 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                     clipBehavior: Clip.none,
                     children: [
                       Container(
-                        width: 31,
-                        height: 31,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
                           color: notifCircleBg,
                           shape: BoxShape.circle,
@@ -403,7 +403,7 @@ class _MenuProfilPageState extends State<MenuProfilPage> {
                         child: Icon(
                           Icons.notifications_none_rounded,
                           color: notifIconColor,
-                          size: 19,
+                          size: 22,
                         ),
                       ),
                       // Badge angka notifikasi belum dibaca

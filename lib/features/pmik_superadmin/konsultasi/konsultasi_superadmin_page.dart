@@ -192,7 +192,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             ),
             const SizedBox(height: 10),
             Text(
-              'Ruang obrolan konsultasi antara dokter dan orang tua pasien hanya dapat diakses oleh dokter yang menangani. Superadmin tidak memiliki akses ke percakapan ini.',
+              'Ruang obrolan konsultasi antara dokter dan orang tua hanya dapat diakses oleh dokter yang menangani. Superadmin tidak memiliki akses ke percakapan ini.',
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,

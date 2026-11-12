@@ -14,7 +14,7 @@ import '../../../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_ad
 import 'detail_anak_page.dart';
 import 'pilih_anak_button_sheet.dart';
 
-/// Halaman Daftar Data Pasien Anak untuk POV DOKTER aplikasi PediaGrow.
+/// Halaman Daftar Data Anak untuk POV DOKTER aplikasi PediaGrow.
 ///
 /// Logika Baru:
 /// - List menampilkan seluruh daftar anak yang terdaftar di aplikasi (tersimpan di Firestore 'children').
@@ -162,7 +162,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Data Pasien Anak',
+              'Data Anak',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
@@ -231,7 +231,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Icon(
                     Icons.close_rounded,
-                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0),
+                    color: isDark
+                        ? const Color(0xFF8696A0)
+                        : const Color(0xFF8696A0),
                     size: 20,
                   ),
                 ),
@@ -288,7 +290,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
 
                 UserModel? resolveParent(ChildModel child) {
                   if (child.ownerId.isNotEmpty) {
-                    final u = usersById[child.ownerId] ?? usersById[child.ownerId.toLowerCase()];
+                    final u =
+                        usersById[child.ownerId] ??
+                        usersById[child.ownerId.toLowerCase()];
                     if (u != null) return u;
                   }
                   for (final pId in child.parentIds) {
@@ -424,10 +428,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => DetailAnakPage(
-                  child: child,
-                  user: parentUser,
-                ),
+                builder: (_) => DetailAnakPage(child: child, user: parentUser),
               ),
             );
           },
@@ -453,13 +454,15 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                     children: [
                       // Nama Anak
                       Text(
-                        child.name.isNotEmpty ? child.name : 'Anak Pasien',
+                        child.name.isNotEmpty ? child.name : 'Anak',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                          color: isDark
+                              ? const Color(0xFFE9EDEF)
+                              : _colorTextBlack,
                           height: 1.2,
                         ),
                       ),
@@ -489,7 +492,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
                           fontSize: 12,
-                          color: isDark ? const Color(0xFF8696A0) : _colorSubtitleGrey,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : _colorSubtitleGrey,
                         ),
                       ),
                     ],
@@ -552,7 +557,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Belum Ada Data Pasien Anak',
+                          'Belum Ada Data Anak',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 18,
@@ -659,9 +664,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark
-                  ? const Color(0xFF2C363D)
-                  : const Color(0xFFE9EDEF),
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
               width: 1.2,
             ),
           ),
@@ -728,11 +731,13 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Gagal Memuat Data Pasien Anak',
+              'Gagal Memuat Data Anak',
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                color: isDark
+                    ? const Color(0xFFE9EDEF)
+                    : const Color(0xFF1A2228),
               ),
             ),
             const SizedBox(height: 4),

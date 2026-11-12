@@ -31,7 +31,7 @@ import '../../../shared/widgets/pedia_banner.dart';
 /// - Header dokter fixed berwarna biru (#2A85FF) meluas ke area status bar, tidak sempit.
 /// - Data dokter (nama, spesialisasi, foto) diambil dinamis dari dokter yang dipilih pengguna.
 /// - Disclaimer medis fixed (dapat ditutup dengan tombol X) dengan sudut atas melengkung.
-/// - Dokumen 'Formulir Keluhan Pasien' otomatis terkirim menjadi chat paling awal di kanan.
+/// - Dokumen 'Formulir Keluhan Anak' otomatis terkirim menjadi chat paling awal di kanan.
 /// - Mengetuk dokumen formulir menampilkan rincian data formulir anak & keluhan.
 /// - Animasi tiga titik (...) bergerak halus saat dokter sedang mengetik balasan.
 /// - Sistem dialog medis anak terstruktur & kontekstual: respons disesuaikan dengan pertanyaan
@@ -289,12 +289,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     final timeStr =
         '${now.hour.toString().padLeft(2, '0')}.${now.minute.toString().padLeft(2, '0')}';
 
-    // Sesuai screenshot acuan: chat paling awal HANYA dokumen Formulir Keluhan Pasien
+    // Sesuai screenshot acuan: chat paling awal HANYA dokumen Formulir Keluhan Anak
     _messages = [
       {
         'sender': 'user',
         'type': 'attachment',
-        'title': 'Formulir Keluhan Pasien',
+        'title': 'Formulir Keluhan Anak',
         'timestamp': timeStr,
         'isRead': true,
       },
@@ -350,9 +350,9 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
         : 'si kecil';
 
     if (hasComplaint) {
-      return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Pasien untuk $childName sudah saya terima dan cermati dengan baik.\n\nTerkait keluhan: "${widget.complaint!.trim()}", boleh diceritakan sudah berapa hari keluhan ini berlangsung dan bagaimana kondisi keaktifan si kecil saat ini?';
+      return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Anak untuk $childName sudah saya terima dan cermati dengan baik.\n\nTerkait keluhan: "${widget.complaint!.trim()}", boleh diceritakan sudah berapa hari keluhan ini berlangsung dan bagaimana kondisi keaktifan si kecil saat ini?';
     } else {
-      return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Pasien untuk $childName sudah saya terima.\n\nBagaimana kondisi $childName hari ini? Silakan ceritakan keluhan atau gejala yang sedang dirasakan si kecil ya Mom’s.';
+      return 'Halo Mom’s, perkenalkan saya $_effectiveDoctorName. Formulir Keluhan Anak untuk $childName sudah saya terima.\n\nBagaimana kondisi $childName hari ini? Silakan ceritakan keluhan atau gejala yang sedang dirasakan si kecil ya Mom’s.';
     }
   }
 
@@ -390,7 +390,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
           ? replyText
           : '📷 Foto';
     } else if (replyType == 'attachment') {
-      replyText = '📋 Formulir Keluhan Pasien';
+      replyText = '📋 Formulir Keluhan Anak';
     }
 
     // Jika ada sessionId → kirim ke Firestore (real-time, dokter menerima)
@@ -1068,7 +1068,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
   }
 
   // ===========================================================================
-  // MODAL RINCIAN FORMULIR KELUHAN PASIEN
+  // MODAL RINCIAN Formulir Keluhan Anak
   // ===========================================================================
 
   void _showFormulirDetailDialog() {
@@ -1130,7 +1130,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Formulir Keluhan Pasien',
+                          'Formulir Keluhan Anak',
                           style: GoogleFonts.lato(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -1610,7 +1610,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               !msg.imageUrl!.startsWith('http'))
           ? msg.imageUrl!.split('/').last
           : '',
-      'title': 'Formulir Keluhan Pasien',
+      'title': 'Formulir Keluhan Anak',
       'timestamp': timeStr,
       'isRead': msg.isRead,
       'replyToId': msg.replyToId,
@@ -1704,7 +1704,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
     );
   }
 
-  // Attachment "Formulir Keluhan Pasien" di sisi kanan
+  // Attachment "Formulir Keluhan Anak" di sisi kanan
   Widget _buildAttachmentMessage(Map<String, dynamic> item, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1748,7 +1748,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          item['title'] ?? 'Formulir Keluhan Pasien',
+                          item['title'] ?? 'Formulir Keluhan Anak',
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -2269,12 +2269,12 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
                 Expanded(child: _buildTextField(isDark)),
                 const SizedBox(width: 8),
 
-                // 3. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
-                _buildEndConsultationButton(isDark),
+                // 3. Tombol Send (Lingkaran Biru #2A85FF)
+                _buildSendButton(),
                 const SizedBox(width: 8),
 
-                // 4. Tombol Send (Lingkaran Biru #2A85FF)
-                _buildSendButton(),
+                // 4. Tombol "Akhiri Konsultasi" (Ikon Bookmark / Akhiri)
+                _buildEndConsultationButton(isDark),
               ],
             ),
           ],
@@ -2450,7 +2450,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
               ? replyText
               : '📷 Foto';
         } else if (replyType == 'attachment') {
-          replyText = '📋 Formulir Keluhan Pasien';
+          replyText = '📋 Formulir Keluhan Anak';
         }
 
         final effSession = _effectiveSessionId;
@@ -2735,7 +2735,7 @@ class _ChatKonsultasiPageState extends State<ChatKonsultasiPage>
 
     String previewContent = text;
     if (isFormulir) {
-      previewContent = '📋 Formulir Keluhan Pasien';
+      previewContent = '📋 Formulir Keluhan Anak';
     } else if (hasImage) {
       previewContent = text.isNotEmpty ? '📷 $text' : '📷 Foto';
     }

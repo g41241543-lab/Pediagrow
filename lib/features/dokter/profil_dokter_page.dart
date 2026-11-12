@@ -657,8 +657,8 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     );
                   },
                   child: Container(
-                    width: 31,
-                    height: 31,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: settingCircleBg,
                       shape: BoxShape.circle,
@@ -675,7 +675,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
                     child: Icon(
                       Icons.settings_outlined,
                       color: settingIconColor,
-                      size: 19,
+                      size: 22,
                     ),
                   ),
                 ),

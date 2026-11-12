@@ -179,7 +179,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Data Pasien Anak',
+              'Data Anak',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.lato(
@@ -470,7 +470,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                     children: [
                       // Nama Anak
                       Text(
-                        child.name.isNotEmpty ? child.name : 'Anak Pasien',
+                        child.name.isNotEmpty ? child.name : 'Anak',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.lato(
@@ -569,7 +569,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Belum Ada Data Pasien Anak',
+                          'Belum Ada Data Anak',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.lato(
                             fontSize: 18,
@@ -745,7 +745,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Gagal Memuat Data Pasien Anak',
+              'Gagal Memuat Data Anak',
               style: GoogleFonts.lato(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

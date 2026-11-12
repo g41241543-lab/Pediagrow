@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,14 +18,14 @@ import '../../../../models/booking_consultation_model.dart';
 import '../../../../models/konsultasi_session_model.dart';
 import '../../konsultasi/chat_konsultasi_dokter_page.dart';
 
-/// Halaman Data Pasien Anak untuk POV Superadmin.
+/// Halaman Data Anak untuk POV Superadmin.
 ///
 /// Fitur Utama yang disesuaikan:
 /// - Header fixed putih tanpa perbedaan warna latar belakang:
-///   Tombol kembali & judul "Data Pasien Anak".
+///   Tombol kembali & judul "Data Anak".
 /// - Nama Pengguna (Orang Tua) dengan avatar dinamis dari Firestore & font bold.
 /// - Tab Bar:
-///   1. "Detail Pasien" (aktif dengan indikator garis biru).
+///   1. "Detail Anak" (aktif dengan indikator garis biru).
 ///   2. "Ruang Obrolan" (dengan ikon gembok kecil).
 /// - Header Profil Anak: Avatar anak dinamis dari database Firestore (collection 'children' atau 'users')
 ///   + Nama Anak + Usia akurat.
@@ -86,14 +85,13 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     _fetchData();
   }
 
-
   /// Sinkronisasi data terbaru dari Firestore untuk collection 'users' dan 'children'
   Future<void> _fetchData() async {
     final userId = _parentUser?.id.isNotEmpty == true
         ? _parentUser!.id
         : (_currentChild.ownerId.isNotEmpty
-            ? _currentChild.ownerId
-            : (widget.booking?.userId ?? ''));
+              ? _currentChild.ownerId
+              : (widget.booking?.userId ?? ''));
 
     if (userId.isNotEmpty) {
       try {
@@ -227,17 +225,30 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
   Future<void> _navigateToDataOrangtua() async {
     UserModel? userToOpen = _parentUser;
-    if (userToOpen == null || userToOpen.name.isEmpty || userToOpen.name == 'Orang Tua' || userToOpen.name == 'Orang Tua Pasien') {
+    if (userToOpen == null ||
+        userToOpen.name.isEmpty ||
+        userToOpen.name == 'Orang Tua' ||
+        userToOpen.name == 'Orang Tua') {
       try {
         final db = FirebaseFirestore.instance;
         if (_currentChild.ownerId.isNotEmpty) {
-          final doc = await db.collection('users').doc(_currentChild.ownerId).get();
+          final doc = await db
+              .collection('users')
+              .doc(_currentChild.ownerId)
+              .get();
           if (doc.exists && doc.data() != null) {
             userToOpen = UserModel.fromMap({...doc.data()!, 'id': doc.id});
           } else if (_currentChild.ownerId.contains('@')) {
-            final q = await db.collection('users').where('email', isEqualTo: _currentChild.ownerId).limit(1).get();
+            final q = await db
+                .collection('users')
+                .where('email', isEqualTo: _currentChild.ownerId)
+                .limit(1)
+                .get();
             if (q.docs.isNotEmpty) {
-              userToOpen = UserModel.fromMap({...q.docs.first.data(), 'id': q.docs.first.id});
+              userToOpen = UserModel.fromMap({
+                ...q.docs.first.data(),
+                'id': q.docs.first.id,
+              });
             }
           }
         }
@@ -250,10 +261,19 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             }
           }
         }
-        if (userToOpen == null && _currentChild.noKk != null && _currentChild.noKk!.trim().isNotEmpty) {
-          final q = await db.collection('users').where('no_kk', isEqualTo: _currentChild.noKk!.trim()).limit(1).get();
+        if (userToOpen == null &&
+            _currentChild.noKk != null &&
+            _currentChild.noKk!.trim().isNotEmpty) {
+          final q = await db
+              .collection('users')
+              .where('no_kk', isEqualTo: _currentChild.noKk!.trim())
+              .limit(1)
+              .get();
           if (q.docs.isNotEmpty) {
-            userToOpen = UserModel.fromMap({...q.docs.first.data(), 'id': q.docs.first.id});
+            userToOpen = UserModel.fromMap({
+              ...q.docs.first.data(),
+              'id': q.docs.first.id,
+            });
           }
         }
       } catch (_) {}
@@ -261,15 +281,13 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
     userToOpen ??= UserModel(
       id: _currentChild.ownerId,
-      name: 'Orang Tua Pasien',
+      name: 'Orang Tua',
       email: '-',
     );
 
     if (!mounted) return;
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => DetailPenggunaPage(user: userToOpen!),
-      ),
+      MaterialPageRoute(builder: (_) => DetailPenggunaPage(user: userToOpen!)),
     );
   }
 
@@ -328,7 +346,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           ),
           const SizedBox(width: 12),
           Text(
-            'Data Pasien Anak',
+            'Data Anak',
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -339,8 +357,6 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       ),
     );
   }
-
-
 
   // ===========================================================================
   // 3. TAB BAR: "Detail Pasien" & "🔒 Ruang Obrolan"
@@ -381,8 +397,12 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             ? FontWeight.bold
                             : FontWeight.w500,
                         color: _selectedTabIndex == 0
-                            ? (isDark ? const Color(0xFFE9EDEF) : _colorTextBlack)
-                            : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
+                            ? (isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : _colorTextBlack)
+                            : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF667781)),
                       ),
                     ),
                   ),
@@ -390,7 +410,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     height: 3,
                     decoration: BoxDecoration(
                       color: _selectedTabIndex == 0
-                          ? (isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue)
+                          ? (isDark
+                                ? const Color(0xFF3985E7)
+                                : _colorPrimaryBlue)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -422,8 +444,12 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                             ? FontWeight.bold
                             : FontWeight.w500,
                         color: _selectedTabIndex == 1
-                            ? (isDark ? const Color(0xFFE9EDEF) : _colorTextBlack)
-                            : (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781)),
+                            ? (isDark
+                                  ? const Color(0xFFE9EDEF)
+                                  : _colorTextBlack)
+                            : (isDark
+                                  ? const Color(0xFF8696A0)
+                                  : const Color(0xFF667781)),
                       ),
                     ),
                   ),
@@ -431,7 +457,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                     height: 3,
                     decoration: BoxDecoration(
                       color: _selectedTabIndex == 1
-                          ? (isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue)
+                          ? (isDark
+                                ? const Color(0xFF3985E7)
+                                : _colorPrimaryBlue)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -463,109 +491,113 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // A. Header Profil Anak (Avatar Wajah + Nama & Usia)
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: ChildAvatar.bgColorFor(gender: widget.child.gender),
-                  shape: BoxShape.circle,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: _buildAvatarImage(
-                  imagePath: _childPhotoUrl,
-                  size: 48,
-                  fallback: ChildAvatar(
-                    gender: widget.child.gender,
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // A. Header Profil Anak (Avatar Wajah + Nama & Usia)
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: ChildAvatar.bgColorFor(gender: widget.child.gender),
+                    shape: BoxShape.circle,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _buildAvatarImage(
+                    imagePath: _childPhotoUrl,
                     size: 48,
+                    fallback: ChildAvatar(
+                      gender: widget.child.gender,
+                      size: 48,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _currentChild.name.isNotEmpty
-                          ? _currentChild.name
-                          : 'Arfa Zivano Kayfan',
-                      style: GoogleFonts.lato(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _currentChild.name.isNotEmpty
+                            ? _currentChild.name
+                            : 'Arfa Zivano Kayfan',
+                        style: GoogleFonts.lato(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? const Color(0xFFE9EDEF)
+                              : _colorTextBlack,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      usiaText,
-                      style: GoogleFonts.lato(
-                        fontSize: 13,
-                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                      const SizedBox(height: 3),
+                      Text(
+                        usiaText,
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : _colorLabelGrey,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // B. Tiga Tombol Menu Berdampingan: "Grafik Pertumbuhan", "Resume Medis", & "Data Orangtua"
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // 1. Grafik Pertumbuhan (Menggunakan logo resmi grafik_pertumbuhan_logo.png)
-              _buildFeatureButton(
-                title: 'Grafik\nPertumbuhan',
-                imageAsset: 'assets/images/grafik_pertumbuhan_logo.png',
-                onTap: () {
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder: (_, _, _) =>
-                          SuperadminGrafikPage(child: _currentChild),
-                      transitionsBuilder: (_, animation, _, childWidget) =>
-                          FadeTransition(
-                            opacity: animation,
-                            child: childWidget,
-                          ),
-                      transitionDuration: const Duration(milliseconds: 200),
-                    ),
-                  );
-                },
-              ),
+            // B. Tiga Tombol Menu Berdampingan: "Grafik Pertumbuhan", "Resume Medis", & "Data Orangtua"
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // 1. Grafik Pertumbuhan (Menggunakan logo resmi grafik_pertumbuhan_logo.png)
+                _buildFeatureButton(
+                  title: 'Grafik\nPertumbuhan',
+                  imageAsset: 'assets/images/grafik_pertumbuhan_logo.png',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      PageRouteBuilder(
+                        pageBuilder: (_, _, _) =>
+                            SuperadminGrafikPage(child: _currentChild),
+                        transitionsBuilder: (_, animation, _, childWidget) =>
+                            FadeTransition(
+                              opacity: animation,
+                              child: childWidget,
+                            ),
+                        transitionDuration: const Duration(milliseconds: 200),
+                      ),
+                    );
+                  },
+                ),
 
-              // 2. Resume Medis (Menggunakan logo resmi data_pasien_logo.png)
-              _buildFeatureButton(
-                title: 'Resume\nMedis',
-                imageAsset: 'assets/images/data_pasien_logo.png',
-                onTap: _navigateToResumeMedis,
-              ),
+                // 2. Resume Medis (Menggunakan logo resmi data_pasien_logo.png)
+                _buildFeatureButton(
+                  title: 'Resume\nMedis',
+                  imageAsset: 'assets/images/data_pasien_logo.png',
+                  onTap: _navigateToResumeMedis,
+                ),
 
-              // 3. Data Orangtua
-              _buildFeatureButton(
-                title: 'Data\nOrangtua',
-                imageAsset: 'assets/images/data_orangtua_logo.png',
-                customIcon: const DataOrangtuaLogo(size: 36),
-                onTap: _navigateToDataOrangtua,
-              ),
-            ],
-          ),
+                // 3. Data Orangtua
+                _buildFeatureButton(
+                  title: 'Data\nOrangtua',
+                  imageAsset: 'assets/images/data_orangtua_logo.png',
+                  customIcon: const DataOrangtuaLogo(size: 36),
+                  onTap: _navigateToDataOrangtua,
+                ),
+              ],
+            ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // C. Tabel "Biodata Anak" (Termasuk Lingkar Kepala)
-          _buildBiodataAnakCard(),
-        ],
+            // C. Tabel "Biodata Anak" (Termasuk Lingkar Kepala)
+            _buildBiodataAnakCard(),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -630,7 +662,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1A2228) : _colorButtonBg,
                 borderRadius: BorderRadius.circular(16),
-                border: isDark ? Border.all(color: const Color(0xFF2C363D), width: 1) : null,
+                border: isDark
+                    ? Border.all(color: const Color(0xFF2C363D), width: 1)
+                    : null,
               ),
               alignment: Alignment.center,
               child: iconWidget,
@@ -694,10 +728,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         : '-';
 
     final rows = <_TableChildRowData>[
-      _TableChildRowData(
-        label: 'Nama Lengkap',
-        value: namaLengkap,
-      ),
+      _TableChildRowData(label: 'Nama Lengkap', value: namaLengkap),
       _TableChildRowData(
         label: 'Nomor Kartu Keluarga (KK)',
         value: child.noKk?.isNotEmpty == true ? child.noKk! : '-',
@@ -706,34 +737,16 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         label: 'NIK Anak',
         value: child.nik?.isNotEmpty == true ? child.nik! : '-',
       ),
-      _TableChildRowData(
-        label: 'Tanggal Lahir',
-        value: tanggalLahir,
-      ),
-      _TableChildRowData(
-        label: 'Jenis Kelamin',
-        value: jenisKelamin,
-      ),
-      _TableChildRowData(
-        label: 'Prematur',
-        value: prematur,
-      ),
-      _TableChildRowData(
-        label: 'Berat Badan Saat Lahir (kg)',
-        value: bbLahir,
-      ),
-      _TableChildRowData(
-        label: 'Tinggi Badan Saat Lahir (cm)',
-        value: tbLahir,
-      ),
+      _TableChildRowData(label: 'Tanggal Lahir', value: tanggalLahir),
+      _TableChildRowData(label: 'Jenis Kelamin', value: jenisKelamin),
+      _TableChildRowData(label: 'Prematur', value: prematur),
+      _TableChildRowData(label: 'Berat Badan Saat Lahir (kg)', value: bbLahir),
+      _TableChildRowData(label: 'Tinggi Badan Saat Lahir (cm)', value: tbLahir),
       _TableChildRowData(
         label: 'Lingkar Kepala Saat Lahir (cm)',
         value: lkLahir,
       ),
-      _TableChildRowData(
-        label: 'Alergi',
-        value: alergi,
-      ),
+      _TableChildRowData(label: 'Alergi', value: alergi),
     ];
 
     return Container(
@@ -835,6 +848,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
       ],
     );
   }
+
   // ===========================================================================
   // ===========================================================================
   // 5. KONTEN TAB "RUANG OBROLAN" (POV DOKTER)
@@ -854,12 +868,15 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         KonsultasiSessionModel? matchedSession;
         for (final s in activeSessions) {
           final sDocName = s.doctorName.toLowerCase();
-          final matchDoc = docName.isEmpty ||
+          final matchDoc =
+              docName.isEmpty ||
               sDocName.contains(docName) ||
               docName.contains(sDocName);
-          final matchChild = (childId.isNotEmpty && s.childId == childId) ||
+          final matchChild =
+              (childId.isNotEmpty && s.childId == childId) ||
               s.childName.toLowerCase() == childName;
-          final matchSessionId = widget.sessionId != null &&
+          final matchSessionId =
+              widget.sessionId != null &&
               widget.sessionId!.isNotEmpty &&
               s.id == widget.sessionId;
           if ((matchDoc && matchChild) || matchSessionId) {
@@ -874,7 +891,11 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             // Cari jadwal booking yang cocok untuk anak ini
             BookingConsultationModel? matchedBooking;
             if (widget.booking != null) {
-              matchedBooking = bookings.where((b) => b.id == widget.booking!.id).firstOrNull ?? widget.booking;
+              matchedBooking =
+                  bookings
+                      .where((b) => b.id == widget.booking!.id)
+                      .firstOrNull ??
+                  widget.booking;
             }
             if (matchedBooking == null) {
               for (final b in bookings) {
@@ -882,10 +903,12 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 final bChildId = b.child.id;
                 final bDocName = b.doctor.name.toLowerCase();
 
-                final matchDoctor = docName.isEmpty ||
+                final matchDoctor =
+                    docName.isEmpty ||
                     bDocName.contains(docName) ||
                     docName.contains(bDocName);
-                final matchChild = (childId.isNotEmpty && bChildId == childId) ||
+                final matchChild =
+                    (childId.isNotEmpty && bChildId == childId) ||
                     bChildName == childName;
 
                 if (matchDoctor && matchChild && b.status != 'Dibatalkan') {
@@ -895,7 +918,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               }
             }
 
-            final bool isBookingBeforeStart = matchedBooking?.isBeforeStart ?? false;
+            final bool isBookingBeforeStart =
+                matchedBooking?.isBeforeStart ?? false;
 
             // Jika sesi masih berstatus menunggu saat dokter masuk, aktifkan sesi otomatis
             // HANYA jika waktu jadwal sudah tiba (jangan aktifkan sebelum waktu konsultasi)
@@ -908,7 +932,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
             }
 
             // 1. Cek apakah ada sesi konsultasi aktif/menunggu di Firestore
-            final bool isFirestoreActive = matchedSession != null &&
+            final bool isFirestoreActive =
+                matchedSession != null &&
                 (matchedSession.status == KonsultasiStatus.aktif ||
                     matchedSession.status == KonsultasiStatus.menunggu) &&
                 !isBookingBeforeStart;
@@ -918,15 +943,25 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 matchedBooking != null && _isBookingActiveNow(matchedBooking);
 
             // 3. Status aktif riil (aktif jika ada sesi di firestore atau booking aktif, dan bukan sebelum jadwal)
-            final bool isCurrentlyActive = !isBookingBeforeStart &&
+            final bool isCurrentlyActive =
+                !isBookingBeforeStart &&
                 (isFirestoreActive ||
                     isBookingActive ||
-                    (widget.sessionId != null && widget.sessionId!.isNotEmpty && matchedBooking == null && matchedSession?.status != KonsultasiStatus.selesai));
+                    (widget.sessionId != null &&
+                        widget.sessionId!.isNotEmpty &&
+                        matchedBooking == null &&
+                        matchedSession?.status != KonsultasiStatus.selesai));
 
-            final effectiveSessionId = widget.sessionId ??
+            final effectiveSessionId =
+                widget.sessionId ??
                 matchedBooking?.sessionId ??
-                (matchedBooking != null ? 'session_${matchedBooking.id}' : null) ??
-                (widget.booking?.sessionId ?? (widget.booking != null ? 'session_${widget.booking!.id}' : null)) ??
+                (matchedBooking != null
+                    ? 'session_${matchedBooking.id}'
+                    : null) ??
+                (widget.booking?.sessionId ??
+                    (widget.booking != null
+                        ? 'session_${widget.booking!.id}'
+                        : null)) ??
                 matchedSession?.id;
 
             if (matchedSession != null ||
@@ -934,17 +969,18 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 (effectiveSessionId != null && effectiveSessionId.isNotEmpty)) {
               final sessParent = matchedSession?.parentName;
               final userParent = _parentUser?.name;
-              final parentDisplayName = (sessParent != null &&
+              final parentDisplayName =
+                  (sessParent != null &&
                       sessParent.isNotEmpty &&
                       !sessParent.toLowerCase().startsWith('orang tua'))
                   ? sessParent
                   : (userParent != null &&
-                          userParent.isNotEmpty &&
-                          !userParent.toLowerCase().startsWith('orang tua'))
-                      ? userParent
-                      : (userParent != null && userParent.isNotEmpty
-                          ? userParent
-                          : 'Orang Tua ${_currentChild.name}');
+                        userParent.isNotEmpty &&
+                        !userParent.toLowerCase().startsWith('orang tua'))
+                  ? userParent
+                  : (userParent != null && userParent.isNotEmpty
+                        ? userParent
+                        : 'Orang Tua ${_currentChild.name}');
 
               // Ruang Obrolan = Ruang Chat langsung tanpa tombol Masuk Ruang Chat lagi.
               // Dokter dapat langsung mengirim pesan & foto saat konsultasi berlangsung.
@@ -953,18 +989,25 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 topCard: isCurrentlyActive
                     ? null
                     : _buildJadwalInfoCard(
-                  booking: matchedBooking,
-                  session: matchedSession,
-                  parentDisplayName: parentDisplayName,
-                  isActive: isCurrentlyActive,
-                ),
+                        booking: matchedBooking,
+                        session: matchedSession,
+                        parentDisplayName: parentDisplayName,
+                        isActive: isCurrentlyActive,
+                      ),
                 child: _currentChild,
                 parentUser: _parentUser,
                 parentName: parentDisplayName,
                 doctorName: currentStaff?.name ?? 'Dokter',
-                complaint: matchedSession?.keluhanAwal ?? matchedBooking?.complaint,
-                weightKg: matchedSession?.weightKg ?? matchedBooking?.weightKg ?? _currentChild.weightKg,
-                heightCm: matchedSession?.heightCm ?? matchedBooking?.heightCm ?? _currentChild.heightCm,
+                complaint:
+                    matchedSession?.keluhanAwal ?? matchedBooking?.complaint,
+                weightKg:
+                    matchedSession?.weightKg ??
+                    matchedBooking?.weightKg ??
+                    _currentChild.weightKg,
+                heightCm:
+                    matchedSession?.heightCm ??
+                    matchedBooking?.heightCm ??
+                    _currentChild.heightCm,
                 sessionId: effectiveSessionId,
                 booking: matchedBooking,
                 hasActiveSession: isCurrentlyActive,
@@ -1006,8 +1049,8 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     final scheduleText = session != null
         ? 'Sesi Konsultasi Langsung Sedang Berlangsung'
         : booking != null
-            ? '${booking.formattedDate} (${booking.scheduledTimeSlot})'
-            : 'Sesi Aktif Sedang Berlangsung';
+        ? '${booking.formattedDate} (${booking.scheduledTimeSlot})'
+        : 'Sesi Aktif Sedang Berlangsung';
 
     return Container(
       decoration: BoxDecoration(
@@ -1042,13 +1085,21 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 ),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.5) : const Color(0xFFECFDF5))
-                      : (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFEFF6FF)),
+                      ? (isDark
+                            ? const Color(0xFF064E3B).withValues(alpha: 0.5)
+                            : const Color(0xFFECFDF5))
+                      : (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.5)
+                            : const Color(0xFFEFF6FF)),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isActive
-                        ? (isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0))
-                        : (isDark ? const Color(0xFF3B82F6) : const Color(0xFFBFDBFE)),
+                        ? (isDark
+                              ? const Color(0xFF059669)
+                              : const Color(0xFFA7F3D0))
+                        : (isDark
+                              ? const Color(0xFF3B82F6)
+                              : const Color(0xFFBFDBFE)),
                   ),
                 ),
                 child: Row(
@@ -1069,14 +1120,18 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
+                          color: isDark
+                              ? const Color(0xFF34D399)
+                              : const Color(0xFF047857),
                         ),
                       ),
                     ] else ...[
                       Icon(
                         Icons.event_available_rounded,
                         size: 13,
-                        color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF2563EB),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -1084,7 +1139,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+                          color: isDark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF1D4ED8),
                         ),
                       ),
                     ],
@@ -1096,7 +1153,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 size: 18,
                 color: isActive
                     ? (isDark ? const Color(0xFF3985E7) : _colorPrimaryBlue)
-                    : (isDark ? const Color(0xFF8696A0) : const Color(0xFF8696A0)),
+                    : (isDark
+                          ? const Color(0xFF8696A0)
+                          : const Color(0xFF8696A0)),
               ),
             ],
           ),
@@ -1109,7 +1168,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF),
+                  color: isDark
+                      ? const Color(0xFF242E35)
+                      : const Color(0xFFEFF6FF),
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -1129,7 +1190,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                       style: GoogleFonts.lato(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                        color: isDark
+                            ? const Color(0xFFE9EDEF)
+                            : _colorTextBlack,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -1137,7 +1200,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                       parentDisplayName,
                       style: GoogleFonts.lato(
                         fontSize: 12.5,
-                        color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
+                        color: isDark
+                            ? const Color(0xFF8696A0)
+                            : _colorLabelGrey,
                       ),
                     ),
                   ],
@@ -1158,7 +1223,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               Icon(
                 Icons.access_time_rounded,
                 size: 15,
-                color: isDark ? const Color(0xFF3985E7) : const Color(0xFF3B82F6),
+                color: isDark
+                    ? const Color(0xFF3985E7)
+                    : const Color(0xFF3B82F6),
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -1167,7 +1234,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                   style: GoogleFonts.lato(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                    color: isDark
+                        ? const Color(0xFFE9EDEF)
+                        : const Color(0xFF1A2228),
                   ),
                 ),
               ),
@@ -1213,7 +1282,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Saat ini belum ada jadwal booking atau sesi obrolan konsultasi yang sedang berlangsung untuk pasien ${_currentChild.name}.',
+            'Saat ini belum ada jadwal booking atau sesi obrolan konsultasi yang sedang berlangsung untuk anak ${_currentChild.name}.',
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 13,
@@ -1228,7 +1297,9 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
               color: isDark ? const Color(0xFF1A2228) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE9EDEF),
               ),
             ),
             child: Row(
@@ -1237,15 +1308,19 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
                 Icon(
                   Icons.info_outline_rounded,
                   size: 18,
-                  color: isDark ? const Color(0xFF3985E7) : const Color(0xFF3B82F6),
+                  color: isDark
+                      ? const Color(0xFF3985E7)
+                      : const Color(0xFF3B82F6),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Ruang obrolan akan terbuka dan aktif secara otomatis saat orang tua pasien melakukan booking jadwal konsultasi dengan Anda dan waktu sesi telah tiba.',
+                    'Ruang obrolan akan terbuka dan aktif secara otomatis saat orang tua melakukan booking jadwal konsultasi dengan Anda dan waktu sesi telah tiba.',
                     style: GoogleFonts.lato(
                       fontSize: 12,
-                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
+                      color: isDark
+                          ? const Color(0xFFE9EDEF)
+                          : const Color(0xFF2C363D),
                       height: 1.4,
                     ),
                   ),
@@ -1263,8 +1338,5 @@ class _TableChildRowData {
   final String label;
   final String value;
 
-  _TableChildRowData({
-    required this.label,
-    required this.value,
-  });
+  _TableChildRowData({required this.label, required this.value});
 }

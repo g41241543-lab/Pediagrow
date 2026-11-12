@@ -88,8 +88,8 @@ class RiwayatHeader extends StatelessWidget {
                           clipBehavior: Clip.none,
                           children: [
                             Container(
-                              width: 31,
-                              height: 31,
+                              width: 38,
+                              height: 38,
                               decoration: BoxDecoration(
                                 color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                 shape: BoxShape.circle,
@@ -105,7 +105,7 @@ class RiwayatHeader extends StatelessWidget {
                               child: Icon(
                                 Icons.notifications_none_rounded,
                                 color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                                size: 19,
+                                size: 22,
                               ),
                             ),
                             if (unreadCount > 0)
@@ -224,8 +224,8 @@ class RiwayatHeader extends StatelessWidget {
                             clipBehavior: Clip.none,
                             children: [
                               Container(
-                                width: 31,
-                                height: 31,
+                                width: 38,
+                                height: 38,
                                 decoration: BoxDecoration(
                                   color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                   shape: BoxShape.circle,
@@ -241,7 +241,7 @@ class RiwayatHeader extends StatelessWidget {
                                 child: Icon(
                                   Icons.notifications_none_rounded,
                                   color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                                  size: 19,
+                                  size: 22,
                                 ),
                               ),
                               if (unreadCount > 0)

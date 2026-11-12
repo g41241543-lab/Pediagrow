@@ -8,19 +8,24 @@ import '../../../models/staff_account_model.dart';
 class TentangAplikasiPage extends StatelessWidget {
   final StaffRole? staffRole;
 
-  const TentangAplikasiPage({
-    super.key,
-    this.staffRole,
-  });
+  const TentangAplikasiPage({super.key, this.staffRole});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF0B1014) : Colors.white;
-    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
-    final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
-    final versionBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
-    final versionText = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
+    final titleColor = isDark
+        ? const Color(0xFFE9EDEF)
+        : const Color(0xFF000000);
+    final subtitleColor = isDark
+        ? const Color(0xFF8696A0)
+        : const Color(0xFF667781);
+    final versionBg = isDark
+        ? const Color(0xFF1A2228)
+        : const Color(0xFFE9EDEF);
+    final versionText = isDark
+        ? const Color(0xFF8696A0)
+        : const Color(0xFF667781);
     final logoBg = isDark ? const Color(0xFF1E3A5F) : const Color(0xFFECF6FF);
 
     return Scaffold(
@@ -70,120 +75,121 @@ class TentangAplikasiPage extends StatelessWidget {
                     horizontal: 16.0,
                     vertical: 24.0,
                   ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 90,
-                      height: 90,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: logoBg,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF3985E7).withValues(alpha: 0.12),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                              Icons.spa_rounded,
-                              size: 48,
-                              color: Color(0xFF3985E7),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 90,
+                        height: 90,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: logoBg,
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF3985E7)
+                                  .withValues(alpha: 0.12),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
                             ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Pedia',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4B83D6),
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'Grow',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF3CC3A6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: versionBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        _getVersionBadgeText(),
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: versionText,
-                          fontWeight: FontWeight.w600,
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.spa_rounded,
+                                size: 48,
+                                color: Color(0xFF3985E7),
+                              ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                    _buildInfoCard(
-                      context: context,
-                      isDark: isDark,
-                      title: _getAboutTitle(),
-                      description: _getAboutDescription(),
-                      icon: Icons.favorite_border_rounded,
-                      iconColor: const Color(0xFFE11D48),
-                    ),
-                    const SizedBox(height: 14),
-
-                    _buildInfoCard(
-                      context: context,
-                      isDark: isDark,
-                      title: _getMenuTitle(),
-                      description: _getMenuDescription(),
-                      icon: Icons.star_border_rounded,
-                      iconColor: const Color(0xFFF59E0B),
-                    ),
-                    const SizedBox(height: 14),
-
-                    _buildInfoCard(
-                      context: context,
-                      isDark: isDark,
-                      title: _getSupportTitle(),
-                      description: _getSupportDescription(),
-                      icon: Icons.support_agent_rounded,
-                      iconColor: const Color(0xFF3985E7),
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text(
-                      '© 2026 PediaGrow. All rights reserved.\nPantau Pertumbuhan, Cegah Stunting Untuk Masa Depan.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.lato(
-                        fontSize: 12,
-                        color: subtitleColor,
-                        height: 1.5,
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Pedia',
+                              style: GoogleFonts.baloo2(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF4B83D6),
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Grow',
+                              style: GoogleFonts.baloo2(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF3CC3A6),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 4),
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: versionBg,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _getVersionBadgeText(),
+                          style: GoogleFonts.lato(
+                            fontSize: 12,
+                            color: versionText,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      _buildInfoCard(
+                        context: context,
+                        isDark: isDark,
+                        title: _getAboutTitle(),
+                        description: _getAboutDescription(),
+                        icon: Icons.favorite_border_rounded,
+                        iconColor: const Color(0xFFE11D48),
+                      ),
+                      const SizedBox(height: 14),
+
+                      _buildInfoCard(
+                        context: context,
+                        isDark: isDark,
+                        title: _getMenuTitle(),
+                        description: _getMenuDescription(),
+                        icon: Icons.star_border_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                      ),
+                      const SizedBox(height: 14),
+
+                      _buildInfoCard(
+                        context: context,
+                        isDark: isDark,
+                        title: _getSupportTitle(),
+                        description: _getSupportDescription(),
+                        icon: Icons.support_agent_rounded,
+                        iconColor: const Color(0xFF3985E7),
+                      ),
+                      const SizedBox(height: 24),
+
+                      Text(
+                        '© 2026 PediaGrow. All rights reserved.\nPantau Pertumbuhan, Cegah Stunting Untuk Masa Depan.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
+                          color: subtitleColor,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -251,11 +257,11 @@ class TentangAplikasiPage extends StatelessWidget {
         return '• Layanan Telekonsultasi Online Balita\n'
             '• Pengaturan Jadwal Praktik & Sesi Kerja\n'
             '• Riwayat Konsultasi & Catatan Medis Pasien\n'
-            '• Monitoring Data Pasien Anak\n';
+            '• Monitoring Data Anak\n';
       case StaffRole.admin:
         return '• Rekam Medis & Riwayat Konsultasi\n'
             '• Pengelolaan Resep Menu MPASI\n'
-            '• Monitoring Data Pasien & Deteksi Stunting\n'
+            '• Monitoring Data Anak & Deteksi Stunting\n'
             '• Pengawasan Layanan Fasilitas Kesehatan\n';
       case StaffRole.superadmin:
         return '• Manajemen Hak Akses Dokter & PMIK\n'
@@ -343,7 +349,9 @@ class TentangAplikasiPage extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                  color: isDark
+                      ? const Color(0xFFE9EDEF)
+                      : const Color(0xFF000000),
                 ),
               ),
             ],
