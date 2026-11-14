@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +24,10 @@ import '../../../../shared/widgets/pedia_banner.dart';
 /// - Kategori Usia
 /// - Dynamic list (kartu putih rounded, penanda di kiri, teks di tengah dengan garis putus-putus,
 ///   tombol (-) merah di kanan, dan tombol (+) biru di header):
-///   * Bahan          → penanda bullet (•) seperti di Detail Resep
-///   * Bahan Pelapis  → penanda bullet (•)
-///   * Buah           → penanda bullet (•)
-///   * Cara Membuat   → penanda nomor (1. 2. 3.) seperti di Detail Resep
+///   * Bahan          â†’ penanda bullet (â€¢) seperti di Detail Resep
+///   * Bahan Pelapis  â†’ penanda bullet (â€¢)
+///   * Buah           â†’ penanda bullet (â€¢)
+///   * Cara Membuat   â†’ penanda nomor (1. 2. 3.) seperti di Detail Resep
 /// - Tombol "Simpan" biru yang langsung menambahkan dokumen ke Firestore
 class TambahResepMpasiPage extends StatefulWidget {
   const TambahResepMpasiPage({super.key});
@@ -325,7 +325,7 @@ class _TambahResepMpasiPageState extends State<TambahResepMpasiPage> {
             _buildHeader(),
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

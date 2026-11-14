@@ -15,6 +15,7 @@ import '../pengaturan/pengaturan_staff_page.dart';
 import 'beranda/beranda_dokter_page.dart';
 import 'konsultasi/konsultasi_dokter_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../../shared/widgets/illustration_forest_footer.dart';
 import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Dokter PediaGrow.
@@ -315,7 +316,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     }
   }
 
-  // ─── LOGOUT ───────────────────────────────────────────────────────────────
+  // ───────── LOGOUT ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   void _showLogoutConfirmationDialog() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
@@ -425,7 +426,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── BOTTOM NAV ───────────────────────────────────────────────────────────
+  // ───────── BOTTOM NAV ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   void _onBottomNavTap(int index) {
     if (index == _selectedIndex) return;
 
@@ -481,7 +482,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     Navigator.of(context).pushReplacement(route);
   }
 
-  // ─── BUILD ────────────────────────────────────────────────────────────────
+  // ───────── BUILD ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -502,123 +503,142 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
           bottom: false,
           child: ScrollConfiguration(
             behavior: const ScrollBehavior().copyWith(overscroll: false),
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 16.0),
-
-                // 1. KARTU PROFIL
-                _buildProfileCard(isDark),
-
-                const SizedBox(height: 24.0),
-
-                // 2. PENDIDIKAN
-                Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.school_rounded,
-                        color: Color(0xFF3985E7),
-                        size: 16,
-                      ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Pendidikan',
-                      style: GoogleFonts.lato(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12.0),
-                _buildEducationCard(isDark),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 16.0),
 
-                const SizedBox(height: 24.0),
+                        // 1. KARTU PROFIL
+                        _buildProfileCard(isDark),
 
-                // 3. TEMPAT PRAKTIK
-                Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.local_hospital_rounded,
-                        color: Color(0xFF3985E7),
-                        size: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Tempat Praktik',
-                      style: GoogleFonts.lato(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12.0),
-                _buildPracticeLocationsCard(isDark),
+                        const SizedBox(height: 24.0),
 
+                        // 2. PENDIDIKAN
+                        Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.school_rounded,
+                                color: Color(0xFF3985E7),
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Pendidikan',
+                              style: GoogleFonts.lato(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12.0),
+                        _buildEducationCard(isDark),
 
+                        const SizedBox(height: 24.0),
 
-                const SizedBox(height: 24.0),
+                        // 3. TEMPAT PRAKTIK
+                        Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.local_hospital_rounded,
+                                color: Color(0xFF3985E7),
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Tempat Praktik',
+                              style: GoogleFonts.lato(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12.0),
+                        _buildPracticeLocationsCard(isDark),
 
-                // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
-                SizedBox(
-                  height: 50.0,
-                  child: ElevatedButton(
-                    onPressed: _showLogoutConfirmationDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3985E7),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                    child: Text(
-                      'LOGOUT',
-                      style: GoogleFonts.lato(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                        color: Colors.white,
-                      ),
+                        const SizedBox(height: 24.0),
+
+                        // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
+                        SizedBox(
+                          height: 50.0,
+                          child: ElevatedButton(
+                            onPressed: _showLogoutConfirmationDialog,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF3985E7),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                            ),
+                            child: Text(
+                              'LOGOUT',
+                              style: GoogleFonts.lato(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16.0),
+                      ],
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 24.0),
-              ],
+                  const Spacer(),
+                  const SizedBox(height: 16),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                ],
+              ),
             ),
           ),
-        ),
+                );
+              },
+            ),
+          ),
         ),
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
       ),
     );
   }
 
-  // ─── HEADER ───────────────────────────────────────────────────────────────
+  // ───────── HEADER ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   Widget _buildCustomHeader(bool isDark) {
     final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
     final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
@@ -687,7 +707,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── PROFILE CARD (Default gaya pmik_superadmin) ──────────────────────────
+  // ───────── PROFILE CARD (Default gaya pmik_superadmin) ──────────────────────────────────────────────────────────────────────────────
   Widget _buildProfileCard(bool isDark) {
     const double avatarRadius = 46.0;
     final name = _doctorModel?.name.isNotEmpty == true
@@ -940,7 +960,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── PENDIDIKAN ───────────────────────────────────────────────────────────
+  // ───────── PENDIDIKAN ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   List<String> get _resolvedPendidikan {
     if (_doctorModel != null && _doctorModel!.daftarPendidikan.isNotEmpty) {
       return _doctorModel!.daftarPendidikan;
@@ -1098,7 +1118,7 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
     );
   }
 
-  // ─── TEMPAT PRAKTIK ───────────────────────────────────────────────────────
+  // ───────── TEMPAT PRAKTIK ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   List<String> get _resolvedPlacesOfPractice {
     if (_doctorModel != null && _doctorModel!.daftarTempatPraktik.isNotEmpty) {
       return _doctorModel!.daftarTempatPraktik;

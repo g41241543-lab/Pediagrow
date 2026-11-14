@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -34,7 +34,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatefulWidget {
 
 class _DetailRiwayatKonsultasiAdminPageState
     extends State<DetailRiwayatKonsultasiAdminPage> {
-  // ─── Color Palette ─────────────────────────────────────────────────────────
+  // â”€â”€â”€ Color Palette â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _colorSecondaryGrey =>
       _isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F);
@@ -141,13 +141,13 @@ class _DetailRiwayatKonsultasiAdminPageState
       backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
       body: Column(
         children: [
-          // ─── HEADER (56dp dari atas layar) ───────────────────────────
+          // â”€â”€â”€ HEADER (56dp dari atas layar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _buildHeader(),
 
-          // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
+          // â”€â”€â”€ KONTEN SCROLLABLE (Padding horizontal 16dp) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Expanded(
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +213,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── HEADER ─────────────────────────────────────────────────────────────────
+  // â”€â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Header diletakkan 56dp dari atas layar, berisi tombol back berjarak 12dp
   /// dari tepi kiri layar, dan judul halaman di sebelah kanannya berjarak 12dp.
   Widget _buildHeader() {
@@ -258,7 +258,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── KARTU PROFIL PASIEN ───────────────────────────────────────────────────
+  // â”€â”€â”€ KARTU PROFIL PASIEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Kartu berlatar putih dengan sudut membulat dan shadow tipis,
   /// berisi avatar anak di kiri, nama pasien bold, dan usia anak di bawahnya.
   Widget _buildPatientProfileCard(bool isGirl) {
@@ -321,7 +321,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── KARTU INFORMASI KONSULTASI ───────────────────────────────────────────
+  // â”€â”€â”€ KARTU INFORMASI KONSULTASI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Kartu berlatar biru sangat muda dengan border biru muda,
   /// berisi 3 baris: Dokter, Tanggal Konsultasi, dan Status Konsultasi.
   Widget _buildConsultationInfoCard(bool isSelesai) {

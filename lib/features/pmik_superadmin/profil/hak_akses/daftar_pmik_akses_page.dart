@@ -5,6 +5,7 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_permissions.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../profil_superadmin_page.dart';
 import 'edit_pmik_akses_page.dart';
@@ -242,6 +243,7 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
       ),
       body: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           children: [
             // SEARCH BAR (Cari PMIK)
@@ -271,23 +273,46 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
                           return _buildEmptyState(isDark);
                         }
 
-                        return RefreshIndicator(
-                          color: const Color(0xFF3985E7),
-                          onRefresh: _loadPmikAccounts,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 10.0,
-                            ),
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: filtered.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 14.0),
-                            itemBuilder: (context, index) {
-                              final pmik = filtered[index];
-                              return _buildPmikCard(pmik, isDark);
-                            },
-                          ),
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            return RefreshIndicator(
+                              color: const Color(0xFF3985E7),
+                              onRefresh: _loadPmikAccounts,
+                              child: SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(
+                                  parent: ClampingScrollPhysics(),
+                                ),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: constraints.maxHeight,
+                                  ),
+                                  child: IntrinsicHeight(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        const SizedBox(height: 10.0),
+                                        for (int i = 0; i < filtered.length; i++) ...[
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0,
+                                            ),
+                                            child: _buildPmikCard(filtered[i], isDark),
+                                          ),
+                                          if (i < filtered.length - 1)
+                                            const SizedBox(height: 14.0),
+                                        ],
+                                        const Spacer(),
+                                        const SizedBox(height: 16.0),
+                                        const IllustrationForestFooter(
+                                          fit: BoxFit.fitWidth,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -640,53 +665,68 @@ class _DaftarPmikAksesPageState extends State<DaftarPmikAksesPage> {
     final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
     final circleBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFE9EDEF);
 
-    return Center(
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(28.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 76.0,
-                height: 76.0,
-                decoration: BoxDecoration(
-                  color: circleBg,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person_search_rounded,
-                  size: 40.0,
-                  color: Color(0xFF3985E7),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.all(28.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 76.0,
+                          height: 76.0,
+                          decoration: BoxDecoration(
+                            color: circleBg,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.person_search_rounded,
+                            size: 40.0,
+                            color: Color(0xFF3985E7),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? 'PMIK Tidak Ditemukan'
+                              : 'Belum Ada Data PMIK',
+                          style: GoogleFonts.lato(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6.0),
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? 'Tidak ada akun PMIK yang cocok dengan "$_searchQuery".'
+                              : 'Tekan tombol (+) di atas untuk menambahkan akun PMIK baru.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.lato(
+                            fontSize: 13.5,
+                            color: subtitleColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: 16.0),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                ],
               ),
-              const SizedBox(height: 16.0),
-              Text(
-                _searchQuery.isNotEmpty
-                    ? 'PMIK Tidak Ditemukan'
-                    : 'Belum Ada Data PMIK',
-                style: GoogleFonts.lato(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                  color: titleColor,
-                ),
-              ),
-              const SizedBox(height: 6.0),
-              Text(
-                _searchQuery.isNotEmpty
-                    ? 'Tidak ada akun PMIK yang cocok dengan "$_searchQuery".'
-                    : 'Tekan tombol (+) di atas untuk menambahkan akun PMIK baru.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.lato(
-                  fontSize: 13.5,
-                  color: subtitleColor,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

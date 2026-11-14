@@ -336,7 +336,7 @@ class _TambahDokterAksesPageState extends State<TambahDokterAksesPage> {
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
           child: Form(
             key: _formKey,

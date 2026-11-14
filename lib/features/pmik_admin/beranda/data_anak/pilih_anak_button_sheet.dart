@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -11,7 +11,7 @@ import '../../../../shared/widgets/child_avatar.dart';
 
 // =============================================================================
 // HELPER: Hitung umur anak secara akurat berdasarkan tanggal lahir
-// Menggunakan kalender nyata (tahun → bulan → hari), bukan sekadar 365/30.
+// Menggunakan kalender nyata (tahun â†’ bulan â†’ hari), bukan sekadar 365/30.
 // =============================================================================
 
 /// Representasi umur anak dalam format tahun, bulan, dan hari.
@@ -109,7 +109,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
   });
 
   // ---------------------------------------------------------------------------
-  // ENTRY POINT UTAMA — Callback kustom [onChildSelected]
+  // ENTRY POINT UTAMA â€” Callback kustom [onChildSelected]
   // ---------------------------------------------------------------------------
   static Future<void> show(
     BuildContext context, {
@@ -137,7 +137,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // ENTRY POINT SHORTCUT — Navigasi ke DetailPenggunaPage
+  // ENTRY POINT SHORTCUT â€” Navigasi ke DetailPenggunaPage
   // Digunakan dari DaftarPenggunaPage saat memilih anak dari card pengguna.
   // ---------------------------------------------------------------------------
   static Future<void> showForDetail(
@@ -168,7 +168,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // ENTRY POINT SHORTCUT — Navigasi ke PertumbuhanGrafikPage (Grafik Tumbuh)
+  // ENTRY POINT SHORTCUT â€” Navigasi ke PertumbuhanGrafikPage (Grafik Tumbuh)
   // Digunakan dari Beranda Superadmin menu "Grafik Pengguna" / "Grafik Pertumbuhan".
   // Jika [children] null, akan mengambil seluruh data anak dari Firestore.
   // ---------------------------------------------------------------------------
@@ -264,7 +264,7 @@ class _PilihAnakBottomSheetState extends State<PilihAnakBottomSheet>
     if (mounted) Navigator.of(context).pop();
   }
 
-  /// Pilih anak → animasi keluar → panggil callback.
+  /// Pilih anak â†’ animasi keluar â†’ panggil callback.
   Future<void> _selectChild(ChildModel child) async {
     await _close();
     widget.onChildSelected?.call(child);
@@ -294,7 +294,7 @@ class _PilihAnakBottomSheetState extends State<PilihAnakBottomSheet>
 }
 
 // =============================================================================
-// _SheetContent — UI murni, stateless sesuai referensi desain
+// _SheetContent â€” UI murni, stateless sesuai referensi desain
 // =============================================================================
 class _SheetContent extends StatelessWidget {
   final UserModel? user;
@@ -315,7 +315,7 @@ class _SheetContent extends StatelessWidget {
     required this.onAddChild,
   });
 
-  // ── Warna Referensi Desain ────────────────────────────────────────────────
+  // â”€â”€ Warna Referensi Desain â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const Color _black = Color(0xFF000000);
   static const Color _divider = Color(0xFFC5C5C5);
   static const Color _subtitleColor = Color(0xFF667781);
@@ -350,13 +350,13 @@ class _SheetContent extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── HEADER ────────────────────────────────────────────────────
+            // â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             _buildHeader(isDark, textColor, subtitleClr),
 
-            // ── GARIS PEMBATAS ────────────────────────────────────────────
+            // â”€â”€ GARIS PEMBATAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Divider(height: 1, thickness: 1, color: dividerClr),
 
-            // ── DAFTAR ANAK / STATE KOSONG ────────────────────────────────
+            // â”€â”€ DAFTAR ANAK / STATE KOSONG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (children.isNotEmpty)
               Flexible(child: _buildList(isDark, textColor, subtitleClr))
             else
@@ -369,7 +369,7 @@ class _SheetContent extends StatelessWidget {
     );
   }
 
-  // ── HEADER ─────────────────────────────────────────────────────────────────
+  // â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Title (Lato Bold 20, #000000) + Subtitle (Lato Medium 14) + Close X
   Widget _buildHeader(bool isDark, Color textColor, Color subtitleClr) {
     return Padding(
@@ -423,12 +423,12 @@ class _SheetContent extends StatelessWidget {
     );
   }
 
-  // ── DAFTAR ANAK ────────────────────────────────────────────────────────────
+  // â”€â”€ DAFTAR ANAK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildList(bool isDark, Color textColor, Color subtitleClr) {
     return ListView.separated(
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(vertical: 4),
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       itemCount: children.length,
       separatorBuilder: (_, _) => Divider(
         height: 1,
@@ -449,7 +449,7 @@ class _SheetContent extends StatelessWidget {
     } else if (child.ageDescription.isNotEmpty) {
       ageText = child.ageDescription;
     } else {
-      ageText = '—';
+      ageText = 'â€”';
     }
 
     return Material(
@@ -463,18 +463,18 @@ class _SheetContent extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // ── AVATAR ──────────────────────────────────────────────
+              // â”€â”€ AVATAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               _buildAvatar(child, isBoy),
 
               const SizedBox(width: 14),
 
-              // ── NAMA & USIA ──────────────────────────────────────────
+              // â”€â”€ NAMA & USIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Nama Anak — Lato SemiBold 18 #000000
+                    // Nama Anak â€” Lato SemiBold 18 #000000
                     Text(
                       child.name.isNotEmpty ? child.name : 'Anak',
                       maxLines: 1,
@@ -487,7 +487,7 @@ class _SheetContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    // Usia — Lato Regular 14 #000000 (sesuai desain referensi)
+                    // Usia â€” Lato Regular 14 #000000 (sesuai desain referensi)
                     Text(
                       ageText,
                       maxLines: 1,
@@ -505,7 +505,7 @@ class _SheetContent extends StatelessWidget {
 
               const SizedBox(width: 8),
 
-              // ── IKON PANAH > (Dalam kontainer lingkaran abu-abu sesuai desain) ──
+              // â”€â”€ IKON PANAH > (Dalam kontainer lingkaran abu-abu sesuai desain) â”€â”€
               Container(
                 width: 28,
                 height: 28,
@@ -558,7 +558,7 @@ class _SheetContent extends StatelessWidget {
     );
   }
 
-  // ── STATE KOSONG ────────────────────────────────────────────────────────────
+  // â”€â”€ STATE KOSONG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildEmptyState(
     BuildContext context,
     bool isDark,
@@ -591,7 +591,7 @@ class _SheetContent extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Judul — Lato Bold 18 #000000
+          // Judul â€” Lato Bold 18 #000000
           Text(
             'Belum Ada Data Anak',
             style: GoogleFonts.lato(
@@ -603,7 +603,7 @@ class _SheetContent extends StatelessWidget {
 
           const SizedBox(height: 6),
 
-          // Deskripsi — Lato Regular 14 #000000
+          // Deskripsi â€” Lato Regular 14 #000000
           Text(
             user != null && user!.name.isNotEmpty
                 ? 'Pengguna ${user!.name} belum memiliki\ndata profil anak yang terdaftar.'

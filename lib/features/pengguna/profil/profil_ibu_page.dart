@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -354,7 +354,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                   child: SingleChildScrollView(
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20.0,
                       vertical: 14.0,

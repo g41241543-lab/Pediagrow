@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -282,7 +282,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
               // Konten Tiket Booking dengan space lega & nyaman dilihat
               Expanded(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20.0,
                     vertical: 16.0,
@@ -320,7 +320,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     );
   }
 
-  // ── Header (56dp) — Bersih, tanpa ikon home ───────────────────────────────
+  // â”€â”€ Header (56dp) â€” Bersih, tanpa ikon home â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildHeader(bool isDark) {
     return Container(
       height: 56.0,
@@ -366,7 +366,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     );
   }
 
-  // ── Banner Status Waktu — Alami, Tenang, Nyaman Dilihat ────────────────────
+  // â”€â”€ Banner Status Waktu â€” Alami, Tenang, Nyaman Dilihat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTimeStatusBanner(bool isDark) {
     if (_currentBooking.isExpired) {
       return HoverLift(
@@ -590,7 +590,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     ));
   }
 
-  // ── Kartu Tiket Booking — Bersih, Elegan, Humanis ─────────────────────────
+  // â”€â”€ Kartu Tiket Booking â€” Bersih, Elegan, Humanis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTicketCard(bool isDark) {
     final doc = _currentBooking.doctor;
     final child = _currentBooking.child;
@@ -811,7 +811,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     ));
   }
 
-  // ── Kartu Google Kalender — Ringan, Modern, Fungsional ───────────────────
+  // â”€â”€ Kartu Google Kalender â€” Ringan, Modern, Fungsional â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildGoogleCalendarInfoCard(bool isDark) {
     return HoverLift(
       borderRadius: BorderRadius.circular(18.0),
@@ -962,7 +962,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     ));
   }
 
-  // ── Informasi Alur Konsultasi — Rapi & Menjelaskan ─────────────────────────
+  // â”€â”€ Informasi Alur Konsultasi â€” Rapi & Menjelaskan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildFlowGuideCard(bool isDark) {
     final isInWindow =
         _currentBooking.isInTimeWindow ||
@@ -1096,7 +1096,7 @@ class _StatusBookingPageState extends State<StatusBookingPage> {
     );
   }
 
-  // ── Bottom Action Bar: Tombol Utama & Tombol Batalkan Konsultasi ──────────
+  // â”€â”€ Bottom Action Bar: Tombol Utama & Tombol Batalkan Konsultasi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildBottomBar(bool isDark) {
     final isExpired = _currentBooking.isExpired;
     final isOngoing =

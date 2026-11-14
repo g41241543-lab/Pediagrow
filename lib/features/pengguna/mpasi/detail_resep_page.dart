@@ -132,7 +132,7 @@ class _DetailResepPageState extends State<DetailResepPage> {
               child: resep == null
                   ? _buildEmptyState(isDark)
                   : SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       child: _buildRecipeContent(resep, isDark),
                     ),
             ),

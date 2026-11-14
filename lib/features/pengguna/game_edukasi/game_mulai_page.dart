@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -8,14 +8,14 @@ import 'widgets/game_forest_silhouette_footer.dart';
 import 'game_controller.dart';
 import 'game_soal_page.dart';
 
-/// Halaman Start Kuis — titik masuk fitur Permainan.
+/// Halaman Start Kuis â€” titik masuk fitur Permainan.
 ///
 /// Menampilkan info kuis (10 soal, 30 detik/soal, 250 poin maks),
 /// dan tombol "Mulai Kuis" yang men-generate 10 soal unik secara acak.
 /// Background: gradient biru dengan elemen dekoratif sesuai desain Figma.
 ///
 /// Semua elemen (ikon, badge, judul, deskripsi, statistik) ditampilkan
-/// LANGSUNG di atas background biru — tanpa card/container putih pembungkus.
+/// LANGSUNG di atas background biru â€” tanpa card/container putih pembungkus.
 /// Ilustrasi siluet hutan dipasang fixed di bagian bawah layar (tidak scroll).
 class GameMulaiPage extends StatefulWidget {
   const GameMulaiPage({super.key});
@@ -27,9 +27,9 @@ class GameMulaiPage extends StatefulWidget {
 class _GameMulaiPageState extends State<GameMulaiPage> {
   bool _isLoading = false;
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // ACTION: Mulai Kuis
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _mulaiKuis() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
@@ -60,9 +60,9 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -70,7 +70,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // ── Background Gradient Biru (Figma) / Night Sky (Dark Mode) ──
+          // â”€â”€ Background Gradient Biru (Figma) / Night Sky (Dark Mode) â”€â”€
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -91,12 +91,12 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
             ),
           ),
 
-          // ── Dekorasi Figma: lingkaran & bintik ────────────────────
+          // â”€â”€ Dekorasi Figma: lingkaran & bintik â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           const Positioned.fill(
             child: IgnorePointer(child: _FigmaDecoration()),
           ),
 
-          // ── Ilustrasi siluet hutan: FIXED di bagian bawah ─────────
+          // â”€â”€ Ilustrasi siluet hutan: FIXED di bagian bawah â”€â”€â”€â”€â”€â”€â”€â”€â”€
           const Positioned(
             bottom: 0,
             left: 0,
@@ -106,7 +106,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
             ),
           ),
 
-          // ── Konten utama (scrollable, tidak mempengaruhi ilustrasi)
+          // â”€â”€ Konten utama (scrollable, tidak mempengaruhi ilustrasi)
           SafeArea(
             top: false,
             bottom: false,
@@ -115,7 +115,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
                 _buildHeader(context),
                 Expanded(
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     child: Padding(
                       // Padding bottom agar konten tidak tertutup ilustrasi
                       padding: const EdgeInsets.only(bottom: 180),
@@ -138,9 +138,9 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // HEADER
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -178,15 +178,15 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
-  // INFO KUIS — LANGSUNG DI ATAS BACKGROUND BIRU (tanpa card putih)
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // INFO KUIS â€” LANGSUNG DI ATAS BACKGROUND BIRU (tanpa card putih)
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildKuisInfoDirect() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         children: [
-          // ── Ikon Otak dalam Lingkaran ─────────────────────────────
+          // â”€â”€ Ikon Otak dalam Lingkaran â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Container(
             width: 88,
             height: 88,
@@ -207,7 +207,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
           const SizedBox(height: 18),
 
-          // ── Pill Kategori ─────────────────────────────────────────
+          // â”€â”€ Pill Kategori â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
@@ -231,7 +231,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
           const SizedBox(height: 16),
 
-          // ── Judul Kuis ────────────────────────────────────────────
+          // â”€â”€ Judul Kuis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Text(
             'Tumbuh Kembang Anak',
             textAlign: TextAlign.center,
@@ -245,7 +245,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
           const SizedBox(height: 10),
 
-          // ── Deskripsi ─────────────────────────────────────────────
+          // â”€â”€ Deskripsi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Text(
             '10 soal benar salah seputar tumbuh kembang\nsi kecil. Yuk uji seberapa paham kamu!',
             textAlign: TextAlign.center,
@@ -258,7 +258,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
           const SizedBox(height: 28),
 
-          // ── Divider tipis semi-transparan ─────────────────────────
+          // â”€â”€ Divider tipis semi-transparan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Divider(
             color: Colors.white.withValues(alpha: 0.25),
             thickness: 1,
@@ -266,7 +266,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
 
           const SizedBox(height: 22),
 
-          // ── 3 Statistik Berdampingan ──────────────────────────────
+          // â”€â”€ 3 Statistik Berdampingan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -314,9 +314,9 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TOMBOL MULAI KUIS
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildMulaiButton() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = const Color(0xFF3985E7);
@@ -374,9 +374,9 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DEKORASI FIGMA: Lingkaran semi-transparan & bintik kecil
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _FigmaDecoration extends StatelessWidget {
   const _FigmaDecoration();
 
@@ -391,33 +391,33 @@ class _FigmaDecoration extends StatelessWidget {
 class _FigmaDecorationPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // ── Lingkaran besar kanan atas ─────────────────────────────────
+    // â”€â”€ Lingkaran besar kanan atas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final paintCircle1 = Paint()
       ..color = Colors.white.withValues(alpha: 0.10)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(size.width + 40, -40), 140, paintCircle1);
 
-    // ── Lingkaran sedang kiri atas ─────────────────────────────────
+    // â”€â”€ Lingkaran sedang kiri atas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final paintCircle2 = Paint()
       ..color = Colors.white.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(-50, size.height * 0.18), 100, paintCircle2);
 
-    // ── Lingkaran kecil kanan tengah ───────────────────────────────
+    // â”€â”€ Lingkaran kecil kanan tengah â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final paintCircle3 = Paint()
       ..color = Colors.white.withValues(alpha: 0.07)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(
         Offset(size.width * 0.88, size.height * 0.45), 60, paintCircle3);
 
-    // ── Ring (outline) kiri bawah ──────────────────────────────────
+    // â”€â”€ Ring (outline) kiri bawah â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final paintRing = Paint()
       ..color = Colors.white.withValues(alpha: 0.10)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawCircle(Offset(size.width * 0.12, size.height * 0.65), 55, paintRing);
 
-    // ── Bintik-bintik kecil di area atas ──────────────────────────
+    // â”€â”€ Bintik-bintik kecil di area atas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final paintDot = Paint()
       ..color = Colors.white.withValues(alpha: 0.20)
       ..style = PaintingStyle.fill;
@@ -429,7 +429,7 @@ class _FigmaDecorationPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), r, paintDot);
     }
 
-    // ── Garis lengkung dekoratif ───────────────────────────────────
+    // â”€â”€ Garis lengkung dekoratif â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     final paintArc = Paint()
       ..color = Colors.white.withValues(alpha: 0.09)
       ..style = PaintingStyle.stroke
@@ -452,9 +452,9 @@ class _FigmaDecorationPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ════════════════════════════════════════════════════════════════════
-// CUSTOM PAGE ROUTE — Fade + Slide halus (shared dengan game_soal_page)
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CUSTOM PAGE ROUTE â€” Fade + Slide halus (shared dengan game_soal_page)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _FadeSlideRoute<T> extends PageRouteBuilder<T> {
   final WidgetBuilder builder;
 

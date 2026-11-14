@@ -483,6 +483,32 @@ class SessionService {
           );
         }
 
+        if (restoredStaff != null &&
+            (restoredStaff.email.trim().toLowerCase() ==
+                    StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
+                restoredStaff.isSuperAdmin)) {
+          if (restoredStaff.experience == null ||
+              restoredStaff.strNumber == null ||
+              restoredStaff.birthDate == null ||
+              restoredStaff.education == null ||
+              restoredStaff.name == 'Superadmin PediaGrow' ||
+              restoredStaff.name.isEmpty) {
+            restoredStaff = restoredStaff.copyWith(
+              name: (restoredStaff.name.isEmpty ||
+                      restoredStaff.name == 'Superadmin PediaGrow')
+                  ? 'Anita Setyowati, S.Tr. RMIK'
+                  : restoredStaff.name,
+              experience: restoredStaff.experience ?? '7 tahun',
+              strNumber: restoredStaff.strNumber ?? '3511201402012222',
+              birthDate: restoredStaff.birthDate ?? '16/07/2006',
+              education: restoredStaff.education ??
+                  'DIV - Manajemen Informasi Kesehatan',
+              avatarPath: restoredStaff.avatarPath ??
+                  'assets/images/anita_superadmin.jpg',
+            );
+          }
+        }
+
         // Pulihkan ke state runtime StaffAuthService
         StaffAuthService().setStaff(restoredStaff);
 

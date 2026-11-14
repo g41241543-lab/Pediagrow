@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import 'daftar_dokter_akses_page.dart';
 import 'daftar_pmik_akses_page.dart';
@@ -60,44 +61,62 @@ class HakAksesPage extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          children: [
-            // 1. Menu Hak Akses: Dokter
-            _buildAccessTile(
-              context: context,
-              isDark: isDark,
-              icon: Icons.medical_services_rounded,
-              iconColor: const Color(0xFF0284C7),
-              iconBgColor: isDark
-                  ? const Color(0xFF0284C7).withValues(alpha: 0.2)
-                  : const Color(0xFFE0F2FE),
-              title: 'Dokter',
-              onTap: () => _navigateToDokter(context),
-            ),
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 8.0),
+                      // 1. Menu Hak Akses: Dokter
+                      _buildAccessTile(
+                        context: context,
+                        isDark: isDark,
+                        icon: Icons.medical_services_rounded,
+                        iconColor: const Color(0xFF0284C7),
+                        iconBgColor: isDark
+                            ? const Color(0xFF0284C7).withValues(alpha: 0.2)
+                            : const Color(0xFFE0F2FE),
+                        title: 'Dokter',
+                        onTap: () => _navigateToDokter(context),
+                      ),
 
-            // Garis pembatas tipis
-            Divider(
-              height: 1.0,
-              thickness: 1.0,
-              color: dividerColor,
-              indent: 16.0,
-              endIndent: 16.0,
-            ),
+                      // Garis pembatas tipis
+                      Divider(
+                        height: 1.0,
+                        thickness: 1.0,
+                        color: dividerColor,
+                        indent: 16.0,
+                        endIndent: 16.0,
+                      ),
 
-            // 2. Menu Hak Akses: PMIK
-            _buildAccessTile(
-              context: context,
-              isDark: isDark,
-              icon: Icons.badge_rounded,
-              iconColor: const Color(0xFF38C1A2),
-              iconBgColor: isDark
-                  ? const Color(0xFF38C1A2).withValues(alpha: 0.2)
-                  : const Color(0xFFE6F9F5),
-              title: 'PMIK',
-              onTap: () => _navigateToPmik(context),
-            ),
-          ],
+                      // 2. Menu Hak Akses: PMIK
+                      _buildAccessTile(
+                        context: context,
+                        isDark: isDark,
+                        icon: Icons.badge_rounded,
+                        iconColor: const Color(0xFF38C1A2),
+                        iconBgColor: isDark
+                            ? const Color(0xFF38C1A2).withValues(alpha: 0.2)
+                            : const Color(0xFFE6F9F5),
+                        title: 'PMIK',
+                        onTap: () => _navigateToPmik(context),
+                      ),
+
+                      const Spacer(),
+                      const SizedBox(height: 16.0),
+                      const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),

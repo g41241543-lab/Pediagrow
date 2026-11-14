@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -130,18 +130,18 @@ Diagnosis stunting pertama-tama dilakukan dengan melakukan tanya jawab oleh petu
 
 Pencegahan
 Stunting pada anak akan berlanjut hingga ia beranjak usia dewasa. Jadi sebelum stunting memberikan dampak pada tumbuh dan kembang anak secara menyeluruh, maka stunting harus dicegah. Upaya yang bisa dilakukan untuk pencegahan stunting yaitu:
-• Pemberian pola asuh yang tepat
-• Memberikan MPASI yang optimal
-• Mengobati penyakit yang dialami anak
-• Perhatikan kebersihan lingkungan
-• Menerapkan hidup bersih keluarga
+â€¢ Pemberian pola asuh yang tepat
+â€¢ Memberikan MPASI yang optimal
+â€¢ Mengobati penyakit yang dialami anak
+â€¢ Perhatikan kebersihan lingkungan
+â€¢ Menerapkan hidup bersih keluarga
 
 Pengobatan
 Penanganan stunting dapat meliputi pengobatan penyakit penyebabnya, perbaikan nutrisi, pemberian suplemen, serta penerapan pola hidup bersih dan sehat. Yang dapat dilakukan adalah:
-• Mengobati penyakit yang mendasari, misalnya memberikan obat-obatan antituberkulosis bila anak menderita TBC
-• Memberikan nutrisi tambahan, berupa makanan yang kaya protein hewani, lemak, dan kalori
-• Memberikan suplemen, berupa vitamin A, zinc, zat besi, kalsium dan yodium
-• Menyarankan keluarga untuk memperbaiki sanitasi dan menerapkan perilaku hidup bersih dan sehat (PHBS), guna mencapai keluarga yang sehat.
+â€¢ Mengobati penyakit yang mendasari, misalnya memberikan obat-obatan antituberkulosis bila anak menderita TBC
+â€¢ Memberikan nutrisi tambahan, berupa makanan yang kaya protein hewani, lemak, dan kalori
+â€¢ Memberikan suplemen, berupa vitamin A, zinc, zat besi, kalsium dan yodium
+â€¢ Menyarankan keluarga untuk memperbaiki sanitasi dan menerapkan perilaku hidup bersih dan sehat (PHBS), guna mencapai keluarga yang sehat.
 Referensi: Kemenkes RI, 2022''';
     }
 
@@ -486,7 +486,7 @@ Referensi: Kemenkes RI, 2022''';
             // 2. Konten Form Scrollable
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Form(
                   key: _formKey,

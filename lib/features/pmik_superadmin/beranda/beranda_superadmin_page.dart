@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -125,9 +125,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ─────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final isDark = ThemeService.isDark(context);
@@ -139,7 +139,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // LAYER 0 — Background animasi awan & burung (full-page)
+            // LAYER 0 â€” Background animasi awan & burung (full-page)
             const Positioned.fill(child: FullPageSkyBackground()),
 
             Column(
@@ -1048,7 +1048,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
               ? _buildEmptyArticleState()
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _latestArticles.length,
                   separatorBuilder: (_, idx) => const SizedBox(width: 14),
@@ -1317,7 +1317,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   }
 
   // =========================================================================
-  // NAVIGATION BAR — 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
+  // NAVIGATION BAR â€” 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
   // =========================================================================
   Widget _buildFixedNavBar() {
     return const PediaBottomNavBar(selectedIndex: 0);

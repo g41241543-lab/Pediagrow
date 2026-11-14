@@ -13,6 +13,7 @@ import '../pengaturan/pengaturan_staff_page.dart';
 import 'beranda/beranda_pmik_page.dart';
 import 'konsultasi/konsultasi_pmik_admin_page.dart';
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+import '../../shared/widgets/illustration_forest_footer.dart';
 import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil PMIK Admin PediaGrow.
@@ -389,64 +390,89 @@ class _ProfilPmikPageState extends State<ProfilPmikPage> {
           bottom: false,
           child: ScrollConfiguration(
             behavior: const ScrollBehavior().copyWith(overscroll: false),
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 16.0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const SizedBox(height: 16.0),
 
-                // 1. KARTU PROFIL
-                _buildProfileCard(isDark),
+                                // 1. KARTU PROFIL
+                                _buildProfileCard(isDark),
 
-                const SizedBox(height: 24.0),
+                                const SizedBox(height: 24.0),
 
-                // 2. INFORMASI UMUM
-                Text(
-                  'Informasi Umum',
-                  style: GoogleFonts.lato(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-                  ),
-                ),
-                const SizedBox(height: 12.0),
-                _buildGeneralInfoCard(isDark),
+                                // 2. INFORMASI UMUM
+                                Text(
+                                  'Informasi Umum',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? const Color(0xFFE9EDEF)
+                                        : const Color(0xFF0B1014),
+                                  ),
+                                ),
+                                const SizedBox(height: 12.0),
+                                _buildGeneralInfoCard(isDark),
 
+                                const SizedBox(height: 24.0),
 
+                                // 4. TOMBOL LOGOUT
+                                SizedBox(
+                                  height: 50.0,
+                                  child: ElevatedButton(
+                                    onPressed: _showLogoutConfirmationDialog,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF3985E7),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'LOGOUT',
+                                      style: GoogleFonts.lato(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.8,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
 
-                const SizedBox(height: 24.0),
-
-                // 4. TOMBOL LOGOUT
-                SizedBox(
-                  height: 50.0,
-                  child: ElevatedButton(
-                    onPressed: _showLogoutConfirmationDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3985E7),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
+                                const SizedBox(height: 16.0),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          const SizedBox(height: 16),
+                          const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                        ],
                       ),
                     ),
-                    child: Text(
-                      'LOGOUT',
-                      style: GoogleFonts.lato(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
-                ),
-
-                const SizedBox(height: 24.0),
-              ],
+                );
+              },
             ),
           ),
-        ),
         ),
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
       ),

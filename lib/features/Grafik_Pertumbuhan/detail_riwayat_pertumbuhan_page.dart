@@ -39,7 +39,7 @@ class DetailRiwayatPertumbuhanPage extends StatelessWidget {
             // 2. Konten Utama
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(

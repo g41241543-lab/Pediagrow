@@ -348,7 +348,7 @@ class _PilihAnakGrafikPageState extends State<PilihAnakGrafikPage>
       constraints: const BoxConstraints(maxHeight: 280),
       child: ListView.separated(
         shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.zero,
         itemCount: _childList.length,
         separatorBuilder: (context, index) => Container(

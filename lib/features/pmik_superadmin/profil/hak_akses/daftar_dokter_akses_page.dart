@@ -6,6 +6,7 @@ import '../../../../core/services/staff_auth_service.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../models/doctor_model.dart';
 import '../../../../models/staff_account_model.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../profil_superadmin_page.dart';
 import 'edit_dokter_akses_page.dart';
@@ -168,6 +169,7 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
       ),
       body: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           children: [
             // SEARCH BAR (Cari Dokter)
@@ -202,24 +204,50 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
                     return _buildEmptyState(isDark);
                   }
 
-                  return RefreshIndicator(
-                    color: const Color(0xFF3985E7),
-                    onRefresh: _loadStaffAccounts,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 10.0,
-                      ),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: filteredDoctors.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: 14.0),
-                      itemBuilder: (context, index) {
-                        final doctor = filteredDoctors[index];
-                        final staff = _staffCache[doctor.staffAccountId];
-                        return _buildDokterCard(doctor, staff, isDark);
-                      },
-                    ),
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      return RefreshIndicator(
+                        color: const Color(0xFF3985E7),
+                        onRefresh: _loadStaffAccounts,
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: ClampingScrollPhysics(),
+                          ),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const SizedBox(height: 10.0),
+                                  for (int i = 0; i < filteredDoctors.length; i++) ...[
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                      ),
+                                      child: _buildDokterCard(
+                                        filteredDoctors[i],
+                                        _staffCache[filteredDoctors[i].staffAccountId],
+                                        isDark,
+                                      ),
+                                    ),
+                                    if (i < filteredDoctors.length - 1)
+                                      const SizedBox(height: 14.0),
+                                  ],
+                                  const Spacer(),
+                                  const SizedBox(height: 16.0),
+                                  const IllustrationForestFooter(
+                                    fit: BoxFit.fitWidth,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -622,50 +650,68 @@ class _DaftarDokterAksesPageState extends State<DaftarDokterAksesPage> {
     final subtitleColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
     final circleBg = isDark ? const Color(0xFF1A2228) : const Color(0xFFEFF6FF);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 72.0,
-              height: 72.0,
-              decoration: BoxDecoration(
-                color: circleBg,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.medical_services_outlined,
-                size: 36.0,
-                color: Color(0xFF3985E7),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 72.0,
+                          height: 72.0,
+                          decoration: BoxDecoration(
+                            color: circleBg,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.medical_services_outlined,
+                            size: 36.0,
+                            color: Color(0xFF3985E7),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? 'Dokter tidak ditemukan'
+                              : 'Belum ada data dokter',
+                          style: GoogleFonts.lato(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6.0),
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? 'Coba gunakan kata kunci pencarian yang lain.'
+                              : 'Klik tombol (+) di pojok kanan atas untuk menambahkan dokter baru.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.lato(
+                            fontSize: 13.0,
+                            color: subtitleColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: 16.0),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                ],
               ),
             ),
-            const SizedBox(height: 16.0),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'Dokter tidak ditemukan'
-                  : 'Belum ada data dokter',
-              style: GoogleFonts.lato(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-                color: titleColor,
-              ),
-            ),
-            const SizedBox(height: 6.0),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'Coba gunakan kata kunci pencarian yang lain.'
-                  : 'Klik tombol (+) di pojok kanan atas untuk menambahkan dokter baru.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 13.0,
-                color: subtitleColor,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
