@@ -740,11 +740,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     setState(() => _searchPenggunaQuery = '');
   }
 
-  /// Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna maupun stunting
+  /// PMIK Superadmin dan PMIK Admin dapat mengunduh dataset pengguna maupun stunting
   bool get _canDownloadDataset {
     final staff = StaffAuthService().currentStaff;
     if (staff == null) return false;
-    return staff.isPmikSuperadmin;
+    return !staff.isDokter;
   }
 
   /// Apakah pengguna yang sedang login adalah dokter
@@ -801,7 +801,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // ══════════════════════════════════════════════════════════════════════════
   void _showUsersDownloadSheet() {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset pengguna.');
       return;
     }
     showModalBottomSheet(
@@ -828,7 +828,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   /// Menampilkan pratinjau PDF Dataset Pengguna sebelum diunduh
   void _downloadUsersPdf() {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset pengguna.');
       return;
     }
     final usersSnapshot = List<UserDemographicRow>.from(_userRows);
@@ -852,7 +852,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   Future<void> _downloadUsersCsv() async {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset pengguna.');
       return;
     }
     if (_isDownloading) return;
@@ -899,7 +899,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   Future<void> _downloadUsersExcel() async {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset pengguna.');
       return;
     }
     if (_isDownloading) return;
@@ -979,7 +979,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   // ══════════════════════════════════════════════════════════════════════════
   void _showStuntingDownloadSheet() {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset cek stunting.');
       return;
     }
     showModalBottomSheet(
@@ -1006,7 +1006,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   /// Menampilkan pratinjau PDF Rekapitulasi Hasil Cek Stunting sebelum diunduh
   void _downloadStuntingPdf() {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset cek stunting.');
       return;
     }
     final stuntingSnapshot = List<StuntingRecordRow>.from(_stuntingRows);
@@ -1032,7 +1032,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   Future<void> _downloadStuntingCsv() async {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset cek stunting.');
       return;
     }
     if (_isDownloading) return;
@@ -1077,7 +1077,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
   Future<void> _downloadStuntingExcel() async {
     if (!_canDownloadDataset) {
-      _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
+      _showSnackbar('Hanya PMIK yang dapat mengunduh dataset cek stunting.');
       return;
     }
     if (_isDownloading) return;
@@ -3000,11 +3000,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           _buildStuntingSearchAndFilter(),
           const SizedBox(height: 10.0),
 
-          // 5. Tabel Dataset — ditampilkan berdasarkan role
-          if (isDokter)
-            _buildGroupedDokterTable()
-          else
-            _buildStuntingTable(),
+          // 5. Tabel Dataset Hasil Cek Stunting (Format 2 Kolom: Nama & Keterangan)
+          _buildGroupedStuntingTable(),
           const SizedBox(height: 32),
         ],
       ),
@@ -3528,8 +3525,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Tabel 2 Kolom Khusus Dokter (Kolom 1: Nama, Kolom 2: Keterangan / Dropdown) ──
-  Widget _buildGroupedDokterTable() {
+  // ── Tabel 2 Kolom (Kolom 1: Nama, Kolom 2: Keterangan / Dropdown) ──
+  Widget _buildGroupedStuntingTable() {
     final groups = _groupedStuntingRows;
 
     if (groups.isEmpty) {
@@ -3932,191 +3929,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         text,
         style: GoogleFonts.lato(
           fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: _textSecondary,
-        ),
-      ),
-    );
-  }
-
-  // ── Tabel Dataset Hasil Cek Stunting (Dapat Digeser Horizontal) ──────────────
-  Widget _buildStuntingTable() {
-    const colWidthNama = 175.0;
-    const colWidthUmur = 205.0;
-    const colWidthBb = 85.0;
-    const colWidthTb = 85.0;
-    const colWidthHasil = 125.0;
-    const minTableWidth = colWidthNama + colWidthUmur + colWidthBb + colWidthTb + colWidthHasil;
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: minTableWidth),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Tabel (Abu-abu Muda Halus)
-            Container(
-              decoration: BoxDecoration(
-                color: _isDark ? const Color(0xFF242E35) : const Color(0xFFF9FAFB),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(8.0)),
-              ),
-              child: Row(
-                children: [
-                  _buildStuntingHeaderCell('Nama Anak', colWidthNama),
-                  _buildStuntingHeaderCell('Umur', colWidthUmur),
-                  _buildStuntingHeaderCell('BB', colWidthBb),
-                  _buildStuntingHeaderCell('TB', colWidthTb),
-                  _buildStuntingHeaderCell('Status Gizi', colWidthHasil),
-                ],
-              ),
-            ),
-            Divider(height: 1, thickness: 1, color: _borderColor),
-
-            if (_filteredStuntingRows.isEmpty)
-              Container(
-                width: minTableWidth,
-                padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
-                alignment: Alignment.center,
-                child: Text(
-                  (_stuntingSearchQuery.isNotEmpty || _selectedStuntingMonth != null)
-                      ? 'Data tidak ditemukan'
-                      : 'Belum ada data riwayat cek stunting di database',
-                  style: GoogleFonts.lato(
-                    fontSize: 13.0,
-                    color: _textSecondary,
-                  ),
-                ),
-              ),
-
-            // Baris Data
-            ...List.generate(_filteredStuntingRows.length, (idx) {
-              final row = _filteredStuntingRows[idx];
-              final isLast = idx == _filteredStuntingRows.length - 1;
-              final isGiziNormal = !row.isStunting;
-
-              return Column(
-                children: [
-                  Container(
-                    color: _cardBg,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: colWidthNama,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0,
-                            vertical: 14.0,
-                          ),
-                          child: Text(
-                            row.namaAnak,
-                            style: GoogleFonts.lato(
-                              fontSize: 13.5,
-                              color: _textPrimary,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: colWidthUmur,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0,
-                            vertical: 14.0,
-                          ),
-                          child: Text(
-                            row.umur,
-                            style: GoogleFonts.lato(
-                              fontSize: 13.5,
-                              color: _textPrimary,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: colWidthBb,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0,
-                            vertical: 14.0,
-                          ),
-                          child: Text(
-                            row.bb,
-                            style: GoogleFonts.lato(
-                              fontSize: 13.5,
-                              color: _textPrimary,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: colWidthTb,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0,
-                            vertical: 14.0,
-                          ),
-                          child: Text(
-                            row.tb,
-                            style: GoogleFonts.lato(
-                              fontSize: 13.5,
-                              color: _textPrimary,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: colWidthHasil,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14.0,
-                            vertical: 12.0,
-                          ),
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14.0,
-                              vertical: 5.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isGiziNormal
-                                  ? (_isDark
-                                      ? const Color(0xFF064E3B)
-                                      : const Color(0xFFDDF7F0))
-                                  : (_isDark
-                                      ? const Color(0xFF450A0A)
-                                      : const Color(0xFFFFECE8)),
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                            child: Text(
-                              isGiziNormal ? 'Gizi normal' : 'Gizi buruk',
-                              style: GoogleFonts.lato(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                color: isGiziNormal
-                                    ? (_isDark
-                                        ? const Color(0xFF34D399)
-                                        : const Color(0xFF14B8A6))
-                                    : const Color(0xFFF87171),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!isLast)
-                    Divider(height: 1, thickness: 1, color: _borderColor),
-                ],
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStuntingHeaderCell(String text, double width) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-      child: Text(
-        text,
-        style: GoogleFonts.lato(
-          fontSize: 13.0,
           fontWeight: FontWeight.w600,
           color: _textSecondary,
         ),
