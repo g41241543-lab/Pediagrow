@@ -6,6 +6,7 @@ import '../../../../core/services/soal_service.dart';
 import '../../../../models/soal_model.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Edit Soal untuk Superadmin.
 ///
@@ -693,28 +694,10 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // 3. ILUSTRASI FOOTER (Sama persis dengan Beranda Superadmin)
+  // 3. ILUSTRASI FOOTER (Format Terpusat: IllustrationForestFooter)
   // ──────────────────────────────────────────────────────────────────
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 }
 

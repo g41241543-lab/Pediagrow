@@ -225,8 +225,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                     clipBehavior: Clip.none,
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
                           color: isDark
                               ? const Color(0xFF1A2228)
@@ -252,7 +252,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                           color: isDark
                               ? const Color(0xFFD1D7DB)
                               : _colorTextBlack,
-                          size: 19,
+                          size: 22,
                         ),
                       ),
                       if (unreadCount > 0)

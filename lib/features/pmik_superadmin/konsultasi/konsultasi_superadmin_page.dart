@@ -7,6 +7,7 @@ import '../../../models/booking_consultation_model.dart';
 import '../../../models/konsultasi_session_model.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../shared/widgets/pedia_interactive_hover_card.dart';
 
@@ -191,7 +192,7 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
             ),
             const SizedBox(height: 10),
             Text(
-              'Ruang obrolan konsultasi antara dokter dan orang tua pasien hanya dapat diakses oleh dokter yang menangani. Superadmin tidak memiliki akses ke percakapan ini.',
+              'Ruang obrolan konsultasi antara dokter dan orang tua hanya dapat diakses oleh dokter yang menangani. Superadmin tidak memiliki akses ke percakapan ini.',
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
@@ -1437,26 +1438,9 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
+  // ─── FOOTER ILLUSTRATION (Format Terpusat: IllustrationForestFooter) ─────
   Widget _buildFooterIllustration() {
-    return SizedBox(
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/beranda_landscape_footer_fiks.png',
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        alignment: Alignment.bottomCenter,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 100,
-          color: const Color(0xFFD1FAE5),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.park_outlined,
-            size: 44,
-            color: Color(0xFF34D399),
-          ),
-        ),
-      ),
-    );
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
 }

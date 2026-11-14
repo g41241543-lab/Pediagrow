@@ -204,13 +204,13 @@ class _BerandaPageState extends State<BerandaPage> {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // ─────────────────────────────────────────────────────────
-                // LAYER 0 — Background animasi awan & burung (full-page)
+                // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // LAYER 0 â€” Background animasi awan & burung (full-page)
                 // Diletakkan DI DALAM area scroll (bukan di Stack terluar)
                 // supaya tingginya otomatis mengikuti TINGGI TOTAL konten
                 // (Column di bawah ini), bukan cuma setinggi 1 layar HP.
                 // Di belakang semua konten, tidak meng-intercept touch.
-                // ─────────────────────────────────────────────────────────
+                // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 const Positioned.fill(child: FullPageSkyBackground()),
 
                 Column(
@@ -233,8 +233,8 @@ class _BerandaPageState extends State<BerandaPage> {
                     _buildWhiteContentSection(context),
 
                     const SizedBox(
-                      height: 20,
-                    ), // jarak kecil sebelum ilustrasi footer
+                      height: 92,
+                    ), // ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
                     // -------------------------------------------------------------
                     // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
                     // -------------------------------------------------------------
@@ -517,7 +517,7 @@ class _BerandaPageState extends State<BerandaPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Lingkaran Notifikasi (31×31) + badge angka
+                        // Lingkaran Notifikasi (31Ã—31) + badge angka
                         ValueListenableBuilder<int>(
                           valueListenable:
                               NotificationService().unreadCountNotifier,
@@ -528,8 +528,8 @@ class _BerandaPageState extends State<BerandaPage> {
                                 clipBehavior: Clip.none,
                                 children: [
                                   Container(
-                                    width: 31,
-                                    height: 31,
+                                    width: 38,
+                                    height: 38,
                                     decoration: BoxDecoration(
                                       color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                       shape: BoxShape.circle,
@@ -546,7 +546,7 @@ class _BerandaPageState extends State<BerandaPage> {
                                     child: Icon(
                                       Icons.notifications_none_rounded,
                                       color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
-                                      size: 19,
+                                      size: 22,
                                     ),
                                   ),
                                   // Badge angka notifikasi belum dibaca
@@ -629,7 +629,7 @@ class _BerandaPageState extends State<BerandaPage> {
                 },
               ),
 
-              // Jarak ±24dp dari bottom card MomDad ke batas transisi biru→putih
+              // Jarak Â±24dp dari bottom card MomDad ke batas transisi biruâ†’putih
               const SizedBox(height: 24),
             ],
           ),
@@ -759,7 +759,7 @@ class _BerandaPageState extends State<BerandaPage> {
           child: ListView.separated(
             clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             itemCount: children.length + 1, // semua anak + 1 card tambah anak
             separatorBuilder: (_, _) => const SizedBox(width: 14.0),
@@ -909,7 +909,7 @@ class _BerandaPageState extends State<BerandaPage> {
           ),
         )
         .then((_) {
-          // Setelah foto full-screen ditutup → navigasi ke halaman Ubah Data Profil
+          // Setelah foto full-screen ditutup â†’ navigasi ke halaman Ubah Data Profil
           if (mounted) {
             ChildService().setActiveChild(child);
             navigator.push(
@@ -1327,7 +1327,7 @@ class _BerandaPageState extends State<BerandaPage> {
               ? _buildEmptyArticleState()
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _latestArticles.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 14),
@@ -1702,7 +1702,7 @@ class _BerandaPageState extends State<BerandaPage> {
               ? _buildEmptyVideoState()
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _educationalVideos.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 14),

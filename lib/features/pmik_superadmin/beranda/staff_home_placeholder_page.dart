@@ -266,7 +266,7 @@ class _StaffHomePlaceholderPageState extends State<StaffHomePlaceholderPage> {
           onRefresh: _refreshAccount,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
+              parent: ClampingScrollPhysics(),
             ),
             padding: const EdgeInsets.all(16.0),
             child: Column(

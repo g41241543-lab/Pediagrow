@@ -25,7 +25,7 @@ import 'buat_resume_medis_dokter_page.dart';
 ///
 /// Tampilan diselaraskan persis dengan POV Pengguna:
 /// - Header biru (#2A85FF) dengan nama anak, nama orang tua, avatar anak/pasien, dan online dot.
-/// - Formulir Keluhan Pasien di sisi kiri (dikirim oleh orang tua), dapat diklik untuk
+/// - Formulir Keluhan Anak di sisi kiri (dikirim oleh orang tua), dapat diklik untuk
 ///   membuka rincian data formulir lengkap.
 /// - Bubble pesan orang tua di sisi kiri, bubble balasan dokter di sisi kanan (biru).
 /// - Input area bawah: Tombol [+] untuk foto/kamera, TextField pesan, tombol kirim bulat biru,
@@ -230,7 +230,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
         : widget.parentName ?? '';
     _effectiveParentName = candidateName.isNotEmpty
         ? candidateName
-        : 'Orang Tua Pasien';
+        : 'Orang Tua';
 
     final staff = StaffAuthService().currentStaff;
     _effectiveDoctorName =
@@ -401,7 +401,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
           ? replyText
           : '📷 Foto';
     } else if (replyType == 'attachment') {
-      replyText = '📋 Formulir Keluhan Pasien';
+      replyText = '📋 Formulir Keluhan Anak';
     }
 
     // Kirim ke Firestore jika sessionId tersedia
@@ -621,7 +621,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
               ? replyText
               : '📷 Foto';
         } else if (replyType == 'attachment') {
-          replyText = '📋 Formulir Keluhan Pasien';
+          replyText = '📋 Formulir Keluhan Anak';
         }
 
         if (widget.sessionId != null && widget.sessionId!.isNotEmpty) {
@@ -662,7 +662,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     } catch (_) {}
   }
 
-  // Modal Rincian Formulir Keluhan Pasien persis seperti POV Pengguna
+  // Modal Rincian Formulir Keluhan Anak persis seperti POV Pengguna
   void _showFormulirDetailDialog([String? customComplaint]) {
     final effectiveWeight =
         _liveWeightKg ??
@@ -748,7 +748,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Formulir Keluhan Pasien',
+                          'Formulir Keluhan Anak',
                           style: GoogleFonts.lato(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -1275,7 +1275,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
               !msg.imageUrl!.startsWith('http'))
           ? msg.imageUrl!.split('/').last
           : '',
-      'title': 'Formulir Keluhan Pasien',
+      'title': 'Formulir Keluhan Anak',
       'timestamp': timeStr,
       'isRead': msg.isRead,
       'replyToId': msg.replyToId,
@@ -1360,7 +1360,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                   const SizedBox(height: 6),
                   Text(
                     widget.hasActiveSession
-                        ? 'Belum ada pesan. Silakan menyapa orang tua pasien untuk memulai sesi.'
+                        ? 'Belum ada pesan. Silakan menyapa orang tua untuk memulai sesi.'
                         : 'Dokter hanya dapat melakukan konsultasi (mengirim pesan, lampiran, dan resume medis) saat jadwal konsultasi tiba.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.lato(
@@ -1449,7 +1449,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
     );
   }
 
-  // Formulir Keluhan Pasien di Kiri
+  // Formulir Keluhan Anak di Kiri
   Widget _buildFormulirAttachmentBubble(Map<String, dynamic> item) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1488,7 +1488,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          item['title'] ?? 'Formulir Keluhan Pasien',
+                          item['title'] ?? 'Formulir Keluhan Anak',
                           style: GoogleFonts.lato(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -2046,7 +2046,7 @@ class _ChatKonsultasiDokterPageState extends State<ChatKonsultasiDokterPage>
 
     String previewContent = text;
     if (isFormulir) {
-      previewContent = '📋 Formulir Keluhan Pasien';
+      previewContent = '📋 Formulir Keluhan Anak';
     } else if (hasImage) {
       previewContent = text.isNotEmpty ? '📷 $text' : '📷 Foto';
     }

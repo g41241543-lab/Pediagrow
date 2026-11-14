@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
@@ -606,7 +606,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
                           ),
                           const SizedBox(height: 8.0),
 
-                          // Informasi Meta (Ikon jam + "Artikel • ...") warna #A0A0A0
+                          // Informasi Meta (Ikon jam + "Artikel â€¢ ...") warna #A0A0A0
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -773,12 +773,12 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     }
   }
 
-  /// Membangun string meta informasi: "Artikel • Stunting • Wasting"
+  /// Membangun string meta informasi: "Artikel â€¢ Stunting â€¢ Wasting"
   String _buildMetaText(ArtikelModel artikel) {
     final buffer = StringBuffer(artikel.kategori);
     if (artikel.subKategori.isNotEmpty) {
       for (final sub in artikel.subKategori) {
-        buffer.write(' • $sub');
+        buffer.write(' â€¢ $sub');
       }
     }
     return buffer.toString();
@@ -830,7 +830,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
     final isSearching = _searchController.text.trim().isNotEmpty;
 
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       slivers: [
         SliverFillRemaining(
           hasScrollBody: false,

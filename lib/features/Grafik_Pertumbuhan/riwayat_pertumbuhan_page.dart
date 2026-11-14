@@ -48,7 +48,7 @@ class RiwayatPertumbuhanPage extends StatelessWidget {
 
                   return ListView.builder(
                     padding: const EdgeInsets.only(top: 8, bottom: 24),
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     itemCount: records.length,
                     itemBuilder: (context, index) {
                       final record = records[index];

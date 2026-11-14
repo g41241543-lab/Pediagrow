@@ -331,7 +331,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         child: Row(
           children: _categories.map((cat) {
             final isActive = _selectedCategory == cat;
@@ -470,7 +470,7 @@ class _DaftarResepPageState extends State<DaftarResepPage> {
     }
 
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       slivers: [
         // Daftar resep dengan separator divider
         SliverPadding(

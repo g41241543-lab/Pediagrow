@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -320,7 +320,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                       ),
                       _buildConfirmDetailRow(
                         icon: Icons.child_care_rounded,
-                        label: 'Pasien (Anak)',
+                        label: 'Data Anak',
                         value: childName,
                       ),
                       const Padding(
@@ -697,7 +697,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             // Konten Form Booking Scrollable
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -729,7 +729,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Header (56dp) ──────────────────────────────────────────────────────────
+  // â”€â”€ Header (56dp) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildHeader(bool isDark) {
     return Container(
       height: 56.0,
@@ -768,7 +768,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Kartu Ringkasan Dokter ────────────────────────────────────────────────
+  // â”€â”€ Kartu Ringkasan Dokter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDoctorSummaryCard(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(14.0),
@@ -836,7 +836,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Step 1: Pilih Anak ────────────────────────────────────────────────────
+  // â”€â”€ Step 1: Pilih Anak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildChildSelectionSection(bool isDark) {
     final children = ChildService().children;
 
@@ -847,7 +847,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '1. Pilih Pasien Anak',
+              '1. Pilih Anak',
               style: GoogleFonts.lato(
                 fontSize: 15.5,
                 fontWeight: FontWeight.bold,
@@ -912,7 +912,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
         else
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             child: Row(
               children: children.map((c) {
                 final isSelected = _selectedChild?.id == c.id;
@@ -1018,7 +1018,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Step 2: Pilih Tanggal ─────────────────────────────────────────────────
+  // â”€â”€ Step 2: Pilih Tanggal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDateSelectionSection(bool isDark) {
     const daysAbbr = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
     const monthsAbbr = [
@@ -1051,7 +1051,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
 
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           child: Row(
             children: _upcomingDates.map((d) {
               final isSelected =
@@ -1240,7 +1240,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Step 3: Pilih Jam / Slot Waktu Praktik ─────────────────────────────────
+  // â”€â”€ Step 3: Pilih Jam / Slot Waktu Praktik â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTimeSlotSection(bool isDark) {
     final periods = ['Semua', 'Pagi', 'Siang', 'Sore', 'Malam'];
 
@@ -1279,7 +1279,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
         // Filter Periode (Pagi, Siang, Sore, Malam)
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           child: Row(
             children: periods.map((p) {
               final isFilterSelected = _selectedPeriodFilter == p;
@@ -1600,7 +1600,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
     );
   }
 
-  // ── Bottom Confirm Bar ───────────────────────────────────────────────────
+  // â”€â”€ Bottom Confirm Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildBottomConfirmBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
@@ -1638,7 +1638,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   ),
                   Text(
                     _selectedSlot != null
-                        ? '${_selectedDate.day}/${_selectedDate.month} • ${_selectedSlot!.time}'
+                        ? '${_selectedDate.day}/${_selectedDate.month} â€¢ ${_selectedSlot!.time}'
                         : 'Belum memilih jam',
                     style: GoogleFonts.lato(
                       fontSize: 14.0,

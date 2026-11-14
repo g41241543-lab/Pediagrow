@@ -132,7 +132,7 @@ class GameFeedbackPage extends StatelessWidget {
                   // ── Konten scrollable (Kartu & Tombol) ───────────
                   Expanded(
                     child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(
                           16.0, 24.0, 16.0, 32.0),
                       child: Column(

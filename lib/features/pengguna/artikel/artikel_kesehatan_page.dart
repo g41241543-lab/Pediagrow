@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
@@ -350,7 +350,7 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
     // POPULATED STATE: CustomScrollView agar ilustrasi ikut scroll di paling bawah
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       slivers: [
         // Daftar artikel
         SliverPadding(
@@ -517,12 +517,12 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
     );
   }
 
-  /// Menyusun string metadata kategori & sub-topik (contoh: "Artikel  •  Apa itu Stunting?")
+  /// Menyusun string metadata kategori & sub-topik (contoh: "Artikel  â€¢  Apa itu Stunting?")
   String _buildMetadataString(ArtikelModel artikel) {
     final buffer = StringBuffer(artikel.kategori);
     if (artikel.subKategori.isNotEmpty) {
       for (final sub in artikel.subKategori) {
-        buffer.write('   •   $sub');
+        buffer.write('   â€¢   $sub');
       }
     }
     return buffer.toString();

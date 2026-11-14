@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -227,7 +227,7 @@ List<InlineSpan> _buildInlineSpans(
 /// Widget Rich Text Editor lengkap dengan toolbar aktif:
 /// - Dropdown Paragraph / Heading (Heading 1, 2, 3)
 /// - Bold (B), Italic (I), Underline (U) aktif
-/// - List Bullet (•) & Numbered (1.)
+/// - List Bullet (â€¢) & Numbered (1.)
 /// - Undo & Redo
 /// - TextField live-rendered
 class ArticleRichTextEditor extends StatefulWidget {
@@ -501,7 +501,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               child: Row(
                 children: [
                   // Dropdown Paragraph / Heading
@@ -620,7 +620,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                   // Tombol Bullet List (:=)
                   _ToolbarButton(
                     tooltip: 'Daftar Poin (Bullet List)',
-                    onTap: () => _toggleLinePrefix('• '),
+                    onTap: () => _toggleLinePrefix('â€¢ '),
                     child: Icon(
                       Icons.format_list_bulleted_rounded,
                       size: 19.0,
@@ -643,7 +643,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
 
                   _buildVerticalDivider(dividerColor),
 
-                  // Tombol Undo (↩)
+                  // Tombol Undo (â†©)
                   _ToolbarButton(
                     tooltip: 'Undo',
                     onTap: widget.controller.canUndo
@@ -660,7 +660,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
 
                   const SizedBox(width: 4.0),
 
-                  // Tombol Redo (↪)
+                  // Tombol Redo (â†ª)
                   _ToolbarButton(
                     tooltip: 'Redo',
                     onTap: widget.controller.canRedo

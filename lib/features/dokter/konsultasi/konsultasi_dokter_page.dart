@@ -13,6 +13,7 @@ import '../../../models/user_model.dart';
 import '../beranda/data_pasien/detail_anak_page.dart';
 import '../beranda/beranda_dokter_page.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../shared/widgets/pedia_interactive_hover_card.dart';
 
@@ -962,7 +963,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sesi Konsultasi Pasien Aktif',
+                    'Sesi Konsultasi Anak Aktif',
                     style: GoogleFonts.lato(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -1149,8 +1150,8 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                         child: _buildEmptyState(
                           title: 'Belum Ada Jadwal Booking',
                           subtitle: loggedInDoctorName.isNotEmpty
-                              ? 'Saat ini belum ada pasien yang memesan jadwal konsultasi untuk $loggedInDoctorName.'
-                              : 'Belum ada pasien yang memesan jadwal konsultasi.',
+                              ? 'Saat ini belum ada anak yang memesan jadwal konsultasi untuk $loggedInDoctorName.'
+                              : 'Belum ada anak yang memesan jadwal konsultasi.',
                           icon: Icons.event_busy_rounded,
                           isDark: isDark,
                         ),
@@ -1189,8 +1190,8 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
 
     Widget _buildScheduleBanner(String doctorName, bool isDark) {
       final title = doctorName.isNotEmpty
-          ? 'Jadwal Booking Pasien — $doctorName'
-          : 'Jadwal Booking Pasien';
+          ? 'Jadwal Booking Anak — $doctorName'
+          : 'Jadwal Booking Anak';
 
       return Container(
         width: double.infinity,
@@ -1239,7 +1240,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Hanya menampilkan pasien yang memiliki jadwal konsultasi dengan Anda.',
+                    'Hanya menampilkan anak yang memiliki jadwal konsultasi dengan Anda.',
                     style: GoogleFonts.lato(
                       fontSize: 12,
                       color: isDark
@@ -1703,27 +1704,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
       return fallback;
     }
 
-    // ─── FOOTER ILLUSTRATION (Format PMIK: Gambar Lanskap) ───────────────────
+    // ─── FOOTER ILLUSTRATION (Format Terpusat: IllustrationForestFooter) ─────
     Widget _buildFooterIllustration() {
-      return SizedBox(
-        width: double.infinity,
-        child: Image.asset(
-          'assets/images/beranda_landscape_footer_fiks.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-          alignment: Alignment.bottomCenter,
-          errorBuilder: (context, error, stackTrace) => Container(
-            height: 100,
-            color: const Color(0xFFD1FAE5),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.park_outlined,
-              size: 44,
-              color: Color(0xFF34D399),
-            ),
-          ),
-        ),
-      );
+      return const IllustrationForestFooter(fit: BoxFit.fitWidth);
     }
 
 }
