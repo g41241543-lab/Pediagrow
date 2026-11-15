@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -9,7 +9,6 @@ import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
 import 'edit_soal_permainan_page.dart';
@@ -428,8 +427,8 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   // 1. AREA BIRU SEAMLESS HEADER (ADAPTIF DARK/LIGHT MODE)
   // ──────────────────────────────────────────────────────────────────
   Widget _buildSeamlessBlueArea(BuildContext context) {
-    final skyMode = _isDark ? SkyTimeMode.night : SkyTimeMode.day;
-    final isNight = _isDark;
+    final isDark = _isDark;
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
 
     return Container(
       width: double.infinity,
@@ -451,9 +450,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned.fill(
+          const Positioned.fill(
             child: HeaderSkyIllustration(
-              mode: skyMode,
+              mode: SkyTimeMode.auto,
               renderBackgroundGradient: false,
             ),
           ),

@@ -111,8 +111,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       if (mounted) {
         setState(() {
           _superadmin = current;
-          if (current?.avatarPath != null && current!.avatarPath!.isNotEmpty) {
-            _superadminAvatarPath = current!.avatarPath;
+          final avatar = current?.avatarPath;
+          if (avatar != null && avatar.isNotEmpty) {
+            _superadminAvatarPath = avatar;
           }
         });
       }

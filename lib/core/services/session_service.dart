@@ -483,10 +483,9 @@ class SessionService {
           );
         }
 
-        if (restoredStaff != null &&
-            (restoredStaff.email.trim().toLowerCase() ==
-                    StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
-                restoredStaff.isSuperAdmin)) {
+        if (restoredStaff.email.trim().toLowerCase() ==
+                StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
+            restoredStaff.isSuperAdmin) {
           if (restoredStaff.experience == null ||
               restoredStaff.strNumber == null ||
               restoredStaff.birthDate == null ||
