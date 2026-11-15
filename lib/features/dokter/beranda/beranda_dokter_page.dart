@@ -94,7 +94,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
                 _buildWhiteContentSection(context),
 
-                const SizedBox(height: 20),
+                const SizedBox(
+                  height: 92,
+                ), // Ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
 
                 // 3. Ilustrasi Footer (Daun)
                 _buildFooterIllustration(),
@@ -699,7 +701,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     Color? iconColor,
     Widget? customIcon,
     double cardInset = 6,
-    double imageSize = 40,
+    double imageSize = 48,
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
@@ -956,7 +958,10 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // ILUSTRASI FOOTER (Full-Bleed, daun hijau bawah)
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // =========================================================================

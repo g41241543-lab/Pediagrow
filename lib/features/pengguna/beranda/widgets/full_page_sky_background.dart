@@ -245,20 +245,7 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   variant: ForestCloudVariant.asymmetric,
                 ),
 
-                // Horizon 3 — Awan jauh bagian tengah atas
-                _cloud(
-                  left: (w * 0.43) + (driftSlow * 0.40),
-                  top: footerTop - 86 + (floatY * 0.35),
-                  w: 72,
-                  h: 26,
-                  opacity: isDark ? 0.26 : 0.42,
-                  flipX: true,
-                  isDark: isDark,
-                  useSkyPalette: true,
-                  variant: ForestCloudVariant.compact,
-                ),
-
-                // Horizon 4 — Awan rendah lembah kiri-tengah menyatu ke gradien forest PNG
+                // Horizon 3 — Awan rendah lembah kiri-tengah menyatu ke gradien forest PNG
                 _cloud(
                   left: (w * 0.16) + (driftMed * 0.45),
                   top: footerTop - 32 + (floatY * 0.30),
@@ -266,19 +253,6 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                   h: 34,
                   opacity: isDark ? 0.34 : 0.48,
                   flipX: false,
-                  isDark: isDark,
-                  useSkyPalette: true,
-                  variant: ForestCloudVariant.elongated,
-                ),
-
-                // Horizon 5 — Kabut awan kanan-rendah membaur lembut ke balik ShaderMask forest PNG
-                _cloud(
-                  right: (w * 0.08) - (driftSlow * 0.35),
-                  top: footerTop - 18 + (floatY * 0.25),
-                  w: 94,
-                  h: 28,
-                  opacity: isDark ? 0.28 : 0.42,
-                  flipX: true,
                   isDark: isDark,
                   useSkyPalette: true,
                   variant: ForestCloudVariant.elongated,

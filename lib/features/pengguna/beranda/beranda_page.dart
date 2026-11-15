@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -1031,7 +1031,6 @@ class _BerandaPageState extends State<BerandaPage> {
                 title: 'Resep\nMPASI',
                 imageAsset: 'assets/images/resep_mpasi_logo.png',
                 onTap: () => _navigateTo(const DaftarResepPage()),
-                logoOffsetX: 2,
               ),
             ),
           ],
@@ -1064,7 +1063,6 @@ class _BerandaPageState extends State<BerandaPage> {
                 title: 'Permainan\n',
                 imageAsset: 'assets/images/permainan_logo.png',
                 onTap: () => _navigateTo(const GameMulaiPage()),
-                logoOffsetX: 5,
               ),
             ),
           ],
@@ -1078,7 +1076,7 @@ class _BerandaPageState extends State<BerandaPage> {
     required String imageAsset,
     required VoidCallback onTap,
     double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
-    double imageSize = 40, // ukuran logo pas & proporsional
+    double imageSize = 48, // ukuran logo pas & proporsional
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -2213,7 +2211,10 @@ class _BerandaPageState extends State<BerandaPage> {
   // 100% width layar, tanpa margin/padding, menempel langsung ke Nav Bar
   // ===================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // ===================================================================

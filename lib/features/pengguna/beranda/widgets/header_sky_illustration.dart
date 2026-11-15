@@ -270,26 +270,6 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
             },
           ),
 
-          // Awan 2 — Bahu Kiri Matahari/Bulan (kedalaman langit tengah-kanan)
-          AnimatedBuilder(
-            animation: _floatController,
-            builder: (context, _) {
-              return Positioned(
-                top: (topSafe * 0.25) + 14 + (_cloudFloat.value * 0.4),
-                right: 112 - (_cloudDrift.value * 0.5),
-                child: ForestCloudWidget(
-                  width: 68,
-                  height: 27,
-                  isNight: isNight,
-                  opacity: isNight ? 0.36 : 0.44,
-                  flipHorizontal: true,
-                  isHeader: true,
-                  variant: ForestCloudVariant.compact,
-                ),
-              );
-            },
-          ),
-
           // -----------------------------------------------------------
           // LAYER 2: ELEMEN CELESTIAL UTAMA: MATAHARI (LIGHT) ATAU BULAN & BINTANG (DARK)
           // -----------------------------------------------------------
@@ -456,7 +436,7 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
           // LAYER 3: AWAN MENGAPUNG DEPAN (Drifting lembut tanpa menutupi wajah Bulan/Matahari)
           // -----------------------------------------------------------
 
-          // Awan 3 — Sudut Kanan Atas (bingkai luar sebelah kanan Matahari/Bulan)
+          // Awan 2 — Sudut Kanan Atas (bingkai luar sebelah kanan Matahari/Bulan)
           AnimatedBuilder(
             animation: _floatController,
             builder: (context, _) {
@@ -476,7 +456,7 @@ class _HeaderSkyIllustrationState extends State<HeaderSkyIllustration>
             },
           ),
 
-          // Awan 4 — Saku Langit Kanan (ruang terbuka di samping "Profil Anak" & di atas kartu)
+          // Awan 3 — Saku Langit Kanan (ruang terbuka di samping "Profil Anak" & di atas kartu)
           AnimatedBuilder(
             animation: _floatController,
             builder: (context, _) {

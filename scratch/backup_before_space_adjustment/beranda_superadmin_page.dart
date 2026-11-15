@@ -1,0 +1,1325 @@
+﻿import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../core/services/artikel_service.dart';
+import '../../../core/services/local_push_service.dart';
+import '../../../core/services/superadmin_notification_service.dart';
+import '../../../core/services/theme_service.dart';
+import '../../../models/artikel_model.dart';
+import '../../../models/superadmin_notification_model.dart';
+import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
+import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
+import '../../pengguna/detail/detail_artikel_page.dart';
+import 'notifikasi_superadmin_page.dart';
+import 'data_anak/data_pasien_page.dart';
+import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import 'kelola_artikel/daftar_artikel_admin_page.dart';
+import 'permainan/permainan_admin_page.dart';
+import 'rekapitulasi/rekapitulasi_stunting_page.dart';
+import '../profil/hak_akses/hak_akses_page.dart';
+import '../../../widgets/hak_akses_logo.dart';
+import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/storage_service.dart';
+import '../../../models/staff_account_model.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+
+/// Halaman Beranda PMIK Superadmin PediaGrow.
+///
+/// Tampilan identik dengan beranda pengguna (header biru seamless, animasi
+/// langit, card menu, card slogan, artikel terbaru, ilustrasi footer, nav bar),
+/// namun disesuaikan untuk konteks superadmin:
+/// - Sapaan "Hai, Superadmin"
+/// - Card superadmin (PeGo + ilustrasi dokter)
+/// - 6 menu berbeda (Rekapitulasi, Data Pasien, Daftar Resep MPASI, dll.)
+/// - Card slogan PeGo dengan teks sesuai desain superadmin
+class BerandaSuperadminPage extends StatefulWidget {
+  /// Ketika [inShell] true, halaman berjalan di dalam [SuperadminShell]:
+  /// - bottomNavigationBar tidak dirender (navbar milik shell).
+  /// - _onNavTap tidak melakukan push/replace (shell yang mengelola tab).
+  final bool inShell;
+
+  const BerandaSuperadminPage({super.key, this.inShell = false});
+
+  @override
+  State<BerandaSuperadminPage> createState() => _BerandaSuperadminPageState();
+}
+
+class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
+  List<ArtikelModel> _latestArticles = [];
+  bool _isLoadingArticles = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLatestArticles();
+    ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
+    // Inisialisasi notifikasi superadmin & cek pengingat dataset bulanan
+    SuperadminNotificationService().init().then((_) {
+      SuperadminNotificationService().checkDatasetReminder();
+    });
+  }
+
+  @override
+  void dispose() {
+    ArtikelService().articlesNotifier.removeListener(_onArticlesUpdated);
+    super.dispose();
+  }
+
+  void _onArticlesUpdated() {
+    if (!mounted) return;
+    final all = ArtikelService().currentArticles;
+    final sorted = List<ArtikelModel>.from(all);
+    sorted.sort((a, b) => (b.id ?? '').compareTo(a.id ?? ''));
+    setState(() {
+      _latestArticles = sorted.take(8).toList();
+      _isLoadingArticles = false;
+    });
+  }
+
+  Future<void> _loadLatestArticles() async {
+    setState(() => _isLoadingArticles = true);
+    try {
+      final all = await ArtikelService().getAllArticles();
+      final sorted = List<ArtikelModel>.from(all);
+      sorted.sort((a, b) => (b.id ?? '').compareTo(a.id ?? ''));
+      if (!mounted) return;
+      setState(() {
+        _latestArticles = sorted.take(8).toList();
+        _isLoadingArticles = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _latestArticles = [];
+        _isLoadingArticles = false;
+      });
+    }
+  }
+
+  void _navigateTo(Widget page) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  }
+
+  bool _canAccessFeature(String permissionKey) {
+    final staff = StaffAuthService().currentStaff;
+    if (staff == null) return true;
+    return staff.hasPermission(permissionKey);
+  }
+
+  void _handleMenuTap({
+    required String permissionKey,
+    required String featureName,
+    required VoidCallback onAllowed,
+  }) {
+    if (_canAccessFeature(permissionKey)) {
+      onAllowed();
+    } else {
+      LocalPushService().show(
+        title: 'Akses Terbatas',
+        body: 'Akses fitur "$featureName" dinonaktifkan oleh Superadmin.',
+        targetRole: PushRole.superadmin,
+      );
+    }
+  }
+
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // BUILD
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  @override
+  Widget build(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
+    return Scaffold(
+      backgroundColor: isDark ? ThemeService.darkBg : Colors.white,
+      resizeToAvoidBottomInset: false,
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // LAYER 0 â€” Background animasi awan & burung (full-page)
+            const Positioned.fill(child: FullPageSkyBackground()),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Area Biru Seamless (Header + Card Superadmin)
+                _buildSeamlessBlueArea(context),
+
+                // 2. Konten Putih (Menu, Card Slogan, Artikel)
+                _buildWhiteContentSection(context),
+
+                const SizedBox(height: 20),
+
+                // 3. Ilustrasi Footer
+                _buildFooterIllustration(),
+              ],
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
+    );
+  }
+
+  // =========================================================================
+  // 1. AREA BIRU SEAMLESS
+  // =========================================================================
+  Widget _buildSeamlessBlueArea(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
+
+    return Container(
+      width: double.infinity,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background Ilustrasi Langit
+          const Positioned.fill(
+            child: HeaderSkyIllustration(
+              mode: SkyTimeMode.auto,
+              renderBackgroundGradient: false,
+            ),
+          ),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header: Sapaan + Lingkaran Notifikasi
+              SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: 56,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Sapaan Dinamis sesuai Akun Staf (Superadmin, Dokter, PMIK)
+                        Expanded(
+                          child: ValueListenableBuilder<StaffAccount?>(
+                            valueListenable:
+                                StaffAuthService().currentStaffNotifier,
+                            builder: (context, staff, _) {
+                              String greeting = 'Hai, Superadmin';
+                              if (staff != null) {
+                                if (staff.isSuperAdmin) {
+                                  greeting = 'Hai, Superadmin';
+                                } else if (staff.role == StaffRole.dokter) {
+                                  final name = staff.name.trim();
+                                  final isDr =
+                                      name.toLowerCase().startsWith('dr.') ||
+                                      name.toLowerCase().startsWith('dr ');
+                                  greeting =
+                                      'Hai, ${isDr ? name : 'dr. $name'}';
+                                } else {
+                                  greeting = 'Hai, ${staff.name.trim()}';
+                                }
+                              }
+                              return Text(
+                                greeting,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.lato(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const Spacer(),
+
+                        // Lingkaran Notifikasi dengan badge angka
+                        ValueListenableBuilder<List<SuperadminNotificationItem>>(
+                          valueListenable: SuperadminNotificationService()
+                              .notificationsNotifier,
+                          builder: (context, _, _) {
+                            final unreadCount = SuperadminNotificationService()
+                                .getUnreadCountForRole(PushRole.superadmin);
+                            return GestureDetector(
+                              onTap: () =>
+                                  _navigateTo(const NotifikasiSuperadminPage(role: PushRole.superadmin)),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0x1F000000),
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.notifications_none_rounded,
+                                      color: Color(0xFF1A2228),
+                                      size: 22,
+                                    ),
+                                  ),
+                                  if (unreadCount > 0)
+                                    Positioned(
+                                      top: -4,
+                                      right: -4,
+                                      child: Container(
+                                        constraints: const BoxConstraints(
+                                          minWidth: 16,
+                                          minHeight: 16,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE53E3E),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          unreadCount > 9
+                                              ? '9+'
+                                              : '$unreadCount',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            height: 1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Card dinaikkan sedikit ke atas
+              const SizedBox(height: 36),
+
+              // Card Superadmin (PeGo + Ilustrasi Dokter)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _buildSuperadminCard(context),
+              ),
+
+              const SizedBox(height: 38),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // CARD SUPERADMIN
+  // Dimensi: lebar penuh, height 120, warna #FFFFFF, corner radius 15
+  // Kiri: Teks PeGo + tagline; Kanan: Ilustrasi dokter
+  // =========================================================================
+  Widget _buildSuperadminCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
+    return Container(
+      width: double.infinity,
+      height: 120,
+      decoration: BoxDecoration(
+        color: isDark ? ThemeService.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Teks kiri: PeGo + tagline
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Pe',
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF4B83D6),
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Go',
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF3CC3A6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ValueListenableBuilder<StaffAccount?>(
+                      valueListenable: StaffAuthService().currentStaffNotifier,
+                      builder: (context, staff, _) {
+                        final roleText = staff?.isSuperAdmin == true
+                            ? 'PMIK Superadmin'
+                            : staff?.pmikRoleDisplay ??
+                                  (staff?.role.label ?? 'Staff');
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
+                                  : const Color(0xFFBFDBFE),
+                            ),
+                          ),
+                          child: Text(
+                            roleText,
+                            style: GoogleFonts.lato(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : const Color(0xFF2563EB),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
+                  style: GoogleFonts.lato(
+                    fontSize: 13,
+                    fontWeight: FontWeight.normal,
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Ilustrasi dokter (kanan)
+          SizedBox(
+            width: 90,
+            height: 100,
+            child: Image.asset(
+              'assets/images/dokter_superadmin_card.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.medical_services_rounded,
+                size: 60,
+                color: Color(0xFF3985E7),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 2. KONTEN PUTIH
+  // =========================================================================
+  Widget _buildWhiteContentSection(BuildContext context) {
+    return Container(
+      color: Colors.transparent,
+      padding: const EdgeInsets.only(top: 24, bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 6 Card Menu Superadmin
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: _build6MenuGrid(context),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Card Slogan PeGo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: _buildPeGoSloganCard(context),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Artikel Terbaru (Horizontal Carousel)
+          _buildLatestArticlesSection(context),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 6 CARD MENU SUPERADMIN
+  // Warna #ECF6FF, 3 kolom x 2 baris, corner radius 10
+  // =========================================================================
+  Widget _build6MenuGrid(BuildContext context) {
+    return ValueListenableBuilder<StaffAccount?>(
+      valueListenable: StaffAuthService().currentStaffNotifier,
+      builder: (context, staff, _) {
+        final canRekap = _canAccessFeature('rekapitulasi');
+        final canPasien = _canAccessFeature('data_pasien');
+        final canResep = _canAccessFeature('daftar_resep_mpasi');
+        final canArtikel = _canAccessFeature('daftar_artikel_kesehatan');
+        final canHakAkses = _canAccessFeature('hak_akses');
+        final canPermainan = _canAccessFeature('permainan');
+
+        return Column(
+          children: [
+            // Baris 1: Rekapitulasi, Data Pasien, Daftar Resep MPASI
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    context: context,
+                    title: 'Rekapitulasi',
+                    customIcon: _buildRekapitulasiLogo(),
+                    blobColor: const Color(0xFFD97706),
+                    isLocked: !canRekap,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'rekapitulasi',
+                      featureName: 'Rekapitulasi',
+                      onAllowed: () =>
+                          _navigateTo(const RekapitulasiStuntingPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    context: context,
+                    title: 'Data\nAnak',
+                    imageAsset: 'assets/images/data_pasien_logo.png',
+                    blobColor: const Color(0xFF3CC3A6),
+                    isLocked: !canPasien,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'data_pasien',
+                      featureName: 'Data Anak',
+                      onAllowed: () => _navigateTo(const DataPasienPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    context: context,
+                    title: 'Daftar Resep\nMPASI',
+                    imageAsset: 'assets/images/resep_mpasi_logo.png',
+                    blobColor: const Color(0xFF10B981),
+                    isLocked: !canResep,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_resep_mpasi',
+                      featureName: 'Daftar Resep MPASI',
+                      onAllowed: () =>
+                          _navigateTo(const DaftarResepMpasiAdminPage()),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Baris 2: Daftar Artikel Kesehatan, Grafik Pengguna, Permainan
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMenuItem(
+                    context: context,
+                    title: 'Daftar Artikel\nKesehatan',
+                    imageAsset: 'assets/images/artikel_kesehatan_logo.png',
+                    blobColor: const Color(0xFF6366F1),
+                    isLocked: !canArtikel,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'daftar_artikel_kesehatan',
+                      featureName: 'Daftar Artikel Kesehatan',
+                      onAllowed: () =>
+                          _navigateTo(const DaftarArtikelAdminPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    context: context,
+                    title: 'Kelola\nHak Akses',
+                    customIcon: HakAksesLogo(isDisabled: !canHakAkses),
+                    blobColor: const Color(0xFF0284C7),
+                    isLocked: !canHakAkses,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'hak_akses',
+                      featureName: 'Kelola Hak Akses',
+                      onAllowed: () => _navigateTo(const HakAksesPage()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildMenuItem(
+                    context: context,
+                    title: 'Permainan\n',
+                    imageAsset: 'assets/images/permainan_logo.png',
+                    blobColor: const Color(0xFFF59E0B),
+                    logoOffsetX: 5,
+                    isLocked: !canPermainan,
+                    onTap: () => _handleMenuTap(
+                      permissionKey: 'permainan',
+                      featureName: 'Permainan',
+                      onAllowed: () => _navigateTo(const PermainanAdminPage()),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Logo Rekapitulasi: binder/catatan kuning berklip persis sesuai desain referensi
+  Widget _buildRekapitulasiLogo() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8CF47),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2B025), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD97706).withValues(alpha: 0.25),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Klip binder metalik di pojok kiri atas
+          Positioned(
+            top: 4,
+            left: 4,
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                color: const Color(0xFF667781),
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+              alignment: Alignment.center,
+              child: Container(
+                width: 3.5,
+                height: 3.5,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          // Garis-garis catatan
+          Positioned(
+            top: 8,
+            left: 17,
+            right: 6,
+            child: Container(
+              height: 2.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB48316).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 15,
+            left: 8,
+            right: 6,
+            child: Container(
+              height: 2.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB48316).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 22,
+            left: 8,
+            right: 12,
+            child: Container(
+              height: 2.5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB48316).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItem({
+    required BuildContext context,
+    required String title,
+    required VoidCallback onTap,
+    required Color blobColor,
+    String? imageAsset,
+    IconData? icon,
+    Color? iconColor,
+    Widget? customIcon,
+    double cardInset = 6,
+    double imageSize = 40,
+    double logoOffsetX = 0,
+    bool isLocked = false,
+  }) {
+    final isDark = ThemeService.isDark(context);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: cardInset),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? (isLocked ? const Color(0xFF141C22) : ThemeService.darkCard)
+                      : (isLocked
+                          ? const Color(0xFFF8FAFC)
+                          : const Color(0xFFECF6FF)),
+                  borderRadius: BorderRadius.circular(10),
+                  border: isDark
+                      ? Border.all(color: ThemeService.darkBorder)
+                      : null,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.06),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Dekorasi blob tematik
+                      Opacity(
+                        opacity: isLocked ? 0.35 : 1.0,
+                        child: _buildTileDecoration(blobColor),
+                      ),
+
+                      // Icon, gambar, atau custom widget
+                      Center(
+                        child: Opacity(
+                          opacity: isLocked ? 0.45 : 1.0,
+                          child: Transform.translate(
+                            offset: Offset(logoOffsetX, 0),
+                            child:
+                                customIcon ??
+                                (imageAsset != null
+                                    ? Image.asset(
+                                        imageAsset,
+                                        height: imageSize,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, _, _) => Icon(
+                                          icon ?? Icons.widgets_rounded,
+                                          size: imageSize,
+                                          color:
+                                              iconColor ??
+                                              const Color(0xFF3985E7),
+                                        ),
+                                      )
+                                    : Icon(
+                                        icon ?? Icons.widgets_rounded,
+                                        size: imageSize,
+                                        color:
+                                            iconColor ??
+                                            const Color(0xFF3985E7),
+                                      )),
+                          ),
+                        ),
+                      ),
+
+                      // Badge Gembok jika fitur dinonaktifkan
+                      if (isLocked)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF667781),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
+              color: isDark
+                  ? (isLocked
+                      ? ThemeService.darkTextMuted
+                      : ThemeService.darkTextPrimary)
+                  : (isLocked
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF000000)),
+              height: 1.25,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTileDecoration(Color blobColor) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned(
+            top: -10,
+            right: -10,
+            child: Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: blobColor.withValues(alpha: 0.09),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -10,
+            left: -8,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: blobColor.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // CARD SLOGAN PeGo SUPERADMIN
+  // Identik dimensi dengan card PediaGrow pengguna (height 115, color #ECF6FF)
+  // =========================================================================
+  Widget _buildPeGoSloganCard(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
+    return Container(
+      width: double.infinity,
+      height: 115,
+      decoration: BoxDecoration(
+        color: isDark ? ThemeService.darkCard : const Color(0xFFECF6FF),
+        borderRadius: BorderRadius.circular(10),
+        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Ilustrasi dokter duduk
+          SizedBox(
+            width: 84,
+            height: 94,
+            child: Image.asset(
+              'assets/images/dokter_komputer_slogan.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.computer_rounded,
+                size: 50,
+                color: Color(0xFF3985E7),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Teks PeGo & deskripsi superadmin
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Pe',
+                        style: GoogleFonts.baloo2(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4B83D6),
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Go',
+                        style: GoogleFonts.baloo2(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3CC3A6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Pego merupakan pendukung aplikasi PediaGrow untuk dokter, PMIK dan admin yang mengelola',
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: isDark
+                        ? ThemeService.darkTextSecondary
+                        : const Color(0xFF2C363D),
+                    height: 1.3,
+                  ),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // SECTION ARTIKEL TERBARU (Horizontal Carousel)
+  // Identik dengan beranda pengguna
+  // =========================================================================
+  Widget _buildLatestArticlesSection(BuildContext context) {
+    final isDark = ThemeService.isDark(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Artikel Terbaru',
+                style: GoogleFonts.lato(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? ThemeService.darkTextPrimary
+                      : const Color(0xFF0B1014),
+                ),
+              ),
+              InkWell(
+                onTap: () => _navigateTo(const DaftarArtikelAdminPage()),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Selengkapnya',
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF3985E7),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: Color(0xFF3985E7),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        SizedBox(
+          height: 205,
+          child: _isLoadingArticles
+              ? _buildArticleSkeletonList()
+              : _latestArticles.isEmpty
+              ? _buildEmptyArticleState()
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  itemCount: _latestArticles.length,
+                  separatorBuilder: (_, idx) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) {
+                    final artikel = _latestArticles[index];
+                    return _buildArticleCard(context, artikel);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildArticleCard(BuildContext context, ArtikelModel artikel) {
+    final categoryText = artikel.subKategori.isNotEmpty
+        ? artikel.subKategori.first
+        : artikel.kategori;
+
+    final wordCount = '${artikel.deskripsi ?? ''} ${artikel.pengertian ?? ''}'
+        .trim()
+        .split(RegExp(r'\s+'))
+        .length;
+    final readTimeMinutes = math.max(2, (wordCount / 50).ceil());
+
+    final isDark = ThemeService.isDark(context);
+    return Container(
+      width: 220,
+      decoration: BoxDecoration(
+        color: isDark ? ThemeService.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? ThemeService.darkBorder : const Color(0xFFE9EDEF),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _navigateTo(DetailArtikelPage(artikel: artikel)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(13),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 102,
+                  child: StorageService.buildImageWidget(
+                    artikel.displayImage,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 102,
+                    errorWidget: _buildFallbackArticleImage(),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0,
+                    vertical: 8.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                        : const Color(0xFFECF6FF),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    categoryText,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? const Color(0xFF93C5FD)
+                                          : const Color(0xFF2563EB),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 11,
+                                    color: isDark
+                                        ? ThemeService.darkTextSecondary
+                                        : const Color(0xFF8696A0),
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '$readTimeMinutes mnt',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10.5,
+                                      color: isDark
+                                          ? ThemeService.darkTextSecondary
+                                          : const Color(0xFF667781),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            artikel.judul,
+                            style: GoogleFonts.lato(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF0B1014),
+                              height: 1.25,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        artikel.tanggal,
+                        style: GoogleFonts.lato(
+                          fontSize: 10.5,
+                          color: const Color(0xFF8696A0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArticleSkeletonList() {
+    final isDark = ThemeService.isDark(context);
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      itemCount: 3,
+      separatorBuilder: (_, idx) => const SizedBox(width: 14),
+      itemBuilder: (ctx, _) => Container(
+        width: 220,
+        decoration: BoxDecoration(
+          color: isDark ? ThemeService.darkCard : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark ? ThemeService.darkBorder : const Color(0xFFE9EDEF),
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 102,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 65,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyArticleState() {
+    final isDark = ThemeService.isDark(context);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? ThemeService.darkCard : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? ThemeService.darkBorder : const Color(0xFFE9EDEF),
+        ),
+      ),
+      child: Center(
+        child: Text(
+          'Belum ada artikel terbaru',
+          style: GoogleFonts.lato(
+            fontSize: 13,
+            color: isDark ? ThemeService.darkTextSecondary : const Color(0xFF64748B),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackArticleImage() {
+    return Container(
+      color: const Color(0xFFEBF5FF),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.article_rounded,
+        size: 38,
+        color: Color(0xFF3985E7),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // ILUSTRASI FOOTER (Full-Bleed, identik dengan beranda pengguna)
+  // =========================================================================
+  Widget _buildFooterIllustration() {
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+  }
+
+  // =========================================================================
+  // NAVIGATION BAR â€” 4 tab: Beranda, Konsultasi, Riwayat Konsultasi, Profil
+  // =========================================================================
+  Widget _buildFixedNavBar() {
+    return const PediaBottomNavBar(selectedIndex: 0);
+  }
+}
