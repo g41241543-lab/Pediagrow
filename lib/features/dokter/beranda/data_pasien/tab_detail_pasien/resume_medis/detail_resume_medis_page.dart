@@ -330,7 +330,7 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
   Widget build(BuildContext context) {
     final childName = _resume.childName.isNotEmpty
         ? _resume.childName
-        : widget.child?.name ?? 'Pasien Anak';
+        : widget.child?.name ?? 'Anak';
     final parentName = widget.parentUser?.name ?? 'Orang Tua $childName';
 
     final bbVal = _resume.bbSaatIni > 0
@@ -355,32 +355,30 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
         appBar: AppBar(
           backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
           elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: _colorTextBlack),
             onPressed: _handleBack,
           ),
-        title: Text(
-          'Detail Resume Medis',
-          style: GoogleFonts.lato(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: _colorTextBlack,
+          title: Text(
+            'Detail Resume Medis',
+            style: GoogleFonts.lato(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _colorTextBlack,
+            ),
           ),
+          centerTitle: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFE53935)),
+              tooltip: 'Hapus Resume Medis',
+              onPressed: _confirmDeleteResume,
+            ),
+            const SizedBox(width: 4),
+          ],
         ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFE53935)),
-            tooltip: 'Hapus Resume Medis',
-            onPressed: _confirmDeleteResume,
-          ),
-          const SizedBox(width: 4),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: _colorBorder, height: 1),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -462,9 +460,9 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
               ),
               const SizedBox(height: 12),
 
-              // Keluhan Pasien (Anamnesis) - Read-only
+              // Keluhan Anak (Anamnesis) - Read-only
               _buildModernDisplayField(
-                label: 'Keluhan Pasien (Anamnesis)',
+                label: 'Keluhan Anak (Anamnesis)',
                 value: _resume.complaint.isNotEmpty ? _resume.complaint : '-',
                 icon: Icons.chat_bubble_outline_rounded,
                 maxLines: 4,

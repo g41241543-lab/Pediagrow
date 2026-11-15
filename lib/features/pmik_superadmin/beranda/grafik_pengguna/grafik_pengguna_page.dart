@@ -27,11 +27,12 @@ import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
 import 'pdf_preview_screen.dart';
 import '../../../../shared/widgets/child_avatar.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // WARNA & TOKEN DESAIN
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 const Color _kBluePrimary = Color(0xFF2B7AE8);
 const Color _kTealPrimary = Color(0xFF3CC3A6);
 
@@ -48,13 +49,14 @@ const Color _kBoyAvatarBg = Color(0xFFD6E8FE);
 const Color _kGirlPink = Color(0xFFF87171);
 const Color _kGirlAvatarBg = Color(0xFFFFDFD9);
 
-// Warna Grafik Rekapitulasi Stunting (Sesuai Referensi Gambar)
-const Color _kBlueStuntingChart = Color(0xFF2563EB); // Biru (Tidak Stunting)
-const Color _kOrangeStuntingChart = Color(0xFFE5A000); // Kuning-Oranye Emas (Stunting)
+// Warna Grafik Rekapitulasi Stunting (Disamakan dengan Grafik Pengguna & Anak: Biru & Hijau)
+const Color _kBlueStuntingChart = _kBluePrimary; // Biru (Tidak Stunting)
+const Color _kGreenStuntingChart = _kTealPrimary; // Hijau (Stunting)
+const Color _kOrangeStuntingChart = _kGreenStuntingChart; // Alias kompatibilitas
 
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MODEL DATA ROW UNTUK DATASET
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class UserDemographicRow {
   final String namaDepan;
   final String namaBelakang;
@@ -100,6 +102,16 @@ class StuntingRecordRow {
 }
 
 /// Model grouped per anak untuk tampilan dokter (accordion/dropdown)
+class GroupedChildStuntingRecord {
+  final String namaAnak;
+  final List<StuntingRecordRow> records;
+
+  const GroupedChildStuntingRecord({
+    required this.namaAnak,
+    required this.records,
+  });
+}
+
 class MonthlyStuntingData {
   final String month;
   final int tidakStunting;
@@ -142,7 +154,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   final ScrollController _scrollController1 = ScrollController();
   final ScrollController _scrollController2 = ScrollController();
 
-  // ── Search State: Dataset Pengguna ─────────────────────────────────────────
+  // â”€â”€ Search State: Dataset Pengguna â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final TextEditingController _searchPenggunaController = TextEditingController();
   final FocusNode _searchPenggunaFocusNode = FocusNode();
   String _searchPenggunaQuery = '';
@@ -152,7 +164,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   String? _errorMessage;
   bool _isDownloading = false;
 
-  // ── State Real-Time Data (Grafik Pengguna) ──────────────────────────────────
+  // â”€â”€ State Real-Time Data (Grafik Pengguna) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int _totalPengguna = 0;
   int _totalAnak = 0;
   int _anakLakiLaki = 0;
@@ -161,7 +173,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   final List<int> _penggunaBulan = List.filled(12, 0);
   final List<int> _anakBulan = List.filled(12, 0);
 
-  // ── State Khusus Tampilan Dokter (Klinis Pasien Anak) ───────────────────────
+  // â”€â”€ State Khusus Tampilan Dokter (Klinis Pasien Anak) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int _anakBaruBulanIni = 0;
   int _usia0sd6 = 0;
   int _usia6sd12 = 0;
@@ -188,11 +200,12 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   );
   final List<StuntingRecordRow> _stuntingRows = [];
 
-  // ── State Pencarian & Filter Grafik Stunting ──────────────────────────────
+  // â”€â”€ State Pencarian & Filter Grafik Stunting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final TextEditingController _stuntingSearchController =
       TextEditingController();
   String _stuntingSearchQuery = '';
   int? _selectedStuntingMonth; // null = Semua Bulan, 1-12 = Jan-Des
+  final Set<String> _expandedDokterChildNames = {};
 
   StreamSubscription<QuerySnapshot>? _usersSub;
   StreamSubscription<QuerySnapshot>? _childrenSub;
@@ -268,9 +281,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     super.dispose();
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PENGAMBILAN & PENGOLAHAN DATA DARI FIRESTORE (DATA RIIL REAL-TIME)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Future<void> _loadAllData() async {
     setState(() {
       _isLoading = true;
@@ -662,9 +675,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       ..addAll(realRows);
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // HELPER METODE PARSING & FORMATTING
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   DateTime? _parseDate(dynamic raw) {
     if (raw == null) return null;
     if (raw is Timestamp) return raw.toDate();
@@ -698,7 +711,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return 'Perempuan';
   }
 
-  // ── Filtered Lists dari Searchbar ───────────────────────────────────────────
+  // â”€â”€ Filtered Lists dari Searchbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<UserDemographicRow> get _filteredUserRows {
     if (_searchPenggunaQuery.isEmpty) return _userRows;
     final q = _searchPenggunaQuery.toLowerCase();
@@ -769,9 +782,25 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
   /// Grouped rows untuk tampilan dokter
-  // ══════════════════════════════════════════════════════════════════════════
+  List<GroupedChildStuntingRecord> get _groupedStuntingRows {
+    final filtered = _filteredStuntingRows;
+    final Map<String, List<StuntingRecordRow>> map = {};
+    for (final r in filtered) {
+      map.putIfAbsent(r.namaAnak, () => []).add(r);
+    }
+    // Sort tiap group dari terbaru ke terlama
+    final groups = map.entries.map((e) {
+      final sorted = List<StuntingRecordRow>.from(e.value)
+        ..sort((a, b) => b.tanggalCek.compareTo(a.tanggalCek));
+      return GroupedChildStuntingRecord(namaAnak: e.key, records: sorted);
+    }).toList();
+    // Urutkan grup berdasarkan nama anak (A-Z)
+    groups.sort((a, b) => a.namaAnak.compareTo(b.namaAnak));
+    return groups;
+  }
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // FITUR UNDUH DATASET PENGGUNA (PDF, EXCEL, CSV)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   void _showUsersDownloadSheet() {
     if (!_canDownloadDataset) {
       _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset pengguna.');
@@ -947,9 +976,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // FITUR UNDUH DATASET HASIL CEK STUNTING (PDF, CSV, EXCEL)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   void _showStuntingDownloadSheet() {
     if (!_canDownloadDataset) {
       _showSnackbar('Hanya PMIK Superadmin yang dapat mengunduh dataset cek stunting.');
@@ -1123,9 +1152,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PENYIMPANAN KE PERANGKAT & NOTIFIKASI
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Future<bool> _ensureStoragePermission() async {
     if (!Platform.isAndroid) return true;
     try {
@@ -1196,9 +1225,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // BUILD UTAMA
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
   Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
@@ -1237,19 +1266,19 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           bottom: false,
           child: Column(
             children: [
-              // ── HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS ──────────
+              // â”€â”€ HEADER FIXED DENGAN TOMBOL BACK & JUDUL DINAMIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               _buildHeader(),
 
-              // ── TAB SELECTOR: GRAFIK PENGGUNA & GRAFIK STUNTING ─────
+              // â”€â”€ TAB SELECTOR: GRAFIK PENGGUNA & GRAFIK STUNTING â”€â”€â”€â”€â”€
               _buildTabSelector(),
 
-              // ── ISI HALAMAN: 2 TAB (GRAFIK PENGGUNA & GRAFIK STUNTING) ──────
+              // â”€â”€ ISI HALAMAN: 2 TAB (GRAFIK PENGGUNA & GRAFIK STUNTING) â”€â”€â”€â”€â”€â”€
               Expanded(
                 child: _isLoading
                     ? _buildLoadingSkeleton()
                     : TabBarView(
                         controller: _tabController,
-                        physics: const BouncingScrollPhysics(),
+                        physics: const ClampingScrollPhysics(),
                         children: [
                           // TAB 1: GRAFIK PENGGUNA & ANAK TERDAFTAR
                           _buildTabGrafikPengguna(),
@@ -1266,13 +1295,13 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // HEADER FIXED
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildHeader() {
     final isDokter = _isDokterView;
     final title = _tabController.index == 0
-        ? (isDokter ? 'Grafik Pasien Anak' : 'Grafik Pengguna')
+        ? (isDokter ? 'Grafik Anak' : 'Grafik Pengguna')
         : 'Grafik Stunting';
 
     return Container(
@@ -1330,9 +1359,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // TAB SELECTOR — GAYA KONSULTASI (UNDERLINE INDICATOR)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // TAB SELECTOR â€” GAYA KONSULTASI (UNDERLINE INDICATOR)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildTabSelector() {
     return Container(
       color: _scaffoldBg,
@@ -1364,7 +1393,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   size: 17,
                 ),
                 const SizedBox(width: 6),
-                Text(_isDokterView ? 'Grafik Pasien' : 'Grafik Pengguna'),
+                Text(_isDokterView ? 'Grafik Anak' : 'Grafik Pengguna'),
               ],
             ),
           ),
@@ -1384,17 +1413,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // TAB 1: KONTEN GRAFIK PENGGUNA & DATASET DEMOGRAFI
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildTabGrafikPengguna() {
     return SingleChildScrollView(
       controller: _scrollController1,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      physics: const ClampingScrollPhysics(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           const SizedBox(height: 10),
           if (_errorMessage != null)
             Padding(
@@ -1420,15 +1453,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                 ),
               ),
             ),
-          // 1. Card Sambutan Hijau Mint
-          _buildWelcomeCard(),
-          const SizedBox(height: 16),
-
           if (_isDokterView) ...[
-            // ── TAMPILAN KHUSUS DOKTER (Murni Visualisasi & Grafik Pasien Anak) ──
+            // â”€â”€ TAMPILAN KHUSUS DOKTER (Murni Visualisasi & Grafik Pasien Anak) â”€â”€
             _buildDokterPasienAnalytics(),
           ] else ...[
-            // ── TAMPILAN SUPERADMIN & ADMIN PMIK ───
+            // â”€â”€ TAMPILAN SUPERADMIN & ADMIN PMIK â”€â”€â”€
             // 1. Tiga Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru
             _buildTotalCards(),
             const SizedBox(height: 16),
@@ -1445,117 +1474,21 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             _buildDokterGenderSection(),
             const SizedBox(height: 20),
 
-            // 5. Tabel Status Gizi Pasien Terdaftar (Persis seperti di halaman dokter)
-            _buildDokterNutritionStatusSection(),
-            const SizedBox(height: 24),
-
-            // 6. Dataset Pengguna (Kolom Lengkap & Unduh Aktif - Tetap seperti saat ini)
+            // 5. Dataset Pengguna (Kolom Lengkap & Unduh Aktif - Tetap seperti saat ini)
             _buildDatasetPenggunaSection(),
           ],
-          const SizedBox(height: 32),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const IllustrationForestFooter(fit: BoxFit.fitWidth),
         ],
       ),
     );
   }
-
-  // ── Card Sambutan Sesuai Referensi Desain ───────────────────────────────────
-  Widget _buildWelcomeCard() {
-    final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
-    final staff = StaffAuthService().currentStaff;
-    final displayName = isDokter
-        ? (staff?.name.isNotEmpty == true ? staff!.name : 'Dokter')
-        : 'Super Admin';
-    final subtitle = isDokter
-        ? 'Pantau data pengguna dan\nstatus stunting secara berkala'
-        : 'Kelola data pengguna dan\nanak secara keseluruhan';
-
-
-    // Card sambutan: tinggi dinaikkan ke 144 agar nama panjang tidak mendorong subtitle keluar.
-    // Gambar menggunakan dokter_superadmin_card.png (portrait, HD 386x272) agar tidak melebar
-    // menutupi teks subtitle. Width gambar dibatasi eksplisit (110dp) supaya area teks aman.
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16.0),
-      child: Container(
-        width: double.infinity,
-        height: 144.0,
-        decoration: BoxDecoration(
-          color: _isDark ? const Color(0xFF1A2228) : const Color(0xFFE2F3EE),
-          borderRadius: BorderRadius.circular(16.0),
-          border: _isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
-        ),
-        child: Stack(
-          children: [
-            // Kolom teks: right dinaikkan ke 120 agar tidak overlap dengan gambar
-            Positioned(
-              left: 20.0,
-              top: 16.0,
-              right: 120.0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Selamat datang,',
-                    style: GoogleFonts.lato(
-                      fontSize: 13.5,
-                      color: _textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 2.0),
-                  Text(
-                    displayName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.lato(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.bold,
-                      color: _textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6.0),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.lato(
-                      fontSize: 12.0,
-                      height: 1.3,
-                      color: _textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Ilustrasi dokter HD — portrait (386x272) dengan lebar eksplisit 110dp
-            // agar tidak meluber ke area teks. filterQuality.high untuk tampilan HD.
-            Positioned(
-              right: 10.0,
-              bottom: 0.0,
-              child: SizedBox(
-                width: 110.0,
-                height: 144.0,
-                child: Image.asset(
-                  isDokter
-                      ? 'assets/images/dokter_superadmin_card.png'
-                      : 'assets/images/admin_woman_tablet.png',
-                  fit: BoxFit.contain,
-                  alignment: Alignment.bottomCenter,
-                  filterQuality: FilterQuality.high,
-                  errorBuilder: (_, _, _) => const Icon(
-                    Icons.analytics_rounded,
-                    size: 80.0,
-                    color: Color(0xFF2DD4BF),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // WIDGET KHUSUS ROLE DOKTER (MURNI GRAFIK & ANALITIK PASIEN ANAK)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildDokterPasienAnalytics() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1587,20 +1520,18 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         _buildDokterGenderSection(),
         const SizedBox(height: 20),
 
-        // 6. Status Gizi Pasien Terdaftar (tanpa emoticon, hanya Gizi normal & Gizi buruk)
-        _buildDokterNutritionStatusSection(),
       ],
     );
   }
 
-  // ── 1. Dua Kartu Metrik Pasien Anak ───────────────────────────────────────
+  // â”€â”€ 1. Dua Kartu Metrik Pasien Anak â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDokterMetricCards() {
     return Row(
       children: [
-        // Card 1: Total Pasien
+        // Card 1: Total Anak
         Expanded(
           child: _buildDokterSingleMetricCard(
-            title: 'Total Pasien',
+            title: 'Total Anak',
             value: _formatNumber(_totalAnak),
             unit: 'Anak',
             accentColor: _kBluePrimary,
@@ -1611,10 +1542,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         ),
         const SizedBox(width: 12.0),
 
-        // Card 2: Pasien Baru
+        // Card 2: Anak Baru
         Expanded(
           child: _buildDokterSingleMetricCard(
-            title: 'Pasien Baru',
+            title: 'Anak Baru',
             value: '+${_formatNumber(_anakBaruBulanIni)}',
             unit: 'Bulan Ini',
             accentColor: _kTealPrimary,
@@ -1691,7 +1622,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── 2. Card Grafik Batang Jumlah Anak Terdaftar (Jan - Des) ───────────────
+  // â”€â”€ 2. Card Grafik Batang Jumlah Anak Terdaftar (Jan - Des) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDokterGrafikAnakSection() {
     return Container(
       decoration: BoxDecoration(
@@ -1783,7 +1714,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             child: SizedBox(
               width: plotWidth,
               height: totalHeight,
@@ -1866,7 +1797,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── 3. Kelompok Usia Pasien ───────────────────────────────────────────────
+  // â”€â”€ 3. Kelompok Usia Pasien â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDokterAgeDistributionSection() {
     final totalUsia = _usia0sd6 + _usia6sd12 + _usia1sd2 + _usia2sd5;
     final pct0sd6 = totalUsia > 0 ? (_usia0sd6 / totalUsia) : 0.0;
@@ -1888,7 +1819,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Kelompok Usia Pasien',
+                'Kelompok Usia Anak',
                 style: GoogleFonts.lato(
                   fontSize: 14.5,
                   fontWeight: FontWeight.bold,
@@ -1902,7 +1833,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                   borderRadius: BorderRadius.circular(6.0),
                 ),
                 child: Text(
-                  '${_formatNumber(_totalAnak)} Pasien',
+                  '${_formatNumber(_totalAnak)} Anak',
                   style: GoogleFonts.lato(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
@@ -2002,7 +1933,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── 4. Data Anak Berdasarkan Jenis Kelamin ─────────────────────────────────
+  // â”€â”€ 4. Data Anak Berdasarkan Jenis Kelamin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDokterGenderSection() {
     final total = _totalAnak > 0 ? _totalAnak : (_anakLakiLaki + _anakPerempuan);
     final lakiPct = total > 0 ? (_anakLakiLaki / total * 100) : 50.0;
@@ -2059,7 +1990,49 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── 5. Status Gizi Pasien Terdaftar (Hanya Gizi normal & Gizi buruk) ───────
+  // â”€â”€ 5. Status Gizi Pasien Terdaftar (Hanya Gizi normal & Gizi buruk) â”€â”€â”€â”€â”€â”€â”€
+  // ── Dua Kartu Metrik Status Gizi (di Tab Grafik Stunting, paling atas) ───────
+  Widget _buildGiziStatusMetricCards() {
+    final total = _giziNormalCount + _giziBurukCount;
+    final normalPct = total > 0
+        ? '${(_giziNormalCount / total * 100).toStringAsFixed(1).replaceAll('.', ',')}%'
+        : '-';
+    final burukPct = total > 0
+        ? '${(_giziBurukCount / total * 100).toStringAsFixed(1).replaceAll('.', ',')}%'
+        : '-';
+
+    return Row(
+      children: [
+        // Card 1: Gizi Normal
+        Expanded(
+          child: _buildDokterSingleMetricCard(
+            title: 'Gizi Normal',
+            value: _giziNormalCount > 0 ? _formatNumber(_giziNormalCount) : '0',
+            unit: 'Anak ($normalPct)',
+            accentColor: _kTealPrimary,
+            bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
+            borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
+            icon: Icons.check_circle_rounded,
+          ),
+        ),
+        const SizedBox(width: 12.0),
+
+        // Card 2: Gizi Buruk
+        Expanded(
+          child: _buildDokterSingleMetricCard(
+            title: 'Gizi Buruk',
+            value: _giziBurukCount > 0 ? _formatNumber(_giziBurukCount) : '0',
+            unit: 'Anak ($burukPct)',
+            accentColor: const Color(0xFFEF4444),
+            bgColor: _isDark ? const Color(0xFF2A1A1A) : const Color(0xFFFEF2F2),
+            borderColor: _isDark ? const Color(0xFF4A2424) : const Color(0xFFFECACA),
+            icon: Icons.warning_rounded,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDokterNutritionStatusSection() {
     final total = _giziNormalCount + _giziBurukCount;
     final normalPct = total > 0 ? (_giziNormalCount / total) : 0.85;
@@ -2079,7 +2052,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Status Gizi Pasien Terdaftar',
+            'Status Gizi Anak Terdaftar',
             style: GoogleFonts.lato(
               fontSize: 14.5,
               fontWeight: FontWeight.bold,
@@ -2165,7 +2138,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru (3 Kartu) ────────
+  // â”€â”€ Card Ringkasan: Total Pengguna, Total Anak, Pasien Baru (3 Kartu) â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTotalCards() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2191,7 +2164,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               child: _buildMetricMiniCard(
                 title: 'Total Anak',
                 value: _formatNumber(_totalAnak),
-                unit: 'Pasien',
+                unit: 'Anak',
                 accentColor: _kTealPrimary,
                 bgColor: _isDark ? const Color(0xFF1A2D2A) : const Color(0xFFEDF7F4),
                 borderColor: _isDark ? const Color(0xFF24443E) : const Color(0xFFCFE9E0),
@@ -2200,10 +2173,10 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             ),
             const SizedBox(width: 8.0),
 
-            // 3. Pasien Baru Bulan Ini
+            // 3. Anak Baru Bulan Ini
             Expanded(
               child: _buildMetricMiniCard(
-                title: 'Pasien Baru',
+                title: 'Anak Baru',
                 value: '+${_formatNumber(_anakBaruBulanIni)}',
                 unit: 'Bulan Ini',
                 accentColor: const Color(0xFF10B981),
@@ -2292,7 +2265,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Grafik Batang Pengguna & Anak Terdaftar ────────────────────────────────
+  // â”€â”€ Grafik Batang Pengguna & Anak Terdaftar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildGrafikPenggunaSection() {
     return Container(
       decoration: BoxDecoration(
@@ -2385,7 +2358,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             child: SizedBox(
               width: math.max(plotWidth, 340.0),
               height: totalHeight,
@@ -2596,7 +2569,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Searchbar Reusable untuk Dataset (Theme-Aware, Konsisten Antar-Tab) ────
+  // â”€â”€ Searchbar Reusable untuk Dataset (Theme-Aware, Konsisten Antar-Tab) â”€â”€â”€â”€
   Widget _buildDatasetSearchBar({
     required TextEditingController controller,
     FocusNode? focusNode,
@@ -2683,7 +2656,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Dataset Pengguna (Tabel & Unduh) ────────────────────────────────────────
+  // â”€â”€ Dataset Pengguna (Tabel & Unduh) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildDatasetPenggunaSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2792,7 +2765,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
             borderRadius: BorderRadius.circular(11.0),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               child: _buildUserTableContent(),
             ),
           ),
@@ -2914,19 +2887,27 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // TAB 2: KONTEN REKAPITULASI HASIL CEK STUNTING (PERSIS SEPERTI GAMBAR)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildTabHasilCekStunting() {
     final isDokter = _isDokterView;
     return SingleChildScrollView(
       controller: _scrollController2,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      physics: const ClampingScrollPhysics(),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           const SizedBox(height: 12),
+          // 0. Dua Kartu Ringkasan Status Gizi (paling atas tab Grafik Stunting)
+          _buildGiziStatusMetricCards(),
+          const SizedBox(height: 16),
+
           // 1. Judul Grafik
           Text(
             'Grafik Hasil Cek Stunting',
@@ -2949,7 +2930,8 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
               Expanded(
                 child: Text(
                   isDokter
-                      ? 'Data Cek Stunting Pasien'
+                      ? 'Data Cek Stunting Anak'
+
                       : 'Dataset Hasil Cek Stunting',
                   style: GoogleFonts.lato(
                     fontSize: 15.0,
@@ -2973,15 +2955,22 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           _buildStuntingSearchAndFilter(),
           const SizedBox(height: 10.0),
 
-          // 5. Tabel Dataset Hasil Cek Stunting
-          _buildStuntingTable(),
-          const SizedBox(height: 32),
+          // 5. Tabel Dataset â€” ditampilkan berdasarkan role
+          if (isDokter)
+            _buildGroupedDokterTable()
+          else
+            _buildStuntingTable(),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const IllustrationForestFooter(fit: BoxFit.fitWidth),
         ],
       ),
     );
   }
 
-  // ── Search Bar & Filter Bulan ─────────────────────────────────────────────
+  // â”€â”€ Search Bar & Filter Bulan â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStuntingSearchAndFilter() {
     final isFiltered = _selectedStuntingMonth != null;
     return _buildDatasetSearchBar(
@@ -3052,7 +3041,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Modal Bottom Sheet Pemilihan Bulan (Ikon Corong) ──────────────────────
+  // â”€â”€ Modal Bottom Sheet Pemilihan Bulan (Ikon Corong) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _showStuntingMonthFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -3276,8 +3265,17 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     return names[(month - 1).clamp(0, 11)];
   }
 
+  /// Mengubah nomor bulan menjadi singkatan 3 huruf
+  String _bulanPendek(int month) {
+    const names = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    return names[(month - 1).clamp(0, 11)];
+  }
 
-  // ── Stacked Bar Chart Cek Stunting (Jan - Des) ──────────────────────────────
+
+  // â”€â”€ Stacked Bar Chart Cek Stunting (Jan - Des) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStuntingStackedBarChart() {
     const double chartPlotHeight = 195.0;
     int peakStunting = 0;
@@ -3298,7 +3296,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Plot Area — Tinggi terkoordinasi bebas overflow
+          // Plot Area â€” Tinggi terkoordinasi bebas overflow
           SizedBox(
             height: chartPlotHeight + 42.0,
             child: Row(
@@ -3402,11 +3400,11 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
                                                 ),
                                                 child: Column(
                                                   children: [
-                                                    // Atas: Stunting (Kuning-Oranye Emas)
+                                                    // Atas: Stunting (Hijau)
                                                     if (stuntingH > 0)
                                                       Container(
                                                         height: stuntingH,
-                                                        color: _kOrangeStuntingChart,
+                                                        color: _kGreenStuntingChart,
                                                       ),
                                                     // Bawah: Tidak Stunting (Biru)
                                                     Expanded(
@@ -3448,14 +3446,14 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
           const SizedBox(height: 12.0),
 
-          // Legenda Grafik (Sesuai Desain Gambar: Kotak Biru & Kotak Kuning)
+          // Legenda Grafik (Kotak Biru & Kotak Hijau - Senada dengan Grafik Pengguna & Anak)
           Padding(
             padding: const EdgeInsets.only(left: 32.0),
             child: Row(
               children: [
                 _buildLegendBulletSquare(_kBlueStuntingChart, 'Tidak Stunting'),
                 const SizedBox(width: 20.0),
-                _buildLegendBulletSquare(_kOrangeStuntingChart, 'Stunting'),
+                _buildLegendBulletSquare(_kGreenStuntingChart, 'Stunting'),
               ],
             ),
           ),
@@ -3489,7 +3487,418 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ── Tabel Dataset Hasil Cek Stunting (Dapat Digeser Horizontal) ──────────────
+  // â”€â”€ Tabel 2 Kolom Khusus Dokter (Kolom 1: Nama, Kolom 2: Keterangan / Dropdown) â”€â”€
+  Widget _buildGroupedDokterTable() {
+    final groups = _groupedStuntingRows;
+
+    if (groups.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 16.0),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: _borderColor),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Icon(
+              Icons.child_care_rounded,
+              size: 44.0,
+              color: _textSecondary.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 10.0),
+            Text(
+              'Tidak ada data hasil cek stunting yang cocok',
+              style: GoogleFonts.lato(
+                fontSize: 13.5,
+                color: _textSecondary,
+              ),
+            ),
+            if (_stuntingSearchQuery.isNotEmpty || _selectedStuntingMonth != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  'Coba ubah kata kunci atau reset filter bulan',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    color: _textSecondary.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: _borderColor),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(9.0),
+        child: Column(
+          children: [
+            // â”€â”€ HEADER TABEL 2 KOLOM (Nama | Keterangan) â”€â”€
+            Container(
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF242E35) : const Color(0xFFF9FAFB),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Text(
+                        'Nama',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+                      child: Text(
+                        'Keterangan',
+                        style: GoogleFonts.lato(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(height: 1, thickness: 1, color: _borderColor),
+
+            // â”€â”€ BARIS TABEL: 1 Baris per Anak Unik (Cek berkali-kali tetap 1 baris) â”€â”€
+            ...List.generate(groups.length, (idx) {
+              final group = groups[idx];
+              final isLast = idx == groups.length - 1;
+              final isExpanded = _expandedDokterChildNames.contains(group.namaAnak);
+
+              return Column(
+                children: [
+                  // Baris Utama (Kolom 1: Nama, Kolom 2: Keterangan)
+                  Container(
+                    color: isExpanded
+                        ? (_isDark ? const Color(0xFF1E2830) : const Color(0xFFF4F7FB))
+                        : _cardBg,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Kolom 1: Nama Anak
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
+                            child: Text(
+                              group.namaAnak,
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Kolom 2: Keterangan (Dropdown Detail Hasil Cek)
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                            alignment: Alignment.centerLeft,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    _expandedDokterChildNames.remove(group.namaAnak);
+                                  } else {
+                                    _expandedDokterChildNames.add(group.namaAnak);
+                                  }
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  color: isExpanded
+                                      ? _kBluePrimary.withValues(alpha: 0.12)
+                                      : (_isDark ? const Color(0xFF242E35) : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                    color: isExpanded ? _kBluePrimary : _borderColor,
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Detail (${group.records.length}x Cek)',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 12.0,
+                                          fontWeight: FontWeight.w600,
+                                          color: isExpanded ? _kBluePrimary : _textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4.0),
+                                    Icon(
+                                      isExpanded
+                                          ? Icons.keyboard_arrow_up_rounded
+                                          : Icons.keyboard_arrow_down_rounded,
+                                      size: 18.0,
+                                      color: isExpanded ? _kBluePrimary : _textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // â”€â”€ DROPDOWN DETAIL DI BAWAH BARIS (Jika Expanded) â”€â”€
+                  if (isExpanded)
+                    _buildDokterChildDetailDropdown(group),
+
+                  if (!isLast)
+                    Divider(height: 1, thickness: 1, color: _borderColor),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // â”€â”€ Rincian Dropdown Hasil Cek Stunting Anak (Tanggal, Umur, BB, TB, Status Gizi) â”€â”€
+  Widget _buildDokterChildDetailDropdown(GroupedChildStuntingRecord group) {
+    const colWidthTgl = 95.0;
+    const colWidthUmur = 110.0;
+    const colWidthBb = 70.0;
+    const colWidthTb = 70.0;
+    const colWidthHasil = 100.0;
+    const minDetailWidth = colWidthTgl + colWidthUmur + colWidthBb + colWidthTb + colWidthHasil;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _isDark ? const Color(0xFF141C22) : const Color(0xFFF8FAFC),
+        border: Border(
+          top: BorderSide(color: _borderColor, width: 0.5),
+          bottom: BorderSide(color: _borderColor, width: 0.5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.history_rounded,
+                size: 15.0,
+                color: _kBluePrimary,
+              ),
+              const SizedBox(width: 6.0),
+              Text(
+                'Riwayat Cek Stunting: ${group.namaAnak} (${group.records.length} data)',
+                style: GoogleFonts.lato(
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.bold,
+                  color: _kBluePrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+
+          // Tabel Detail Mini
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const ClampingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: minDetailWidth),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _cardBg,
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: _borderColor),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Detail: Tanggal Cek | Umur | BB | TB | Hasil (Status Gizi)
+                      Container(
+                        color: _isDark ? const Color(0xFF242E35) : const Color(0xFFEBF1F6),
+                        child: Row(
+                          children: [
+                            _buildMiniHeaderCell('Tanggal Cek', colWidthTgl),
+                            _buildMiniHeaderCell('Umur', colWidthUmur),
+                            _buildMiniHeaderCell('BB', colWidthBb),
+                            _buildMiniHeaderCell('TB', colWidthTb),
+                            _buildMiniHeaderCell('Hasil (Status Gizi)', colWidthHasil),
+                          ],
+                        ),
+                      ),
+                      Divider(height: 1, thickness: 1, color: _borderColor),
+
+                      // Baris Tiap Record Pengecekan
+                      ...List.generate(group.records.length, (ri) {
+                        final rec = group.records[ri];
+                        final isLastRec = ri == group.records.length - 1;
+                        final isGiziNormal = !rec.isStunting;
+                        final tgl =
+                            '${rec.tanggalCek.day.toString().padLeft(2, '0')} '
+                            '${_bulanPendek(rec.tanggalCek.month)} '
+                            '${rec.tanggalCek.year}';
+
+                        return Column(
+                          children: [
+                            Container(
+                              color: _cardBg,
+                              child: Row(
+                                children: [
+                                  // Tanggal Cek
+                                  Container(
+                                    width: colWidthTgl,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      tgl,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // Umur
+                                  Container(
+                                    width: colWidthUmur,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.umur,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // BB
+                                  Container(
+                                    width: colWidthBb,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.bb,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // TB
+                                  Container(
+                                    width: colWidthTb,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 9.0),
+                                    child: Text(
+                                      rec.tb,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.0,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  // Hasil (Status Gizi)
+                                  Container(
+                                    width: colWidthHasil,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 9.0),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0,
+                                          vertical: 3.0,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isGiziNormal
+                                              ? (_isDark
+                                                  ? const Color(0xFF064E3B)
+                                                  : const Color(0xFFDDF7F0))
+                                              : (_isDark
+                                                  ? const Color(0xFF450A0A)
+                                                  : const Color(0xFFFFECE8)),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        child: Text(
+                                          isGiziNormal ? 'Gizi normal' : 'Gizi buruk',
+                                          style: GoogleFonts.lato(
+                                            fontSize: 11.0,
+                                            fontWeight: FontWeight.w600,
+                                            color: isGiziNormal
+                                                ? (_isDark
+                                                    ? const Color(0xFF34D399)
+                                                    : const Color(0xFF14B8A6))
+                                                : const Color(0xFFF87171),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!isLastRec)
+                              Divider(height: 1, thickness: 0.5, color: _borderColor),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniHeaderCell(String text, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+      child: Text(
+        text,
+        style: GoogleFonts.lato(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: _textSecondary,
+        ),
+      ),
+    );
+  }
+
+  // â”€â”€ Tabel Dataset Hasil Cek Stunting (Dapat Digeser Horizontal) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStuntingTable() {
     const colWidthNama = 175.0;
     const colWidthUmur = 205.0;
@@ -3500,7 +3909,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: minTableWidth),
         child: Column(
@@ -3674,9 +4083,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // WIDGET TOMBOL UNDUH
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildDownloadButton({
     required VoidCallback onTap,
     required bool isLoading,
@@ -3761,16 +4170,16 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // BOTTOM NAVIGATION BAR (Konsisten 4 Menu)
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildNavBar() {
     return const PediaBottomNavBar(selectedIndex: -1);
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // KONDISI LOADING & SKELETON
-  // ══════════════════════════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildLoadingSkeleton() {
     final skelColor = _isDark ? const Color(0xFF242E35) : const Color(0xFFE9EDEF);
 
@@ -3829,9 +4238,9 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // CUSTOM PAINTER: GRIDLINE HORIZONTAL
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _GridPainter extends CustomPainter {
   final int lineCount;
   final Color? color;
@@ -3862,9 +4271,9 @@ class _GridPainter extends CustomPainter {
       old.lineCount != lineCount || old.color != color;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // KALKULATOR SKALA SUMBU Y
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _YAxisScale {
   final int maxVal;
   final int lineCount;
@@ -3941,9 +4350,9 @@ class _YAxisScale {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MODAL BOTTOM SHEET PILIHAN UNDUH (PDF, CSV, EXCEL)
-// ══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _DownloadBottomSheet extends StatelessWidget {
   final String title;
   final String subtitle;

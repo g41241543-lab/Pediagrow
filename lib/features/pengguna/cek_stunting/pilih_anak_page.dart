@@ -418,7 +418,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
       ),
       child: ListView.separated(
         shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.zero,
         itemCount: _childList.length,
         separatorBuilder: (context, index) => Container(

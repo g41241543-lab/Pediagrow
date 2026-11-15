@@ -136,11 +136,11 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
 
     _childName = widget.child?.name.isNotEmpty == true
         ? widget.child!.name
-        : 'Pasien Anak';
+        : 'Anak';
 
     _parentName = widget.parentUser?.name.isNotEmpty == true
         ? widget.parentUser!.name
-        : widget.parentName ?? 'Orang Tua Pasien';
+        : widget.parentName ?? 'Orang Tua';
   }
 
   Future<void> _fetchSessionDataIfNeeded() async {
@@ -444,6 +444,8 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
       appBar: AppBar(
         backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: _colorTextBlack),
           onPressed: _showCannotLeaveDialog,
@@ -454,10 +456,6 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
                 fontWeight: FontWeight.bold,
                 color: _colorTextBlack)),
         centerTitle: false,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: _colorBorder, height: 1),
-        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -474,7 +472,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
                 // ── SEKSI A: Formulir Keluhan (Read-Only) ─────────
                 _buildSectionHeader(
                   'Formulir Hasil Pemeriksaan',
-                  'Data diambil otomatis dari formulir keluhan pasien',
+                  'Data diambil otomatis dari formulir keluhan anak',
                   Icons.assignment_outlined,
                 ),
                 const SizedBox(height: 14),
@@ -726,7 +724,7 @@ class _BuatResumeMedisDokterPageState extends State<BuatResumeMedisDokterPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Keluhan Pasien (Anamnesa)',
+        Text('Keluhan Anak (Anamnesa)',
             style: GoogleFonts.lato(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,

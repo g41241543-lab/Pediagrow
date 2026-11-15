@@ -402,7 +402,7 @@ class _PilihAnakPageState extends State<PilihAnakPage>
       constraints: const BoxConstraints(maxHeight: 250),
       child: ListView.separated(
         shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.zero,
         itemCount: _childList.length,
         separatorBuilder: (context, index) {

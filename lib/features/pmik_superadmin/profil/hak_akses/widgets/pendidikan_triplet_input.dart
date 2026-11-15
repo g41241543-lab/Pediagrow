@@ -478,7 +478,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                   )
                 : ListView.separated(
                     shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     itemCount: _filtered.length,
                     separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
                     itemBuilder: (context, idx) {

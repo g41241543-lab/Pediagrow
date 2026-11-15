@@ -92,7 +92,7 @@ class _DetailArtikelPageState extends State<DetailArtikelPage>
                 child: SlideTransition(
                   position: _slideAnimation,
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 16,

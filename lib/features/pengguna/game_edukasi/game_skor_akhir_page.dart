@@ -103,7 +103,7 @@ class GameSkorAkhirPage extends StatelessWidget {
               top: false,
               bottom: false,
               child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 slivers: [
                   SliverToBoxAdapter(
                     child: Column(

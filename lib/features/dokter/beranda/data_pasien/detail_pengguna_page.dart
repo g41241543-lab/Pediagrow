@@ -210,7 +210,7 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  u.name.isNotEmpty ? u.name : 'Orang Tua Pasien',
+                  u.name.isNotEmpty ? u.name : 'Orang Tua',
                   style: GoogleFonts.lato(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,

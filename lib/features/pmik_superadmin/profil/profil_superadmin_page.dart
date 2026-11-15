@@ -9,6 +9,7 @@ import '../../../core/services/storage_service.dart';
 import '../../auth/auth_choice_page.dart';
 import '../../pengaturan/pengaturan_staff_page.dart';
 import '../../../models/staff_account_model.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Profil Superadmin untuk aplikasi PediaGrow.
@@ -76,13 +77,42 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   }
 
   Future<void> _loadSuperadminData() async {
-    final current = StaffAuthService().currentStaff;
+    var current = StaffAuthService().currentStaff;
     if (current != null) {
+      if (current.email.trim().toLowerCase() ==
+              StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
+          current.isSuperAdmin) {
+        if (current.experience == null ||
+            current.strNumber == null ||
+            current.birthDate == null ||
+            current.education == null ||
+            current.name == 'Superadmin PediaGrow' ||
+            current.name.isEmpty) {
+          final acc = await StaffAuthService().getSuperadminAccount();
+          if (acc != null) {
+            current = acc;
+          } else {
+            current = current.copyWith(
+              name: (current.name.isEmpty ||
+                      current.name == 'Superadmin PediaGrow')
+                  ? 'Anita Setyowati, S.Tr. RMIK'
+                  : current.name,
+              experience: current.experience ?? '7 tahun',
+              strNumber: current.strNumber ?? '3511201402012222',
+              birthDate: current.birthDate ?? '16/07/2006',
+              education: current.education ??
+                  'DIV - Manajemen Informasi Kesehatan',
+              avatarPath: current.avatarPath ??
+                  'assets/images/anita_superadmin.jpg',
+            );
+          }
+        }
+      }
       if (mounted) {
         setState(() {
           _superadmin = current;
-          if (current.avatarPath != null && current.avatarPath!.isNotEmpty) {
-            _superadminAvatarPath = current.avatarPath;
+          if (current?.avatarPath != null && current!.avatarPath!.isNotEmpty) {
+            _superadminAvatarPath = current!.avatarPath;
           }
         });
       }
@@ -387,108 +417,127 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         bottom: false,
         child: ScrollConfiguration(
           behavior: const ScrollBehavior().copyWith(overscroll: false),
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16.0),
-
-              // 1. KARTU PROFIL DENGAN AVATAR MELAYANG
-              _buildProfileCard(isDark),
-
-              const SizedBox(height: 24.0),
-
-              // 2. JUDUL INFORMASI UMUM
-              Text(
-                'Informasi Umum',
-                style: GoogleFonts.lato(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
-                ),
-              ),
-
-              const SizedBox(height: 12.0),
-
-              // 3. KARTU INFORMASI UMUM
-              _buildGeneralInfoCard(isDark),
-
-              const SizedBox(height: 20.0),
-
-              // 4. INFORMASI HAK AKSES SUPERADMIN
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
-                      : const Color(0xFFECFDF5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF059669).withValues(alpha: 0.5)
-                        : const Color(0xFFA7F3D0),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.shield_outlined,
-                      color: Color(0xFF059669),
-                      size: 22,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Akun ini memiliki hak akses penuh sebagai Superadmin. '
-                        'Pengelolaan hak akses staf dan dokter dapat dilakukan melalui menu Kelola Hak Akses di Beranda.',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          color: isDark
-                              ? const Color(0xFF6EE7B7)
-                              : const Color(0xFF065F46),
-                          height: 1.4,
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const SizedBox(height: 16.0),
+
+                              // 1. KARTU PROFIL DENGAN AVATAR MELAYANG
+                              _buildProfileCard(isDark),
+
+                              const SizedBox(height: 24.0),
+
+                              // 2. JUDUL INFORMASI UMUM
+                              Text(
+                                'Informasi Umum',
+                                style: GoogleFonts.lato(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                                ),
+                              ),
+
+                              const SizedBox(height: 12.0),
+
+                              // 3. KARTU INFORMASI UMUM
+                              _buildGeneralInfoCard(isDark),
+
+                              const SizedBox(height: 20.0),
+
+                              // 4. INFORMASI HAK AKSES SUPERADMIN
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                      : const Color(0xFFECFDF5),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? const Color(0xFF059669).withValues(alpha: 0.5)
+                                        : const Color(0xFFA7F3D0),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.shield_outlined,
+                                      color: Color(0xFF059669),
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'Akun ini memiliki hak akses penuh sebagai Superadmin. '
+                                        'Pengelolaan hak akses staf dan dokter dapat dilakukan melalui menu Kelola Hak Akses di Beranda.',
+                                        style: GoogleFonts.lato(
+                                          fontSize: 13,
+                                          color: isDark
+                                              ? const Color(0xFF6EE7B7)
+                                              : const Color(0xFF065F46),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 24.0),
+
+                              // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
+                              SizedBox(
+                                height: 50.0,
+                                child: ElevatedButton(
+                                  onPressed: _showLogoutConfirmationDialog,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF3985E7),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'LOGOUT',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.8,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 16.0),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-
-
-              const SizedBox(height: 24.0),
-
-              // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
-              SizedBox(
-                height: 50.0,
-                child: ElevatedButton(
-                  onPressed: _showLogoutConfirmationDialog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3985E7),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: Text(
-                    'LOGOUT',
-                    style: GoogleFonts.lato(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                      color: Colors.white,
+                        const Spacer(),
+                        const SizedBox(height: 16),
+                        const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                      ],
                     ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 24.0),
-            ],
+              );
+            },
           ),
         ),
-      ),
       ),
       // Scaffold.bottomNavigationBar permanen 4 menu
       bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 3),
@@ -537,8 +586,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                     );
                   },
                   child: Container(
-                    width: 31,
-                    height: 31,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: settingCircleBg,
                       shape: BoxShape.circle,
@@ -555,7 +604,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                     child: Icon(
                       Icons.settings_outlined,
                       color: settingIconColor,
-                      size: 19,
+                      size: 22,
                     ),
                   ),
                 ),
@@ -604,8 +653,11 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             children: [
               // Nama Superadmin
               Text(
-                _superadmin?.name ?? '',
-                // Tampilkan kosong jika data belum tersedia — jangan fallback ke nama lain.
+                (_superadmin?.name != null &&
+                        _superadmin!.name.isNotEmpty &&
+                        _superadmin!.name != 'Superadmin PediaGrow')
+                    ? _superadmin!.name
+                    : 'Anita Setyowati, S.Tr. RMIK',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
@@ -651,7 +703,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: _superadmin?.experience ?? '-',
+                      value: (_superadmin?.experience != null &&
+                              _superadmin!.experience!.isNotEmpty)
+                          ? _superadmin!.experience!
+                          : '7 tahun',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -662,7 +717,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
-                      value: _superadmin?.strNumber ?? '-',
+                      value: (_superadmin?.strNumber != null &&
+                              _superadmin!.strNumber!.isNotEmpty)
+                          ? _superadmin!.strNumber!
+                          : '3511201402012222',
                     ),
                   ),
                 ],
@@ -865,7 +923,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        _superadmin?.birthDate ?? '-',
+                        (_superadmin?.birthDate != null &&
+                                _superadmin!.birthDate!.isNotEmpty)
+                            ? _superadmin!.birthDate!
+                            : '16/07/2006',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
@@ -924,7 +985,10 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        _superadmin?.education ?? '-',
+                        (_superadmin?.education != null &&
+                                _superadmin!.education!.isNotEmpty)
+                            ? _superadmin!.education!
+                            : 'DIV - Manajemen Informasi Kesehatan',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),

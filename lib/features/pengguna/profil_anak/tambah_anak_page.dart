@@ -1190,7 +1190,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
                   controller: _scrollController,
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Form(
                     key: _formKey,

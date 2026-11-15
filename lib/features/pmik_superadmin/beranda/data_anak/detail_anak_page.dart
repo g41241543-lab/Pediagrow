@@ -213,7 +213,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
     if (userToOpen == null ||
         userToOpen.name.isEmpty ||
         userToOpen.name == 'Orang Tua' ||
-        userToOpen.name == 'Orang Tua Pasien') {
+        userToOpen.name == 'Orang Tua') {
       try {
         final db = FirebaseFirestore.instance;
         if (_currentChild.ownerId.isNotEmpty) {
@@ -266,7 +266,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
 
     userToOpen ??= UserModel(
       id: _currentChild.ownerId,
-      name: 'Orang Tua Pasien',
+      name: 'Orang Tua',
       email: '-',
     );
 
@@ -331,7 +331,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           ),
           const SizedBox(width: 12),
           Text(
-            'Data Pasien Anak',
+            'Data Anak',
             style: GoogleFonts.lato(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -901,7 +901,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Ruang obrolan konsultasi dengan orang tua pasien hanya dapat diakses oleh dokter dan saat sesi konsultasi sedang aktif.',
+            'Ruang obrolan konsultasi dengan orang tua hanya dapat diakses oleh dokter dan saat sesi konsultasi sedang aktif.',
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 13,

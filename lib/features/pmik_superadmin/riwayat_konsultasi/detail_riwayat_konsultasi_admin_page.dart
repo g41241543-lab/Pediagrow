@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -34,7 +34,7 @@ class DetailRiwayatKonsultasiAdminPage extends StatefulWidget {
 
 class _DetailRiwayatKonsultasiAdminPageState
     extends State<DetailRiwayatKonsultasiAdminPage> {
-  // ─── Color Palette ─────────────────────────────────────────────────────────
+  // â”€â”€â”€ Color Palette â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _colorSecondaryGrey =>
       _isDark ? const Color(0xFF8696A0) : const Color(0xFF7F7F7F);
@@ -141,23 +141,18 @@ class _DetailRiwayatKonsultasiAdminPageState
       backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
       body: Column(
         children: [
-          // ─── HEADER (56dp dari atas layar) ───────────────────────────
+          // â”€â”€â”€ HEADER (56dp dari atas layar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _buildHeader(),
 
-          // ─── KONTEN SCROLLABLE (Padding horizontal 16dp) ────────────
+          // â”€â”€â”€ KONTEN SCROLLABLE (Padding horizontal 16dp) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Expanded(
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 14.0),
-
-                  // 1. Banner Mode Nonaktif di BAGIAN ATAS (Konsisten & Seragam)
-                  _buildReadOnlyBanner(),
-                  const SizedBox(height: 16.0),
-
                   // 2. Kartu Profil Pasien
                   _buildPatientProfileCard(isGirl),
                   const SizedBox(height: 16.0),
@@ -218,7 +213,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── HEADER ─────────────────────────────────────────────────────────────────
+  // â”€â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Header diletakkan 56dp dari atas layar, berisi tombol back berjarak 12dp
   /// dari tepi kiri layar, dan judul halaman di sebelah kanannya berjarak 12dp.
   Widget _buildHeader() {
@@ -263,7 +258,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── KARTU PROFIL PASIEN ───────────────────────────────────────────────────
+  // â”€â”€â”€ KARTU PROFIL PASIEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Kartu berlatar putih dengan sudut membulat dan shadow tipis,
   /// berisi avatar anak di kiri, nama pasien bold, dan usia anak di bawahnya.
   Widget _buildPatientProfileCard(bool isGirl) {
@@ -326,7 +321,7 @@ class _DetailRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── KARTU INFORMASI KONSULTASI ───────────────────────────────────────────
+  // â”€â”€â”€ KARTU INFORMASI KONSULTASI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Kartu berlatar biru sangat muda dengan border biru muda,
   /// berisi 3 baris: Dokter, Tanggal Konsultasi, dan Status Konsultasi.
   Widget _buildConsultationInfoCard(bool isSelesai) {
@@ -476,42 +471,4 @@ class _DetailRiwayatKonsultasiAdminPageState
       );
     }
   }
-
-  // ─── READ-ONLY BANNER ───────────────────────────────────────────────────────
-  Widget _buildReadOnlyBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F4FD),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: _isDark ? const Color(0xFF334155) : const Color(0xFF72A9F4),
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 22.0,
-            color: _isDark ? const Color(0xFF60A5FA) : const Color(0xFF3985E7),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Text(
-              'Mode nonaktif. Anda tidak dapat membalas atau mengubah riwayat konsultasi.',
-              style: GoogleFonts.lato(
-                fontSize: 13.5,
-                color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF2B7CD6),
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 }

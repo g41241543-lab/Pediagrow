@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
@@ -65,18 +65,18 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
 
             return Column(
               children: [
-                // ─────────────────────────────────────────────────────────────
+                // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 // 1. HEADER FIXED
-                // ─────────────────────────────────────────────────────────────
+                // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 _buildHeader(context, currentAgeFormatted),
 
-                // ─────────────────────────────────────────────────────────────
+                // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 // 2. KONTEN SCROLLABLE
                 // (Ilustrasi dekoratif tidak ditampilkan untuk role staff)
-                // ─────────────────────────────────────────────────────────────
+                // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Expanded(
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -156,10 +156,10 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
 
                         const SizedBox(height: 16),
 
-                        // ─────────────────────────────────────────────
+                        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         // 3. BAR STATUS GIZI & DESKRIPSI
                         //    (tanpa link "Konsultasikan dengan dokter")
-                        // ─────────────────────────────────────────────
+                        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16.0),
@@ -185,7 +185,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   }
 
   // ===========================================================================
-  // HEADER — tanpa tombol riwayat di pojok kanan atas
+  // HEADER â€” tanpa tombol riwayat di pojok kanan atas
   // ===========================================================================
   Widget _buildHeader(BuildContext context, String ageFormatted) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -252,7 +252,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   }
 
   // ===========================================================================
-  // BAR STATUS GIZI — tanpa link "Konsultasikan dengan dokter"
+  // BAR STATUS GIZI â€” tanpa link "Konsultasikan dengan dokter"
   // ===========================================================================
   Widget _buildStatusGiziSection({
     required String statusGizi,
@@ -338,7 +338,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   }
 
   // ===========================================================================
-  // HELPER — Format usia singkat "X Tahun Y Bulan"
+  // HELPER â€” Format usia singkat "X Tahun Y Bulan"
   // ===========================================================================
   String _getShortAgeFormatted(ChildModel child) {
     if (child.birthDate == null) return child.ageDescription;

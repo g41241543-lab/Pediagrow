@@ -7,6 +7,7 @@ import '../../../../models/soal_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 
 /// Halaman Form Tambah & Edit Soal untuk Admin / Superadmin.
 ///
@@ -273,12 +274,14 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isNight
-              ? HeaderSkyIllustration.nightGradientColors
-              : HeaderSkyIllustration.dayGradientColors,
-          stops: isNight
-              ? HeaderSkyIllustration.nightGradientStops
-              : HeaderSkyIllustration.dayGradientStops,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
         ),
       ),
       child: Stack(
@@ -806,6 +809,16 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       ],
     );
   }
+<<<<<<< HEAD
+=======
+
+  // ──────────────────────────────────────────────────────────────────
+  // 3. ILUSTRASI FOOTER (Format Terpusat: IllustrationForestFooter)
+  // ──────────────────────────────────────────────────────────────────
+  Widget _buildFooterIllustration() {
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+  }
+>>>>>>> 255b5269550413c1e23579dc3524f8064483d0b3
 }
 
 // ════════════════════════════════════════════════════════════════════

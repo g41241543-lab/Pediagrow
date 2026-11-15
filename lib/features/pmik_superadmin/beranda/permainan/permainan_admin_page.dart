@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -9,6 +9,7 @@ import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
+import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
 import 'edit_soal_permainan_page.dart';
@@ -437,12 +438,14 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isNight
-              ? HeaderSkyIllustration.nightGradientColors
-              : HeaderSkyIllustration.dayGradientColors,
-          stops: isNight
-              ? HeaderSkyIllustration.nightGradientStops
-              : HeaderSkyIllustration.dayGradientStops,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
         ),
       ),
       child: Stack(

@@ -525,7 +525,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Pasien Terpilih',
+                    'Anak Terpilih',
                     style: GoogleFonts.lato(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,

@@ -111,7 +111,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // 1. AREA BIRU SEAMLESS
   // =========================================================================
   Widget _buildSeamlessBlueArea(BuildContext context) {
-    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
 
     return Container(
       width: double.infinity,
@@ -120,12 +121,14 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: isNight
-              ? HeaderSkyIllustration.nightGradientColors
-              : HeaderSkyIllustration.dayGradientColors,
-          stops: isNight
-              ? HeaderSkyIllustration.nightGradientStops
-              : HeaderSkyIllustration.dayGradientStops,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
         ),
       ),
       child: Stack(
@@ -201,8 +204,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                 clipBehavior: Clip.none,
                                 children: [
                                   Container(
-                                    width: 31,
-                                    height: 31,
+                                    width: 38,
+                                    height: 38,
                                     decoration: const BoxDecoration(
                                       color: Colors.white,
                                       shape: BoxShape.circle,
@@ -218,7 +221,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                                     child: const Icon(
                                       Icons.notifications_none_rounded,
                                       color: Color(0xFF1A2228),
-                                      size: 19,
+                                      size: 22,
                                     ),
                                   ),
                                   if (unreadCount > 0)
@@ -474,7 +477,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             Expanded(
               child: _buildMenuItem(
                 context: context,
-                title: 'Data\nPasien',
+                title: 'Data\nAnak',
                 imageAsset: 'assets/images/data_pasien_logo.png',
                 blobColor: const Color(0xFF3CC3A6),
                 isLocked: false,

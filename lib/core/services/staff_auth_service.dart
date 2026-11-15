@@ -70,7 +70,7 @@ class StaffAuthService {
   StaffAccount _createDefaultSuperadminAccount() {
     return StaffAccount(
       id: 'superadmin_default',
-      name: 'Superadmin PediaGrow',
+      name: 'Anita Setyowati, S.Tr. RMIK',
       email: defaultSuperadminEmail,
       passwordHash: _hashPassword(defaultSuperadminPassword),
       role: StaffRole.superadmin,
@@ -78,7 +78,21 @@ class StaffAuthService {
       createdBy: 'system',
       createdAt: DateTime.now(),
       isActive: true,
-      permissions: const {'hak_akses': true},
+      permissions: const {
+        'hak_akses': true,
+        'download_dataset_rekapitulasi': true,
+        'daftar_resep_mpasi': true,
+        'edit_resep_mpasi': true,
+        'daftar_artikel_kesehatan': true,
+        'edit_artikel_kesehatan': true,
+        'download_dataset_pengguna': true,
+        'permainan': true,
+      },
+      avatarPath: 'assets/images/anita_superadmin.jpg',
+      experience: '7 tahun',
+      strNumber: '3511201402012222',
+      birthDate: '16/07/2006',
+      education: 'DIV - Manajemen Informasi Kesehatan',
     );
   }
 
@@ -115,7 +129,32 @@ class StaffAuthService {
 
       final doc = await db.collection(_collection).doc(id).get();
       if (doc.exists && doc.data() != null) {
-        return StaffAccount.fromMap(doc.id, doc.data()!);
+        var account = StaffAccount.fromMap(doc.id, doc.data()!);
+        if (account.email.trim().toLowerCase() ==
+                defaultSuperadminEmail.toLowerCase() ||
+            account.isSuperAdmin) {
+          if (account.experience == null ||
+              account.strNumber == null ||
+              account.birthDate == null ||
+              account.education == null ||
+              account.name == 'Superadmin PediaGrow' ||
+              account.name.isEmpty) {
+            account = account.copyWith(
+              name: (account.name.isEmpty ||
+                      account.name == 'Superadmin PediaGrow')
+                  ? 'Anita Setyowati, S.Tr. RMIK'
+                  : account.name,
+              experience: account.experience ?? '7 tahun',
+              strNumber: account.strNumber ?? '3511201402012222',
+              birthDate: account.birthDate ?? '16/07/2006',
+              education: account.education ??
+                  'DIV - Manajemen Informasi Kesehatan',
+              avatarPath: account.avatarPath ??
+                  'assets/images/anita_superadmin.jpg',
+            );
+          }
+        }
+        return account;
       }
       return null;
     } catch (e) {
@@ -172,7 +211,7 @@ class StaffAuthService {
   // SEED PMIK SUPERADMIN
   // ============================================================
 
-  /// Memastikan minimal ada satu akun PMIK Superadmin di Firestore.
+  /// Memastikan minimal ada satu akun PMIK Superadmin di Firestore dengan profil Anita Setyowati.
   Future<void> ensureSuperadminSeeded() async {
     try {
       final db = _db;
@@ -184,20 +223,100 @@ class StaffAuthService {
           .limit(1)
           .get();
 
+      // Cek apakah ada profil Anita di akun anita.pmik@pediagrow.com untuk referensi
+      String anitaName = 'Anita Setyowati, S.Tr. RMIK';
+      String anitaExp = '7 tahun';
+      String anitaStr = '3511201402012222';
+      String anitaBirth = '16/07/2006';
+      String anitaEdu = 'DIV - Manajemen Informasi Kesehatan';
+      String? anitaAvatar = 'assets/images/anita_superadmin.jpg';
+
+      try {
+        final anitaQuery = await db
+            .collection(_collection)
+            .where('email', isEqualTo: 'anita.pmik@pediagrow.com')
+            .limit(1)
+            .get();
+        if (anitaQuery.docs.isNotEmpty) {
+          final data = anitaQuery.docs.first.data();
+          if (data['name'] != null && data['name'].toString().isNotEmpty) {
+            anitaName = data['name'].toString();
+          }
+          if (data['experience'] != null && data['experience'].toString().isNotEmpty) {
+            anitaExp = data['experience'].toString();
+          }
+          if (data['strNumber'] != null && data['strNumber'].toString().isNotEmpty) {
+            anitaStr = data['strNumber'].toString();
+          } else if (data['str'] != null && data['str'].toString().isNotEmpty) {
+            anitaStr = data['str'].toString();
+          }
+          if (data['birthDate'] != null && data['birthDate'].toString().isNotEmpty) {
+            anitaBirth = data['birthDate'].toString();
+          }
+          if (data['education'] != null && data['education'].toString().isNotEmpty) {
+            anitaEdu = data['education'].toString();
+          }
+          if (data['avatarPath'] != null && data['avatarPath'].toString().isNotEmpty) {
+            anitaAvatar = data['avatarPath'].toString();
+          }
+        }
+      } catch (_) {}
+
       if (query.docs.isNotEmpty) {
+        final doc = query.docs.first;
+        final data = doc.data();
+        final bool needsProfileUpdate = (data['experience'] == null || data['experience'].toString().isEmpty) ||
+            (data['strNumber'] == null && data['str_number'] == null) ||
+            (data['birthDate'] == null && data['birth_date'] == null) ||
+            (data['education'] == null || data['education'].toString().isEmpty) ||
+            data['name'] == 'Superadmin PediaGrow' ||
+            data['name'] == 'Superadmin';
+
+        if (needsProfileUpdate) {
+          await db.collection(_collection).doc(doc.id).update({
+            if (data['name'] == null || data['name'] == 'Superadmin PediaGrow' || data['name'] == 'Superadmin')
+              'name': anitaName,
+            if (data['experience'] == null || data['experience'].toString().isEmpty)
+              'experience': anitaExp,
+            if (data['strNumber'] == null && data['str_number'] == null)
+              'strNumber': anitaStr,
+            if (data['birthDate'] == null && data['birth_date'] == null)
+              'birthDate': anitaBirth,
+            if (data['education'] == null || data['education'].toString().isEmpty)
+              'education': anitaEdu,
+            if (data['avatarPath'] == null || data['avatarPath'].toString().isEmpty)
+              'avatarPath': anitaAvatar,
+          });
+          debugPrint('[StaffAuthService] Akun superadmin diperbarui dengan data profil Anita');
+        }
         return;
       }
 
       await db.collection(_collection).add(
             StaffAccount(
               id: '',
-              name: 'Superadmin PediaGrow',
+              name: anitaName,
               email: defaultSuperadminEmail,
               passwordHash: _hashPassword(defaultSuperadminPassword),
               role: StaffRole.superadmin,
               pmikLevel: PmikLevel.superadmin,
               createdBy: 'system',
               createdAt: DateTime.now(),
+              permissions: const {
+                'hak_akses': true,
+                'download_dataset_rekapitulasi': true,
+                'daftar_resep_mpasi': true,
+                'edit_resep_mpasi': true,
+                'daftar_artikel_kesehatan': true,
+                'edit_artikel_kesehatan': true,
+                'download_dataset_pengguna': true,
+                'permainan': true,
+              },
+              avatarPath: anitaAvatar,
+              experience: anitaExp,
+              strNumber: anitaStr,
+              birthDate: anitaBirth,
+              education: anitaEdu,
             ).toMap(),
           );
       debugPrint(
@@ -396,6 +515,116 @@ class StaffAuthService {
               pmikLevel: PmikLevel.superadmin,
             );
           } catch (_) {}
+        }
+      }
+
+      // Pastikan akun superadmin terisi informasi profil lengkap Anita Setyowati
+      if (isDefaultSuperadmin ||
+          normalizedEmail == defaultSuperadminEmail.toLowerCase() ||
+          account.role == StaffRole.superadmin) {
+        final bool isMissingAnitaProfile = account.experience == null ||
+            account.experience!.isEmpty ||
+            account.strNumber == null ||
+            account.strNumber!.isEmpty ||
+            account.birthDate == null ||
+            account.birthDate!.isEmpty ||
+            account.education == null ||
+            account.education!.isEmpty ||
+            account.name.trim().toLowerCase() == 'superadmin' ||
+            account.name.trim().toLowerCase() == 'superadmin pediagrow';
+
+        if (isMissingAnitaProfile) {
+          String anitaName = 'Anita Setyowati, S.Tr. RMIK';
+          String anitaExp = '7 tahun';
+          String anitaStr = '3511201402012222';
+          String anitaBirth = '16/07/2006';
+          String anitaEdu = 'DIV - Manajemen Informasi Kesehatan';
+          String? anitaAvatar = 'assets/images/anita_superadmin.jpg';
+
+          try {
+            final anitaQuery = await db
+                .collection(_collection)
+                .where('email', isEqualTo: 'anita.pmik@pediagrow.com')
+                .limit(1)
+                .get();
+            if (anitaQuery.docs.isNotEmpty) {
+              final aData = anitaQuery.docs.first.data();
+              if (aData['name'] != null &&
+                  aData['name'].toString().isNotEmpty) {
+                anitaName = aData['name'].toString();
+              }
+              if (aData['experience'] != null &&
+                  aData['experience'].toString().isNotEmpty) {
+                anitaExp = aData['experience'].toString();
+              }
+              if (aData['strNumber'] != null &&
+                  aData['strNumber'].toString().isNotEmpty) {
+                anitaStr = aData['strNumber'].toString();
+              } else if (aData['str'] != null &&
+                  aData['str'].toString().isNotEmpty) {
+                anitaStr = aData['str'].toString();
+              }
+              if (aData['birthDate'] != null &&
+                  aData['birthDate'].toString().isNotEmpty) {
+                anitaBirth = aData['birthDate'].toString();
+              }
+              if (aData['education'] != null &&
+                  aData['education'].toString().isNotEmpty) {
+                anitaEdu = aData['education'].toString();
+              }
+              if (aData['avatarPath'] != null &&
+                  aData['avatarPath'].toString().isNotEmpty) {
+                anitaAvatar = aData['avatarPath'].toString();
+              }
+            }
+          } catch (_) {}
+
+          final resolvedName = (account.name.isNotEmpty &&
+                  account.name != 'Superadmin PediaGrow' &&
+                  account.name != 'Superadmin')
+              ? account.name
+              : anitaName;
+          final resolvedExp =
+              (account.experience != null && account.experience!.isNotEmpty)
+                  ? account.experience!
+                  : anitaExp;
+          final resolvedStr =
+              (account.strNumber != null && account.strNumber!.isNotEmpty)
+                  ? account.strNumber!
+                  : anitaStr;
+          final resolvedBirth =
+              (account.birthDate != null && account.birthDate!.isNotEmpty)
+                  ? account.birthDate!
+                  : anitaBirth;
+          final resolvedEdu =
+              (account.education != null && account.education!.isNotEmpty)
+                  ? account.education!
+                  : anitaEdu;
+          final resolvedAvatar =
+              (account.avatarPath != null && account.avatarPath!.isNotEmpty)
+                  ? account.avatarPath!
+                  : anitaAvatar;
+
+          try {
+            await db.collection(_collection).doc(doc.id).update({
+              'name': resolvedName,
+              'experience': resolvedExp,
+              'strNumber': resolvedStr,
+              'birthDate': resolvedBirth,
+              'education': resolvedEdu,
+              if (account.avatarPath == null || account.avatarPath!.isEmpty)
+                'avatarPath': resolvedAvatar,
+            });
+          } catch (_) {}
+
+          account = account.copyWith(
+            name: resolvedName,
+            experience: resolvedExp,
+            strNumber: resolvedStr,
+            birthDate: resolvedBirth,
+            education: resolvedEdu,
+            avatarPath: resolvedAvatar,
+          );
         }
       }
 
@@ -760,7 +989,31 @@ class StaffAuthService {
         final doc =
             await db.collection(_collection).doc(currentStaff!.id).get();
         if (doc.exists && doc.data() != null) {
-          final acc = StaffAccount.fromMap(doc.id, doc.data()!);
+          var acc = StaffAccount.fromMap(doc.id, doc.data()!);
+          if (acc.email.trim().toLowerCase() ==
+                  defaultSuperadminEmail.toLowerCase() ||
+              acc.isSuperAdmin) {
+            if (acc.experience == null ||
+                acc.strNumber == null ||
+                acc.birthDate == null ||
+                acc.education == null ||
+                acc.name == 'Superadmin PediaGrow' ||
+                acc.name.isEmpty) {
+              acc = acc.copyWith(
+                name: (acc.name.isEmpty ||
+                        acc.name == 'Superadmin PediaGrow')
+                    ? 'Anita Setyowati, S.Tr. RMIK'
+                    : acc.name,
+                experience: acc.experience ?? '7 tahun',
+                strNumber: acc.strNumber ?? '3511201402012222',
+                birthDate: acc.birthDate ?? '16/07/2006',
+                education: acc.education ??
+                    'DIV - Manajemen Informasi Kesehatan',
+                avatarPath: acc.avatarPath ??
+                    'assets/images/anita_superadmin.jpg',
+              );
+            }
+          }
           // Hanya update notifier jika sesi masih aktif (belum logout).
           if (currentStaffNotifier.value != null) {
             currentStaffNotifier.value = acc;
@@ -777,7 +1030,27 @@ class StaffAuthService {
           .get();
       if (query.docs.isNotEmpty) {
         final doc = query.docs.first;
-        final acc = StaffAccount.fromMap(doc.id, doc.data());
+        var acc = StaffAccount.fromMap(doc.id, doc.data());
+        if (acc.experience == null ||
+            acc.strNumber == null ||
+            acc.birthDate == null ||
+            acc.education == null ||
+            acc.name == 'Superadmin PediaGrow' ||
+            acc.name.isEmpty) {
+          acc = acc.copyWith(
+            name: (acc.name.isEmpty ||
+                    acc.name == 'Superadmin PediaGrow')
+                ? 'Anita Setyowati, S.Tr. RMIK'
+                : acc.name,
+            experience: acc.experience ?? '7 tahun',
+            strNumber: acc.strNumber ?? '3511201402012222',
+            birthDate: acc.birthDate ?? '16/07/2006',
+            education: acc.education ??
+                'DIV - Manajemen Informasi Kesehatan',
+            avatarPath: acc.avatarPath ??
+                'assets/images/anita_superadmin.jpg',
+          );
+        }
         // Tidak mengubah notifier di sini — hanya kembalikan data.
         return acc;
       }

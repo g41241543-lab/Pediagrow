@@ -88,6 +88,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           themeMode: ThemeService().flutterThemeMode,
           theme: ThemeService.lightTheme,
           darkTheme: ThemeService.darkTheme,
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            physics: const ClampingScrollPhysics(),
+            overscroll: false,
+          ),
           home: const SplashPage(),
         );
       },

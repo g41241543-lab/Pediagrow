@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/staff_auth_service.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_banner.dart';
+import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../shared/widgets/pedia_wheel_time_picker_dialog.dart';
 import '../beranda/beranda_dokter_page.dart';
 
@@ -41,8 +43,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
   static const Color _primaryBlue = Color(0xFF0284C7);
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-  Color get _cardBg =>
-      _isDark ? const Color(0xFF1A2228) : Colors.white;
+  Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
   Color get _borderColor =>
       _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
   Color get _textBlack =>
@@ -133,7 +134,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
         }
       },
       child: Scaffold(
-        backgroundColor: _isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+        backgroundColor: _isDark
+            ? const Color(0xFF0B1014)
+            : const Color(0xFFF8FAFC),
         appBar: AppBar(
           backgroundColor: _isDark ? const Color(0xFF0B1014) : Colors.white,
           elevation: 0,
@@ -149,74 +152,42 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               }
             },
           ),
-        title: Text(
-          title,
-          style: GoogleFonts.lato(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: _textBlack,
+          title: Text(
+            title,
+            style: GoogleFonts.lato(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _textBlack,
+            ),
+          ),
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: _primaryBlue,
+            unselectedLabelColor: _textGrey,
+            indicatorColor: _primaryBlue,
+            indicatorWeight: 3,
+            labelStyle: GoogleFonts.lato(fontWeight: FontWeight.bold),
+            tabs: const [
+              Tab(
+                text: 'Jadwal Mingguan',
+                icon: Icon(Icons.calendar_month_outlined, size: 20),
+              ),
+              Tab(
+                text: 'Atur Cuti / Libur',
+                icon: Icon(Icons.beach_access_outlined, size: 20),
+              ),
+            ],
           ),
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: _primaryBlue,
-          unselectedLabelColor: _textGrey,
-          indicatorColor: _primaryBlue,
-          indicatorWeight: 3,
-          labelStyle: GoogleFonts.lato(fontWeight: FontWeight.bold),
-          tabs: const [
-            Tab(text: 'Jadwal Mingguan', icon: Icon(Icons.calendar_month_outlined, size: 20)),
-            Tab(text: 'Atur Cuti / Libur', icon: Icon(Icons.beach_access_outlined, size: 20)),
-          ],
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _primaryBlue))
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildJadwalMingguanTab(),
-                _buildCutiTab(),
-              ],
-            ),
-      bottomNavigationBar: _tabController.index == 0
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: _isDark ? const Color(0xFF1A2228) : Colors.white,
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 10,
-                    offset: Offset(0, -3),
-                  ),
-                ],
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: _primaryBlue),
+              )
+            : TabBarView(
+                controller: _tabController,
+                children: [_buildJadwalMingguanTab(), _buildCutiTab()],
               ),
-              child: SafeArea(
-                child: SizedBox(
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveJadwal,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Simpan Jadwal Praktik',
-                      style: GoogleFonts.lato(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : null,
+        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
       ),
     );
   }
@@ -227,27 +198,70 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
   Widget _buildJadwalMingguanTab() {
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      physics: const ClampingScrollPhysics(),
+      padding: EdgeInsets.zero,
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _isDark ? const Color(0xFF334155) : const Color(0xFFBAE6FD),
-            ),
-          ),
-          child: Row(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.info_outline, color: _primaryBlue, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Aktifkan hari kerja dan atur sesi konsultasi. Pasien hanya dapat memesan slot pada jam yang aktif.',
-                  style: GoogleFonts.lato(
-                    fontSize: 12.5,
-                    color: _isDark ? const Color(0xFF93C5FD) : const Color(0xFF0369A1),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFBAE6FD),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: _primaryBlue,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Aktifkan hari kerja dan atur sesi konsultasi. Pasien hanya dapat memesan slot pada jam yang aktif.',
+                        style: GoogleFonts.lato(
+                          fontSize: 12.5,
+                          color: _isDark
+                              ? const Color(0xFF93C5FD)
+                              : const Color(0xFF0369A1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              for (int day = 1; day <= 7; day++) _buildHariCard(day),
+              const SizedBox(height: 4),
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveJadwal,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Simpan Jadwal Praktik',
+                    style: GoogleFonts.lato(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -255,8 +269,7 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           ),
         ),
         const SizedBox(height: 16),
-        for (int day = 1; day <= 7; day++) _buildHariCard(day),
-        const SizedBox(height: 60),
+        const IllustrationForestFooter(fit: BoxFit.fitWidth),
       ],
     );
   }
@@ -332,14 +345,17 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                               jamSelesai: '11:30',
                               durasiSlotMenit: 30,
                               aktif: true,
-                              dibuatOleh: widget.isSuperadmin ? 'superadmin' : 'dokter',
+                              dibuatOleh: widget.isSuperadmin
+                                  ? 'superadmin'
+                                  : 'dokter',
                             ),
                           );
                         } else {
                           for (int i = 0; i < _currentJadwal.length; i++) {
                             if (_currentJadwal[i].hari == day) {
-                              _currentJadwal[i] =
-                                  _currentJadwal[i].copyWith(aktif: true);
+                              _currentJadwal[i] = _currentJadwal[i].copyWith(
+                                aktif: true,
+                              );
                             }
                           }
                         }
@@ -347,8 +363,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                         // Nonaktifkan semua sesi pada hari ini
                         for (int i = 0; i < _currentJadwal.length; i++) {
                           if (_currentJadwal[i].hari == day) {
-                            _currentJadwal[i] =
-                                  _currentJadwal[i].copyWith(aktif: false);
+                            _currentJadwal[i] = _currentJadwal[i].copyWith(
+                              aktif: false,
+                            );
                           }
                         }
                       }
@@ -371,7 +388,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                         onEdit: () => _showDialogEditSesi(s),
                         onDelete: () {
                           setState(() {
-                            _currentJadwal.removeWhere((item) => item.id == s.id);
+                            _currentJadwal.removeWhere(
+                              (item) => item.id == s.id,
+                            );
                           });
                         },
                       ),
@@ -380,11 +399,18 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     onTap: () => _showDialogTambahSesi(day),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 8,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.add_circle_outline, size: 18, color: _primaryBlue),
+                          const Icon(
+                            Icons.add_circle_outline,
+                            size: 18,
+                            color: _primaryBlue,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Tambah Sesi Jam Kerja',
@@ -438,23 +464,28 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 ),
                 Text(
                   'Durasi slot: ${sesi.durasiSlotMenit} menit',
-                  style: GoogleFonts.lato(
-                    fontSize: 12,
-                    color: _textGrey,
-                  ),
+                  style: GoogleFonts.lato(fontSize: 12, color: _textGrey),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 18, color: _primaryBlue),
+            icon: const Icon(
+              Icons.edit_outlined,
+              size: 18,
+              color: _primaryBlue,
+            ),
             onPressed: onEdit,
             constraints: const BoxConstraints(),
             padding: const EdgeInsets.all(6),
           ),
           const SizedBox(width: 4),
           IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFEF4444)),
+            icon: const Icon(
+              Icons.delete_outline,
+              size: 18,
+              color: Color(0xFFEF4444),
+            ),
             onPressed: onDelete,
             constraints: const BoxConstraints(),
             padding: const EdgeInsets.all(6),
@@ -581,10 +612,15 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: _cardBg,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(
             currentId == null ? 'Tambah Sesi Kerja' : 'Ubah Sesi Kerja',
-            style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: _textBlack),
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.bold,
+              color: _textBlack,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -636,7 +672,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
               const SizedBox(height: 14),
               Text(
                 'Durasi Slot Konsultasi:',
-                style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold, color: _textBlack),
+                style: GoogleFonts.lato(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: _textBlack,
+                ),
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<int>(
@@ -645,14 +685,40 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 style: GoogleFonts.lato(color: _textBlack),
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: _borderColor),
+                  ),
                   isDense: true,
                 ),
                 items: [
-                  DropdownMenuItem(value: 15, child: Text('15 Menit', style: GoogleFonts.lato(color: _textBlack))),
-                  DropdownMenuItem(value: 30, child: Text('30 Menit', style: GoogleFonts.lato(color: _textBlack))),
-                  DropdownMenuItem(value: 45, child: Text('45 Menit', style: GoogleFonts.lato(color: _textBlack))),
-                  DropdownMenuItem(value: 60, child: Text('60 Menit', style: GoogleFonts.lato(color: _textBlack))),
+                  DropdownMenuItem(
+                    value: 15,
+                    child: Text(
+                      '15 Menit',
+                      style: GoogleFonts.lato(color: _textBlack),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 30,
+                    child: Text(
+                      '30 Menit',
+                      style: GoogleFonts.lato(color: _textBlack),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 45,
+                    child: Text(
+                      '45 Menit',
+                      style: GoogleFonts.lato(color: _textBlack),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 60,
+                    child: Text(
+                      '60 Menit',
+                      style: GoogleFonts.lato(color: _textBlack),
+                    ),
+                  ),
                 ],
                 onChanged: (val) {
                   if (val != null) setDialogState(() => selectedDuration = val);
@@ -662,7 +728,10 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 const SizedBox(height: 10),
                 Text(
                   errorText!,
-                  style: GoogleFonts.lato(fontSize: 12, color: const Color(0xFFEF4444)),
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    color: const Color(0xFFEF4444),
+                  ),
                 ),
               ],
             ],
@@ -678,7 +747,10 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 foregroundColor: Colors.white,
                 elevation: 4,
                 shadowColor: _primaryBlue.withValues(alpha: 0.5),
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 10,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -689,7 +761,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   jamMulai: selectedStart,
                   jamSelesai: selectedEnd,
                   durasiSlotMenit: selectedDuration,
-                  existingSessionsOnDay: _currentJadwal.where((j) => j.hari == day).toList(),
+                  existingSessionsOnDay: _currentJadwal
+                      .where((j) => j.hari == day)
+                      .toList(),
                   currentEditingId: currentId,
                 );
 
@@ -724,89 +798,132 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
     return ValueListenableBuilder<List<CutiDokterModel>>(
       valueListenable: _jadwalService.cutiListNotifier,
       builder: (context, allCuti, _) {
-        final list = allCuti.where((c) => c.dokterId == _targetDoctorId).toList();
+        final list = allCuti
+            .where((c) => c.dokterId == _targetDoctorId)
+            .toList();
 
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: _isDark ? const Color(0xFF2D2305) : const Color(0xFFFFFBEB),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.beach_access, color: Color(0xFFD97706), size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Tambahkan cuti jika berhalangan praktik. Booking pasien yang bertabrakan akan dibatalkan otomatis dan dikirimi notifikasi untuk menjadwalkan ulang.',
-                      style: GoogleFonts.lato(
-                        fontSize: 12.5,
-                        color: _isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: _isDark
+                                    ? const Color(0xFF2D2305)
+                                    : const Color(0xFFFFFBEB),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _isDark
+                                      ? const Color(0xFF78350F)
+                                      : const Color(0xFFFDE68A),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.beach_access,
+                                    color: Color(0xFFD97706),
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Tambahkan cuti jika berhalangan praktik. Booking pasien yang bertabrakan akan dibatalkan otomatis dan dikirimi notifikasi untuk menjadwalkan ulang.',
+                                      style: GoogleFonts.lato(
+                                        fontSize: 12.5,
+                                        color: _isDark
+                                            ? const Color(0xFFFDE68A)
+                                            : const Color(0xFF92400E),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: _showTambahCutiDialog,
+                                icon: const Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                label: Text(
+                                  'Tambah Cuti / Hari Libur',
+                                  style: GoogleFonts.lato(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primaryBlue,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Daftar Cuti Terdaftar',
+                              style: GoogleFonts.lato(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _textBlack,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            if (list.isEmpty)
+                              Container(
+                                padding: const EdgeInsets.all(32),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'Belum ada jadwal cuti atau libur.',
+                                  style: GoogleFonts.lato(color: _textGrey),
+                                ),
+                              )
+                            else
+                              for (final c in list) _buildCutiCard(c),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 44,
-              child: ElevatedButton.icon(
-                onPressed: _showTambahCutiDialog,
-                icon: const Icon(Icons.add, color: Colors.white, size: 20),
-                label: Text(
-                  'Tambah Cuti / Hari Libur',
-                  style: GoogleFonts.lato(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                      const Spacer(),
+                      const SizedBox(height: 16),
+                      const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                    ],
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Daftar Cuti Terdaftar',
-              style: GoogleFonts.lato(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: _textBlack,
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (list.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(32),
-                alignment: Alignment.center,
-                child: Text(
-                  'Belum ada jadwal cuti atau libur.',
-                  style: GoogleFonts.lato(color: _textGrey),
-                ),
-              )
-            else
-              for (final c in list) _buildCutiCard(c),
-          ],
+            );
+          },
         );
       },
     );
   }
 
   Widget _buildCutiCard(CutiDokterModel cuti) {
-    final tglStart = '${cuti.tanggalMulai.day}/${cuti.tanggalMulai.month}/${cuti.tanggalMulai.year}';
-    final tglEnd = '${cuti.tanggalSelesai.day}/${cuti.tanggalSelesai.month}/${cuti.tanggalSelesai.year}';
+    final tglStart =
+        '${cuti.tanggalMulai.day}/${cuti.tanggalMulai.month}/${cuti.tanggalMulai.year}';
+    final tglEnd =
+        '${cuti.tanggalSelesai.day}/${cuti.tanggalSelesai.month}/${cuti.tanggalSelesai.year}';
     final dateLabel = tglStart == tglEnd ? tglStart : '$tglStart - $tglEnd';
-    final timeLabel = cuti.isSeharian ? 'Libur Seharian' : '${cuti.jamMulai} - ${cuti.jamSelesai} WIB';
+    final timeLabel = cuti.isSeharian
+        ? 'Libur Seharian'
+        : '${cuti.jamMulai} - ${cuti.jamSelesai} WIB';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -829,10 +946,16 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _isDark ? const Color(0xFF3B1818) : const Color(0xFFFEF2F2),
+              color: _isDark
+                  ? const Color(0xFF3B1818)
+                  : const Color(0xFFFEF2F2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.event_busy, color: Color(0xFFEF4444), size: 20),
+            child: const Icon(
+              Icons.event_busy,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -859,16 +982,17 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 const SizedBox(height: 4),
                 Text(
                   'Alasan: ${cuti.alasan}',
-                  style: GoogleFonts.lato(
-                    fontSize: 12,
-                    color: _textGrey,
-                  ),
+                  style: GoogleFonts.lato(fontSize: 12, color: _textGrey),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 20),
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
             onPressed: () => _confirmHapusCuti(cuti),
           ),
         ],
@@ -898,10 +1022,15 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
           return AlertDialog(
             backgroundColor: _cardBg,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: Text(
               'Tambah Cuti / Libur Dokter',
-              style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: _textBlack),
+              style: GoogleFonts.lato(
+                fontWeight: FontWeight.bold,
+                color: _textBlack,
+              ),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -910,7 +1039,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 children: [
                   Text(
                     'Pilih Tanggal:',
-                    style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold, color: _textBlack),
+                    style: GoogleFonts.lato(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: _textBlack,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   InkWell(
@@ -926,19 +1059,31 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
-                        color: _isDark ? const Color(0xFF222C33) : Colors.transparent,
+                        color: _isDark
+                            ? const Color(0xFF222C33)
+                            : Colors.transparent,
                         border: Border.all(color: _borderColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today, size: 16, color: _primaryBlue),
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: _primaryBlue,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
-                            style: GoogleFonts.lato(fontSize: 14, color: _textBlack),
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              color: _textBlack,
+                            ),
                           ),
                         ],
                       ),
@@ -950,12 +1095,17 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     children: [
                       Text(
                         'Libur Seharian:',
-                        style: GoogleFonts.lato(fontSize: 13, fontWeight: FontWeight.bold, color: _textBlack),
+                        style: GoogleFonts.lato(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: _textBlack,
+                        ),
                       ),
                       Switch(
                         value: isSeharian,
                         activeThumbColor: _primaryBlue,
-                        onChanged: (val) => setDialogState(() => isSeharian = val),
+                        onChanged: (val) =>
+                            setDialogState(() => isSeharian = val),
                       ),
                     ],
                   ),
@@ -1009,7 +1159,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                       hintText: 'Contoh: Seminar medis / dinas luar',
                       hintStyle: GoogleFonts.lato(color: _textGrey),
                       border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _borderColor)),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: _borderColor),
+                      ),
                       isDense: true,
                     ),
                   ),
@@ -1018,22 +1170,32 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: _isDark ? const Color(0xFF3B1818) : const Color(0xFFFEF2F2),
+                        color: _isDark
+                            ? const Color(0xFF3B1818)
+                            : const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: _isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                          color: _isDark
+                              ? const Color(0xFF7F1D1D)
+                              : const Color(0xFFFECACA),
                         ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 20),
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Color(0xFFEF4444),
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Perhatian: Terdapat ${affected.length} booking pasien terdampak yang akan otomatis dibatalkan.',
                               style: GoogleFonts.lato(
                                 fontSize: 12,
-                                color: _isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                                color: _isDark
+                                    ? const Color(0xFFFCA5A5)
+                                    : const Color(0xFFB91C1C),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1055,14 +1217,20 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   foregroundColor: Colors.white,
                   elevation: 4,
                   shadowColor: _primaryBlue.withValues(alpha: 0.5),
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22,
+                    vertical: 10,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
                 onPressed: () async {
                   if (alasanCtrl.text.trim().isEmpty) {
-                    PediaBanner.showError(dialogCtx, message: 'Harap isi alasan cuti!');
+                    PediaBanner.showError(
+                      dialogCtx,
+                      message: 'Harap isi alasan cuti!',
+                    );
                     return;
                   }
 
@@ -1077,7 +1245,9 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                     dibuatOleh: widget.isSuperadmin ? 'superadmin' : 'dokter',
                   );
 
-                  final affectedCount = await _jadwalService.tambahCuti(cuti: newCuti);
+                  final affectedCount = await _jadwalService.tambahCuti(
+                    cuti: newCuti,
+                  );
                   if (ctx.mounted) {
                     Navigator.of(ctx).pop();
                   }
@@ -1085,13 +1255,24 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                   if (affectedCount > 0) {
                     PediaBanner.showSuccess(
                       context,
-                      message: 'Cuti disimpan. $affectedCount pasien terdampak telah dibatalkan & diberitahu.',
+                      message:
+                          'Cuti disimpan. $affectedCount pasien terdampak telah dibatalkan & diberitahu.',
                     );
                   } else {
-                    PediaBanner.showSuccess(context, message: 'Cuti dokter berhasil ditambahkan!');
+                    PediaBanner.showSuccess(
+                      context,
+                      message: 'Cuti dokter berhasil ditambahkan!',
+                    );
                   }
                 },
-                child: Text('Simpan Cuti', style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                child: Text(
+                  'Simpan Cuti',
+                  style: GoogleFonts.lato(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ],
           );
@@ -1106,7 +1287,13 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
       builder: (ctx) => AlertDialog(
         backgroundColor: _cardBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Hapus Cuti?', style: GoogleFonts.lato(fontWeight: FontWeight.bold, color: _textBlack)),
+        title: Text(
+          'Hapus Cuti?',
+          style: GoogleFonts.lato(
+            fontWeight: FontWeight.bold,
+            color: _textBlack,
+          ),
+        ),
         content: Text(
           'Jadwal dokter pada tanggal ini akan kembali aktif sesuai jadwal mingguan.',
           style: GoogleFonts.lato(color: _textBlack),
@@ -1132,7 +1319,10 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
                 Navigator.of(ctx).pop();
               }
               if (mounted) {
-                PediaBanner.showSuccess(context, message: 'Cuti dokter dihapus.');
+                PediaBanner.showSuccess(
+                  context,
+                  message: 'Cuti dokter dihapus.',
+                );
               }
             },
             child: Text(

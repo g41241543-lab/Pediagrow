@@ -33,11 +33,11 @@ class IllustrationForestFooter extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Colors.transparent,
-              Color(0x40000000),
-              Color(0xAA000000),
+              Color(0x33000000),
+              Color(0x88000000),
               Colors.black,
             ],
-            stops: [0.0, 0.04, 0.10, 0.18],
+            stops: [0.0, 0.05, 0.12, 0.22],
           ).createShader(bounds);
         },
         blendMode: BlendMode.dstIn,

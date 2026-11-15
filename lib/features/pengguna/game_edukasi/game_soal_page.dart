@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,10 +9,10 @@ import 'game_controller.dart';
 import 'game_mulai_page.dart';
 import 'game_skor_akhir_page.dart';
 
-/// Halaman Soal — mengelola satu sesi kuis dari Soal 1 hingga Soal 10.
+/// Halaman Soal â€” mengelola satu sesi kuis dari Soal 1 hingga Soal 10.
 ///
 /// [REVISI 6]: Background biru gradasi konsisten penuh sepanjang kuis
-/// (Mulai → Soal → Feedback Jawaban).
+/// (Mulai â†’ Soal â†’ Feedback Jawaban).
 ///
 /// [REVISI 7]: Progress bar kuning beserta header atas dijadikan elemen PERSISTEN
 /// di luar area konten yang bertransisi (Column tetap).
@@ -57,9 +57,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
   int get _nomorSoal => _currentIndex + 1; // 1-based
   bool get _isLast => _currentIndex >= widget.soalList.length - 1;
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // LIFECYCLE
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   void initState() {
     super.initState();
@@ -78,9 +78,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
     super.dispose();
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TIMER
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _mulaiTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -122,9 +122,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // USER ACTION: PILIH JAWABAN
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _pilihJawaban(bool pilihanBenar) {
     if (_isShowingFeedback) return;
     _timer?.cancel();
@@ -139,9 +139,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
     });
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // USER ACTION: LANJUT KE SOAL BERIKUTNYA / LIHAT SKOR
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _onLanjut() {
     // Catat hasil jawaban soal ini
     _hasilList.add(HasilSoal(
@@ -178,9 +178,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // HELPER TIMER & PROGRESS
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String get _timerLabel {
     final menit = _sisaDetik ~/ 60;
     final detik = _sisaDetik % 60;
@@ -192,9 +192,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
   Color get _timerColor =>
       _sisaDetik <= 10 ? const Color(0xFFEF4444) : const Color(0xFF3985E7);
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // KONFIRMASI KELUAR
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _konfirmasiKeluar(BuildContext context) {
     _timer?.cancel();
     Navigator.of(context).pushAndRemoveUntil(
@@ -203,9 +203,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -220,7 +220,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            // ── Background Gradient Biru Figma / Night Sky Dark Mode ──
+            // â”€â”€ Background Gradient Biru Figma / Night Sky Dark Mode â”€â”€
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -242,29 +242,29 @@ class _GameSoalPageState extends State<GameSoalPage> {
               ),
             ),
 
-            // ── Dekorasi Figma (bintik & lingkaran putih) ───────────
+            // â”€â”€ Dekorasi Figma (bintik & lingkaran putih) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const Positioned.fill(
               child: IgnorePointer(child: _SoalBgDecoration()),
             ),
 
-            // ── Layout Struktur Utama ──────────────────────────────
+            // â”€â”€ Layout Struktur Utama â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             SafeArea(
               top: false,
               bottom: false,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── [REVISI 7] PERSISTENT HEADER (TIDAK IKUT TRANSIISI) ──
+                  // â”€â”€ [REVISI 7] PERSISTENT HEADER (TIDAK IKUT TRANSIISI) â”€â”€
                   // Posisi Y tetap, progress bar kuning di luar area scroll
                   _buildPersistentHeader(),
 
-                  // ── KONTEN TOP-ANCHORED (KARTU SOAL & FEEDBACK) ─────────
+                  // â”€â”€ KONTEN TOP-ANCHORED (KARTU SOAL & FEEDBACK) â”€â”€â”€â”€â”€â”€â”€â”€â”€
                   // Kartu soal selalu dimulai pada jarak tetap (24dp) dari header di atasnya.
                   // Konten tambahan mengalir ke bawah kartu tanpa mendorong kartu ke atas.
                   Expanded(
                     child: SingleChildScrollView(
                       controller: _scrollController,
-                      physics: const BouncingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 32.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +301,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── [REVISI 7] HEADER & PROGRESS BAR PERSISTEN ───────────────────────
+  // â”€â”€ [REVISI 7] HEADER & PROGRESS BAR PERSISTEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPersistentHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
@@ -420,7 +420,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── KARTU SOAL ───────────────────────────────────────────────────
+  // â”€â”€ KARTU SOAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildKartuSoal() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -483,7 +483,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── TOMBOL JAWABAN (Mode Soal: Interaktif) ──────────────────────────
+  // â”€â”€ TOMBOL JAWABAN (Mode Soal: Interaktif) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTombolJawaban() {
     return Row(
       children: [
@@ -506,7 +506,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── TOMBOL HASIL (Mode Feedback: State Warna) ──────────────────────
+  // â”€â”€ TOMBOL HASIL (Mode Feedback: State Warna) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTombolHasil() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color warnaBenar = _colorForTombolHasil(pilihan: true, isDark: isDark);
@@ -553,12 +553,12 @@ class _GameSoalPageState extends State<GameSoalPage> {
     return isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF); // Netral
   }
 
-  // ── BAR STATUS (Mode Feedback) ─────────────────────────────────────
+  // â”€â”€ BAR STATUS (Mode Feedback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildBarStatus() {
     final Color bgColor = _isBenar
         ? const Color(0xFF10B981) // Hijau
         : const Color(0xFFEF4444); // Merah
-    final String label = _isBenar ? '✓  Jawaban Benar' : '✗  Jawaban Salah';
+    final String label = _isBenar ? 'âœ“  Jawaban Benar' : 'âœ—  Jawaban Salah';
 
     return Container(
       width: double.infinity,
@@ -586,7 +586,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── KARTU PENJELASAN (Mode Feedback) ──────────────────────────────
+  // â”€â”€ KARTU PENJELASAN (Mode Feedback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildKartuPenjelasan() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -640,7 +640,7 @@ class _GameSoalPageState extends State<GameSoalPage> {
     );
   }
 
-  // ── TOMBOL LANJUT / LIHAT SKOR (Mode Feedback) ─────────────────────
+  // â”€â”€ TOMBOL LANJUT / LIHAT SKOR (Mode Feedback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTombolLanjut() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -682,9 +682,9 @@ class _GameSoalPageState extends State<GameSoalPage> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // WIDGET TOMBOL JAWABAN (Interaktif dengan feedback tap)
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _TombolJawaban extends StatefulWidget {
   final String label;
   final IconData icon;
@@ -764,9 +764,9 @@ class _TombolJawabanState extends State<_TombolJawaban> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // WIDGET TOMBOL HASIL (Non-interaktif untuk Feedback)
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _TombolHasilBadge extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -783,7 +783,7 @@ class _TombolHasilBadge extends StatelessWidget {
   });
 
   /// Tombol dianggap menonjol jika foregroundColor-nya putih
-  /// (artinya dipilih oleh pengguna — hijau benar atau merah salah).
+  /// (artinya dipilih oleh pengguna â€” hijau benar atau merah salah).
   bool get _isHighlighted => foregroundColor == Colors.white;
 
   @override
@@ -826,9 +826,9 @@ class _TombolHasilBadge extends StatelessWidget {
   }
 }
 
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // DEKORASI BACKGROUND SOAL (Figma)
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _SoalBgDecoration extends StatelessWidget {
   const _SoalBgDecoration();
 
@@ -876,9 +876,9 @@ class _SoalBgPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ════════════════════════════════════════════════════════════════════
-// CUSTOM PAGE ROUTE — Fade + Slide halus (easeInOut, 300ms)
-// ════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CUSTOM PAGE ROUTE â€” Fade + Slide halus (easeInOut, 300ms)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 class _FadeSlideRoute<T> extends PageRouteBuilder<T> {
   final WidgetBuilder builder;
 

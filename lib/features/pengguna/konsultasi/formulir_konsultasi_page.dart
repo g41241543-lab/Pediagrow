@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/chat_message_service.dart';
@@ -409,7 +409,7 @@ class _FormulirKonsultasiPageState extends State<FormulirKonsultasiPage> {
               // ---------------------------------------------------------------
               Expanded(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

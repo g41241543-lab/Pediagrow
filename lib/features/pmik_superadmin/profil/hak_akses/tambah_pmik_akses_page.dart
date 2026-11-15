@@ -454,7 +454,7 @@ class _TambahPmikAksesPageState extends State<TambahPmikAksesPage> {
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             children: [
               // 1. KARTU PROFIL UTAMA
               _buildProfileCard(roleBadgeText, isDark),

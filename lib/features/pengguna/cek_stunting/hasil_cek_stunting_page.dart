@@ -1,4 +1,4 @@
-import 'dart:ui' as ui;
+﻿import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -77,7 +77,7 @@ class HasilCekStuntingPage extends StatelessWidget {
             // 2. Konten Utama Scrollable agar bebas overflow pada layar kecil
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,7 +537,7 @@ class HasilCekStuntingPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '• ',
+            'â€¢ ',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,

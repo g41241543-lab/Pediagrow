@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
@@ -10,7 +10,7 @@ import 'booking_konsultasi_page.dart';
 
 /// Halaman Profil Dokter Anak pada fitur Konsultasi PediaGrow.
 ///
-/// Alur booking: Profil Dokter → [BookingKonsultasiPage] → [StatusBookingPage] → [FormulirKonsultasiPage] → [ChatKonsultasiPage]
+/// Alur booking: Profil Dokter â†’ [BookingKonsultasiPage] â†’ [StatusBookingPage] â†’ [FormulirKonsultasiPage] â†’ [ChatKonsultasiPage]
 class ProfilDokterPage extends StatelessWidget {
   final DoctorModel doctor;
   final ChildModel? child;
@@ -114,7 +114,7 @@ class ProfilDokterPage extends StatelessWidget {
             // -------------------------------------------------------------
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

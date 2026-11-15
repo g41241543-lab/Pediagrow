@@ -26,12 +26,12 @@ class DoctorPermissions {
     ),
     DoctorPermissionItem(
       key: 'data_pasien',
-      label: 'Data Pasien',
+      label: 'Data Anak',
       defaultValue: true,
     ),
     DoctorPermissionItem(
       key: 'detail_pasien',
-      label: 'Detail Pasien',
+      label: 'Detail Anak',
       defaultValue: true,
     ),
     DoctorPermissionItem(

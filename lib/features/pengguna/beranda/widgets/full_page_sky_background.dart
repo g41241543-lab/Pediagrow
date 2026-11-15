@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
+import 'forest_cloud_painter.dart';
 
 /// Widget latar belakang full-page dengan animasi awan dan burung yang natural.
 ///
@@ -111,10 +115,6 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (isDark) {
-      return const ColoredBox(color: Color(0xFF0B1014));
-    }
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final fallback = MediaQuery.of(context).size;
@@ -130,6 +130,23 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
   }
 
   Widget _buildSky(double w, double h, bool isDark) {
+    const footerAspectRatio = 768.0 / 1376.0;
+    final footerH = w * footerAspectRatio;
+    final footerTop = math.max(0.0, h - footerH);
+    final transitionLead = math.min(126.0, footerTop * 0.45);
+    final transitionTop = math.max(0.0, footerTop - transitionLead);
+    final transitionHeight = math.max(1.0, h - transitionTop);
+    final joinStop = ((footerTop - transitionTop) / transitionHeight).clamp(
+      0.12,
+      0.72,
+    );
+    final deepStop =
+        ((footerTop + footerH * 0.24 - transitionTop) / transitionHeight).clamp(
+          joinStop + 0.08,
+          0.96,
+        );
+    final showHorizon = footerTop > 180.0;
+
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: Listenable.merge([
@@ -145,212 +162,162 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
           final floatY = _cloudSlowY.value;
           final wing = _wingFlap.value;
 
-          final birdColor1 = isDark
-              ? const Color(0xFF93C5FD).withValues(alpha: 0.45)
-              : const Color(0xFF1E3A8A).withValues(alpha: 0.52);
-          final birdColor2 = isDark
-              ? const Color(0xFF93C5FD).withValues(alpha: 0.35)
-              : const Color(0xFF1E3A8A).withValues(alpha: 0.40);
-          final birdColorMid = isDark
-              ? const Color(0xFF93C5FD).withValues(alpha: 0.30)
-              : const Color(0xFF3B5BA0).withValues(alpha: 0.34);
+          final birdColor1 = const Color(0xFF1E3A8A).withValues(alpha: 0.48);
+          final birdColor2 = const Color(0xFF1E3A8A).withValues(alpha: 0.36);
 
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              // Awan A
-              _cloud(
-                left: -28 + driftSlow,
-                top: 38 + floatY,
-                w: 96,
-                h: 40,
-                opacity: 0.65,
-                flipX: false,
-                isDark: isDark,
-              ),
-
-              // Awan B
-              _cloud(
-                right: -20 + (-driftSlow * 0.6),
-                top: 14 + (floatY * 0.7),
-                w: 110,
-                h: 44,
-                opacity: 0.60,
-                flipX: true,
-                isDark: isDark,
-              ),
-
-              // Awan C
-              _cloud(
-                left: -24 + (driftMed * 0.8),
-                top: h * 0.20 + (floatY * 0.5),
-                w: 88,
-                h: 36,
-                opacity: 0.42,
-                flipX: false,
-                isDark: isDark,
-              ),
-
-              // Awan D
-              _cloud(
-                right: -18 + (-driftMed),
-                top: h * 0.29 + floatY,
-                w: 100,
-                h: 40,
-                opacity: 0.38,
-                flipX: true,
-                isDark: isDark,
-              ),
-
-              // Awan E
-              _cloud(
-                left: -30 + (driftSlow * 0.5),
-                top: h * 0.38 + (floatY * 0.6),
-                w: 82,
-                h: 34,
-                opacity: 0.36,
-                flipX: true,
-                isDark: isDark,
-              ),
-
-              // Awan F
-              _cloud(
-                right: -22 + (-driftMed * 0.7),
-                top: h * 0.47 + floatY,
-                w: 94,
-                h: 38,
-                opacity: 0.34,
-                flipX: false,
-                isDark: isDark,
-              ),
-
-              // Awan G
-              _cloud(
-                left: -26 + (driftMed * 0.6),
-                top: h * 0.56 + (floatY * 0.5),
-                w: 90,
-                h: 37,
-                opacity: 0.32,
-                flipX: false,
-                isDark: isDark,
-              ),
-
-              // Awan H
-              _cloud(
-                right: -20 + (-driftSlow * 0.4),
-                top: h * 0.65 + floatY,
-                w: 100,
-                h: 41,
-                opacity: 0.30,
-                flipX: true,
-                isDark: isDark,
-              ),
-
-              // Awan I
-              _cloud(
-                left: -28 + (driftSlow * 0.5),
-                top: h * 0.74 + (floatY * 0.6),
-                w: 86,
-                h: 35,
-                opacity: 0.28,
-                flipX: true,
-                isDark: isDark,
-              ),
-
-              // Awan J
-              _cloud(
-                right: -24 + (-driftMed * 0.6),
-                top: h * 0.83 + floatY,
-                w: 92,
-                h: 38,
-                opacity: 0.26,
-                flipX: false,
-                isDark: isDark,
-              ),
-
-              // Burung 1
-              Positioned(
-                left: _bird1X.value * w,
-                top: h * 0.08 + _bird1Y.value,
-                child: _PageBird(
-                  width: 20,
-                  height: 10,
-                  wingState: wing,
-                  color: birdColor1,
+              // Lapisan dasar halaman menyatu mulus dengan ujung bawah gradien header
+              Positioned.fill(
+                child: ColoredBox(
+                  color: isDark ? const Color(0xFF0B1014) : Colors.white,
                 ),
               ),
 
-              // Burung 2
-              Positioned(
-                left: _bird1X.value * w - 24,
-                top: h * 0.06 + _bird1Y.value * 0.8,
-                child: _PageBird(
-                  width: 14,
-                  height: 7,
-                  wingState: -wing * 0.85,
-                  color: birdColor2,
+              // Gradasi atmosfer transisi langit -> tepi atas ilustrasi PNG forest
+              if (showHorizon)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: transitionTop,
+                  bottom: 0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: isDark
+                            ? const [
+                                Color(0x000B1014),
+                                Color(0xFF091221),
+                                Color(0xFF06122B),
+                                Color(0xFF04112C),
+                                Color(0xFF051636),
+                                Color(0xFF05193A),
+                              ]
+                            : const [
+                                Color(0x00FFFFFF),
+                                Color(0xD8F2FBFE),
+                                Color(0xFFDCF6FA),
+                                Color(0xFFCBF2F4),
+                                Color(0xFFC2F1EC),
+                                Color(0xFFC9F3E9),
+                              ],
+                        stops: [
+                          0.0,
+                          joinStop * 0.45,
+                          joinStop * 0.88,
+                          joinStop,
+                          deepStop,
+                          1.0,
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
 
-              // Burung 3
-              Positioned(
-                left: _bird2X.value * w,
-                top: h * 0.17 + _bird2Y.value,
-                child: _PageBird(
-                  width: 15,
-                  height: 7.5,
-                  wingState: wing * 0.9,
-                  color: birdColorMid,
+              // Panorama awan horizon di ruang terbuka di atas forest PNG (tanpa menyentuh card)
+              if (showHorizon) ...[
+                // Horizon 1 — Kiri atas cakrawala
+                _cloud(
+                  left: 10 + (driftSlow * 0.55),
+                  top: footerTop - 84 + (floatY * 0.50),
+                  w: 108,
+                  h: 37,
+                  opacity: isDark ? 0.42 : 0.58,
+                  flipX: false,
+                  isDark: isDark,
+                  useSkyPalette: true,
+                  variant: ForestCloudVariant.asymmetric,
                 ),
-              ),
 
-              // Burung 4
-              Positioned(
-                left: _bird2X.value * w + 32,
-                top: h * 0.33 + (_bird2Y.value * 0.5),
-                child: _PageBird(
-                  width: 11,
-                  height: 5.5,
-                  wingState: -wing * 0.75,
-                  color: birdColorMid.withValues(alpha: 0.26),
+                // Horizon 2 — Kanan penyeimbang cakrawala
+                _cloud(
+                  right: 12 + (-driftMed * 0.60),
+                  top: footerTop - 68 - (floatY * 0.40),
+                  w: 112,
+                  h: 38,
+                  opacity: isDark ? 0.44 : 0.60,
+                  flipX: true,
+                  isDark: isDark,
+                  useSkyPalette: true,
+                  variant: ForestCloudVariant.asymmetric,
                 ),
-              ),
 
-              // Burung 5
-              Positioned(
-                left: _bird1X.value * w - 40,
-                top: h * 0.50 + (_bird1Y.value * 0.7),
-                child: _PageBird(
-                  width: 16,
-                  height: 8,
-                  wingState: wing * 0.8,
-                  color: birdColorMid.withValues(alpha: 0.30),
+                // Horizon 3 — Awan jauh bagian tengah atas
+                _cloud(
+                  left: (w * 0.43) + (driftSlow * 0.40),
+                  top: footerTop - 86 + (floatY * 0.35),
+                  w: 72,
+                  h: 26,
+                  opacity: isDark ? 0.26 : 0.42,
+                  flipX: true,
+                  isDark: isDark,
+                  useSkyPalette: true,
+                  variant: ForestCloudVariant.compact,
                 ),
-              ),
 
-              // Burung 6
-              Positioned(
-                left: _bird2X.value * w - 20,
-                top: h * 0.68 + (_bird2Y.value * 0.8),
-                child: _PageBird(
-                  width: 13,
-                  height: 6.5,
-                  wingState: -wing * 0.7,
-                  color: birdColorMid.withValues(alpha: 0.26),
+                // Horizon 4 — Awan rendah lembah kiri-tengah menyatu ke gradien forest PNG
+                _cloud(
+                  left: (w * 0.16) + (driftMed * 0.45),
+                  top: footerTop - 32 + (floatY * 0.30),
+                  w: 118,
+                  h: 34,
+                  opacity: isDark ? 0.34 : 0.48,
+                  flipX: false,
+                  isDark: isDark,
+                  useSkyPalette: true,
+                  variant: ForestCloudVariant.elongated,
                 ),
-              ),
 
-              // Burung 7
-              Positioned(
-                left: _bird1X.value * w + 20,
-                top: h * 0.86 + (_bird1Y.value * 0.6),
-                child: _PageBird(
-                  width: 12,
-                  height: 6,
-                  wingState: wing * 0.7,
-                  color: birdColorMid.withValues(alpha: 0.22),
+                // Horizon 5 — Kabut awan kanan-rendah membaur lembut ke balik ShaderMask forest PNG
+                _cloud(
+                  right: (w * 0.08) - (driftSlow * 0.35),
+                  top: footerTop - 18 + (floatY * 0.25),
+                  w: 94,
+                  h: 28,
+                  opacity: isDark ? 0.28 : 0.42,
+                  flipX: true,
+                  isDark: isDark,
+                  useSkyPalette: true,
+                  variant: ForestCloudVariant.elongated,
                 ),
-              ),
+              ],
+
+              // Siluet burung melintas di cakrawala terbuka di atas pucuk hutan (hanya mode siang)
+              if (!isDark && showHorizon) ...[
+                Positioned(
+                  left: _bird1X.value * w,
+                  top: footerTop - 74 + _bird1Y.value,
+                  child: _PageBird(
+                    width: 18,
+                    height: 9,
+                    wingState: wing,
+                    color: birdColor1,
+                  ),
+                ),
+                Positioned(
+                  left: _bird1X.value * w - 24,
+                  top: footerTop - 82 + (_bird1Y.value * 0.8),
+                  child: _PageBird(
+                    width: 13,
+                    height: 6.5,
+                    wingState: -wing * 0.85,
+                    color: birdColor2,
+                  ),
+                ),
+                Positioned(
+                  left: _bird2X.value * w - 16,
+                  top: footerTop - 42 + (_bird2Y.value * 0.7),
+                  child: _PageBird(
+                    width: 13,
+                    height: 6.5,
+                    wingState: -wing * 0.7,
+                    color: birdColor2,
+                  ),
+                ),
+              ],
             ],
           );
         },
@@ -368,18 +335,23 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
     required double opacity,
     required bool flipX,
     required bool isDark,
+    bool useSkyPalette = false,
+    ForestCloudVariant variant = ForestCloudVariant.asymmetric,
   }) {
-    Widget cloud = CustomPaint(
-      size: Size(w, h),
-      painter: _SubtleCloudPainter(opacity: opacity, isDark: isDark),
-    );
-    if (flipX) cloud = Transform.flip(flipX: true, child: cloud);
     return Positioned(
       left: left,
       right: right,
       top: top,
       bottom: bottom,
-      child: cloud,
+      child: ForestCloudWidget(
+        width: w,
+        height: h,
+        isNight: isDark,
+        opacity: opacity,
+        flipHorizontal: flipX,
+        isHeader: useSkyPalette,
+        variant: variant,
+      ),
     );
   }
 }
@@ -419,123 +391,51 @@ class _PageBirdPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final midX = w * 0.5;
-    final bodyY = h * 0.65;
-    final wingArchY = (h * 0.15) - (wingState * h * 0.32);
+    final cx = w * 0.5;
 
-    final path = Path()
-      ..moveTo(0, h * 0.48 + (wingState * h * 0.18))
-      ..quadraticBezierTo(w * 0.22, wingArchY, midX, bodyY)
-      ..quadraticBezierTo(
-        w * 0.78,
-        wingArchY,
-        w,
-        h * 0.48 + (wingState * h * 0.18),
-      );
+    final tipY = h * 0.36 + (wingState * h * 0.34);
+    final elbowY = h * 0.26 + (wingState * h * 0.18);
+
+    final path = Path();
+    // Paruh & kepala halus
+    path.moveTo(cx, h * 0.22);
+
+    // Sayap kiri: Bahu -> Siku -> Ujung sayap meruncing
+    path.quadraticBezierTo(cx - w * 0.10, h * 0.28, cx - w * 0.26, elbowY);
+    path.quadraticBezierTo(cx - w * 0.38, tipY - h * 0.06, 0, tipY);
+    path.quadraticBezierTo(
+      cx - w * 0.32,
+      tipY + h * 0.22,
+      cx - w * 0.07,
+      h * 0.58,
+    );
+
+    // Ekor kipas stabil
+    path.lineTo(cx - w * 0.05, h * 0.78);
+    path.quadraticBezierTo(cx, h * 0.90, cx + w * 0.05, h * 0.78);
+
+    // Sayap kanan
+    path.lineTo(cx + w * 0.07, h * 0.58);
+    path.quadraticBezierTo(
+      cx + w * 0.32,
+      tipY + h * 0.22,
+      w,
+      tipY,
+    );
+    path.quadraticBezierTo(cx + w * 0.38, tipY - h * 0.06, cx + w * 0.26, elbowY);
+    path.quadraticBezierTo(cx + w * 0.10, h * 0.28, cx, h * 0.22);
+    path.close();
 
     canvas.drawPath(
       path,
       Paint()
         ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
+        ..style = PaintingStyle.fill
+        ..isAntiAlias = true,
     );
   }
 
   @override
   bool shouldRepaint(covariant _PageBirdPainter old) =>
       old.wingState != wingState || old.color != color;
-}
-
-class _SubtleCloudPainter extends CustomPainter {
-  final double opacity;
-  final bool isDark;
-  const _SubtleCloudPainter({required this.opacity, this.isDark = false});
-
-  Path _silhouette(double w, double h) {
-    Path union(List<Path> parts) {
-      Path r = parts.first;
-      for (final p in parts.skip(1)) {
-        r = Path.combine(PathOperation.union, r, p);
-      }
-      return r;
-    }
-
-    // Gumpalan dasar (badan awan, agak rata di bawah — seperti kumulus asli)
-    return union([
-      Path()..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(w * 0.05, h * 0.46, w * 0.90, h * 0.42),
-          Radius.circular(h * 0.21),
-        ),
-      ),
-      Path()..addOval(Rect.fromLTWH(w * 0.00, h * 0.30, w * 0.28, h * 0.48)),
-      Path()..addOval(Rect.fromLTWH(w * 0.14, h * 0.15, w * 0.30, h * 0.52)),
-      Path()..addOval(Rect.fromLTWH(w * 0.28, h * 0.02, w * 0.30, h * 0.62)),
-      Path()..addOval(Rect.fromLTWH(w * 0.44, h * 0.08, w * 0.26, h * 0.56)),
-      Path()..addOval(Rect.fromLTWH(w * 0.58, h * 0.17, w * 0.28, h * 0.50)),
-      Path()..addOval(Rect.fromLTWH(w * 0.76, h * 0.28, w * 0.22, h * 0.42)),
-      // Puff kecil tambahan di atas — memberi tekstur bergerombol seperti awan asli
-      Path()..addOval(Rect.fromLTWH(w * 0.10, h * 0.34, w * 0.14, h * 0.22)),
-      Path()..addOval(Rect.fromLTWH(w * 0.38, h * 0.00, w * 0.16, h * 0.20)),
-      Path()..addOval(Rect.fromLTWH(w * 0.66, h * 0.10, w * 0.14, h * 0.20)),
-      Path()..addOval(Rect.fromLTWH(w * 0.86, h * 0.36, w * 0.10, h * 0.18)),
-    ]);
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final sil = _silhouette(w, h);
-    final a = opacity.clamp(0.0, 1.0);
-
-    final cloudTint = isDark
-        ? const Color(0xFF2C363D)
-        : const Color(0xFFD3E6FA);
-    final fillPaint = Paint()
-      ..color = cloudTint.withValues(alpha: isDark ? a * 0.35 : a)
-      ..style = PaintingStyle.fill
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, h * 0.012);
-
-    canvas.drawPath(sil, fillPaint);
-
-    canvas.save();
-    canvas.clipPath(sil);
-    canvas.clipRect(Rect.fromLTWH(0, 0, w, h * 0.42));
-    canvas.drawPath(
-      sil,
-      Paint()
-        ..color = (isDark ? const Color(0xFF2C363D) : Colors.white)
-            .withValues(alpha: (isDark ? a * 0.25 : a * 0.6).clamp(0.0, 1.0))
-        ..style = PaintingStyle.fill
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, h * 0.02),
-    );
-    canvas.restore();
-
-    canvas.save();
-    canvas.clipPath(sil);
-    final sr = Rect.fromLTWH(0, h * 0.40, w, h * 0.60);
-    canvas.drawRect(
-      sr,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            (isDark ? const Color(0xFF0B1014) : const Color(0xFF9FC0E8))
-                .withValues(alpha: 0.0),
-            (isDark ? const Color(0xFF0B1014) : const Color(0xFF9FC0E8))
-                .withValues(alpha: (0.30 * a + 0.10).clamp(0.0, 1.0)),
-          ],
-        ).createShader(sr),
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _SubtleCloudPainter old) =>
-      old.opacity != opacity || old.isDark != isDark;
 }

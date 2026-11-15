@@ -268,7 +268,7 @@ class _PesanCepatWidgetState extends State<PesanCepatWidget> {
                 child: ListView.separated(
                   padding: EdgeInsets.zero,
                   shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   itemCount: templates.length,
                   separatorBuilder: (_, _) =>
                       Divider(height: 1, thickness: 0.8, color: dividerColor),
