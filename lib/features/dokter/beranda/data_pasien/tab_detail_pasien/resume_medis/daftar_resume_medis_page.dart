@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../../core/services/resume_medis_service.dart';
@@ -25,10 +25,15 @@ class DaftarResumeMedisPage extends StatefulWidget {
 class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage>
     with SingleTickerProviderStateMixin {
   // Palet Warna Resmi PediaGrow
+  // ignore: unused_field
   static const Color _colorPrimaryBlue = Color(0xFF3985E7);
+  // ignore: unused_field
   static const Color _colorTextBlack = Color(0xFF1A2228);
+  // ignore: unused_field
   static const Color _colorLabelGrey = Color(0xFF667781);
+  // ignore: unused_field
   static const Color _colorCardBg = Color(0xFFFFFFFF);
+  // ignore: unused_field
   static const Color _colorBorder = Color(0xFFE9EDEF);
 
   final TextEditingController _searchController = TextEditingController();

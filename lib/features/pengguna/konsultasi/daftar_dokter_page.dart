@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -113,10 +113,10 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
               begin: const Offset(1.0, 0.0),
               end: Offset.zero,
             ).animate(curvedAnimation),
-            child: FadeTransition(opacity: animation, child: child),
+            child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 300),
+        transitionDuration: const Duration(milliseconds: 220),
       ),
     );
   }
@@ -127,7 +127,7 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
         pageBuilder: (context, animation, secondaryAnimation) =>
             const NotifikasiPage(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
+          return child;
         },
         transitionDuration: const Duration(milliseconds: 200),
       ),
@@ -156,8 +156,9 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                   animation,
                   secondaryAnimation,
                   child,
-                ) => FadeTransition(opacity: animation, child: child),
-                transitionDuration: const Duration(milliseconds: 200),
+                ) => child,
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
               ),
               (route) => false,
             );

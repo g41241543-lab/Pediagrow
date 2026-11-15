@@ -1,9 +1,9 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/soal_model.dart';
-import 'widgets/game_forest_silhouette_footer.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import 'game_controller.dart';
 import 'game_mulai_page.dart';
 
@@ -94,7 +94,7 @@ class GameSkorAkhirPage extends StatelessWidget {
               left: 0,
               right: 0,
               child: IgnorePointer(
-                child: GameForestSilhouetteFooter(height: 160),
+                child: IllustrationForestFooter(fit: BoxFit.fitWidth),
               ),
             ),
 
@@ -175,7 +175,7 @@ class GameSkorAkhirPage extends StatelessWidget {
 
                         // ── Padding bottom agar tombol tidak tertutup ilustrasi
                         // 160px (tinggi ilustrasi) + 20px extra
-                        const SizedBox(height: 180),
+                        const SizedBox(height: 220),
                       ],
                     ),
                   ),

@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -77,8 +77,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const BerandaDokterPage(),
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
         (route) => false,
       );
@@ -104,7 +105,7 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
       PageRouteBuilder(
         pageBuilder: (_, _, _) => targetPage,
         transitionsBuilder: (_, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
+            child,
         transitionDuration: const Duration(milliseconds: 200),
       ),
     );

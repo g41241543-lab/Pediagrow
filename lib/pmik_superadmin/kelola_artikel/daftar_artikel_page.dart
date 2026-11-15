@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/artikel_service.dart';
@@ -761,7 +761,7 @@ class _DaftarArtikelPageState extends State<DaftarArtikelPage> {
               begin: const Offset(0.05, 0.0),
               end: Offset.zero,
             ).animate(curved),
-            child: FadeTransition(opacity: curved, child: child),
+            child: child,
           );
         },
         transitionDuration: const Duration(milliseconds: 250),

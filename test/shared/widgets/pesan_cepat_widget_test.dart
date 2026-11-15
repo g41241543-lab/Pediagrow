@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/shared/widgets/pesan_cepat_widget.dart';
 
@@ -6,6 +6,7 @@ void main() {
   testWidgets('PesanCepatWidget renders properly and sends message on tap',
       (tester) async {
     String? sentMessage;
+    // ignore: unused_local_variable
     String? copiedMessage;
 
     await tester.pumpWidget(

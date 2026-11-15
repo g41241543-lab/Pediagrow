@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -80,8 +80,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const BerandaSuperadminPage(),
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
         (route) => false,
       );
@@ -93,8 +94,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const KonsultasiSuperadminPage(),
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
       );
       return;
@@ -106,8 +108,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
           pageBuilder: (_, _, _) =>
               const DaftarRiwayatKonsultasiAdminPage(),
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
       );
       return;
@@ -118,8 +121,9 @@ class _DaftarPenggunaPageState extends State<DaftarPenggunaPage> {
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const ProfilSuperadminPage(),
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
       );
       return;

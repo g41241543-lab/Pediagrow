@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -50,7 +50,9 @@ class DetailAnakPage extends StatefulWidget {
 class _DetailAnakPageState extends State<DetailAnakPage> {
   static const Color _colorPrimaryBlue = Color(0xFF2B7AE8);
   static const Color _colorButtonBg = Color(0xFFEBF5FF);
+  // ignore: unused_field
   static const Color _colorTableBorder = Color(0xFFE9EDEF);
+  // ignore: unused_field
   static const Color _colorTableHeader = Color(0xFFE9F4FF);
   static const Color _colorLabelGrey = Color(0xFF667781);
   static const Color _colorTextBlack = Color(0xFF000000);
@@ -200,7 +202,7 @@ class _DetailAnakPageState extends State<DetailAnakPage> {
         pageBuilder: (_, _, _) =>
             DaftarResumeMedisPage(child: _currentChild, user: widget.user),
         transitionsBuilder: (_, animation, _, childWidget) =>
-            FadeTransition(opacity: animation, child: childWidget),
+            childWidget,
         transitionDuration: const Duration(milliseconds: 200),
       ),
     );

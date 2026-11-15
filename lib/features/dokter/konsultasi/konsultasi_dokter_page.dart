@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -19,6 +19,7 @@ import '../../../shared/widgets/pedia_interactive_hover_card.dart';
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
 const Color _colorTextBlack = Color(0xFF1A2228);
 const Color _colorLabelGrey = Color(0xFF667781);
+// ignore: unused_element
 const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk dokter.
@@ -709,7 +710,7 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                         PageRouteBuilder(
                           pageBuilder: (ctx, anim, anim2) => const BerandaDokterPage(),
                           transitionsBuilder: (ctx, animation, secAnim, child) =>
-                              FadeTransition(opacity: animation, child: child),
+                              child,
                           transitionDuration: const Duration(milliseconds: 200),
                         ),
                         (route) => false,

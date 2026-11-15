@@ -302,10 +302,10 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
               begin: const Offset(0.05, 0.0),
               end: Offset.zero,
             ).animate(curved),
-            child: FadeTransition(opacity: curved, child: child),
+            child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 250),
+        transitionDuration: const Duration(milliseconds: 220),
       ),
     );
   }
@@ -319,8 +319,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
           pageBuilder: (context, animation, secondaryAnimation) =>
               const BerandaPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-              FadeTransition(opacity: animation, child: child),
-          transitionDuration: const Duration(milliseconds: 200),
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
         (route) => false,
       );

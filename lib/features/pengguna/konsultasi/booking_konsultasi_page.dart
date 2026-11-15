@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -655,7 +655,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           pageBuilder: (context, anim, secAnim) =>
                               StatusBookingPage(booking: booking),
                           transitionsBuilder: (context, anim, secAnim, child) =>
-                              FadeTransition(opacity: anim, child: child),
+                              child,
                           transitionDuration: const Duration(milliseconds: 300),
                         ),
                       );

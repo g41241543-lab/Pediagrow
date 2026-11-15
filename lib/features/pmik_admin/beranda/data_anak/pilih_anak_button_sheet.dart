@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -159,7 +159,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
             pageBuilder: (_, _, _) =>
                 DetailAnakPage(child: child, user: user),
             transitionsBuilder: (_, animation, _, childWidget) =>
-                FadeTransition(opacity: animation, child: childWidget),
+                childWidget,
             transitionDuration: const Duration(milliseconds: 200),
           ),
         );
@@ -206,7 +206,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
             pageBuilder: (_, _, _) =>
                 PertumbuhanGrafikPage(child: child),
             transitionsBuilder: (_, animation, _, childWidget) =>
-                FadeTransition(opacity: animation, child: childWidget),
+                childWidget,
             transitionDuration: const Duration(milliseconds: 200),
           ),
         );

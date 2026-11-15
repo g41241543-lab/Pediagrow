@@ -133,11 +133,14 @@ class PediaBottomNavBar extends StatelessWidget {
     if (removeUntil) {
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
+          // Tab navbar: transisi INSTAN, halaman baru langsung tampil solid
+          // tanpa fade agar halaman lama tidak tembus ke depan (ghost effect).
           pageBuilder: (context, animation, secondaryAnimation) => targetPage,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
+            return child;
           },
-          transitionDuration: const Duration(milliseconds: 200),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
         (route) => false,
       );
@@ -146,9 +149,10 @@ class PediaBottomNavBar extends StatelessWidget {
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => targetPage,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
+            return child;
           },
-          transitionDuration: const Duration(milliseconds: 200),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
       );
     }

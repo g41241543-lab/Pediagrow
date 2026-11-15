@@ -1,11 +1,11 @@
-﻿import '../../../core/services/soal_service.dart';
+import 'dart:math';
+
+import '../../../core/services/soal_service.dart';
 import '../../../models/soal_model.dart';
 
-/// Controller sederhana (tanpa package eksternal) untuk mengatur
-/// logika putaran kuis: memuat soal dari JSON, mengacak, dan
-/// menyediakan 10 soal unik per putaran.
-///
-/// Dipakai langsung di GameMulaiPage untuk men-generate putaran baru.
+/// Controller untuk mengatur logika putaran kuis:
+/// memuat bank soal aktif, mengacak secara acak tanpa duplikat,
+/// dan menyediakan 10 soal unik per putaran kuis User.
 class GameController {
   /// Jumlah soal per putaran kuis
   static const int totalSoalPerPutaran = 10;
@@ -26,31 +26,31 @@ class GameController {
   // LOAD & SHUFFLE
   // ──────────────────────────────────────────────────────────────────
 
-  /// Memuat bank soal secara instan dari cache SoalService atau asset lokal.
-  static Future<List<SoalModel>> _loadBankSoal() async {
-    final cached = SoalService.cachedSoal;
-    if (cached != null && cached.isNotEmpty) {
-      return List<SoalModel>.from(cached);
-    }
-    return SoalService.loadInitialSoal();
-  }
-
-  /// Menghasilkan daftar [totalSoalPerPutaran] soal unik yang sudah diacak
-  /// untuk satu putaran kuis baru.
+  /// Menghasilkan daftar [totalSoalPerPutaran] (10) soal unik yang sudah diacak
+  /// dari seluruh bank soal yang berstatus aktif.
   ///
-  /// Jika bank soal memiliki lebih dari [totalSoalPerPutaran] soal, diambil
-  /// sebanyak [totalSoalPerPutaran] secara acak tanpa duplikat.
-  /// Jika bank soal ≤ [totalSoalPerPutaran], semua soal dipakai (juga diacak).
+  /// - Mengambil seluruh soal aktif dari database / cache
+  /// - Mengacak menggunakan [Random] sehingga kombinasi & urutan selalu baru
+  /// - Bebas duplikasi dalam satu putaran kuis
+  /// - Soal baru yang ditambahkan Admin langsung ikut masuk ke dalam kolam kuis
   static Future<List<SoalModel>> generatePutaranBaru() async {
-    final rawBankSoal = await _loadBankSoal();
-    // Revisi S-1: Soal nomor 11 sampai 20 tidak diikutsertakan dalam pengacakan kuis
-    final bankSoal = rawBankSoal.where((s) => s.id <= 10).toList();
-    bankSoal.shuffle();
+    // Ambil soal aktif dari bank soal (seluruh 25 soal atau lebih)
+    final bankSoalAktif = await SoalService.getSoalAktif();
 
-    if (bankSoal.length <= totalSoalPerPutaran) {
-      return bankSoal;
+    // Fallback jika bank aktif masih kosong, muat soal awal
+    final List<SoalModel> pool = bankSoalAktif.isNotEmpty
+        ? List<SoalModel>.from(bankSoalAktif)
+        : (await SoalService.loadInitialSoal()).where((s) => s.isActive).toList();
+
+    // Acak seluruh bank soal
+    final random = Random();
+    pool.shuffle(random);
+
+    // Ambil 10 soal pertama dari hasil acak tanpa duplikat
+    if (pool.length <= totalSoalPerPutaran) {
+      return pool;
     }
-    return bankSoal.sublist(0, totalSoalPerPutaran);
+    return pool.sublist(0, totalSoalPerPutaran);
   }
 
   // ──────────────────────────────────────────────────────────────────

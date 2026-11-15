@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/local_push_service.dart';
 import '../../../models/soal_model.dart';
-import 'widgets/game_forest_silhouette_footer.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import 'game_controller.dart';
 import 'game_soal_page.dart';
 
@@ -102,7 +102,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
             left: 0,
             right: 0,
             child: IgnorePointer(
-              child: GameForestSilhouetteFooter(height: 160),
+              child: IllustrationForestFooter(fit: BoxFit.fitWidth),
             ),
           ),
 
@@ -118,7 +118,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
                     physics: const BouncingScrollPhysics(),
                     child: Padding(
                       // Padding bottom agar konten tidak tertutup ilustrasi
-                      padding: const EdgeInsets.only(bottom: 180),
+                      padding: const EdgeInsets.only(bottom: 220),
                       child: Column(
                         children: [
                           const SizedBox(height: 24),

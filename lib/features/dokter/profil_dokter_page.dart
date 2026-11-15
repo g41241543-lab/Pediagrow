@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -434,21 +434,10 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
       case 0:
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 280),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
             pageBuilder: (_, _, _) => const BerandaDokterPage(),
-            transitionsBuilder: (_, anim, _, child) => SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: const Offset(-0.25, 0.0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-                  ),
-              child: FadeTransition(
-                opacity: Tween<double>(begin: 0, end: 1).animate(anim),
-                child: child,
-              ),
-            ),
+            transitionsBuilder: (_, anim, _, child) => child,
           ),
           (r) => false,
         );
@@ -463,20 +452,13 @@ class _ProfilDokterPageState extends State<ProfilDokterPage> {
         return;
     }
 
+    // ignore: unused_local_variable
     final isLeft = index < _selectedIndex;
     final route = PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
       pageBuilder: (_, _, _) => targetPage,
-      transitionsBuilder: (_, anim, _, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: Offset(isLeft ? -0.25 : 0.25, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-        child: FadeTransition(
-          opacity: Tween<double>(begin: 0, end: 1).animate(anim),
-          child: child,
-        ),
-      ),
+      transitionsBuilder: (_, anim, _, child) => child,
     );
     Navigator.of(context).pushReplacement(route);
   }
