@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/child_service.dart';
+import '../../../../models/child_model.dart';
 import '../../../../models/riwayat_konsultasi_model.dart';
 import '../../../../shared/widgets/child_avatar.dart';
 
@@ -127,11 +129,51 @@ class _RiwayatConsultationCardState extends State<RiwayatConsultationCard> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Avatar Anak Profil Resmi
-                        ChildAvatar(
-                          gender: widget.riwayat.childGender,
-                          isGirl: isGirl,
-                          size: 46.0,
+                        // Avatar Anak Profil Resmi (Terhubung Real-Time ke Firebase)
+                        ValueListenableBuilder<List<ChildModel>>(
+                          valueListenable: ChildService().childrenNotifier,
+                          builder: (context, children, _) {
+                            ChildModel? matchedChild;
+                            if (widget.riwayat.childId.isNotEmpty) {
+                              matchedChild = children
+                                  .where((c) => c.id == widget.riwayat.childId)
+                                  .firstOrNull;
+                            }
+                            if (matchedChild == null) {
+                              final targetName =
+                                  widget.riwayat.childName.trim().toLowerCase();
+                              matchedChild = children
+                                  .where((c) =>
+                                      c.name.trim().toLowerCase() == targetName)
+                                  .firstOrNull;
+                            }
+
+                            final effectivePhotoUrl = (matchedChild?.photoUrl !=
+                                        null &&
+                                    matchedChild!.photoUrl!.trim().isNotEmpty)
+                                ? matchedChild.photoUrl!.trim()
+                                : (widget.riwayat.childPhotoUrl != null &&
+                                        widget.riwayat.childPhotoUrl!
+                                            .trim()
+                                            .isNotEmpty)
+                                    ? widget.riwayat.childPhotoUrl!.trim()
+                                    : null;
+
+                            final effectiveGender =
+                                matchedChild?.gender ?? widget.riwayat.childGender;
+                            final isGirlChild = ChildAvatar.isFemaleGender(
+                              gender: effectiveGender,
+                              isGirl: isGirl,
+                            );
+
+                            return ChildAvatar(
+                              photoUrl: effectivePhotoUrl,
+                              child: matchedChild,
+                              gender: effectiveGender,
+                              isGirl: isGirlChild,
+                              size: 46.0,
+                            );
+                          },
                         ),
                         const SizedBox(width: 12.0),
                         Expanded(

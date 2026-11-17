@@ -328,7 +328,7 @@ class BookingService {
       tanggal: date,
     );
 
-    return slots.map((slot) {
+    final mapped = slots.map((slot) {
       final hour = slot.startDateTime.hour;
       String period = 'Pagi';
       if (hour >= 11 && hour < 15) {
@@ -347,6 +347,25 @@ class BookingService {
         isAvailable: slot.isAvailable,
       );
     }).toList();
+
+    // Deduplikasi dan urutkan slot dari yang terawal hingga terakhir
+    final Map<String, DoctorTimeSlot> uniqueSlots = {};
+    for (final slot in mapped) {
+      if (!uniqueSlots.containsKey(slot.time)) {
+        uniqueSlots[slot.time] = slot;
+      } else if (!slot.isAvailable && uniqueSlots[slot.time]!.isAvailable) {
+        uniqueSlots[slot.time] = slot;
+      }
+    }
+
+    final sorted = uniqueSlots.values.toList()
+      ..sort((a, b) {
+        final aMinutes = (a.startHour * 60) + a.startMinute;
+        final bMinutes = (b.startHour * 60) + b.startMinute;
+        return aMinutes.compareTo(bMinutes);
+      });
+
+    return sorted;
   }
 
   /// Membuat booking baru dengan validasi race condition dan persistensi ke Cloud Firestore

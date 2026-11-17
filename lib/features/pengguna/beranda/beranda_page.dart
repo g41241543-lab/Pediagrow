@@ -366,11 +366,11 @@ class _BerandaPageState extends State<BerandaPage> {
             : missingChildren.first;
 
         // Subteks dinamis:
-        // Jika 1 anak: "Untuk data rekam medis anak"
+        // Jika 1 anak: "Untuk kelengkapan data anak"
         // Jika >1 anak: "N anak belum memiliki data KK"
         final String subText = missingChildren.length > 1
             ? '${missingChildren.length} anak belum memiliki data KK'
-            : 'Untuk data rekam medis anak';
+            : 'Untuk kelengkapan data anak';
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
@@ -1156,7 +1156,7 @@ class _BerandaPageState extends State<BerandaPage> {
     required String imageAsset,
     required VoidCallback onTap,
     double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
-    double imageSize = 48, // ukuran logo pas & proporsional
+    double imageSize = 56, // ukuran logo proporsional, pas & gagah mengisi ruang
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1167,42 +1167,114 @@ class _BerandaPageState extends State<BerandaPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card Menu: tetap kotak (1:1), proporsional sesuai tema aplikasi Pediagrow
+          // Card Menu: Flat Modern Squircle (Rata, Elegan, Selaras dengan Card Lainnya)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: cardInset),
             child: AspectRatio(
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1A2228)
-                      : const Color(0xFFECF6FF),
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            const Color(0xFF1D252C),
+                            const Color(0xFF171E24),
+                          ]
+                        : [
+                            const Color(0xFFEAF4FF),
+                            const Color(0xFFD4EBFE),
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isDark
-                        ? const Color(0xFF2C3943)
-                        : const Color(0xFFDCE8F4),
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFCCE4FB),
                     width: 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.25)
-                          : const Color(0xFF3985E7).withValues(alpha: 0.06),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   child: Stack(
-                    fit: StackFit.expand,
                     children: [
-                      // Dekorasi sudut tematik ramah anak (model awal diperbarui dengan kontur halus)
-                      _buildThematicTileDecoration(title),
+                      // Layer 1: Gelembung Lembut di Sudut Kanan Atas (Tampak Jelas & Rapi)
+                      Positioned(
+                        top: -14,
+                        right: -14,
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.035)
+                                : Colors.white.withValues(alpha: 0.45),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.white.withValues(alpha: 0.65),
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
 
-                      // Logo Icon Menu Utama
+                      // Layer 2: Gelembung Lembut di Sudut Kiri Bawah (Tampak Jelas & Rapi)
+                      Positioned(
+                        bottom: -16,
+                        left: -14,
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.025)
+                                : Colors.white.withValues(alpha: 0.35),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.white.withValues(alpha: 0.55),
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Layer 3: Micro Sparkles (✦) Bintang Kontras & Berkilau Jelas
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 8.5,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.30)
+                              : Colors.white.withValues(alpha: 0.95),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 12,
+                        right: 12,
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 6.5,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.25)
+                              : Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+
+                      // Layer 4: Logo / Ikon Menu (Rata di Permukaan Card)
                       Center(
                         child: Transform.translate(
                           offset: Offset(logoOffsetX, 0),
@@ -1250,84 +1322,122 @@ class _BerandaPageState extends State<BerandaPage> {
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : const Color(0xFFECF6FF),
-        borderRadius: BorderRadius.circular(10),
-        border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1D252C),
+                  const Color(0xFF171E24),
+                ]
+              : [
+                  const Color(0xFFEAF4FF),
+                  const Color(0xFFD4EBFE),
+                ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFCCE4FB),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.25)
-                : const Color(0xFF3985E7).withValues(alpha: 0.07),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Ilustrasi Bayi PediaGrow (gambar 7)
-          SizedBox(
-            width: 84,
-            height: 94,
-            child: Image.asset(
-              'assets/images/bayi_pediagrow_logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.child_care_rounded,
-                size: 50,
-                color: Color(0xFF3985E7),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Micro Sparkle (✦) di Sudut Kanan Atas
+            Positioned(
+              top: 12,
+              right: 14,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 8.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.30)
+                    : Colors.white.withValues(alpha: 0.95),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          // Teks PediaGrow & Tagline
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // "Pedia" (#4B83D6) & "Grow" (#3CC3A6) Baloo 2 Bold 18
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Pedia',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF4B83D6),
-                        ),
+
+            // Konten Baris: Ilustrasi & Teks
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Ilustrasi Bayi PediaGrow
+                  SizedBox(
+                    width: 84,
+                    height: 94,
+                    child: Image.asset(
+                      'assets/images/bayi_pediagrow_logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.child_care_rounded,
+                        size: 50,
+                        color: Color(0xFF3985E7),
                       ),
-                      TextSpan(
-                        text: 'Grow',
-                        style: GoogleFonts.baloo2(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF3CC3A6),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  // Teks PediaGrow & Tagline
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // "Pedia" (#4B83D6) & "Grow" (#3CC3A6) Baloo 2 Bold 18
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Pedia',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF4B83D6),
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Grow',
+                                style: GoogleFonts.baloo2(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF3CC3A6),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        // Tagline
+                        Text(
+                          'Pantau Pertumbuhan,\nCegah Stunting untuk Masa Depan',
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                            color: isDark
+                                ? const Color(0xFFD1D7DB)
+                                : const Color(0xFF000000),
+                            height: 1.25,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                // Tagline "Pantau Pertumbuhan, Cegah Stunting untuk Masa Depan"
-                Text(
-                  'Pantau Pertumbuhan,\nCegah Stunting untuk Masa Depan',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                    color: isDark
-                        ? const Color(0xFFD1D7DB)
-                        : const Color(0xFF000000),
-                    height: 1.25,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -2037,254 +2147,7 @@ class _BerandaPageState extends State<BerandaPage> {
     );
   }
 
-  /// Dekorasi sudut tematik ramah anak (Pediatric Thematic Corner):
-  /// - Terinspirasi dari konsep awal Pediagrow namun dimodernisasi agar rapi, simetris, dan elegan
-  /// - Sudut kanan atas: Kurva petal/organik lembut yang menyatu anggun di sudut kartu dengan hairline accent
-  /// Dekorasi pola/blob tematik di dalam tile menu sesuai model awal
-  /// Menggunakan siluet geometris tematik orisinal:
-  /// - Stunting: Lingkaran & perisai kesehatan
-  /// - Grafik: Kurva lengkung pertumbuhan
-  /// - MPASI: Siluet mangkuk bernutrisi organik
-  /// - Artikel: Siluet lembaran dokumen bacaan
-  /// - Fasyankes: Radar fasyankes kesehatan
-  /// - Permainan: Tile ceria & bintang anak
-  /// Diperbarui dengan hairline border kontur halus dan directional gradient
-  /// agar di Dark Mode tampil terstruktur & rapi, BUKAN efek glow/hover AI.
-  Widget _buildThematicTileDecoration(String title) {
-    final cleanTitle = title.replaceAll('\n', ' ').trim().toLowerCase();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Color primaryAccent;
-    Color secondaryAccent;
-
-    if (cleanTitle.contains('stunting')) {
-      primaryAccent = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
-      secondaryAccent = isDark ? const Color(0xFF0284C7) : const Color(0xFF60A5FA);
-    } else if (cleanTitle.contains('grafik')) {
-      primaryAccent = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0D9488);
-      secondaryAccent = isDark ? const Color(0xFF059669) : const Color(0xFF5EEAD4);
-    } else if (cleanTitle.contains('mpasi')) {
-      primaryAccent = isDark ? const Color(0xFF34D399) : const Color(0xFF059669);
-      secondaryAccent = isDark ? const Color(0xFF10B981) : const Color(0xFF6EE7B7);
-    } else if (cleanTitle.contains('artikel')) {
-      primaryAccent = isDark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5);
-      secondaryAccent = isDark ? const Color(0xFF6366F1) : const Color(0xFFA5B4FC);
-    } else if (cleanTitle.contains('fasyankes')) {
-      primaryAccent = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7);
-      secondaryAccent = isDark ? const Color(0xFF0EA5E9) : const Color(0xFF7DD3FC);
-    } else {
-      primaryAccent = isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
-      secondaryAccent = isDark ? const Color(0xFFF59E0B) : const Color(0xFFFDE68A);
-    }
-
-    Widget buildDeco({
-      required double width,
-      required double height,
-      BorderRadius? borderRadius,
-      bool isCircle = false,
-      double fillAlphaDark = 0.14,
-      double fillAlphaLight = 0.08,
-      double strokeAlphaDark = 0.28,
-      double strokeAlphaLight = 0.16,
-    }) {
-      return Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
-          borderRadius: isCircle ? null : borderRadius,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              primaryAccent.withValues(
-                alpha: isDark ? fillAlphaDark : fillAlphaLight,
-              ),
-              secondaryAccent.withValues(
-                alpha: isDark ? (fillAlphaDark * 0.4) : (fillAlphaLight * 0.4),
-              ),
-            ],
-          ),
-          border: Border.all(
-            color: primaryAccent.withValues(
-              alpha: isDark ? strokeAlphaDark : strokeAlphaLight,
-            ),
-            width: 1.0,
-          ),
-        ),
-      );
-    }
-
-    Widget deco;
-
-    if (cleanTitle.contains('stunting')) {
-      // 1. Cek Stunting: Aksen lingkaran & perisai kesehatan
-      deco = Stack(
-        children: [
-          Positioned(
-            top: -12,
-            right: -12,
-            child: buildDeco(width: 46, height: 46, isCircle: true),
-          ),
-          Positioned(
-            bottom: -8,
-            left: -8,
-            child: buildDeco(
-              width: 34,
-              height: 34,
-              isCircle: true,
-              fillAlphaDark: 0.10,
-              fillAlphaLight: 0.05,
-              strokeAlphaDark: 0.22,
-              strokeAlphaLight: 0.12,
-            ),
-          ),
-        ],
-      );
-    } else if (cleanTitle.contains('grafik')) {
-      // 2. Grafik Pertumbuhan: Aksen kurva pertumbuhan
-      deco = Stack(
-        children: [
-          Positioned(
-            bottom: -15,
-            right: -10,
-            child: buildDeco(
-              width: 55,
-              height: 55,
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-          Positioned(
-            top: -6,
-            left: -6,
-            child: buildDeco(
-              width: 28,
-              height: 28,
-              isCircle: true,
-              fillAlphaDark: 0.10,
-              fillAlphaLight: 0.05,
-              strokeAlphaDark: 0.22,
-              strokeAlphaLight: 0.12,
-            ),
-          ),
-        ],
-      );
-    } else if (cleanTitle.contains('mpasi')) {
-      // 3. Resep MPASI: Aksen mangkuk bernutrisi organik
-      deco = Stack(
-        children: [
-          Positioned(
-            top: -10,
-            left: -10,
-            child: buildDeco(
-              width: 48,
-              height: 48,
-              borderRadius: const BorderRadius.only(
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -10,
-            right: -8,
-            child: buildDeco(
-              width: 36,
-              height: 36,
-              isCircle: true,
-              fillAlphaDark: 0.10,
-              fillAlphaLight: 0.05,
-              strokeAlphaDark: 0.22,
-              strokeAlphaLight: 0.12,
-            ),
-          ),
-        ],
-      );
-    } else if (cleanTitle.contains('artikel')) {
-      // 4. Artikel Kesehatan: Aksen lembaran dokumen bacaan
-      deco = Stack(
-        children: [
-          Positioned(
-            top: -10,
-            right: -10,
-            child: buildDeco(
-              width: 50,
-              height: 50,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 6,
-            left: 6,
-            child: buildDeco(
-              width: 14,
-              height: 14,
-              isCircle: true,
-              fillAlphaDark: 0.10,
-              fillAlphaLight: 0.05,
-              strokeAlphaDark: 0.22,
-              strokeAlphaLight: 0.12,
-            ),
-          ),
-        ],
-      );
-    } else if (cleanTitle.contains('fasyankes')) {
-      // 5. Lokasi Fasyankes: Aksen radar fasyankes
-      deco = Stack(
-        children: [
-          Positioned(
-            top: -15,
-            left: -15,
-            child: buildDeco(width: 56, height: 56, isCircle: true),
-          ),
-          Positioned(
-            bottom: -6,
-            right: -6,
-            child: buildDeco(
-              width: 32,
-              height: 32,
-              isCircle: true,
-              fillAlphaDark: 0.10,
-              fillAlphaLight: 0.05,
-              strokeAlphaDark: 0.22,
-              strokeAlphaLight: 0.12,
-            ),
-          ),
-        ],
-      );
-    } else {
-      // 6. Permainan: Aksen ceria sparkle & bintang
-      deco = Stack(
-        children: [
-          Positioned(
-            top: -10,
-            right: -10,
-            child: buildDeco(
-              width: 45,
-              height: 45,
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          Positioned(
-            bottom: -10,
-            left: -8,
-            child: buildDeco(
-              width: 38,
-              height: 38,
-              isCircle: true,
-              fillAlphaDark: 0.10,
-              fillAlphaLight: 0.05,
-              strokeAlphaDark: 0.22,
-              strokeAlphaLight: 0.12,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return IgnorePointer(child: deco);
-  }
 
   // ===================================================================
   // 3. ILUSTRASI FOOTER FULL-BLEED

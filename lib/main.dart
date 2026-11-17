@@ -1,4 +1,4 @@
-﻿import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -92,7 +92,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             physics: const ClampingScrollPhysics(),
             overscroll: false,
           ),
-          home: const SplashPage(),
+          home: const SplashPage(
+            animationDuration: Duration(milliseconds: 5000),
+          ),
         );
       },
     );

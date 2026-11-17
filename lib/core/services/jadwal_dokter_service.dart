@@ -524,6 +524,13 @@ class JadwalDokterService {
       return [];
     }
 
+    // Urutkan sesi praktik dokter berdasarkan jam mulai terawal
+    activeSessions.sort((a, b) {
+      final aMin = _timeToMinutes(a.jamMulai) ?? 0;
+      final bMin = _timeToMinutes(b.jamMulai) ?? 0;
+      return aMin.compareTo(bMin);
+    });
+
     // 2. Cek apakah ada cuti dokter pada tanggal ini
     final cutiDokter = getCutiDokter(dokterId);
     final cutiOnDate = cutiDokter.where((c) => c.berlakuPada(targetDate)).toList();
@@ -623,7 +630,16 @@ class JadwalDokterService {
       }
     }
 
-    return allSlots;
+    // Deduplikasi dan urutkan slot dari yang terawal hingga terakhir
+    final Map<String, SlotWaktuDokter> uniqueMap = {};
+    for (final slot in allSlots) {
+      uniqueMap.putIfAbsent(slot.timeLabel, () => slot);
+    }
+
+    final sortedSlots = uniqueMap.values.toList()
+      ..sort((a, b) => a.startDateTime.compareTo(b.startDateTime));
+
+    return sortedSlots;
   }
 
   /// Menghitung SEMUA slot waktu dokter pada tanggal tertentu beserta status ketersediaannya.
@@ -649,6 +665,13 @@ class JadwalDokterService {
         .toList();
 
     if (activeSessions.isEmpty) return [];
+
+    // Urutkan sesi praktik dokter berdasarkan jam mulai terawal
+    activeSessions.sort((a, b) {
+      final aMin = _timeToMinutes(a.jamMulai) ?? 0;
+      final bMin = _timeToMinutes(b.jamMulai) ?? 0;
+      return aMin.compareTo(bMin);
+    });
 
     final cutiDokter = getCutiDokter(dokterId);
     final cutiOnDate = cutiDokter.where((c) => c.berlakuPada(targetDate)).toList();
@@ -734,7 +757,25 @@ class JadwalDokterService {
       }
     }
 
-    return allSlots;
+    // Deduplikasi dan urutkan slot dari yang terawal hingga terakhir
+    final Map<String, SlotWaktuDokter> uniqueMap = {};
+    for (final slot in allSlots) {
+      if (!uniqueMap.containsKey(slot.timeLabel)) {
+        uniqueMap[slot.timeLabel] = slot;
+      } else {
+        // Jika ada duplikasi slot waktu, gabungkan status ketersediaannya:
+        // Jika salah satu tidak tersedia (sudah dibooking), utamakan status tidak tersedia
+        final existing = uniqueMap[slot.timeLabel]!;
+        if (!slot.isAvailable && existing.isAvailable) {
+          uniqueMap[slot.timeLabel] = slot;
+        }
+      }
+    }
+
+    final sortedSlots = uniqueMap.values.toList()
+      ..sort((a, b) => a.startDateTime.compareTo(b.startDateTime));
+
+    return sortedSlots;
   }
 
   // ---------------------------------------------------------------------------
