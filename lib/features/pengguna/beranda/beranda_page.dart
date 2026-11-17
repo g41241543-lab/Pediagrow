@@ -335,9 +335,12 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   // ===================================================================
-  // BANNER PERINGATAN NOMOR KK BELUM DILENGKAPI
-  // Tampil di antara Area Biru dan Konten Putih jika activeChild.noKk kosong/null.
-  // Reaktif via ValueListenableBuilder terhadap activeChildNotifier dan childrenNotifier.
+  // BANNER / CARD PENGINGAT NOMOR KK BELUM DILENGKAPI (MODERN CLEAN TILE)
+  // Desain ramping minimalis ala SATUSEHAT & Halodoc:
+  // - Background putih bersih (Light) atau Dark Surface elegan #1A2228 (Dark)
+  // - Icon rounded soft-blue dengan siluet keluarga
+  // - Teks dinamis sesuai nama anak + tag "Perlu"
+  // - Tombol pill ramping "Lengkapi →" di kanan, seluruh card tap-friendly
   // ===================================================================
   Widget _buildNoKkWarningBanner(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -350,89 +353,175 @@ class _BerandaPageState extends State<BerandaPage> {
             activeChild.noKk == null || activeChild.noKk!.trim().isEmpty;
         if (!noKkMissing) return const SizedBox.shrink();
 
+        final childName = activeChild.name.trim();
+        final titleText = childName.isNotEmpty
+            ? 'Nomor KK $childName Belum Lengkap'
+            : 'Nomor KK Belum Lengkap';
+
         return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
           child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF78350F).withValues(alpha: 0.25)
-                  : const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(12),
+              color: isDark ? const Color(0xFF1A2228) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark
-                    ? const Color(0xFFD97706).withValues(alpha: 0.6)
-                    : const Color(0xFFFBBF24),
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE2E8F0),
                 width: 1.0,
               ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: Color(0xFFD97706),
-                  size: 22,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => UbahAnakPage(child: activeChild),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 11,
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        'Lengkapi Data Kartu Keluarga Ananda',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                      // Ikon Rounded Soft Blue
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? const Color(0xFFFBBF24)
-                              : const Color(0xFF92400E),
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                              : const Color(0xFFECF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.family_restroom_rounded,
+                          color: Color(0xFF3985E7),
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Nomor KK Ananda belum dilengkapi. Lengkapi agar data terlindungi dari duplikasi.',
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFFFDE68A)
-                              : const Color(0xFFB45309),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => UbahAnakPage(child: activeChild),
+                      const SizedBox(width: 12),
+
+                      // Informasi Pengingat
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    titleText,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0B1014),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF78350F)
+                                            .withValues(alpha: 0.3)
+                                        : const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'Perlu',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? const Color(0xFFFBBF24)
+                                          : const Color(0xFFB45309),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD97706),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Lengkapi Sekarang',
-                            style: GoogleFonts.lato(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 2),
+                            Text(
+                              'Lengkapi untuk sinkronisasi data rekam medis',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.5,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Tombol Pill Aksi Ramping di Kanan
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3985E7),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF3985E7)
+                                  .withValues(alpha: 0.25),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Lengkapi',
+                              style: GoogleFonts.lato(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
                               color: Colors.white,
+                              size: 13,
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -664,12 +753,12 @@ class _BerandaPageState extends State<BerandaPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Ilustrasi Bayi Tidur di Atas Awan
+          // Ilustrasi Bayi Tidur di Atas Awan (PNG transparan agar menyatu di dark mode)
           SizedBox(
             width: 72,
             height: 72,
             child: Image.asset(
-              'assets/images/baby_cloud_illustration.jpg',
+              'assets/images/baby_cloud_illustration.png',
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.child_friendly_rounded,
