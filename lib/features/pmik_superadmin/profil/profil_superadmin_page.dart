@@ -112,7 +112,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         setState(() {
           _superadmin = current;
           if (current?.avatarPath != null && current!.avatarPath!.isNotEmpty) {
-            _superadminAvatarPath = current!.avatarPath;
+            _superadminAvatarPath = current.avatarPath;
           }
         });
       }

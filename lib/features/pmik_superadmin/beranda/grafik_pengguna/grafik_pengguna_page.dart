@@ -52,7 +52,7 @@ const Color _kGirlAvatarBg = Color(0xFFFFDFD9);
 // Warna Grafik Rekapitulasi Stunting (Disamakan dengan Grafik Pengguna & Anak: Biru & Hijau)
 const Color _kBlueStuntingChart = _kBluePrimary; // Biru (Tidak Stunting)
 const Color _kGreenStuntingChart = _kTealPrimary; // Hijau (Stunting)
-const Color _kOrangeStuntingChart = _kGreenStuntingChart; // Alias kompatibilitas
+// _kOrangeStuntingChart dihapus (tidak digunakan)
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MODEL DATA ROW UNTUK DATASET
@@ -2030,111 +2030,6 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildDokterNutritionStatusSection() {
-    final total = _giziNormalCount + _giziBurukCount;
-    final normalPct = total > 0 ? (_giziNormalCount / total) : 0.85;
-    final burukPct = total > 0 ? (_giziBurukCount / total) : 0.15;
-
-    final normalStr = (normalPct * 100).toStringAsFixed(1).replaceAll('.', ',');
-    final burukStr = (burukPct * 100).toStringAsFixed(1).replaceAll('.', ',');
-
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: _borderColor, width: 1.0),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Status Gizi Anak Terdaftar',
-            style: GoogleFonts.lato(
-              fontSize: 14.5,
-              fontWeight: FontWeight.bold,
-              color: _textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4.0),
-          Text(
-            'Proporsi hasil pemantauan status gizi dari seluruh data riwayat pemeriksaan',
-            style: GoogleFonts.lato(
-              fontSize: 11.5,
-              color: _textSecondary,
-            ),
-          ),
-          const SizedBox(height: 14.0),
-
-          // Segmented Bar Chart Horizontal: 2 Status Saja (Gizi Normal & Gizi Buruk)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: SizedBox(
-              height: 22.0,
-              child: Row(
-                children: [
-                  if (normalPct > 0)
-                    Expanded(
-                      flex: (normalPct * 1000).toInt().clamp(1, 1000),
-                      child: Container(
-                        color: _kTealPrimary,
-                        alignment: Alignment.center,
-                        child: normalPct > 0.12
-                            ? Text(
-                                '$normalStr%',
-                                style: GoogleFonts.lato(
-                                  fontSize: 10.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                  if (burukPct > 0)
-                    Expanded(
-                      flex: (burukPct * 1000).toInt().clamp(1, 1000),
-                      child: Container(
-                        color: const Color(0xFFEF4444),
-                        alignment: Alignment.center,
-                        child: burukPct > 0.08
-                            ? Text(
-                                '$burukStr%',
-                                style: GoogleFonts.lato(
-                                  fontSize: 10.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12.0),
-
-          // Legenda Status Gizi: Hanya Gizi normal & Gizi buruk
-          Wrap(
-            spacing: 20.0,
-            runSpacing: 8.0,
-            children: [
-              _buildLegendBullet(
-                _kTealPrimary,
-                'Gizi normal (${_giziNormalCount > 0 ? _giziNormalCount : '-'})',
-              ),
-              _buildLegendBullet(
-                const Color(0xFFEF4444),
-                'Gizi buruk (${_giziBurukCount > 0 ? _giziBurukCount : '-'})',
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
