@@ -1,12 +1,10 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../auth/auth_choice_page.dart';
 import '../../core/services/session_service.dart';
-import '../../core/services/user_service.dart';
-import '../../core/services/child_service.dart';
 
 /// Halaman Splash Screen PediaGrow dengan opening modern, elegan, luxury, dan futuristik.
 ///
@@ -96,6 +94,7 @@ class _SplashPageState extends State<SplashPage>
   late Animation<double> _footerFadeAnim;
 
   bool _hasNavigated = false;
+  bool _isInitialized = false;
   SessionDestination _resolvedDestination = const SessionDestination(
     page: AuthChoicePage(),
   );
@@ -104,7 +103,7 @@ class _SplashPageState extends State<SplashPage>
   void initState() {
     super.initState();
 
-    // Evaluasi destinasi session sedini mungkin
+    // Evaluasi destinasi session sedini mungkin di background
     SessionService().getInitialDestination().then((dest) {
       if (mounted) {
         _resolvedDestination = dest;
@@ -123,18 +122,35 @@ class _SplashPageState extends State<SplashPage>
         _navigateToNextScreen();
       }
     });
-
-    _controller.forward();
-
-    // Muat data pengguna dan anak di background sambil animasi berjalan
-    _initUserInBackground();
   }
 
-  Future<void> _initUserInBackground() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      _preloadAndStartAnimation();
+    }
+  }
+
+  Future<void> _preloadAndStartAnimation() async {
+    // Precache semua elemen logo ke memori GPU sebelum animasi berjalan
+    // sehingga saat giliran kemunculan tiap elemen tiba, gambar langsung tampil instan
+    // tanpa jeda decoding, tanpa stutter/macet, dan tanpa ada animasi yang terskip.
     try {
-      await UserService().init();
-      ChildService().loadChildrenForCurrentUser();
+      await Future.wait([
+        precacheImage(const AssetImage('assets/images/logo_leaves.png'), context),
+        precacheImage(const AssetImage('assets/images/logo_arch.png'), context),
+        precacheImage(const AssetImage('assets/images/logo_baby.png'), context),
+        precacheImage(const AssetImage('assets/images/logo_star.png'), context),
+      ]);
     } catch (_) {}
+
+    if (!mounted) return;
+
+    if (!_controller.isAnimating && !_controller.isCompleted) {
+      _controller.forward();
+    }
   }
 
   void _initAnimations() {
@@ -559,46 +575,48 @@ class _SplashPageState extends State<SplashPage>
 
     // Konten visual utama (Base Tree) dengan ukuran eksplisit agar ShaderMask
     // memiliki bounds yang sempurna melingkupi emblem atas hingga garis tagline bawah
-    final Widget brandContent = SizedBox(
-      width: lockupWidth,
-      height: lockupHeight,
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          // A. EMBLEM LOGO DENGAN ELEMEN BERTAHAP
-          Transform.translate(
-            offset: Offset(0, _logoOffsetYAnim.value),
-            child: _buildLayeredLogo(logoSize),
-          ),
-
-          // B. TYPOGRAPHY PEDIAGROW & TAGLINE
-          // Diberi jarak yang lega: (logoSize / 2) + 52.0 dp dari pusat logo
-          Transform.translate(
-            offset: Offset(
-              0,
-              _logoOffsetYAnim.value + (logoSize / 2) + 52.0 + _titleSlideAnim.value,
+    final Widget brandContent = RepaintBoundary(
+      child: SizedBox(
+        width: lockupWidth,
+        height: lockupHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            // A. EMBLEM LOGO DENGAN ELEMEN BERTAHAP
+            Transform.translate(
+              offset: Offset(0, _logoOffsetYAnim.value),
+              child: _buildLayeredLogo(logoSize),
             ),
-            child: Opacity(
-              opacity: _titleFadeAnim.value,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Judul PediaGrow
-                  _buildPediaGrowTitle(46.0),
 
-                  const SizedBox(height: 12.0),
+            // B. TYPOGRAPHY PEDIAGROW & TAGLINE
+            // Diberi jarak yang lega: (logoSize / 2) + 52.0 dp dari pusat logo
+            Transform.translate(
+              offset: Offset(
+                0,
+                _logoOffsetYAnim.value + (logoSize / 2) + 52.0 + _titleSlideAnim.value,
+              ),
+              child: Opacity(
+                opacity: _titleFadeAnim.value,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Judul PediaGrow
+                    _buildPediaGrowTitle(46.0),
 
-                  // Tagline Futuristik dengan garis laser yang mengembang horizontal
-                  Opacity(
-                    opacity: _taglineFadeAnim.value,
-                    child: _buildFuturisticTagline(),
-                  ),
-                ],
+                    const SizedBox(height: 12.0),
+
+                    // Tagline Futuristik dengan garis laser yang mengembang horizontal
+                    Opacity(
+                      opacity: _taglineFadeAnim.value,
+                      child: _buildFuturisticTagline(),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -616,27 +634,29 @@ class _SplashPageState extends State<SplashPage>
         if (isSheenActive)
           Positioned.fill(
             child: IgnorePointer(
-              child: ShaderMask(
-                blendMode: BlendMode.srcIn,
-                shaderCallback: (bounds) {
-                  final sweep = _sheenAnim.value; // 0.0 -> 1.0
-                  final xPos = -1.4 + (sweep * 3.8);
-                  return LinearGradient(
-                    begin: Alignment(xPos - 0.55, -1.0),
-                    end: Alignment(xPos + 0.55, 1.0),
-                    colors: [
-                      Colors.transparent,
-                      Colors.white.withValues(alpha: 0.15),
-                      Colors.white.withValues(alpha: 0.85),
-                      const Color(0xFFFFF9E6).withValues(alpha: 0.95), // luxury bright sheen core
-                      Colors.white.withValues(alpha: 0.85),
-                      Colors.white.withValues(alpha: 0.15),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.30, 0.46, 0.50, 0.54, 0.70, 1.0],
-                  ).createShader(bounds);
-                },
-                child: brandContent,
+              child: RepaintBoundary(
+                child: ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (bounds) {
+                    final sweep = _sheenAnim.value; // 0.0 -> 1.0
+                    final xPos = -1.4 + (sweep * 3.8);
+                    return LinearGradient(
+                      begin: Alignment(xPos - 0.55, -1.0),
+                      end: Alignment(xPos + 0.55, 1.0),
+                      colors: [
+                        Colors.transparent,
+                        Colors.white.withValues(alpha: 0.15),
+                        Colors.white.withValues(alpha: 0.85),
+                        const Color(0xFFFFF9E6).withValues(alpha: 0.95), // luxury bright sheen core
+                        Colors.white.withValues(alpha: 0.85),
+                        Colors.white.withValues(alpha: 0.15),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.30, 0.46, 0.50, 0.54, 0.70, 1.0],
+                    ).createShader(bounds);
+                  },
+                  child: brandContent,
+                ),
               ),
             ),
           ),
@@ -870,7 +890,7 @@ class _EnergyRingPainter extends CustomPainter {
         initialRadius + (maxRadius - initialRadius) * progress;
     final alpha = (1.0 - progress).clamp(0.0, 1.0);
 
-    // Cincin energi cyan-sapphire dengan sweep gradient dan blur halus
+    // Cincin energi cyan-sapphire dengan sweep gradient presisi
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2 * (1.0 - progress)
@@ -881,8 +901,7 @@ class _EnergyRingPainter extends CustomPainter {
           const Color(0xFFFFC837).withValues(alpha: alpha * 0.40),
           const Color(0xFF4B83D6).withValues(alpha: alpha * 0.45),
         ],
-      ).createShader(Rect.fromCircle(center: center, radius: currentRadius))
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+      ).createShader(Rect.fromCircle(center: center, radius: currentRadius));
 
     canvas.drawCircle(center, currentRadius, paint);
   }
@@ -911,10 +930,16 @@ class _SoftAuraWavePainter extends CustomPainter {
     final currentRadius = maxRadius * progress;
     final alpha = (1.0 - progress).clamp(0.0, 1.0);
 
-    // Aura difus lembut dengan blur besar agar tidak membentuk garis batas
+    // Aura difus lembut dengan radial gradient terakselerasi GPU (bebas blur lag)
     final wavePaint = Paint()
-      ..color = const Color(0xFF3CC3A6).withValues(alpha: alpha * 0.24)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40.0);
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF3CC3A6).withValues(alpha: alpha * 0.22),
+          const Color(0xFF3CC3A6).withValues(alpha: alpha * 0.10),
+          const Color(0xFF3CC3A6).withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.65, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: currentRadius));
 
     canvas.drawCircle(center, currentRadius, wavePaint);
   }
