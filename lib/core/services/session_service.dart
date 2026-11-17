@@ -22,10 +22,7 @@ class SessionDestination {
   final Widget page;
   final String? expiredMessage;
 
-  const SessionDestination({
-    required this.page,
-    this.expiredMessage,
-  });
+  const SessionDestination({required this.page, this.expiredMessage});
 }
 
 /// Service singleton untuk mengelola aturan session login PediaGrow:
@@ -64,7 +61,8 @@ class SessionService {
   static const String _keySessionLoginTime = 'pediagrow_session_login_time';
   static const String _keyStaffId = 'pediagrow_session_staff_id';
   static const String _keyStaffData = 'pediagrow_session_staff_data';
-  static const String _keyStaffLastLeftTime = 'pediagrow_session_staff_last_left';
+  static const String _keyStaffLastLeftTime =
+      'pediagrow_session_staff_last_left';
 
   // Batas waktu sesi sesuai aturan
   static const Duration durationPengguna = Duration(days: 30);
@@ -94,8 +92,7 @@ class SessionService {
           await clearSession();
           UserService().logout();
           _redirectToLogin(
-            message:
-                'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
+            message: 'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
           );
         }
       }
@@ -124,10 +121,7 @@ class SessionService {
       StaffAuthService().currentStaffNotifier.value = null;
 
       // Set role & user aktif untuk filter push notifikasi
-      LocalPushService().setActiveUser(
-        userId: userId,
-        role: PushRole.pengguna,
-      );
+      LocalPushService().setActiveUser(userId: userId, role: PushRole.pengguna);
 
       debugPrint(
         '[SessionService] Sesi Pengguna disimpan (berlaku 30 hari hingga '
@@ -166,14 +160,13 @@ class SessionService {
       final pushRole = roleStr == 'superadmin'
           ? PushRole.superadmin
           : roleStr == 'pmik'
-              ? PushRole.pmik
-              : PushRole.dokter;
-      LocalPushService().setActiveUser(
-        userId: staff.id,
-        role: pushRole,
-      );
+          ? PushRole.pmik
+          : PushRole.dokter;
+      LocalPushService().setActiveUser(userId: staff.id, role: pushRole);
 
-      debugPrint('[SessionService] Sesi Staf ($roleStr) disimpan: ${staff.name}');
+      debugPrint(
+        '[SessionService] Sesi Staf ($roleStr) disimpan: ${staff.name}',
+      );
     } catch (e) {
       debugPrint('[SessionService] saveStaffSession error: $e');
     }
@@ -258,7 +251,8 @@ class SessionService {
     final role = await getActiveRole();
     if (role == null) return;
 
-    final isStaff = (role == 'dokter' || role == 'pmik' || role == 'superadmin');
+    final isStaff =
+        (role == 'dokter' || role == 'pmik' || role == 'superadmin');
 
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
@@ -304,8 +298,7 @@ class SessionService {
           await clearSession();
           StaffAuthService().logout();
           _redirectToLogin(
-            message:
-                'Sesi Anda telah berakhir karena tidak aktif lebih dari 10 menit. Silakan masuk kembali.',
+            message: 'Sesi Anda telah berakhir karena tidak aktif lebih dari 10 menit. Silakan masuk kembali.',
           );
           return;
         } else {
@@ -327,8 +320,7 @@ class SessionService {
         await clearSession();
         UserService().logout();
         _redirectToLogin(
-          message:
-              'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
+          message: 'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
         );
       }
     }
@@ -356,10 +348,7 @@ class SessionService {
   /// Menampilkan notifikasi HP saat session kadaluarsa
   static void showExpiredNotice(String message) {
     try {
-      LocalPushService().show(
-        title: 'Sesi Berakhir',
-        body: message,
-      );
+      LocalPushService().show(title: 'Sesi Berakhir', body: message);
     } catch (e) {
       debugPrint('[SessionService] showExpiredNotice error: $e');
     }
@@ -399,11 +388,9 @@ class SessionService {
           UserService().logout();
           return const SessionDestination(
             page: LoginPage(
-              sessionExpiredMessage:
-                  'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
+              sessionExpiredMessage: 'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
             ),
-            expiredMessage:
-                'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
+            expiredMessage: 'Sesi login Anda telah berakhir (30 hari). Silakan masuk kembali.',
           );
         }
 
@@ -438,7 +425,8 @@ class SessionService {
           return const SessionDestination(page: AuthChoicePage());
         }
 
-        if (lastLeftTimeMs != null && isStaffInactivityExpired(lastLeftTimeMs)) {
+        if (lastLeftTimeMs != null &&
+            isStaffInactivityExpired(lastLeftTimeMs)) {
           debugPrint(
             '[SessionService] Staf ditinggalkan >= 10 menit. Sesi berakhir.',
           );
@@ -446,11 +434,9 @@ class SessionService {
           StaffAuthService().logout();
           return const SessionDestination(
             page: LoginPage(
-              sessionExpiredMessage:
-                  'Sesi Anda telah berakhir karena tidak aktif lebih dari 10 menit. Silakan masuk kembali.',
+              sessionExpiredMessage: 'Sesi Anda telah berakhir karena tidak aktif lebih dari 10 menit. Silakan masuk kembali.',
             ),
-            expiredMessage:
-                'Sesi Anda telah berakhir karena tidak aktif lebih dari 10 menit. Silakan masuk kembali.',
+            expiredMessage: 'Sesi Anda telah berakhir karena tidak aktif lebih dari 10 menit. Silakan masuk kembali.',
           );
         }
 
@@ -484,13 +470,8 @@ class SessionService {
         }
 
         if (restoredStaff.email.trim().toLowerCase() ==
-<<<<<<< HEAD
-                    StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
-                restoredStaff.isSuperAdmin) {
-=======
                 StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
             restoredStaff.isSuperAdmin) {
->>>>>>> dd0b9420780a190ab8db0cc01c9ab8b168192d8a
           if (restoredStaff.experience == null ||
               restoredStaff.strNumber == null ||
               restoredStaff.birthDate == null ||
@@ -498,16 +479,19 @@ class SessionService {
               restoredStaff.name == 'Superadmin PediaGrow' ||
               restoredStaff.name.isEmpty) {
             restoredStaff = restoredStaff.copyWith(
-              name: (restoredStaff.name.isEmpty ||
+              name:
+                  (restoredStaff.name.isEmpty ||
                       restoredStaff.name == 'Superadmin PediaGrow')
                   ? 'Anita Setyowati, S.Tr. RMIK'
                   : restoredStaff.name,
               experience: restoredStaff.experience ?? '7 tahun',
               strNumber: restoredStaff.strNumber ?? '3511201402012222',
               birthDate: restoredStaff.birthDate ?? '16/07/2006',
-              education: restoredStaff.education ??
+              education:
+                  restoredStaff.education ??
                   'DIV - Manajemen Informasi Kesehatan',
-              avatarPath: restoredStaff.avatarPath ??
+              avatarPath:
+                  restoredStaff.avatarPath ??
                   'assets/images/anita_superadmin.jpg',
             );
           }
@@ -524,12 +508,9 @@ class SessionService {
         final pushRole = role == 'superadmin'
             ? PushRole.superadmin
             : role == 'pmik'
-                ? PushRole.pmik
-                : PushRole.dokter;
-        LocalPushService().setActiveUser(
-          userId: staffId,
-          role: pushRole,
-        );
+            ? PushRole.pmik
+            : PushRole.dokter;
+        LocalPushService().setActiveUser(userId: staffId, role: pushRole);
 
         debugPrint(
           '[SessionService] Sesi staf valid ($role). Langsung ke beranda.',
