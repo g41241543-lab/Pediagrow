@@ -239,6 +239,11 @@ class SearchableDropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final hintColor = const Color(0xFF8696A0);
+    final underlineColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -251,7 +256,7 @@ class SearchableDropdownField extends StatelessWidget {
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A2228),
+                  color: textColor,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
@@ -260,7 +265,7 @@ class SearchableDropdownField extends StatelessWidget {
                   hintText: hint,
                   hintStyle: GoogleFonts.lato(
                     fontSize: 12.0,
-                    color: const Color(0xFF8696A0),
+                    color: hintColor,
                   ),
                 ),
                 onChanged: onChanged,
@@ -283,7 +288,7 @@ class SearchableDropdownField extends StatelessWidget {
         const SizedBox(height: 2.0),
         Container(
           height: 1.0,
-          color: const Color(0xFFE9EDEF),
+          color: underlineColor,
         ),
       ],
     );
@@ -342,6 +347,20 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final dragHandleColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D5DB);
+    final titleColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF111827);
+    final closeIconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF6B7280);
+    final searchBg = isDark ? const Color(0xFF242E35) : const Color(0xFFF3F4F6);
+    final searchBorder = isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E7EB);
+    final searchTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF111827);
+    final hintTextColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF9CA3AF);
+    final dividerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE5E7EB);
+    final customBannerBg = isDark ? const Color(0xFF1E2D3D) : const Color(0xFFEFF6FF);
+    final itemTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1F2937);
+    final separatorColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFF3F4F6);
+
     final query = _searchCtrl.text.trim();
     final hasExactMatch = _filtered.any((e) => e.toLowerCase() == query.toLowerCase());
     final isCustomApplicable = query.isNotEmpty && !hasExactMatch;
@@ -350,9 +369,9 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.75,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -363,7 +382,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: const Color(0xFFD1D5DB),
+              color: dragHandleColor,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -380,13 +399,13 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF111827),
+                    color: titleColor,
                   ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close_rounded, size: 20),
-                  color: const Color(0xFF6B7280),
+                  color: closeIconColor,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -401,9 +420,9 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
+                color: searchBg,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                border: Border.all(color: searchBorder),
               ),
               child: Row(
                 children: [
@@ -413,11 +432,11 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                     child: TextField(
                       controller: _searchCtrl,
                       autofocus: true,
-                      style: GoogleFonts.lato(fontSize: 13.5, color: const Color(0xFF111827)),
+                      style: GoogleFonts.lato(fontSize: 13.5, color: searchTextColor),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: widget.hintText,
-                        hintStyle: GoogleFonts.lato(fontSize: 13.5, color: const Color(0xFF9CA3AF)),
+                        hintStyle: GoogleFonts.lato(fontSize: 13.5, color: hintTextColor),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       ),
@@ -426,14 +445,14 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                   if (_searchCtrl.text.isNotEmpty)
                     GestureDetector(
                       onTap: () => _searchCtrl.clear(),
-                      child: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF9CA3AF)),
+                      child: Icon(Icons.clear_rounded, size: 18, color: hintTextColor),
                     ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 10),
-          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          Divider(height: 1, color: dividerColor),
 
           // Opsi kustom jika teks pencarian belum ada di daftar
           if (isCustomApplicable)
@@ -444,7 +463,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                color: const Color(0xFFEFF6FF),
+                color: customBannerBg,
                 child: Row(
                   children: [
                     const Icon(Icons.add_circle_outline_rounded, size: 18, color: Color(0xFF2B7AE8)),
@@ -472,7 +491,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                     child: Center(
                       child: Text(
                         'Tidak ada hasil ditemukan.',
-                        style: GoogleFonts.lato(color: const Color(0xFF9CA3AF), fontSize: 13),
+                        style: GoogleFonts.lato(color: hintTextColor, fontSize: 13),
                       ),
                     ),
                   )
@@ -480,7 +499,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                     shrinkWrap: true,
                     physics: const ClampingScrollPhysics(),
                     itemCount: _filtered.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                    separatorBuilder: (_, _) => Divider(height: 1, color: separatorColor),
                     itemBuilder: (context, idx) {
                       final item = _filtered[idx];
                       final isSelected = item.toLowerCase() == widget.initialValue.toLowerCase().trim();
@@ -493,7 +512,7 @@ class _SearchPickerSheetState extends State<_SearchPickerSheet> {
                           style: GoogleFonts.lato(
                             fontSize: 13.5,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected ? const Color(0xFF2B7AE8) : const Color(0xFF1F2937),
+                            color: isSelected ? const Color(0xFF2B7AE8) : itemTextColor,
                           ),
                         ),
                         trailing: isSelected
@@ -531,7 +550,9 @@ class PendidikanTripletCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final prodiList = isDokter ? kProdiDokterList : kProdiPmikList;
+    final iconBg = isDark ? const Color(0xFF242E35) : const Color(0xFFEFF6FF);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -545,7 +566,7 @@ class PendidikanTripletCard extends StatelessWidget {
               width: 32.0,
               height: 32.0,
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: iconBg,
                 borderRadius: BorderRadius.circular(8.0),
               ),
               child: const Icon(
