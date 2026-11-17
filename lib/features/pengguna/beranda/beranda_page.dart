@@ -338,25 +338,39 @@ class _BerandaPageState extends State<BerandaPage> {
   // BANNER / CARD PENGINGAT NOMOR KK BELUM DILENGKAPI (MODERN CLEAN TILE)
   // Desain ramping minimalis ala SATUSEHAT & Halodoc:
   // - Background putih bersih (Light) atau Dark Surface elegan #1A2228 (Dark)
-  // - Icon rounded soft-blue dengan siluet keluarga
-  // - Teks dinamis sesuai nama anak + tag "Perlu"
+  // - Icon rounded amber lembut dengan unsur warning_amber_rounded
+  // - Teks ringkas dan padat agar tidak terpotong (overflow) di layar HP
   // - Tombol pill ramping "Lengkapi →" di kanan, seluruh card tap-friendly
   // ===================================================================
   Widget _buildNoKkWarningBanner(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ValueListenableBuilder<ChildModel?>(
-      valueListenable: ChildService().activeChildNotifier,
-      builder: (context, activeChild, _) {
-        // Hanya tampil jika ada anak aktif dan noKk-nya belum diisi
-        if (activeChild == null) return const SizedBox.shrink();
-        final noKkMissing =
-            activeChild.noKk == null || activeChild.noKk!.trim().isEmpty;
-        if (!noKkMissing) return const SizedBox.shrink();
+    return ValueListenableBuilder<List<ChildModel>>(
+      valueListenable: ChildService().childrenNotifier,
+      builder: (context, children, _) {
+        if (children.isEmpty) return const SizedBox.shrink();
 
-        final childName = activeChild.name.trim();
-        final titleText = childName.isNotEmpty
-            ? 'Nomor KK $childName Belum Lengkap'
-            : 'Nomor KK Belum Lengkap';
+        // Cari semua anak yang nomor KK-nya belum diisi
+        final missingChildren = children.where((child) {
+          return child.noKk == null || child.noKk!.trim().isEmpty;
+        }).toList();
+
+        // Jika semua anak sudah memiliki Nomor KK, jangan tampilkan kartu
+        if (missingChildren.isEmpty) return const SizedBox.shrink();
+
+        // Target anak untuk dibuka saat di-tap:
+        // Prioritaskan activeChild jika KK-nya belum lengkap, atau anak pertama yang belum lengkap
+        final activeChild = ChildService().activeChildNotifier.value;
+        final targetChild = (activeChild != null &&
+                missingChildren.any((c) => c.id == activeChild.id))
+            ? activeChild
+            : missingChildren.first;
+
+        // Subteks dinamis:
+        // Jika 1 anak: "Untuk data rekam medis anak"
+        // Jika >1 anak: "N anak belum memiliki data KK"
+        final String subText = missingChildren.length > 1
+            ? '${missingChildren.length} anak belum memiliki data KK'
+            : 'Untuk data rekam medis anak';
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
@@ -383,89 +397,66 @@ class _BerandaPageState extends State<BerandaPage> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
+                  ChildService().setActiveChild(targetChild);
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => UbahAnakPage(child: activeChild),
+                      builder: (_) => UbahAnakPage(child: targetChild),
                     ),
                   );
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 11,
+                    horizontal: 12,
+                    vertical: 10,
                   ),
                   child: Row(
                     children: [
-                      // Ikon Rounded Soft Blue
+                      // Ikon Rounded dengan Unsur Warning
                       Container(
-                        width: 42,
-                        height: 42,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: isDark
-                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
-                              : const Color(0xFFECF6FF),
+                              ? const Color(0xFF78350F).withValues(alpha: 0.35)
+                              : const Color(0xFFFEF3C7),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFFD97706).withValues(alpha: 0.4)
+                                : const Color(0xFFFDE68A),
+                            width: 1.0,
+                          ),
                         ),
                         alignment: Alignment.center,
                         child: const Icon(
-                          Icons.family_restroom_rounded,
-                          color: Color(0xFF3985E7),
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFFD97706),
                           size: 22,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
 
-                      // Informasi Pengingat
+                      // Informasi Pengingat (Ringkas, Padat, Tidak Terpotong)
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    titleText,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.lato(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0B1014),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? const Color(0xFF78350F)
-                                            .withValues(alpha: 0.3)
-                                        : const Color(0xFFFEF3C7),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'Perlu',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? const Color(0xFFFBBF24)
-                                          : const Color(0xFFB45309),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              'Lengkapi Nomor KK',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0B1014),
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Lengkapi untuk sinkronisasi data rekam medis',
+                              subText,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.lato(
@@ -478,7 +469,7 @@ class _BerandaPageState extends State<BerandaPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
 
                       // Tombol Pill Aksi Ramping di Kanan
                       Container(

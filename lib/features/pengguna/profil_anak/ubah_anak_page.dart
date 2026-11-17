@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -653,9 +653,10 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
 
       await ChildService().updateChild(updatedChild);
 
-      // Sinkronisasi Nomor KK ke profil orang tua jika diisi
+      // Sinkronisasi Nomor KK ke profil orang tua dan semua anak di keluarga yang belum punya KK
       if (noKk.isNotEmpty) {
         await UserService().updateNoKk(noKk);
+        await ChildService().syncFamilyNoKk(noKk);
       }
 
       if (!mounted) return;
