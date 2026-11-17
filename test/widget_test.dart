@@ -18,8 +18,9 @@ void main() {
       await tester.pumpWidget(const MyApp());
       expect(find.byType(SplashPage), findsOneWidget);
 
-      // Pump through the entire animation duration (3800ms)
-      await tester.pumpAndSettle(const Duration(milliseconds: 4500));
+      // Pump through the entire animation duration (5000ms + 650ms transition)
+      await tester.pump(const Duration(milliseconds: 6000));
+      await tester.pumpAndSettle();
 
       // Verify AuthChoicePage elements are present and visible
       expect(find.byType(AuthChoicePage), findsOneWidget);

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -9,6 +9,7 @@ import '../../../shared/widgets/pedia_banner.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
 import '../profil_anak/tambah_anak_page.dart';
 import 'status_booking_page.dart';
@@ -116,10 +117,27 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   }
 
   void _refreshSlots() {
-    _availableSlots = BookingService().getAvailableSlotsForDoctor(
+    final rawSlots = BookingService().getAvailableSlotsForDoctor(
       doctor: widget.doctor,
       date: _selectedDate,
     );
+
+    // Deduplikasi slot dan urutkan terawal hingga terakhir
+    final Map<String, DoctorTimeSlot> uniqueSlots = {};
+    for (final slot in rawSlots) {
+      if (!uniqueSlots.containsKey(slot.time)) {
+        uniqueSlots[slot.time] = slot;
+      } else if (!slot.isAvailable && uniqueSlots[slot.time]!.isAvailable) {
+        uniqueSlots[slot.time] = slot;
+      }
+    }
+
+    _availableSlots = uniqueSlots.values.toList()
+      ..sort((a, b) {
+        final aMinutes = (a.startHour * 60) + a.startMinute;
+        final bMinutes = (b.startHour * 60) + b.startMinute;
+        return aMinutes.compareTo(bMinutes);
+      });
 
     // Jika slot terpilih sebelumnya tidak tersedia di tanggal baru, reset
     if (_selectedSlot != null) {
@@ -916,7 +934,6 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             child: Row(
               children: children.map((c) {
                 final isSelected = _selectedChild?.id == c.id;
-                final isBoy = (c.gender.toLowerCase().contains('laki'));
 
                 return GestureDetector(
                   onTap: () {
@@ -926,8 +943,11 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(right: 12.0),
-                    padding: const EdgeInsets.all(12.0),
-                    width: 175.0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 10.0,
+                    ),
+                    width: 185.0,
                     decoration: BoxDecoration(
                       color: isSelected
                           ? (isDark
@@ -947,31 +967,15 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                     ),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 18.0,
-                          backgroundColor: isBoy
-                              ? (isDark
-                                    ? const Color(0xFF1E3A8A)
-                                    : const Color(0xFFD6E8FE))
-                              : (isDark
-                                    ? const Color(0xFF831843)
-                                    : const Color(0xFFFFDFD9)),
-                          child: Icon(
-                            Icons.child_care_rounded,
-                            size: 20.0,
-                            color: isBoy
-                                ? (isDark
-                                      ? const Color(0xFF93C5FD)
-                                      : const Color(0xFF2B7AE8))
-                                : (isDark
-                                      ? const Color(0xFFF472B6)
-                                      : const Color(0xFFF87171)),
-                          ),
+                        ChildAvatar(
+                          child: c,
+                          size: 38.0,
                         ),
                         const SizedBox(width: 10.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 c.name,
@@ -985,6 +989,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                                       : _kTextDark,
                                 ),
                               ),
+                              const SizedBox(height: 2.0),
                               Text(
                                 c.ageDescription.isNotEmpty
                                     ? c.ageDescription
@@ -1001,12 +1006,14 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                             ],
                           ),
                         ),
-                        if (isSelected)
+                        if (isSelected) ...[
+                          const SizedBox(width: 6.0),
                           const Icon(
                             Icons.check_circle,
                             color: _kPrimaryBlue,
                             size: 18.0,
                           ),
+                        ],
                       ],
                     ),
                   ),
@@ -1244,11 +1251,27 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
   Widget _buildTimeSlotSection(bool isDark) {
     final periods = ['Semua', 'Pagi', 'Siang', 'Sore', 'Malam'];
 
-    final filteredSlots = _selectedPeriodFilter == 'Semua'
+    final baseSlots = _selectedPeriodFilter == 'Semua'
         ? _availableSlots
         : _availableSlots
               .where((s) => s.period == _selectedPeriodFilter)
               .toList();
+
+    // Deduplikasi slot dan urutkan terawal hingga terakhir
+    final Map<String, DoctorTimeSlot> uniqueFiltered = {};
+    for (final s in baseSlots) {
+      if (!uniqueFiltered.containsKey(s.time)) {
+        uniqueFiltered[s.time] = s;
+      } else if (!s.isAvailable && uniqueFiltered[s.time]!.isAvailable) {
+        uniqueFiltered[s.time] = s;
+      }
+    }
+    final filteredSlots = uniqueFiltered.values.toList()
+      ..sort((a, b) {
+        final aMinutes = (a.startHour * 60) + a.startMinute;
+        final bMinutes = (b.startHour * 60) + b.startMinute;
+        return aMinutes.compareTo(bMinutes);
+      });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1520,81 +1543,109 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
             );
           }(),
         ] else
-          Wrap(
-            spacing: 10.0,
-            runSpacing: 10.0,
-            children: filteredSlots.map((slot) {
-              final isSelected = _selectedSlot?.time == slot.time;
-              final isAvail = slot.isAvailable;
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Menyesuaikan ukuran layar HP Android 12, 13, 15, 16 hingga tablet
+              // Pada smartphone, selalu 2 kolom yang memenuhi penuh lebar layar tanpa space kosong di kanan
+              final bool isTablet = constraints.maxWidth >= 600;
+              final int crossAxisCount = isTablet ? 3 : 2;
+              const double spacing = 8.0;
 
-              return GestureDetector(
-                onTap: isAvail ? () => _onSlotSelected(slot) : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14.0,
-                    vertical: 10.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? _kPrimaryBlue
-                        : (isAvail
-                              ? (isDark
-                                    ? const Color(0xFF1A2228)
-                                    : Colors.white)
-                              : (isDark
-                                    ? const Color(0xFF0B1014)
-                                    : const Color(0xFFE9EDEF))),
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                      color: isSelected
-                          ? _kPrimaryBlue
-                          : (isAvail
-                                ? (isDark
-                                      ? const Color(0xFF2C363D)
-                                      : const Color(0xFFD1D7DB))
-                                : (isDark
-                                      ? const Color(0xFF2C363D)
-                                      : const Color(0xFFE9EDEF))),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.access_time_rounded,
-                        size: 15.0,
-                        color: isSelected
-                            ? Colors.white
-                            : (isAvail
-                                  ? _kPrimaryBlue
-                                  : (isDark
-                                        ? const Color(0xFF667781)
-                                        : const Color(0xFF8696A0))),
-                      ),
-                      const SizedBox(width: 6.0),
-                      Text(
-                        slot.time,
-                        style: GoogleFonts.lato(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredSlots.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                  mainAxisExtent: 40.0, // Ukuran compact dan proporsional
+                ),
+                itemBuilder: (context, index) {
+                  final slot = filteredSlots[index];
+                  final isSelected = _selectedSlot?.time == slot.time;
+                  final isAvail = slot.isAvailable;
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: isAvail ? () => _onSlotSelected(slot) : null,
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white
+                              ? _kPrimaryBlue
                               : (isAvail
                                     ? (isDark
-                                          ? const Color(0xFFE9EDEF)
-                                          : _kTextDark)
+                                          ? const Color(0xFF1A2228)
+                                          : Colors.white)
                                     : (isDark
-                                          ? const Color(0xFF667781)
-                                          : const Color(0xFF8696A0))),
+                                          ? const Color(0xFF12181C)
+                                          : const Color(0xFFF1F5F9))),
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(
+                            color: isSelected
+                                ? _kPrimaryBlue
+                                : (isAvail
+                                      ? (isDark
+                                            ? const Color(0xFF2C363D)
+                                            : const Color(0xFFD1D7DB))
+                                      : (isDark
+                                            ? const Color(0xFF232D34)
+                                            : const Color(0xFFE2E8F0))),
+                            width: isSelected ? 1.6 : 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              size: 14.0,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isAvail
+                                        ? _kPrimaryBlue
+                                        : (isDark
+                                              ? const Color(0xFF667781)
+                                              : const Color(0xFF94A3B8))),
+                            ),
+                            const SizedBox(width: 5.0),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  slot.time,
+                                  maxLines: 1,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 12.0,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w600,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isAvail
+                                              ? (isDark
+                                                    ? const Color(0xFFE9EDEF)
+                                                    : _kTextDark)
+                                              : (isDark
+                                                    ? const Color(0xFF667781)
+                                                    : const Color(0xFF94A3B8))),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      if (!isAvail) ...[const SizedBox(width: 4.0)],
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
-            }).toList(),
+            },
           ),
       ],
     );
@@ -1638,7 +1689,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                   ),
                   Text(
                     _selectedSlot != null
-                        ? '${_selectedDate.day}/${_selectedDate.month} â€¢ ${_selectedSlot!.time}'
+                        ? '${_selectedDate.day}/${_selectedDate.month} • ${_selectedSlot!.time}'
                         : 'Belum memilih jam',
                     style: GoogleFonts.lato(
                       fontSize: 14.0,
