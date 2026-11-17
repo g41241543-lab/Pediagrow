@@ -35,7 +35,11 @@ class ProfilSuperadminPage extends StatefulWidget {
   /// - _onBottomNavTap tidak melakukan push/replace (shell yang mengelola tab).
   final bool inShell;
 
-  const ProfilSuperadminPage({super.key, this.onBackPressed, this.inShell = false});
+  const ProfilSuperadminPage({
+    super.key,
+    this.onBackPressed,
+    this.inShell = false,
+  });
 
   @override
   State<ProfilSuperadminPage> createState() => _ProfilSuperadminPageState();
@@ -45,6 +49,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
   final ImagePicker _picker = ImagePicker();
   String? _superadminAvatarPath;
   StaffAccount? _superadmin;
+
   /// Guard: mencegah rebuild saat proses logout sedang berlangsung.
   bool _isLoggingOut = false;
 
@@ -93,17 +98,18 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
             current = acc;
           } else {
             current = current.copyWith(
-              name: (current.name.isEmpty ||
+              name:
+                  (current.name.isEmpty ||
                       current.name == 'Superadmin PediaGrow')
                   ? 'Anita Setyowati, S.Tr. RMIK'
                   : current.name,
               experience: current.experience ?? '7 tahun',
               strNumber: current.strNumber ?? '3511201402012222',
               birthDate: current.birthDate ?? '16/07/2006',
-              education: current.education ??
-                  'DIV - Manajemen Informasi Kesehatan',
-              avatarPath: current.avatarPath ??
-                  'assets/images/anita_superadmin.jpg',
+              education:
+                  current.education ?? 'DIV - Manajemen Informasi Kesehatan',
+              avatarPath:
+                  current.avatarPath ?? 'assets/images/anita_superadmin.jpg',
             );
           }
         }
@@ -328,7 +334,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         onPressed: () => Navigator.of(dialogCtx).pop(),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
-                            color: Theme.of(context).brightness == Brightness.dark
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
                                 ? const Color(0xFF2C363D)
                                 : const Color(0xFFD1D7DB),
                           ),
@@ -342,7 +349,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                           style: GoogleFonts.lato(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: Theme.of(context).brightness == Brightness.dark
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
                                 ? const Color(0xFFE9EDEF)
                                 : const Color(0xFF2C363D),
                           ),
@@ -401,7 +409,6 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -423,9 +430,7 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -448,7 +453,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 style: GoogleFonts.lato(
                                   fontSize: 18.0,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                                  color: isDark
+                                      ? const Color(0xFFE9EDEF)
+                                      : const Color(0xFF0B1014),
                                 ),
                               ),
 
@@ -464,12 +471,14 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   color: isDark
-                                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                      ? const Color(0xFF064E3B)
+                                            .withValues(alpha: 0.3)
                                       : const Color(0xFFECFDF5),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isDark
-                                        ? const Color(0xFF059669).withValues(alpha: 0.5)
+                                        ? const Color(0xFF059669)
+                                              .withValues(alpha: 0.5)
                                         : const Color(0xFFA7F3D0),
                                   ),
                                 ),
@@ -541,16 +550,22 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
         ),
       ),
       // Scaffold.bottomNavigationBar permanen 4 menu
-      bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 3),
+      bottomNavigationBar: widget.inShell
+          ? null
+          : const PediaBottomNavBar(selectedIndex: 3),
     );
   }
 
   /// Header kustom dengan tinggi tepat 56dp di bawah SafeArea atas.
   /// Judul "Profil" terletak tepat 16dp dari pojok layar kiri (tanpa tombol back).
   Widget _buildCustomHeader(bool isDark) {
-    final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+    final headerTextColor = isDark
+        ? const Color(0xFFE9EDEF)
+        : const Color(0xFF000000);
     final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
-    final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
+    final settingIconColor = isDark
+        ? const Color(0xFFE9EDEF)
+        : const Color(0xFF1A2228);
 
     return Container(
       width: double.infinity,
@@ -592,7 +607,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                     decoration: BoxDecoration(
                       color: settingCircleBg,
                       shape: BoxShape.circle,
-                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                      border: isDark
+                          ? Border.all(color: const Color(0xFF2C363D))
+                          : null,
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x1F000000),
@@ -663,7 +680,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                  color: isDark
+                      ? const Color(0xFFE9EDEF)
+                      : const Color(0xFF0B1014),
                 ),
               ),
 
@@ -676,7 +695,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 15.0,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                  color: isDark
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF667781),
                 ),
               ),
 
@@ -704,7 +725,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF2563EB),
                       bgColor: const Color(0xFFEFF6FF),
                       label: 'Pengalaman',
-                      value: (_superadmin?.experience != null &&
+                      value:
+                          (_superadmin?.experience != null &&
                               _superadmin!.experience!.isNotEmpty)
                           ? _superadmin!.experience!
                           : '7 tahun',
@@ -718,7 +740,8 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                       iconColor: const Color(0xFF0891B2),
                       bgColor: const Color(0xFFECFEFF),
                       label: 'No. STR',
-                      value: (_superadmin?.strNumber != null &&
+                      value:
+                          (_superadmin?.strNumber != null &&
                               _superadmin!.strNumber!.isNotEmpty)
                           ? _superadmin!.strNumber!
                           : '3511201402012222',
@@ -846,7 +869,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 maxLines: 1,
                 style: GoogleFonts.lato(
                   fontSize: 11,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF94A3B8),
+                  color: isDark
+                      ? const Color(0xFF8696A0)
+                      : const Color(0xFF94A3B8),
                 ),
               ),
               Text(
@@ -856,7 +881,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                 style: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0F172A),
+                  color: isDark
+                      ? const Color(0xFFE9EDEF)
+                      : const Color(0xFF0F172A),
                 ),
               ),
             ],
@@ -919,7 +946,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                          color: isDark
+                              ? const Color(0xFFE9EDEF)
+                              : const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -930,7 +959,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                             : '16/07/2006',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF667781),
                         ),
                       ),
                     ],
@@ -981,7 +1012,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+                          color: isDark
+                              ? const Color(0xFFE9EDEF)
+                              : const Color(0xFF0B1014),
                         ),
                       ),
                       const SizedBox(height: 2.0),
@@ -992,7 +1025,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
                             : 'DIV - Manajemen Informasi Kesehatan',
                         style: GoogleFonts.lato(
                           fontSize: 14.0,
-                          color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF667781),
                         ),
                       ),
                     ],
