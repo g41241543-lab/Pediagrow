@@ -41,7 +41,7 @@ class SplashPage extends StatefulWidget {
 
   const SplashPage({
     super.key,
-    this.animationDuration = const Duration(milliseconds: 2800),
+    this.animationDuration = const Duration(milliseconds: 5000),
     this.enableTapToSkip = true,
   });
 
@@ -125,6 +125,14 @@ class _SplashPageState extends State<SplashPage>
   }
 
   @override
+  void didUpdateWidget(SplashPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animationDuration != widget.animationDuration) {
+      _controller.duration = widget.animationDuration;
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
@@ -155,73 +163,73 @@ class _SplashPageState extends State<SplashPage>
 
   void _initAnimations() {
     // -------------------------------------------------------------------------
-    // 1. TAHAP 1: Pembuka Luxury Atmospheric Dissolve (0.00 -> 0.28)
+    // 1. TAHAP 1: Pembuka Luxury Atmospheric Dissolve (0.00 -> 0.18)
     // -------------------------------------------------------------------------
     _initialGlowPulseAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.00, 0.16, curve: Curves.easeInOut),
+      curve: const Interval(0.00, 0.12, curve: Curves.easeInOut),
     );
 
     _whiteCanvasFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.08, 0.26, curve: Curves.easeInOutCubic),
+      curve: const Interval(0.04, 0.16, curve: Curves.easeInOutCubic),
     );
 
     _waveProgressAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.08, 0.30, curve: Curves.easeOutCubic),
+      curve: const Interval(0.04, 0.18, curve: Curves.easeOutCubic),
     );
 
     // -------------------------------------------------------------------------
-    // 2. TAHAP 2: Kemunculan Logo Bertahap Per-Elemen (0.24 -> 0.64)
+    // 2. TAHAP 2: Kemunculan Logo Bertahap Per-Elemen (0.16 -> 0.44)
     // -------------------------------------------------------------------------
-    // a. Daun (0.24 -> 0.40)
+    // a. Daun (0.16 -> 0.28)
     _logoLeavesScaleAnim = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.24, 0.40, curve: Curves.easeOutCubic),
+        curve: const Interval(0.16, 0.28, curve: Curves.easeOutCubic),
       ),
     );
     _logoLeavesFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.24, 0.36, curve: Curves.easeIn),
+      curve: const Interval(0.16, 0.26, curve: Curves.easeIn),
     );
 
-    // b. Orbit Arch (0.34 -> 0.48)
+    // b. Orbit Arch (0.22 -> 0.34)
     _logoArchScaleAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.34, 0.48, curve: Curves.easeOutCubic),
+        curve: const Interval(0.22, 0.34, curve: Curves.easeOutCubic),
       ),
     );
     _logoArchFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.34, 0.44, curve: Curves.easeIn),
+      curve: const Interval(0.22, 0.32, curve: Curves.easeIn),
     );
 
-    // c. Bayi (0.42 -> 0.56)
+    // c. Bayi (0.28 -> 0.38)
     _logoBabyScaleAnim = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.42, 0.56, curve: Curves.easeOutBack),
+        curve: const Interval(0.28, 0.38, curve: Curves.easeOutBack),
       ),
     );
     _logoBabyFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.42, 0.50, curve: Curves.easeIn),
+      curve: const Interval(0.28, 0.36, curve: Curves.easeIn),
     );
 
-    // d. Bintang Emas Berkilau (0.50 -> 0.64)
+    // d. Bintang Emas Berkilau (0.34 -> 0.44)
     _logoStarScaleAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.50, 0.64, curve: Curves.easeOutBack),
+        curve: const Interval(0.34, 0.44, curve: Curves.easeOutBack),
       ),
     );
     _logoStarRotateAnim = Tween<double>(begin: -0.3, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.50, 0.64, curve: Curves.easeOut),
+        curve: const Interval(0.34, 0.44, curve: Curves.easeOut),
       ),
     );
     _logoStarSparkleAnim = TweenSequence<double>([
@@ -230,74 +238,85 @@ class _SplashPageState extends State<SplashPage>
     ]).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.52, 0.66, curve: Curves.easeInOut),
+        curve: const Interval(0.36, 0.46, curve: Curves.easeInOut),
       ),
     );
 
-    // Halo Glow di belakang emblem (0.46 -> 0.68)
+    // Halo Glow di belakang emblem (0.20 -> 0.48)
     _haloGlowAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.46, 0.68, curve: Curves.easeInOut),
+      curve: const Interval(0.20, 0.48, curve: Curves.easeInOut),
     );
 
     // -------------------------------------------------------------------------
-    // 3. TAHAP 3: Transisi Futuristik & Mulus (Gambar 1 -> Gambar 2) (0.66 -> 0.84)
+    // 3. JEDA NAFAS LOGO (0.44 -> 0.58) ~700ms:
+    // Logo lengkap terdiam utuh di tengah layar. Memberikan jeda visual
+    // yang tenang, jelas, dan mewah tanpa terburu-buru.
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // 4. TAHAP 3: Transisi Futuristik & Mulus ke Brand Lockup (0.58 -> 0.74)
     // -------------------------------------------------------------------------
     // Gelombang cincin energi holografik memancar saat transisi dimulai
     _energyRingAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.65, 0.77, curve: Curves.easeOutQuart),
+      curve: const Interval(0.58, 0.70, curve: Curves.easeOutQuart),
     );
 
     // Logo bergeser naik ke -66dp agar seluruh lockup berada di tengah layar secara simetris
     _logoOffsetYAnim = Tween<double>(begin: 0.0, end: -66.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.66, 0.84, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.58, 0.74, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // Judul PediaGrow muncul naik selaras dengan logo sejak awal transisi (0.66)
+    // Judul PediaGrow muncul naik selaras dengan logo sejak awal transisi (0.60)
     _titleFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.66, 0.82, curve: Curves.easeOutCubic),
+      curve: const Interval(0.60, 0.74, curve: Curves.easeOutCubic),
     );
     _titleSlideAnim = Tween<double>(begin: 12.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.66, 0.82, curve: Curves.easeOutCubic),
+        curve: const Interval(0.60, 0.74, curve: Curves.easeOutCubic),
       ),
     );
     _titleTrackingAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.66, 0.84, curve: Curves.easeOutCubic),
+      curve: const Interval(0.60, 0.74, curve: Curves.easeOutCubic),
     );
 
     // Tagline & Garis Aksen Laser Presisi
     _taglineFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.72, 0.86, curve: Curves.easeOutCubic),
+      curve: const Interval(0.64, 0.76, curve: Curves.easeOutCubic),
     );
     _taglineWidthAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.72, 0.86, curve: Curves.easeOutCubic),
+      curve: const Interval(0.64, 0.76, curve: Curves.easeOutCubic),
     );
 
     // -------------------------------------------------------------------------
-    // 4. TAHAP 4: Kilatan Cahaya Presisi Mengikuti Bentuk Logo (0.84 -> 0.95)
+    // 5. TAHAP 4: Kilatan Cahaya Presisi Mengikuti Bentuk Logo (0.74 -> 0.86)
     // -------------------------------------------------------------------------
     _sheenAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.84, 0.95, curve: Curves.easeInOutCubic),
+        curve: const Interval(0.74, 0.86, curve: Curves.easeInOutCubic),
       ),
     );
 
-    // 5. Footer & aksen bawah (0.80 -> 0.92)
+    // Footer & aksen bawah (0.66 -> 0.78)
     _footerFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.80, 0.92, curve: Curves.easeIn),
+      curve: const Interval(0.66, 0.78, curve: Curves.easeIn),
     );
+
+    // -------------------------------------------------------------------------
+    // 6. JEDA NAFAS AKHIR (0.86 -> 1.00) ~700ms:
+    // Brand lockup lengkap terdiam stabil di layar sebelum navigasi halus.
+    // -------------------------------------------------------------------------
   }
 
   void _navigateToNextScreen() {
@@ -390,7 +409,7 @@ class _SplashPageState extends State<SplashPage>
                 ),
 
                 // Lingkaran cahaya pembuka awal di tengah (pulsing glow ring)
-                if (t < 0.28)
+                if (t < 0.20)
                   Center(
                     child: Container(
                       width: 90 + (_initialGlowPulseAnim.value * 24),
@@ -456,7 +475,7 @@ class _SplashPageState extends State<SplashPage>
                 // -------------------------------------------------------------
                 // 3. AMBIENT HALO GLOW DI BELAKANG EMBLEM
                 // -------------------------------------------------------------
-                if (t >= 0.24 && _haloGlowAnim.value > 0.0)
+                if (t >= 0.16 && _haloGlowAnim.value > 0.0)
                   Center(
                     child: Transform.translate(
                       offset: Offset(0, _logoOffsetYAnim.value),
@@ -501,7 +520,7 @@ class _SplashPageState extends State<SplashPage>
                 // -------------------------------------------------------------
                 // 5. BRAND HERO CONTENT (Transisi Kontinu Bebas Jump)
                 // -------------------------------------------------------------
-                if (t >= 0.24)
+                if (t >= 0.15)
                   Center(
                     child: _buildBrandIdentity(logoSize, size),
                   ),

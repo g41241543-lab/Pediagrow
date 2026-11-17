@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/services/artikel_service.dart';
-import '../../../core/services/local_push_service.dart';
-import '../../../core/services/staff_auth_service.dart';
-import '../../../core/services/storage_service.dart';
-import '../../../core/services/superadmin_notification_service.dart';
-import '../../../core/services/theme_service.dart';
-import '../../../models/artikel_model.dart';
-import '../../../models/staff_account_model.dart';
-import '../../../models/superadmin_notification_model.dart';
-import '../../../widgets/hak_akses_logo.dart';
-import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
-import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../pengguna/detail/detail_artikel_page.dart';
-import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
-import '../../pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
-import '../../pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
-import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
-import '../../pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
-import 'data_anak/data_pasien_page.dart';
-import '../../../shared/widgets/illustration_forest_footer.dart';
-import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import 'package:pediagrow/core/services/artikel_service.dart';
+import 'package:pediagrow/core/services/local_push_service.dart';
+import 'package:pediagrow/core/services/staff_auth_service.dart';
+import 'package:pediagrow/core/services/storage_service.dart';
+import 'package:pediagrow/core/services/superadmin_notification_service.dart';
+import 'package:pediagrow/core/services/theme_service.dart';
+import 'package:pediagrow/models/artikel_model.dart';
+import 'package:pediagrow/models/staff_account_model.dart';
+import 'package:pediagrow/models/superadmin_notification_model.dart';
+import 'package:pediagrow/widgets/hak_akses_logo.dart';
+import 'package:pediagrow/features/pengguna/beranda/widgets/full_page_sky_background.dart';
+import 'package:pediagrow/features/pengguna/beranda/widgets/header_sky_illustration.dart';
+import 'package:pediagrow/features/pengguna/detail/detail_artikel_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/kelola_artikel/daftar_artikel_admin_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/permainan/permainan_admin_page.dart';
+import 'package:pediagrow/features/pmik_admin/beranda/data_anak/data_pasien_page.dart';
+import 'package:pediagrow/shared/widgets/illustration_forest_footer.dart';
+import 'package:pediagrow/shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Beranda PMIK Admin PediaGrow.
 ///
@@ -125,7 +125,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                   // 2. Konten Putih
                   _buildWhiteContentSection(context),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(
+                    height: 92,
+                  ), // Ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
 
                   // 3. Ilustrasi Landscape Footer
                   _buildFooterIllustration(),
@@ -675,7 +677,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     Color? iconColor,
     Widget? customIcon,
     double cardInset = 6,
-    double imageSize = 40,
+    double imageSize = 48,
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
@@ -1045,7 +1047,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   // 3. ILUSTRASI FOOTER
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // =========================================================================

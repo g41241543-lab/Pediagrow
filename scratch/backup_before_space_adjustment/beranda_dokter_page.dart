@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/services/doctor_service.dart';
-import '../../../core/services/local_push_service.dart';
-import '../../../core/services/staff_auth_service.dart';
-import '../../../core/services/superadmin_notification_service.dart';
-import '../../../core/services/theme_service.dart';
-import '../../../models/staff_account_model.dart';
-import '../../../models/superadmin_notification_model.dart';
-import '../../pengguna/artikel/artikel_kesehatan_page.dart';
-import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
-import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
-import '../../pengguna/mpasi/daftar_resep_page.dart';
-import '../../pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
-import '../../pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
-import 'data_pasien/data_pasien_page.dart';
-import '../jadwal/atur_jadwal_dokter_page.dart';
-import '../../../shared/widgets/illustration_forest_footer.dart';
-import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import 'package:pediagrow/core/services/doctor_service.dart';
+import 'package:pediagrow/core/services/local_push_service.dart';
+import 'package:pediagrow/core/services/staff_auth_service.dart';
+import 'package:pediagrow/core/services/superadmin_notification_service.dart';
+import 'package:pediagrow/core/services/theme_service.dart';
+import 'package:pediagrow/models/staff_account_model.dart';
+import 'package:pediagrow/models/superadmin_notification_model.dart';
+import 'package:pediagrow/features/pengguna/artikel/artikel_kesehatan_page.dart';
+import 'package:pediagrow/features/pengguna/beranda/widgets/full_page_sky_background.dart';
+import 'package:pediagrow/features/pengguna/beranda/widgets/header_sky_illustration.dart';
+import 'package:pediagrow/features/pengguna/mpasi/daftar_resep_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/grafik_pengguna/grafik_pengguna_page.dart';
+import 'package:pediagrow/features/pmik_superadmin/beranda/notifikasi_superadmin_page.dart';
+import 'package:pediagrow/features/dokter/beranda/data_pasien/data_pasien_page.dart';
+import 'package:pediagrow/features/dokter/jadwal/atur_jadwal_dokter_page.dart';
+import 'package:pediagrow/shared/widgets/illustration_forest_footer.dart';
+import 'package:pediagrow/shared/widgets/pedia_bottom_nav_bar.dart';
 
 /// Halaman Beranda Dokter PediaGrow.
 ///
@@ -94,7 +94,9 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
                 _buildWhiteContentSection(context),
 
-                const SizedBox(height: 20),
+                const SizedBox(
+                  height: 92,
+                ), // Ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
 
                 // 3. Ilustrasi Footer (Daun)
                 _buildFooterIllustration(),
@@ -956,7 +958,10 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
   // ILUSTRASI FOOTER (Full-Bleed, daun hijau bawah)
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // =========================================================================
