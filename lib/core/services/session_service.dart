@@ -484,13 +484,8 @@ class SessionService {
         }
 
         if (restoredStaff.email.trim().toLowerCase() ==
-<<<<<<< HEAD
-                    StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
-                restoredStaff.isSuperAdmin) {
-=======
                 StaffAuthService.defaultSuperadminEmail.toLowerCase() ||
             restoredStaff.isSuperAdmin) {
->>>>>>> dd0b9420780a190ab8db0cc01c9ab8b168192d8a
           if (restoredStaff.experience == null ||
               restoredStaff.strNumber == null ||
               restoredStaff.birthDate == null ||
