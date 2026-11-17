@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -1071,6 +1071,10 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
 
       // Simpan ke ChildService reaktif
       await ChildService().addChild(newChild);
+      if (cleanNoKk.isNotEmpty) {
+        await UserService().updateNoKk(cleanNoKk);
+        await ChildService().syncFamilyNoKk(cleanNoKk);
+      }
 
       if (!mounted) return;
 
