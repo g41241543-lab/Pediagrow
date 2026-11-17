@@ -676,8 +676,8 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     IconData? icon,
     Color? iconColor,
     Widget? customIcon,
-    double cardInset = 6,
-    double imageSize = 48,
+    double cardInset = 0,
+    double imageSize = 56,
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
@@ -700,45 +700,135 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Card Menu: Flat Modern Squircle (Rata, Elegan, Selaras dengan Card Lainnya)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: cardInset),
             child: AspectRatio(
               aspectRatio: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? (isLocked ? const Color(0xFF141C22) : ThemeService.darkCard)
-                      : (isLocked
-                          ? const Color(0xFFF1F5F9)
-                          : const Color(0xFFECF6FF)),
-                  borderRadius: BorderRadius.circular(10),
-                  border: isDark
-                      ? Border.all(color: ThemeService.darkBorder)
-                      : (isLocked
-                          ? Border.all(
-                              color: const Color(0xFFCBD5E1),
-                              width: 1.0,
-                            )
-                          : null),
+                  gradient: isLocked
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF141C22),
+                                  const Color(0xFF0F151A),
+                                ]
+                              : [
+                                  const Color(0xFFE2E8F0),
+                                  const Color(0xFFCBD5E1),
+                                ],
+                        )
+                      : LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF1D252C),
+                                  const Color(0xFF171E24),
+                                ]
+                              : [
+                                  const Color(0xFFEAF4FF),
+                                  const Color(0xFFD4EBFE),
+                                ],
+                        ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isLocked
+                        ? (isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFF94A3B8))
+                        : (isDark
+                            ? const Color(0xFF2C363D)
+                            : const Color(0xFFCCE4FB)),
+                    width: 1.0,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: isLocked
-                          ? const Color(0x0A000000)
-                          : const Color(0xFF3985E7).withValues(alpha: isDark ? 0.02 : 0.06),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withValues(
+                          alpha: isDark ? (isLocked ? 0.08 : 0.18) : (isLocked ? 0.02 : 0.03)),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(16),
                   child: Stack(
-                    fit: StackFit.expand,
                     children: [
-                      // Dekorasi sudut tematik
-                      _buildTileDecoration(blobColor, isLocked: isLocked),
+                      if (!isLocked) ...[
+                        // Layer 1: Gelembung Lembut di Sudut Kanan Atas (Tampak Jelas & Rapi)
+                        Positioned(
+                          top: -14,
+                          right: -14,
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.035)
+                                  : Colors.white.withValues(alpha: 0.45),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.white.withValues(alpha: 0.65),
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
 
-                      // Icon / Logo
+                        // Layer 2: Gelembung Lembut di Sudut Kiri Bawah (Tampak Jelas & Rapi)
+                        Positioned(
+                          bottom: -16,
+                          left: -14,
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.025)
+                                  : Colors.white.withValues(alpha: 0.35),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.white.withValues(alpha: 0.55),
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Layer 3: Micro Sparkles (✦) Bintang Kontras & Berkilau Jelas
+                        Positioned(
+                          top: 12,
+                          left: 12,
+                          child: Icon(
+                            Icons.auto_awesome,
+                            size: 8.5,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.30)
+                                : Colors.white.withValues(alpha: 0.95),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 12,
+                          right: 12,
+                          child: Icon(
+                            Icons.auto_awesome,
+                            size: 6.5,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+
+                      // Layer 6: Icon / Logo
                       Center(
                         child: Transform.translate(
                           offset: Offset(logoOffsetX, 0),
@@ -746,10 +836,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                               ? ColorFiltered(
                                   colorFilter: const ColorFilter.matrix(
                                     <double>[
-                                      0.2126, 0.7152, 0.0722, 0, 0, //
-                                      0.2126, 0.7152, 0.0722, 0, 0, //
-                                      0.2126, 0.7152, 0.0722, 0, 0, //
-                                      0, 0, 0, 0.65, 0, //
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0, 0, 0, 0.65, 0,
                                     ],
                                   ),
                                   child: baseContent,
@@ -761,10 +851,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                       // Badge Gembok jika fitur terkunci
                       if (isLocked)
                         Positioned(
-                          top: 6,
-                          right: 6,
+                          top: 8,
+                          right: 8,
                           child: Container(
-                            padding: const EdgeInsets.all(3.5),
+                            padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
                               color: Color(0xFF64748B),
                               shape: BoxShape.circle,
@@ -804,43 +894,6 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     );
   }
 
-  Widget _buildTileDecoration(Color blobColor, {bool isLocked = false}) {
-    final effectiveColor = isLocked ? const Color(0xFF94A3B8) : blobColor;
-    final topAlpha = isLocked ? 0.28 : 0.09;
-    final bottomAlpha = isLocked ? 0.22 : 0.06;
-
-    return IgnorePointer(
-      child: Stack(
-        children: [
-          Positioned(
-            top: -10,
-            right: -10,
-            child: Container(
-              width: 45,
-              height: 45,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: effectiveColor.withValues(alpha: topAlpha),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -10,
-            left: -8,
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: effectiveColor.withValues(alpha: bottomAlpha),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // =========================================================================
   // CARD SLOGAN PeGo PMIK
   // =========================================================================
@@ -850,57 +903,97 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
       width: double.infinity,
       height: 115,
       decoration: BoxDecoration(
-        color: isDark ? ThemeService.darkCard : const Color(0xFFECF6FF),
-        borderRadius: BorderRadius.circular(10),
-        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1D252C),
+                  const Color(0xFF171E24),
+                ]
+              : [
+                  const Color(0xFFEAF4FF),
+                  const Color(0xFFD4EBFE),
+                ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFCCE4FB),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Pe',
-                style: GoogleFonts.baloo2(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF4B83D6),
-                ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Micro Sparkle (✦) di Sudut Kanan Atas
+            Positioned(
+              top: 12,
+              right: 14,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 8.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.30)
+                    : Colors.white.withValues(alpha: 0.95),
               ),
-              Text(
-                'Go',
-                style: GoogleFonts.baloo2(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF3CC3A6),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Layanan Rekam Medis Terpadu & Pemantauan Tumbuh Kembang Anak',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.lato(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: isDark
-                  ? const Color(0xFF93C5FD)
-                  : const Color(0xFF2B7AE8),
-              height: 1.35,
             ),
-          ),
-        ],
+
+            // Konten Teks
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Pe',
+                        style: GoogleFonts.baloo2(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4B83D6),
+                        ),
+                      ),
+                      Text(
+                        'Go',
+                        style: GoogleFonts.baloo2(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3CC3A6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Layanan Rekam Medis Terpadu & Pemantauan Tumbuh Kembang Anak',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.lato(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFF93C5FD)
+                          : const Color(0xFF1E3A8A),
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

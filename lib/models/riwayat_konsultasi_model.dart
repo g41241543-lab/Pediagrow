@@ -18,6 +18,8 @@ class RiwayatKonsultasiModel {
 
   final String childAge;
   final String childGender;
+  final String childId;
+  final String? childPhotoUrl;
 
   const RiwayatKonsultasiModel({
     required this.id,
@@ -28,6 +30,8 @@ class RiwayatKonsultasiModel {
     required this.childName,
     this.childAge = '1 tahun 3 bulan 3 hari',
     this.childGender = 'female',
+    this.childId = '',
+    this.childPhotoUrl,
     required this.consultationDate,
     required this.formattedDate,
     this.status = 'Selesai',
@@ -46,6 +50,8 @@ class RiwayatKonsultasiModel {
     String? childName,
     String? childAge,
     String? childGender,
+    String? childId,
+    String? childPhotoUrl,
     DateTime? consultationDate,
     String? formattedDate,
     String? status,
@@ -62,6 +68,8 @@ class RiwayatKonsultasiModel {
       childName: childName ?? this.childName,
       childAge: childAge ?? this.childAge,
       childGender: childGender ?? this.childGender,
+      childId: childId ?? this.childId,
+      childPhotoUrl: childPhotoUrl ?? this.childPhotoUrl,
       consultationDate: consultationDate ?? this.consultationDate,
       formattedDate: formattedDate ?? this.formattedDate,
       status: status ?? this.status,
@@ -83,6 +91,8 @@ class RiwayatKonsultasiModel {
       childName: map['child_name'] ?? 'Kaia Anastasya',
       childAge: map['child_age'] ?? '1 tahun 3 bulan 3 hari',
       childGender: map['child_gender'] ?? 'female',
+      childId: map['child_id']?.toString() ?? map['childId']?.toString() ?? '',
+      childPhotoUrl: map['child_photo_url'] ?? map['childPhotoUrl'] ?? map['photo_url'] ?? map['photoUrl'],
       consultationDate: map['consultation_date'] != null
           ? DateTime.tryParse(map['consultation_date'].toString()) ??
               DateTime(2026, 8, 26)
@@ -109,6 +119,8 @@ class RiwayatKonsultasiModel {
       'child_name': childName,
       'child_age': childAge,
       'child_gender': childGender,
+      'child_id': childId,
+      'child_photo_url': childPhotoUrl,
       'consultation_date': consultationDate.toIso8601String(),
       'formatted_date': formattedDate,
       'status': status,
