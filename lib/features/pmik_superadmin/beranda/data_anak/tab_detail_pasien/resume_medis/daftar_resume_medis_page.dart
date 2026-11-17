@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
+import '../../../../../../shared/widgets/doctor_live_avatar.dart';
 import '../../../../../../shared/widgets/pedia_banner.dart';
 import 'detail_resume_medis_page.dart';
 
@@ -263,30 +264,15 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
   Widget _buildResumeCard(ResumeMedisModel resume) {
     return _ResumeCardItem(
       resume: resume,
-      doctorAvatar: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: const Color(0xFF2B7AE8).withValues(alpha: 0.15),
-            width: 1.5,
-          ),
-        ),
-        child: ClipOval(
-          child: resume.doctorPhoto != null && resume.doctorPhoto!.isNotEmpty
-              ? (resume.doctorPhoto!.startsWith('http')
-                    ? Image.network(
-                        resume.doctorPhoto!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _buildDoctorAvatarFallback(),
-                      )
-                    : Image.asset(
-                        resume.doctorPhoto!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _buildDoctorAvatarFallback(),
-                      ))
-              : _buildDoctorAvatarFallback(),
+      doctorAvatar: DoctorLiveAvatar(
+        doctorId: resume.doctorId,
+        doctorName: resume.doctorName,
+        fallbackPhoto: resume.doctorPhoto,
+        size: 52,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFF2B7AE8).withValues(alpha: 0.25),
+          width: 1.5,
         ),
       ),
       onTap: () async {
@@ -307,18 +293,6 @@ class _DaftarResumeMedisPageState extends State<DaftarResumeMedisPage> {
         }
       },
       onDelete: null,
-    );
-  }
-  Widget _buildDoctorAvatarFallback() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      color: isDark ? const Color(0xFF242E35) : const Color(0xFFEAF5FF),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.person,
-        size: 30,
-        color: isDark ? const Color(0xFF3985E7) : const Color(0xFF2B7AE8),
-      ),
     );
   }
 
