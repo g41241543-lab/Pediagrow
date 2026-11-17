@@ -159,7 +159,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
             pageBuilder: (_, _, _) =>
                 DetailAnakPage(child: child, user: user),
             transitionsBuilder: (_, animation, _, childWidget) =>
-                FadeTransition(opacity: animation, child: childWidget),
+                childWidget,
             transitionDuration: const Duration(milliseconds: 200),
           ),
         );
@@ -206,7 +206,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
             pageBuilder: (_, _, _) =>
                 PertumbuhanGrafikPage(child: child),
             transitionsBuilder: (_, animation, _, childWidget) =>
-                FadeTransition(opacity: animation, child: childWidget),
+                childWidget,
             transitionDuration: const Duration(milliseconds: 200),
           ),
         );

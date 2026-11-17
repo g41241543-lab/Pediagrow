@@ -655,7 +655,7 @@ class _BookingKonsultasiPageState extends State<BookingKonsultasiPage> {
                           pageBuilder: (context, anim, secAnim) =>
                               StatusBookingPage(booking: booking),
                           transitionsBuilder: (context, anim, secAnim, child) =>
-                              FadeTransition(opacity: anim, child: child),
+                              child,
                           transitionDuration: const Duration(milliseconds: 300),
                         ),
                       );

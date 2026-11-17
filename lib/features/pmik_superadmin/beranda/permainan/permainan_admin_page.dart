@@ -5,27 +5,23 @@ import '../../../../core/services/soal_service.dart';
 import '../../../../core/services/staff_auth_service.dart';
 import '../../../../models/soal_model.dart';
 import '../../../../models/staff_account_model.dart';
-import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
-import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
-import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
 import 'edit_soal_permainan_page.dart';
 
-/// Halaman Permainan untuk Superadmin — Daftar Soal.
+/// Halaman Permainan untuk Admin (PMIK) & Superadmin — Bank Soal & CRUD.
 ///
-/// Menampilkan seluruh bank soal dalam kartu putih yang dapat diedit.
-/// Background identik dengan Beranda Superadmin:
-/// - Scaffold background putih
-/// - Full-page animasi awan dan burung melayang ([FullPageSkyBackground])
-/// - Area biru langit seamless di bagian header ([HeaderSkyIllustration])
-/// - Ilustrasi pemandangan bukit hijau di bagian footer
+/// Menampilkan seluruh 25 bank soal dalam kartu yang dapat ditambah, diedit, dan dihapus.
+/// Dilengkapi chip status:
+/// - "25 Soal di Bank"
+/// - "10 Soal per Sesi"
+/// - "Tersimpan di Database"
 ///
-/// Navigasi:
-/// - Tombol back → kembali ke halaman sebelumnya (beranda superadmin).
-/// - Ikon edit pada kartu → buka [EditSoalPermainanPage].
-/// - Setelah edit berhasil → kartu soal diperbarui langsung + notifikasi sukses.
+/// Background & Ilustrasi adaptif tema (Dark Mode / Light Mode):
+/// - Header langit dinamis mengikuti mode tema aplikasi
+/// - Footer menggunakan [IllustrationForestFooter] yang menyatu mulus dengan latar
 class PermainanAdminPage extends StatefulWidget {
   const PermainanAdminPage({super.key});
 
@@ -35,7 +31,6 @@ class PermainanAdminPage extends StatefulWidget {
 
 class _PermainanAdminPageState extends State<PermainanAdminPage>
     with TickerProviderStateMixin {
-  // ── THEME GETTERS (DARK MODE SUPPORT) ──────────────────────────────
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
   Color get _cardBg => _isDark ? const Color(0xFF1A2228) : Colors.white;
@@ -43,19 +38,18 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   Color get _textBlack => _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014);
   Color get _textGrey => _isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
 
-  // ──────────────────────────────────────────────────────────────────
-  // STATE
-  // ──────────────────────────────────────────────────────────────────
   List<SoalModel> _soalList = [];
   bool _isLoading = true;
   String? _errorMsg;
 
-  // Notifikasi sukses
-  bool _showSuccessBar = false;
+  // Notifikasi status bar
+  bool _showNotifBar = false;
+  String _notifMessage = 'Berhasil Memperbarui Soal';
+  bool _isNotifError = false;
   late AnimationController _notifController;
   late Animation<Offset> _notifSlide;
 
-  // Shimmer pulse animation untuk skeleton loading frame pertama
+  // Shimmer pulse animation untuk skeleton loading
   late AnimationController _skeletonController;
   late Animation<double> _skeletonOpacity;
 
@@ -83,11 +77,10 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       CurvedAnimation(parent: _skeletonController, curve: Curves.easeInOut),
     );
 
-    // Stale-While-Revalidate:
-    // Cek cache memory terlebih dahulu. Jika sudah ada, render 0 ms!
+    // Stale-While-Revalidate: Muat instan dari cache lokal (seluruh soal bank)
     final cached = SoalService.cachedSoal;
     if (cached != null && cached.isNotEmpty) {
-      _soalList = cached.take(10).toList();
+      _soalList = List<SoalModel>.from(cached);
       _isLoading = false;
       _syncInBackground();
     } else {
@@ -103,11 +96,8 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // LOAD DATA CEPAT (STALE-WHILE-REVALIDATE)
+  // DATA LOADING
   // ──────────────────────────────────────────────────────────────────
-
-  /// Memuat data instan dari cache / asset lokal (< 25 ms)
-  /// lalu menjalankan sinkronisasi latar belakang tanpa memblokir UI.
   Future<void> _loadSoalFast() async {
     setState(() {
       _isLoading = _soalList.isEmpty;
@@ -115,40 +105,35 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
     });
 
     try {
-      // 1. Ambil data awal secepat kilat (0 - 25 ms)
-      final initial = await SoalService.loadInitialSoal();
+      final initial = await SoalService.getAllSoal();
       if (!mounted) return;
 
       if (initial.isNotEmpty) {
         setState(() {
-          _soalList = initial.take(10).toList();
+          _soalList = List<SoalModel>.from(initial);
           _isLoading = false;
         });
       }
-
-      // 2. Sinkronisasi data server secara halus di latar belakang
       await _syncInBackground();
     } catch (e) {
       if (!mounted) return;
       if (_soalList.isEmpty) {
         setState(() {
-          _errorMsg = 'Gagal memuat soal: ';
+          _errorMsg = 'Gagal memuat bank soal: $e';
           _isLoading = false;
         });
       }
     }
   }
 
-  /// Sinkronisasi dengan database di latar belakang
   Future<void> _syncInBackground() async {
     try {
       final updated = await SoalService.syncInBackground();
       if (!mounted || updated == null || updated.isEmpty) return;
 
-      final top10 = updated.take(10).toList();
-      if (!_isListEqual(_soalList, top10)) {
+      if (!_isListEqual(_soalList, updated)) {
         setState(() {
-          _soalList = top10;
+          _soalList = List<SoalModel>.from(updated);
           _isLoading = false;
         });
       }
@@ -161,19 +146,36 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       if (a[i].id != b[i].id ||
           a[i].pertanyaan != b[i].pertanyaan ||
           a[i].jawabanBenar != b[i].jawabanBenar ||
-          a[i].penjelasan != b[i].penjelasan) {
+          a[i].penjelasan != b[i].penjelasan ||
+          a[i].isActive != b[i].isActive ||
+          a[i].perluTinjauan != b[i].perluTinjauan) {
         return false;
       }
     }
     return true;
   }
 
-  /// Fungsi refresh manual untuk tombol "Coba Lagi"
-  Future<void> _loadSoal() async {
-    await _loadSoalFast();
-  }
-  // NAVIGASI KE EDIT SOAL
   // ──────────────────────────────────────────────────────────────────
+  // CRUD ACTIONS
+  // ──────────────────────────────────────────────────────────────────
+
+  /// Buka form untuk menambah soal baru
+  Future<void> _bukaTambahSoal() async {
+    final result = await Navigator.of(context).push<SoalModel>(
+      _FadeSlideRoute(
+        builder: (_) => const EditSoalPermainanPage(soal: null),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    setState(() {
+      _soalList.add(result);
+    });
+    _tampilkanNotif('Berhasil Menambahkan Soal Baru', isError: false);
+  }
+
+  /// Buka form untuk mengedit soal yang sudah ada
   Future<void> _bukaEditSoal(int index) async {
     final soal = _soalList[index];
     final result = await Navigator.of(context).push<SoalModel>(
@@ -182,32 +184,154 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       ),
     );
 
+    if (!mounted || result == null) return;
+
+    setState(() {
+      _soalList[index] = result;
+    });
+    _tampilkanNotif('Berhasil Memperbarui Soal', isError: false);
+  }
+
+  /// Konfirmasi dan hapus soal dari bank soal
+  Future<void> _konfirmasiHapusSoal(int index) async {
+    // Validasi batas minimum: tidak boleh < 10 soal
+    if (_soalList.length <= 10) {
+      _tampilkanDialogPeringatanMinimum();
+      return;
+    }
+
+    final soal = _soalList[index];
+
+    final konfirmasi = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _cardBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Hapus Soal?',
+          style: GoogleFonts.lato(
+            fontWeight: FontWeight.bold,
+            color: _textBlack,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus Soal #${soal.id} dari Bank Soal?\n\nTindakan ini tidak dapat dibatalkan.',
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            color: _textGrey,
+            height: 1.45,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.lato(
+                color: _textGrey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.lato(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (konfirmasi != true || !mounted) return;
+
+    final result = await SoalService.hapusSoal(soal.id);
+
     if (!mounted) return;
-    if (result != null) {
-      // Perbarui kartu soal langsung di list & cache
-      SoalService.updateCache(result);
+    if (result.success) {
       setState(() {
-        _soalList[index] = result;
+        _soalList.removeAt(index);
       });
-      _tampilkanNotifSukses();
+      _tampilkanNotif(result.message, isError: false);
+    } else {
+      _tampilkanNotif(result.message, isError: true);
     }
   }
 
+  /// Dialog saat admin mencoba menghapus padahal bank soal sudah sisa 10
+  void _tampilkanDialogPeringatanMinimum() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _cardBg,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 28),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Tidak Dapat Dihapus',
+                style: GoogleFonts.lato(
+                  fontWeight: FontWeight.bold,
+                  color: _textBlack,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Bank soal tidak dapat dikurangi lagi karena jumlah soal saat ini adalah 10.\n\nSatu sesi kuis anak di role User membutuhkan tepat 10 soal unik. Silakan tambahkan soal baru terlebih dahulu sebelum menghapus soal ini.',
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            color: _textGrey,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2B7AE8),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ──────────────────────────────────────────────────────────────────
-  // NOTIFIKASI SUKSES
+  // NOTIFIKASI SUKSES / GAGAL
   // ──────────────────────────────────────────────────────────────────
-  Future<void> _tampilkanNotifSukses() async {
-    setState(() => _showSuccessBar = true);
+  Future<void> _tampilkanNotif(String pesan, {required bool isError}) async {
+    setState(() {
+      _notifMessage = pesan;
+      _isNotifError = isError;
+      _showNotifBar = true;
+    });
     _notifController.forward(from: 0);
     await Future.delayed(const Duration(seconds: 3));
-    if (mounted && _showSuccessBar) {
+    if (mounted && _showNotifBar) {
       _tutupNotif();
     }
   }
 
   Future<void> _tutupNotif() async {
     await _notifController.reverse();
-    if (mounted) setState(() => _showSuccessBar = false);
+    if (mounted) setState(() => _showNotifBar = false);
   }
 
   void _navigateBack() {
@@ -241,128 +365,96 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         backgroundColor: _scaffoldBg,
         resizeToAvoidBottomInset: false,
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
-        body: Stack(
-        children: [
-          // ── Konten Scrollable dengan Background Langit Beranda ─────
-          SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // LAYER 0 — Background animasi awan & burung (full-page)
-                const Positioned.fill(child: FullPageSkyBackground()),
+        body: SafeArea(
+          bottom: false,
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Header Standar Superadmin/PMIK (56dp)
+                  _buildHeader(),
 
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Area Biru Seamless (Header + Ilustrasi Langit)
-                    _buildSeamlessBlueArea(context),
+                  // 2. Konten Scrollable
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
 
-                                        // 2. Konten Utama
-                    if (_isLoading)
-                      _buildSkeletonLoading()
-                    else if (_errorMsg != null && _soalList.isEmpty)
-                      _buildError()
-                    else
-                      _buildContentSection(),
+                          // Konten Utama
+                          if (_isLoading)
+                            _buildSkeletonLoading()
+                          else if (_errorMsg != null && _soalList.isEmpty)
+                            _buildError()
+                          else
+                            _buildContentSection(),
 
-                    const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                    // 3. Ilustrasi Landscape Footer (persis Beranda)
-                    _buildFooterIllustration(),
-                  ],
-                ),
-              ],
-            ),
-          ),
+                          // 3. Ilustrasi Landscape Footer (Adaptif Tema dengan awan lembut di bawah)
+                          const IllustrationForestFooter(
+                            fit: BoxFit.fitWidth,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
-          // ── Notifikasi sukses (slide dari atas) ───────────────────
-          if (_showSuccessBar) _buildSuccessBar(),
-        ],
-      ),
-    ),
-  );
-}
-
-  // ──────────────────────────────────────────────────────────────────
-  // 1. AREA BIRU SEAMLESS (Header + HeaderSkyIllustration)
-  // ──────────────────────────────────────────────────────────────────
-  Widget _buildSeamlessBlueArea(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
-
-    return Container(
-      width: double.infinity,
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: HeaderSkyIllustration.getGradientColors(
-            isNight: isNight,
-            isDark: isDark,
-          ),
-          stops: HeaderSkyIllustration.getGradientStops(
-            isNight: isNight,
-            isDark: isDark,
+              if (_showNotifBar) _buildNotifBar(),
+            ],
           ),
         ),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Background Ilustrasi Langit (matahari/bulan, awan cumulus, burung)
-          const Positioned.fill(
-            child: HeaderSkyIllustration(
-              mode: SkyTimeMode.auto,
-              renderBackgroundGradient: false,
-            ),
-          ),
+    );
+  }
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header: Back Button + "Permainan" (tinggi 56dp)
-              SafeArea(
-                bottom: false,
-                child: SizedBox(
-                  height: 56,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 12.0, right: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: _navigateBack,
-                          behavior: HitTestBehavior.opaque,
-                          child: const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Permainan',
-                          style: GoogleFonts.lato(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                      ],
-                    ),
+  // ──────────────────────────────────────────────────────────────────
+  // 1. HEADER HALAMAN (STANDAR 56DP ROLE SUPERADMIN / PMIK)
+  // ──────────────────────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return Container(
+      height: 56.0,
+      width: double.infinity,
+      color: _scaffoldBg,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _navigateBack,
+                borderRadius: BorderRadius.circular(24.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24.0,
+                    color: _textBlack,
                   ),
                 ),
               ),
-
-              const SizedBox(height: 48),
-            ],
+            ),
+          ),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: Text(
+              'Permainan',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.lato(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                color: _textBlack,
+                letterSpacing: -0.2,
+              ),
+            ),
           ),
         ],
       ),
@@ -372,233 +464,56 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   // ──────────────────────────────────────────────────────────────────
   // 2. KONTEN UTAMA
   // ──────────────────────────────────────────────────────────────────
-  // SKELETON LOADING (LANGSUNG TAMPIL DI FRAME PERTAMA TANPA SCREEN KOSONG)
-  // ──────────────────────────────────────────────────────────────────
-  Widget _buildSkeletonLoading() {
-    return AnimatedBuilder(
-      animation: _skeletonOpacity,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _skeletonOpacity.value,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              // Header Skeleton: Avatar Otak
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 88,
-                      height: 88,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFFBFDBFE),
-                          width: 2,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.psychology_rounded,
-                        size: 48,
-                        color: Color(0xFF93C5FD),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Bar Judul
-                    Container(
-                      width: 220,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Bar Subjudul
-                    Container(
-                      width: 280,
-                      height: 13,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: 200,
-                      height: 13,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    // Chip Skeleton
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 110,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE0EDFD),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 150,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Divider(
-                  color: Color(0xFFE9EDEF),
-                  thickness: 1,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Label "Daftar Soal" skeleton
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Container(
-                  width: 120,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // 3 Kartu Soal Skeleton
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: List.generate(3, (index) => _buildSkeletonCard()),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSkeletonCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9EDEF), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE0EDFD),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: 180,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 90,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              Container(
-                width: 70,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  // ──────────────────────────────────────────────────────────────────
   Widget _buildContentSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
+
+        // Info Kuis & Chip status
         _buildKuisInfo(),
-        const SizedBox(height: 24),
-        // Garis pemisah horizontal tipis abu-abu muda (#E2E8F0)
+
+        const SizedBox(height: 16),
+
+        // Tombol Tambah Soal
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Divider(
-            color: _borderColor,
-            thickness: 1,
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: _bukaTambahSoal,
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+              label: Text(
+                'Tambah Soal Baru',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2B7AE8),
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ),
+
+        const SizedBox(height: 20),
+
+        // Garis pemisah
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Divider(color: _borderColor, thickness: 1),
+        ),
+
         const SizedBox(height: 16),
-        // Bagian Label "Daftar Soal"
+
+        // Label "Daftar Soal" + Counter
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -634,8 +549,10 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
             ],
           ),
         ),
+
         const SizedBox(height: 12),
-        // Kartu-kartu soal yang disusun secara vertikal (jarak 12dp)
+
+        // Seluruh 25 Kartu Soal
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -651,7 +568,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // INFO KUIS (Ikon otak, judul, subjudul, chip informasi status)
+  // INFO KUIS (Ikon, Judul, Chip Informasi Baru)
   // ──────────────────────────────────────────────────────────────────
   Widget _buildKuisInfo() {
     return Padding(
@@ -659,9 +576,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       child: Center(
         child: Column(
           children: [
-            // 1. Ikon permainan: gambar otak dalam lingkaran putih diameter 88dp
-            //    dengan border biru muda, dan badge hijau bulat diameter 28dp
-            //    dengan ikon checklist putih di pojok kanan bawah
+            // Ikon Otak + Checklist Badge
             SizedBox(
               width: 88,
               height: 88,
@@ -727,7 +642,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
 
             const SizedBox(height: 16),
 
-            // 2. Judul "Kuis Edukasi PediaGrow" (Lato Bold 20sp, #1E293B)
+            // Judul
             Text(
               'Kuis Edukasi PediaGrow',
               textAlign: TextAlign.center,
@@ -741,9 +656,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
 
             const SizedBox(height: 6),
 
-            // 3. Subjudul "Kelola pertanyaan dan kunci jawaban kuis stunting untuk edukasi pengguna" (Lato Regular 13sp, #64748B)
+            // Subjudul
             Text(
-              'Kelola pertanyaan dan kunci jawaban kuis stunting untuk edukasi pengguna',
+              'Kelola bank pertanyaan dan kunci jawaban kuis stunting untuk edukasi pengguna',
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 13,
@@ -755,15 +670,18 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
 
             const SizedBox(height: 14),
 
-            // 4. Chip informasi status: "10 Soal Aktif" (#E0EDFD / #2B7AE8) & "Tersimpan di Database" (#DCFCE7 / #16A34A)
+            // 3 CHIP STATUS:
+            // 1. "25 Soal di Bank"
+            // 2. "10 Soal per Sesi"
+            // 3. "Tersimpan di Database"
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 8,
               runSpacing: 8,
               children: [
+                // Chip 1: Soal di Bank
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _isDark
                         ? const Color(0xFF1E3A5F)
@@ -782,7 +700,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        '${_soalList.length} Soal Aktif',
+                        '${_soalList.length} Soal di Bank',
                         style: GoogleFonts.lato(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -794,9 +712,44 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                     ],
                   ),
                 ),
+
+                // Chip 2: Soal per Sesi
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _isDark
+                        ? const Color(0xFF2A2B4A)
+                        : const Color(0xFFEDE9FE),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.replay_rounded,
+                        size: 14,
+                        color: _isDark
+                            ? const Color(0xFFA78BFA)
+                            : const Color(0xFF7C3AED),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        '10 Soal per Sesi',
+                        style: GoogleFonts.lato(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _isDark
+                              ? const Color(0xFFA78BFA)
+                              : const Color(0xFF7C3AED),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Chip 3: Tersimpan di Database
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _isDark
                         ? const Color(0xFF14532D)
@@ -836,11 +789,11 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // KARTU SOAL
-  // Background putih (#FFFFFF), border radius 16dp, border tipis (#E2E8F0), padding 16dp
+  // KARTU SOAL (DENGAN TOMBOL EDIT & HAPUS, SERTA BADGE PERLU TINJAUAN)
   // ──────────────────────────────────────────────────────────────────
   Widget _buildSoalCard(int index) {
     final soal = _soalList[index];
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -861,44 +814,130 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row: Label "Soal N" + tombol edit (pensil #F59E0B di kotak #FEF3C7 32x32)
+          // ── Baris atas: label "Soal N • Kategori" + tombol edit & hapus ──
+          // Menggunakan Expanded pada teks agar tidak pernah overflow pada
+          // kategori panjang ("Imunisasi & Kesehatan", "Tumbuh Kembang", dll.).
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Soal ${index + 1}',
-                style: GoogleFonts.lato(
-                  fontSize: 12,
-                  fontWeight: FontWeight.normal,
-                  color: _textGrey,
+              // Teks "Soal N • Kategori" — mengambil ruang sisa, truncate jika panjang
+              Expanded(
+                child: Text(
+                  'Soal ${index + 1} • ${soal.kategori}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _textGrey,
+                  ),
                 ),
               ),
-              const Spacer(),
+
+              const SizedBox(width: 4),
+
+              // Tombol Edit — area sentuh ergonomis 40x40px (visual 32x32)
               GestureDetector(
                 onTap: () => _bukaEditSoal(index),
                 behavior: HitTestBehavior.opaque,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _isDark
-                        ? const Color(0xFF3B2D14)
-                        : const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Center(
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _isDark
+                            ? const Color(0xFF3B2D14)
+                            : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.edit_outlined,
+                        size: 16,
+                        color: Color(0xFFF59E0B),
+                      ),
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.edit_outlined,
-                    size: 16,
-                    color: Color(0xFFF59E0B),
+                ),
+              ),
+
+              // Tombol Hapus — area sentuh ergonomis 40x40px (visual 32x32)
+              GestureDetector(
+                onTap: () => _konfirmasiHapusSoal(index),
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Center(
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _isDark
+                            ? const Color(0xFF381A1A)
+                            : const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        size: 16,
+                        color: Color(0xFFEF4444),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
 
+          // ── Baris kedua: badge "Perlu Tinjauan" (jika ada) ──
+          // Dipisah ke baris sendiri sehingga tidak pernah berkompetisi
+          // dengan tombol edit/hapus dan tidak menyebabkan overflow.
+          if (soal.perluTinjauan) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _isDark
+                        ? const Color(0xFF3B2D14)
+                        : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.rate_review_outlined,
+                        size: 11,
+                        color: Color(0xFFD97706),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        'Perlu Tinjauan',
+                        style: GoogleFonts.lato(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFD97706),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+
           const SizedBox(height: 8),
 
-          // Teks pertanyaan: font Lato SemiBold 14sp warna #1E293B
+          // Teks Pernyataan Soal
           Text(
             soal.pertanyaan,
             style: GoogleFonts.lato(
@@ -908,16 +947,139 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               height: 1.45,
             ),
           ),
+
+          const SizedBox(height: 10),
+
+          // Pill Kunci Jawaban
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: soal.jawabanBenar
+                      ? (_isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7))
+                      : (_isDark ? const Color(0xFF381A1A) : const Color(0xFFFEE2E2)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'Kunci: ${soal.jawabanBenar ? "BENAR" : "SALAH"}',
+                  style: GoogleFonts.lato(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: soal.jawabanBenar
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFDC2626),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // 3. ILUSTRASI FOOTER (Format Terpusat: IllustrationForestFooter)
+  // SKELETON LOADING
   // ──────────────────────────────────────────────────────────────────
-  Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+  Widget _buildSkeletonLoading() {
+    return AnimatedBuilder(
+      animation: _skeletonOpacity,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _skeletonOpacity.value,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFBFDBFE),
+                          width: 2,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.psychology_rounded,
+                        size: 48,
+                        color: Color(0xFF93C5FD),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: 220,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 280,
+                      height: 13,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: List.generate(4, (index) => _buildSkeletonCard()),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _borderColor, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 120,
+            height: 14,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            height: 16,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -937,7 +1099,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
             ),
             const SizedBox(height: 16),
             Text(
-              _errorMsg ?? 'Terjadi kesalahan',
+              _errorMsg ?? 'Terjadi kesalahan memuat soal',
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 14,
@@ -946,7 +1108,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: _loadSoal,
+              onPressed: _loadSoalFast,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Coba Lagi'),
               style: ElevatedButton.styleFrom(
@@ -964,9 +1126,12 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // NOTIFIKASI SUKSES BAR
+  // NOTIFIKASI BAR
   // ──────────────────────────────────────────────────────────────────
-  Widget _buildSuccessBar() {
+  Widget _buildNotifBar() {
+    final bgColor = _isNotifError ? const Color(0xFFDC2626) : const Color(0xFF16A34A);
+    final iconData = _isNotifError ? Icons.error_outline_rounded : Icons.check_circle_rounded;
+
     return Positioned(
       top: 0,
       left: 0,
@@ -978,10 +1143,9 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
           child: SlideTransition(
             position: _notifSlide,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF16A34A),
+                color: bgColor,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -993,15 +1157,11 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                  Icon(iconData, color: Colors.white, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Berhasil Memperbarui Soal',
+                      _notifMessage,
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -1028,7 +1188,7 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
 }
 
 // ════════════════════════════════════════════════════════════════════
-// CUSTOM PAGE ROUTE — Fade + Slide halus
+// TRANSISI HALUS UNTUK ROUTE
 // ════════════════════════════════════════════════════════════════════
 class _FadeSlideRoute<T> extends PageRouteBuilder<T> {
   final WidgetBuilder builder;

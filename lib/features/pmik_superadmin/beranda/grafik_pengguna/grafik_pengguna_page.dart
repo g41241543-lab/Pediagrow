@@ -52,7 +52,6 @@ const Color _kGirlAvatarBg = Color(0xFFFFDFD9);
 // Warna Grafik Rekapitulasi Stunting (Disamakan dengan Grafik Pengguna & Anak: Biru & Hijau)
 const Color _kBlueStuntingChart = _kBluePrimary; // Biru (Tidak Stunting)
 const Color _kGreenStuntingChart = _kTealPrimary; // Hijau (Stunting)
-// _kOrangeStuntingChart dihapus (tidak digunakan)
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // MODEL DATA ROW UNTUK DATASET

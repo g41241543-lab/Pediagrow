@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -335,104 +335,184 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   // ===================================================================
-  // BANNER PERINGATAN NOMOR KK BELUM DILENGKAPI
-  // Tampil di antara Area Biru dan Konten Putih jika activeChild.noKk kosong/null.
-  // Reaktif via ValueListenableBuilder terhadap activeChildNotifier dan childrenNotifier.
+  // BANNER / CARD PENGINGAT NOMOR KK BELUM DILENGKAPI (MODERN CLEAN TILE)
+  // Desain ramping minimalis ala SATUSEHAT & Halodoc:
+  // - Background putih bersih (Light) atau Dark Surface elegan #1A2228 (Dark)
+  // - Icon rounded amber lembut dengan unsur warning_amber_rounded
+  // - Teks ringkas dan padat agar tidak terpotong (overflow) di layar HP
+  // - Tombol pill ramping "Lengkapi →" di kanan, seluruh card tap-friendly
   // ===================================================================
   Widget _buildNoKkWarningBanner(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ValueListenableBuilder<ChildModel?>(
-      valueListenable: ChildService().activeChildNotifier,
-      builder: (context, activeChild, _) {
-        // Hanya tampil jika ada anak aktif dan noKk-nya belum diisi
-        if (activeChild == null) return const SizedBox.shrink();
-        final noKkMissing =
-            activeChild.noKk == null || activeChild.noKk!.trim().isEmpty;
-        if (!noKkMissing) return const SizedBox.shrink();
+    return ValueListenableBuilder<List<ChildModel>>(
+      valueListenable: ChildService().childrenNotifier,
+      builder: (context, children, _) {
+        if (children.isEmpty) return const SizedBox.shrink();
+
+        // Cari semua anak yang nomor KK-nya belum diisi
+        final missingChildren = children.where((child) {
+          return child.noKk == null || child.noKk!.trim().isEmpty;
+        }).toList();
+
+        // Jika semua anak sudah memiliki Nomor KK, jangan tampilkan kartu
+        if (missingChildren.isEmpty) return const SizedBox.shrink();
+
+        // Target anak untuk dibuka saat di-tap:
+        // Prioritaskan activeChild jika KK-nya belum lengkap, atau anak pertama yang belum lengkap
+        final activeChild = ChildService().activeChildNotifier.value;
+        final targetChild = (activeChild != null &&
+                missingChildren.any((c) => c.id == activeChild.id))
+            ? activeChild
+            : missingChildren.first;
+
+        // Subteks dinamis:
+        // Jika 1 anak: "Untuk data rekam medis anak"
+        // Jika >1 anak: "N anak belum memiliki data KK"
+        final String subText = missingChildren.length > 1
+            ? '${missingChildren.length} anak belum memiliki data KK'
+            : 'Untuk data rekam medis anak';
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
           child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF78350F).withValues(alpha: 0.25)
-                  : const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(12),
+              color: isDark ? const Color(0xFF1A2228) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark
-                    ? const Color(0xFFD97706).withValues(alpha: 0.6)
-                    : const Color(0xFFFBBF24),
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFE2E8F0),
                 width: 1.0,
               ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: Color(0xFFD97706),
-                  size: 22,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  ChildService().setActiveChild(targetChild);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => UbahAnakPage(child: targetChild),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        'Lengkapi Data Kartu Keluarga Ananda',
-                        style: GoogleFonts.lato(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                      // Ikon Rounded dengan Unsur Warning
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? const Color(0xFFFBBF24)
-                              : const Color(0xFF92400E),
+                              ? const Color(0xFF78350F).withValues(alpha: 0.35)
+                              : const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFFD97706).withValues(alpha: 0.4)
+                                : const Color(0xFFFDE68A),
+                            width: 1.0,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFFD97706),
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Nomor KK Ananda belum dilengkapi. Lengkapi agar data terlindungi dari duplikasi.',
-                        style: GoogleFonts.lato(
-                          fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFFFDE68A)
-                              : const Color(0xFFB45309),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => UbahAnakPage(child: activeChild),
+                      const SizedBox(width: 10),
+
+                      // Informasi Pengingat (Ringkas, Padat, Tidak Terpotong)
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Lengkapi Nomor KK',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0B1014),
+                              ),
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD97706),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Lengkapi Sekarang',
-                            style: GoogleFonts.lato(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 2),
+                            Text(
+                              subText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 11.5,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Tombol Pill Aksi Ramping di Kanan
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3985E7),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF3985E7)
+                                  .withValues(alpha: 0.25),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Lengkapi',
+                              style: GoogleFonts.lato(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
                               color: Colors.white,
+                              size: 13,
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -664,12 +744,12 @@ class _BerandaPageState extends State<BerandaPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Ilustrasi Bayi Tidur di Atas Awan
+          // Ilustrasi Bayi Tidur di Atas Awan (PNG transparan agar menyatu di dark mode)
           SizedBox(
             width: 72,
             height: 72,
             child: Image.asset(
-              'assets/images/baby_cloud_illustration.jpg',
+              'assets/images/baby_cloud_illustration.png',
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.child_friendly_rounded,
@@ -1031,7 +1111,6 @@ class _BerandaPageState extends State<BerandaPage> {
                 title: 'Resep\nMPASI',
                 imageAsset: 'assets/images/resep_mpasi_logo.png',
                 onTap: () => _navigateTo(const DaftarResepPage()),
-                logoOffsetX: 2,
               ),
             ),
           ],
@@ -1064,7 +1143,6 @@ class _BerandaPageState extends State<BerandaPage> {
                 title: 'Permainan\n',
                 imageAsset: 'assets/images/permainan_logo.png',
                 onTap: () => _navigateTo(const GameMulaiPage()),
-                logoOffsetX: 5,
               ),
             ),
           ],
@@ -1078,7 +1156,7 @@ class _BerandaPageState extends State<BerandaPage> {
     required String imageAsset,
     required VoidCallback onTap,
     double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
-    double imageSize = 40, // ukuran logo pas & proporsional
+    double imageSize = 48, // ukuran logo pas & proporsional
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -2213,7 +2291,10 @@ class _BerandaPageState extends State<BerandaPage> {
   // 100% width layar, tanpa margin/padding, menempel langsung ke Nav Bar
   // ===================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // ===================================================================

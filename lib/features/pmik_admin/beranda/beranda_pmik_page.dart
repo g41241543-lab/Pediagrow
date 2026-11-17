@@ -125,7 +125,9 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
                   // 2. Konten Putih
                   _buildWhiteContentSection(context),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(
+                    height: 92,
+                  ), // Ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
 
                   // 3. Ilustrasi Landscape Footer
                   _buildFooterIllustration(),
@@ -675,7 +677,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     Color? iconColor,
     Widget? customIcon,
     double cardInset = 6,
-    double imageSize = 40,
+    double imageSize = 48,
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
@@ -1045,7 +1047,10 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   // 3. ILUSTRASI FOOTER
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // =========================================================================

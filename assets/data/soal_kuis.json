@@ -4,174 +4,224 @@
     "kategori": "Stunting & Gizi",
     "pertanyaan": "Menurut Permenkes No. 2 Tahun 2020, stunting ditentukan berdasarkan indikator tinggi badan menurut umur (TB/U) dengan nilai Z-score di bawah -2 SD.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Berdasarkan Permenkes RI No. 2 Tahun 2020 tentang Standar Antropometri Anak, kategori pendek (stunted) ditetapkan jika Z-score TB/U berada pada rentang -3 SD hingga kurang dari -2 SD, dan sangat pendek (severely stunted) jika Z-score di bawah -3 SD."
+    "penjelasan": "Benar. Berdasarkan Permenkes RI No. 2 Tahun 2020 tentang Standar Antropometri Anak, kategori pendek (stunted) ditetapkan jika Z-score TB/U berada pada rentang -3 SD hingga kurang dari -2 SD, dan sangat pendek (severely stunted) jika Z-score di bawah -3 SD.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 2,
     "kategori": "Stunting & Gizi",
     "pertanyaan": "Berdasarkan Perpres No. 72 Tahun 2021, target prevalensi stunting nasional Indonesia pada tahun 2024 adalah di bawah 14 persen.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Peraturan Presiden No. 72 Tahun 2021 tentang Percepatan Penurunan Stunting menetapkan target penurunan prevalensi stunting hingga 14% pada tahun 2024, dari angka 24,4% pada tahun 2021 berdasarkan SSGI."
+    "penjelasan": "Benar. Peraturan Presiden No. 72 Tahun 2021 tentang Percepatan Penurunan Stunting menetapkan target penurunan prevalensi stunting hingga 14% pada tahun 2024, dari angka 24,4% pada tahun 2021 berdasarkan SSGI.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 3,
     "kategori": "Stunting & Gizi",
     "pertanyaan": "Menurut WHO (2006), 1000 Hari Pertama Kehidupan (HPK) dihitung sejak anak lahir hingga usia 3 tahun.",
     "jawaban_benar": false,
-    "penjelasan": "Salah. Menurut WHO, 1000 Hari Pertama Kehidupan (HPK) dihitung sejak masa kehamilan (270 hari dalam kandungan) hingga anak berusia 2 tahun (730 hari), bukan sejak lahir hingga 3 tahun. Periode ini adalah jendela emas pencegahan stunting."
+    "penjelasan": "Salah. Menurut WHO, 1000 Hari Pertama Kehidupan (HPK) dihitung sejak masa kehamilan (270 hari dalam kandungan) hingga anak berusia 2 tahun (730 hari), bukan sejak lahir hingga 3 tahun. Periode ini adalah jendela emas pencegahan stunting.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 4,
     "kategori": "Stunting & Gizi",
     "pertanyaan": "Berdasarkan Permenkes No. 2 Tahun 2020, anak dengan Z-score berat badan menurut tinggi badan (BB/TB) di atas +3 SD dikategorikan sebagai obesitas.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Permenkes RI No. 2 Tahun 2020 menetapkan bahwa nilai Z-score BB/TB di atas +3 SD dikategorikan sebagai obesitas, sementara +2 SD hingga +3 SD dikategorikan gizi lebih, dan +1 SD hingga +2 SD dikategorikan berisiko gizi lebih."
+    "penjelasan": "Benar. Permenkes RI No. 2 Tahun 2020 menetapkan bahwa nilai Z-score BB/TB di atas +3 SD dikategorikan sebagai obesitas, sementara +2 SD hingga +3 SD dikategorikan gizi lebih, dan +1 SD hingga +2 SD dikategorikan berisiko gizi lebih.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 5,
     "kategori": "ASI & MPASI",
     "pertanyaan": "Menurut rekomendasi IDAI dan WHO, ASI eksklusif diberikan selama 6 bulan penuh tanpa tambahan makanan atau minuman apapun termasuk air putih.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. IDAI dan WHO merekomendasikan ASI eksklusif selama 6 bulan pertama kehidupan tanpa tambahan makanan atau minuman apapun termasuk air putih, karena ASI sudah mengandung 88% air yang cukup untuk memenuhi kebutuhan bayi."
+    "penjelasan": "Benar. IDAI dan WHO merekomendasikan ASI eksklusif selama 6 bulan pertama kehidupan tanpa tambahan makanan atau minuman apapun termasuk air putih, karena ASI sudah mengandung 88% air yang cukup untuk memenuhi kebutuhan bayi.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 6,
     "kategori": "ASI & MPASI",
     "pertanyaan": "Menurut Permenkes No. 41 Tahun 2014 tentang Pedoman Gizi Seimbang, MPASI yang baik harus memenuhi prinsip tepat waktu, tepat jumlah, tepat jenis, dan tepat cara pemberian.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Permenkes RI No. 41 Tahun 2014 tentang Pedoman Gizi Seimbang menyebutkan bahwa MPASI yang berkualitas harus memenuhi empat prinsip: tepat waktu (dimulai usia 6 bulan), tepat jumlah (sesuai kebutuhan energi), tepat jenis (beragam dan bergizi), dan tepat cara (higienis dan responsif)."
+    "penjelasan": "Benar. Permenkes RI No. 41 Tahun 2014 tentang Pedoman Gizi Seimbang menyebutkan bahwa MPASI yang berkualitas harus memenuhi empat prinsip: tepat waktu (dimulai usia 6 bulan), tepat jumlah (sesuai kebutuhan energi), tepat jenis (beragam dan bergizi), dan tepat cara (higienis dan responsif).",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 7,
     "kategori": "ASI & MPASI",
     "pertanyaan": "Berdasarkan panduan IDAI, pemberian madu pada bayi di bawah usia 1 tahun diperbolehkan karena kandungan nutrisinya tinggi.",
     "jawaban_benar": false,
-    "penjelasan": "Salah. IDAI menegaskan bahwa madu TIDAK boleh diberikan kepada bayi di bawah usia 1 tahun karena berisiko mengandung spora Clostridium botulinum yang dapat menyebabkan botulisme bayi, kondisi serius akibat sistem pencernaan bayi yang belum matang."
+    "penjelasan": "Salah. IDAI menegaskan bahwa madu TIDAK boleh diberikan kepada bayi di bawah usia 1 tahun karena berisiko mengandung spora Clostridium botulinum yang dapat menyebabkan botulisme bayi, kondisi serius akibat sistem pencernaan bayi yang belum matang.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 8,
     "kategori": "Perkembangan Motorik & Bahasa",
     "pertanyaan": "Berdasarkan Buku KIA Kemenkes RI, anak usia 9 bulan seharusnya sudah bisa duduk tanpa bantuan dan mulai merangkak.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Buku KIA (Kesehatan Ibu dan Anak) Kemenkes RI mencantumkan bahwa pada usia 9 bulan, milestone perkembangan motorik anak meliputi duduk tanpa bantuan dan mulai merangkak, sebagai bagian dari pemantauan tumbuh kembang di posyandu."
+    "penjelasan": "Benar. Buku KIA (Kesehatan Ibu dan Anak) Kemenkes RI mencantumkan bahwa pada usia 9 bulan, milestone perkembangan motorik anak meliputi duduk tanpa bantuan dan mulai merangkak, sebagai bagian dari pemantauan tumbuh kembang di posyandu.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 9,
     "kategori": "Perkembangan Motorik & Bahasa",
     "pertanyaan": "Menurut IDAI, keterlambatan bicara pada anak usia 2 tahun yang belum bisa mengucapkan minimal 50 kata tidak perlu segera dikonsultasikan ke dokter.",
     "jawaban_benar": false,
-    "penjelasan": "Salah. IDAI menyatakan bahwa pada usia 2 tahun, anak normalnya sudah memiliki kosakata minimal 50 kata dan bisa merangkai 2 kata. Jika belum tercapai, kondisi ini disebut keterlambatan bicara (speech delay) dan harus segera dikonsultasikan untuk evaluasi dan intervensi dini."
+    "penjelasan": "Salah. IDAI menyatakan bahwa pada usia 2 tahun, anak normalnya sudah memiliki kosakata minimal 50 kata dan bisa merangkai 2 kata. Jika belum tercapai, kondisi ini disebut keterlambatan bicara (speech delay) dan harus segera dikonsultasikan untuk evaluasi dan intervensi dini.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 10,
     "kategori": "Imunisasi & Kesehatan",
     "pertanyaan": "Berdasarkan jadwal imunisasi IDAI 2023, vaksin MR (Measles-Rubella) diberikan pertama kali pada usia 9 bulan.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Jadwal imunisasi IDAI 2023 merekomendasikan pemberian vaksin MR (Measles-Rubella) pertama pada usia 9 bulan, dilanjutkan pada usia 18 bulan, sebagai perlindungan terhadap campak dan rubella yang dapat menghambat tumbuh kembang anak."
+    "penjelasan": "Benar. Jadwal imunisasi IDAI 2023 merekomendasikan pemberian vaksin MR (Measles-Rubella) pertama pada usia 9 bulan, dilanjutkan pada usia 18 bulan, sebagai perlindungan terhadap campak dan rubella yang dapat menghambat tumbuh kembang anak.",
+    "is_active": true,
+    "perlu_tinjauan": false
   },
   {
     "id": 11,
-    "kategori": "Perkembangan",
-    "pertanyaan": "Bermain adalah cara utama anak belajar dan mengembangkan kemampuan kognitif, sosial, dan emosionalnya.",
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Berdasarkan Permenkes No. 28 Tahun 2019, konsumsi protein hewani seperti telur, ikan, dan daging lebih diutamakan daripada protein nabati dalam mencegah stunting karena kualitas asam amino esensialnya lebih lengkap.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Bermain merupakan 'pekerjaan' anak. Melalui bermain, anak mengembangkan kemampuan berpikir, kreativitas, kemampuan sosial, serta regulasi emosi yang sangat penting untuk tumbuh kembangnya."
+    "penjelasan": "Benar. Protein hewani mengandung asam amino esensial yang lengkap serta zat besi heme dengan bioavailabilitas tinggi yang sangat efektif mendukung pertumbuhan linear tulang dan jaringan anak balita.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 12,
-    "kategori": "Imunisasi",
-    "pertanyaan": "Anak yang sudah pernah terkena campak tidak perlu mendapatkan vaksin campak.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Vaksinasi tetap dianjurkan untuk memastikan perlindungan penuh. Selain itu, dalam program imunisasi nasional, vaksin MMR (campak, gondongan, rubella) penting untuk mencegah komplikasi serius."
+    "kategori": "Imunisasi & Kesehatan",
+    "pertanyaan": "Menurut panduan Kemenkes dan IDAI 2023, imunisasi Hepatitis B (HB-0) paling efektif diberikan dalam rentang waktu 24 jam pertama setelah bayi lahir.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Pemberian vaksin Hepatitis B monovalen (HB-0) dalam kurun waktu kurang dari 24 jam setelah kelahiran sangat krusial untuk mencegah transmisi vertikal virus Hepatitis B dari ibu ke bayi.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 13,
-    "kategori": "Gizi",
-    "pertanyaan": "Vitamin A berperan penting dalam menjaga kesehatan mata dan meningkatkan kekebalan tubuh anak.",
-    "jawaban_benar": true,
-    "penjelasan": "Benar. Vitamin A sangat penting untuk kesehatan mata (mencegah rabun senja dan kebutaan), menjaga kesehatan kulit dan selaput lendir, serta meningkatkan sistem imun anak."
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Berdasarkan laporan WHO dan Kemenkes RI, akses air bersih dan sanitasi jamban sehat tidak memiliki pengaruh langsung terhadap angka kejadian stunting pada balita.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. Sanitasi dan air bersih yang buruk memicu infeksi saluran cerna berulang (diare dan kecacingan) yang menyebabkan enteric environmental enteropathy sehingga nutrisi tidak terserap optimal dan memicu stunting.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 14,
-    "kategori": "Gizi",
-    "pertanyaan": "Anak yang gemuk pasti memiliki status gizi yang baik dan sehat.",
+    "kategori": "ASI & MPASI",
+    "pertanyaan": "Menurut panduan Buku KIA Kemenkes RI, bayi usia 6 bulan yang baru memulai MPASI langsung diberikan makanan bertekstur cincang padat agar melatih kemampuan mengunyah sejak dini.",
     "jawaban_benar": false,
-    "penjelasan": "Salah. Kegemukan (obesitas) pada anak justru merupakan masalah gizi lebih yang berbahaya. Anak gemuk bisa mengalami malnutrisi tersembunyi karena kekurangan vitamin dan mineral meski kalorinya berlebih."
+    "penjelasan": "Salah. Bayi usia 6 bulan harus memulai MPASI dari tekstur lumat dan kental (puree/bubur saring), lalu bertahap meningkat ke tekstur cincang halus pada usia 9-11 bulan sesuai refleks motorik orofasial bayi.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 15,
-    "kategori": "Kesehatan",
-    "pertanyaan": "Oralit (larutan gula-garam) dapat diberikan kepada anak yang mengalami diare untuk mencegah dehidrasi.",
+    "kategori": "Tumbuh Kembang",
+    "pertanyaan": "Berdasarkan standar Buku KIA Kemenkes RI, kenaikan berat badan balita harus memenuhi Kenaikan Berat Badan Minimal (KBM) setiap bulan pada kurva KMS agar tidak mengalami gagal tumbuh.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Oralit adalah pertolongan pertama yang efektif untuk diare. Larutan gula-garam membantu menggantikan cairan dan elektrolit yang hilang sehingga mencegah dehidrasi yang berbahaya."
+    "penjelasan": "Benar. Setiap kelompok usia memiliki nilai KBM tertentu (misalnya 800 gram pada bulan pertama). Bila kenaikan BB berada di bawah garis KBM berturut-turut, anak berisiko mengalami faltering growth yang berujung stunting.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 16,
-    "kategori": "Kesehatan",
-    "pertanyaan": "Demam pada anak selalu berbahaya dan harus langsung diobati dengan antibiotik.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Sebagian besar demam pada anak disebabkan oleh infeksi virus yang tidak memerlukan antibiotik. Antibiotik hanya efektif untuk infeksi bakteri. Demam ringan bisa ditangani dengan kompres dan banyak minum."
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Berdasarkan program Kemenkes RI, kapsul Vitamin A dosis tinggi diberikan secara serentak kepada bayi dan balita pada bulan Februari dan Agustus setiap tahunnya.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Bulan Vitamin A dilaksanakan setiap Februari dan Agustus di Posyandu dan Puskesmas: kapsul biru (100.000 IU) untuk bayi 6-11 bulan dan kapsul merah (200.000 IU) untuk balita 12-59 bulan.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 17,
-    "kategori": "Nutrisi",
-    "pertanyaan": "Kalsium penting untuk pembentukan tulang dan gigi yang kuat pada anak.",
+    "kategori": "Tumbuh Kembang",
+    "pertanyaan": "Menurut parameter skrining perkembangan Denver II dan Buku KIA, bayi normalnya sudah mampu berguling dan tengkurap mandiri pada usia 3 hingga 5 bulan.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Kalsium adalah mineral utama pembentuk tulang dan gigi. Konsumsi kalsium yang cukup pada masa anak-anak sangat penting untuk mencapai kepadatan tulang maksimal dan mencegah osteoporosis di masa dewasa."
+    "penjelasan": "Benar. Kemampuan berguling dari telentang ke tengkurap dan sebaliknya merupakan indikator kematangan kontrol otot leher dan batang tubuh pada rentang usia 3-5 bulan.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 18,
-    "kategori": "Perkembangan",
-    "pertanyaan": "Anak yang terlambat bicara pasti memiliki masalah intelektual atau keterlambatan perkembangan serius.",
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Berdasarkan konsensus IDAI, anak yang mengalami stunting semata-mata diakibatkan oleh faktor genetik bawaan orang tua yang pendek dan sama sekali tidak bisa dicegah.",
     "jawaban_benar": false,
-    "penjelasan": "Salah. Keterlambatan bicara memiliki banyak penyebab, seperti kurang stimulasi, gangguan pendengaran, atau faktor lingkungan. Banyak anak terlambat bicara yang berkembang normal setelah mendapat intervensi yang tepat."
+    "penjelasan": "Salah. Faktor genetik hanya berkontribusi sebagian kecil terhadap tinggi badan. Sebagian besar stunting disebabkan oleh malnutrisi kronis selama 1000 HPK serta infeksi berulang, sehingga stunting sangat bisa dicegah.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 19,
-    "kategori": "Kebersihan",
-    "pertanyaan": "Gosok gigi sebaiknya dimulai sejak gigi pertama anak tumbuh, bahkan sebelum gigi tumbuh pun kebersihan gusi perlu dijaga.",
+    "kategori": "Imunisasi & Kesehatan",
+    "pertanyaan": "Menurut rekomendasi IDAI 2023, anak balita memerlukan vaksin polio tetes (bOPV) dan polio suntik (IPV) secara kombinasi untuk mencapai perlindungan optimal terhadap infeksi virus polio.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Kebersihan mulut perlu dijaga sejak dini. Sebelum gigi tumbuh, gusi bayi dibersihkan dengan kain lembab. Setelah gigi pertama tumbuh, sikat dengan sikat bayi dan pasta gigi khusus tanpa fluoride."
+    "penjelasan": "Benar. Kombinasi bOPV (kekebalan mukosa usus) dan IPV (kekebalan humoral dalam darah) wajib diberikan lengkap untuk memperkuat benteng imunitas terhadap berbagai tipe virus polio.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 20,
-    "kategori": "Stunting",
-    "pertanyaan": "Stunting hanya bisa terjadi pada anak dari keluarga miskin yang kekurangan pangan.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Stunting dapat terjadi pada keluarga dari semua kalangan ekonomi. Pola asuh yang kurang tepat, sanitasi buruk, dan kurangnya pengetahuan gizi bisa menjadi penyebab stunting meski keluarga mampu secara ekonomi."
+    "kategori": "Stunting & Gizi",
+    "pertanyaan": "Menurut pedoman Kemenkes RI, ibu hamil dianjurkan mengonsumsi minimal 90 butir Tablet Tambah Darah (TTD) selama kehamilan guna mencegah anemia dan risiko bayi lahir dengan BBLR atau stunting.",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Suplementasi zat besi dan asam folat minimal 90 tablet selama kehamilan mencegah anemia defisiensi besi pada ibu, yang jika dibiarkan dapat memicu kelahiran prematur dan stunting.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 21,
-    "kategori": "Imunisasi",
-    "pertanyaan": "Posyandu merupakan salah satu fasilitas kesehatan komunitas tempat anak bisa mendapatkan imunisasi secara gratis.",
-    "jawaban_benar": true,
-    "penjelasan": "Benar. Posyandu (Pos Pelayanan Terpadu) menyediakan layanan imunisasi dasar gratis, pemantauan tumbuh kembang, dan konseling gizi bagi balita. Ini adalah ujung tombak kesehatan masyarakat di Indonesia."
+    "kategori": "Imunisasi & Kesehatan",
+    "pertanyaan": "Berdasarkan pedoman Buku KIA Kemenkes RI, saat anak balita terkena diare, pemberian ASI dan makanan harus dihentikan sementara sampai buang air besar anak normal kembali.",
+    "jawaban_benar": false,
+    "penjelasan": "Salah. ASI dan makanan harus tetap diteruskan untuk mencegah penurunan berat badan drastis dan malnutrisi. Selain itu, anak wajib diberikan oralit dan suplemen Zinc selama 10 hari berturut-turut.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 22,
-    "kategori": "Gizi",
-    "pertanyaan": "Anak tidak perlu makan sayur dan buah jika sudah minum susu formula setiap hari.",
+    "kategori": "Tumbuh Kembang",
+    "pertanyaan": "Menurut rekomendasi IDAI, memberikan tontonan gawai (screen time) secara mandiri pada anak balita di bawah usia 18 bulan sangat dianjurkan untuk menstimulasi kecerdasan berbahasa.",
     "jawaban_benar": false,
-    "penjelasan": "Salah. Susu formula tidak bisa menggantikan semua manfaat sayur dan buah. Sayur dan buah mengandung serat, vitamin, mineral, dan fitokimia yang tidak bisa sepenuhnya disediakan oleh susu formula."
+    "penjelasan": "Salah. IDAI tidak merekomendasikan penggunaan media layar tanpa pendampingan untuk anak usia di bawah 2 tahun karena terbukti meningkatkan risiko speech delay dan gangguan interaksi sosial.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 23,
-    "kategori": "Perkembangan",
-    "pertanyaan": "Stimulasi melalui sentuhan, suara, dan penglihatan sangat penting untuk perkembangan otak bayi di usia 0-3 tahun.",
+    "kategori": "ASI & MPASI",
+    "pertanyaan": "Berdasarkan pedoman IDAI dan Permenkes, penambahan lemak sehat seperti minyak, mentega, atau santan pada menu MPASI dianjurkan untuk meningkatkan kepadatan energi.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Usia 0-3 tahun adalah periode emas perkembangan otak yang paling pesat. Stimulasi sensoris yang kaya seperti pelukan, bicara, menyanyi, dan mainan warna-warni sangat mendukung pembentukan koneksi saraf otak."
+    "penjelasan": "Benar. Lambung anak balita berukuran kecil sementara kebutuhan kalorinya tinggi. Lemak tambahan berfungsi sebagai sumber energi padat serta pelarut vitamin A, D, E, dan K yang esensial.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 24,
-    "kategori": "Kesehatan",
-    "pertanyaan": "Memberikan madu kepada bayi di bawah usia 1 tahun aman dilakukan karena madu alami dan bergizi.",
-    "jawaban_benar": false,
-    "penjelasan": "Salah. Madu tidak boleh diberikan kepada bayi di bawah 1 tahun karena berisiko menyebabkan botulisme bayi — infeksi serius akibat spora bakteri Clostridium botulinum yang bisa ada dalam madu mentah."
+    "kategori": "Imunisasi & Kesehatan",
+    "pertanyaan": "Berdasarkan Permenkes No. 12 Tahun 2017 tentang Penyelenggaraan Imunisasi, imunisasi dasar lengkap pada bayi usia 0-11 bulan mencakup Hepatitis B, BCG, Polio, DPT-HB-Hib, dan Campak-Rubella (MR).",
+    "jawaban_benar": true,
+    "penjelasan": "Benar. Program Imunisasi Dasar Lengkap (IDL) melindungi bayi dari penyakit berbahaya yang dapat dicegah dengan imunisasi (PD3I) sebelum anak berusia 1 tahun.",
+    "is_active": true,
+    "perlu_tinjauan": true
   },
   {
     "id": 25,
-    "kategori": "Kebersihan",
-    "pertanyaan": "Air minum yang aman untuk anak adalah air yang sudah dimasak hingga mendidih atau air minum kemasan yang terjamin kualitasnya.",
+    "kategori": "Tumbuh Kembang",
+    "pertanyaan": "Menurut Buku KIA Kemenkes RI, kemampuan melambaikan tangan (dadah) dan bertepuk tangan merupakan salah satu milestone perkembangan anak yang normal dicapai pada rentang usia 9 hingga 12 bulan.",
     "jawaban_benar": true,
-    "penjelasan": "Benar. Air minum yang aman harus bebas dari patogen berbahaya. Merebus air hingga mendidih membunuh kuman, virus, dan bakteri. Air kemasan bersertifikat juga merupakan pilihan aman untuk anak."
+    "penjelasan": "Benar. Melambaikan tangan dan bertepuk tangan (tiruan gerak sosial) adalah indikator penting perkembangan motorik halus dan komunikasi sosial nonverbal anak sebelum usia 1 tahun.",
+    "is_active": true,
+    "perlu_tinjauan": true
   }
 ]

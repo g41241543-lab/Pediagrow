@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
@@ -192,7 +192,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
         PageRouteBuilder(
           pageBuilder: (_, _, _) => targetPage,
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
+              child,
           transitionDuration: const Duration(milliseconds: 200),
         ),
         (route) => false,
@@ -202,7 +202,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
         PageRouteBuilder(
           pageBuilder: (_, _, _) => targetPage,
           transitionsBuilder: (_, animation, _, child) =>
-              FadeTransition(opacity: animation, child: child),
+              child,
           transitionDuration: const Duration(milliseconds: 200),
         ),
       );

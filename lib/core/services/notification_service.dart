@@ -78,6 +78,8 @@ class NotificationService {
       final newUid = UserService().currentUser.id;
       if (newUid != _lastKnownUserId) {
         _lastKnownUserId = newUid;
+        // Reset agar user baru mendapat init yang bersih
+        _isInitialized = false;
         // Batalkan timer & antrean pengingat akun sebelumnya saat ganti akun / logout
         cancelAllPendingReminders();
         await _loadFromPrefs();
@@ -91,14 +93,28 @@ class NotificationService {
       final key = _getStorageKeyForUser();
       var jsonList = prefs.getStringList(key);
 
-      // Migrasi data legacy (jika kunci user baru belum ada tapi ada data v2)
+      // Migrasi data legacy — HANYA migrasi notifikasi yang benar-benar milik
+      // akun aktif. Tanpa filter ini, notifikasi akun lain bisa bocor ke akun baru.
       if (jsonList == null || jsonList.isEmpty) {
-        final legacyList = prefs.getStringList('user_notifications_v2');
-        if (legacyList != null &&
-            legacyList.isNotEmpty &&
-            UserService().currentUser.id.isNotEmpty) {
-          jsonList = legacyList;
-          await prefs.setStringList(key, legacyList);
+        final currentUid = UserService().currentUser.id;
+        if (currentUid.isNotEmpty) {
+          final legacyList = prefs.getStringList('user_notifications_v2');
+          if (legacyList != null && legacyList.isNotEmpty) {
+            final ownedItems = legacyList.where((str) {
+              try {
+                final map = json.decode(str) as Map<String, dynamic>;
+                final rid = map['recipientId'] as String?;
+                // Hanya migrasikan item yang secara eksplisit milik user ini
+                return rid != null && rid == currentUid;
+              } catch (_) {
+                return false;
+              }
+            }).toList();
+            if (ownedItems.isNotEmpty) {
+              jsonList = ownedItems;
+              await prefs.setStringList(key, ownedItems);
+            }
+          }
         }
       }
 
@@ -114,11 +130,16 @@ class NotificationService {
           }
         }
 
-        // Saring hanya notifikasi milik akun aktif (atau akun guest jika belum login)
+        // Saring hanya notifikasi milik akun aktif.
+        // Notifikasi tanpa recipientId TIDAK ditampilkan ke user yang sudah login
+        // (hanya untuk guest/belum login), mencegah bocor ke akun lain.
         final currentUid = UserService().currentUser.id;
         final filtered = loaded.where((item) {
-          if (item.recipientId == null || item.recipientId!.isEmpty) return true;
-          if (currentUid.isEmpty) return true;
+          if (item.recipientId == null || item.recipientId!.isEmpty) {
+            // Notif tanpa pemilik hanya tampil ke guest (belum login)
+            return currentUid.isEmpty;
+          }
+          if (currentUid.isEmpty) return false;
           return item.recipientId == currentUid;
         }).toList();
 
@@ -504,12 +525,14 @@ class NotificationService {
     // Jika waktu konsultasi memang sudah tiba saat ini
     if (!_triggeredReminderIds.contains(id)) {
       _triggeredReminderIds.add(id);
+      final currentUid = UserService().currentUser.id;
       final newItem = NotificationItem(
         id: id,
         title: title,
         message: message,
         date: scheduledTime ?? now,
         type: NotificationType.consultation,
+        recipientId: currentUid.isNotEmpty ? currentUid : null,
       );
       addNotification(newItem);
     }
@@ -568,6 +591,7 @@ class NotificationService {
 
     for (final reminder in toTrigger) {
       _triggeredReminderIds.add(reminder.id);
+      final currentUid = UserService().currentUser.id;
       final newItem = NotificationItem(
         id: reminder.id,
         title: 'Waktu Konsultasi Telah Tiba',
@@ -575,6 +599,7 @@ class NotificationService {
             'Waktu konsultasi telah tiba! Jadwal konsultasi anak ${reminder.childName} bersama ${reminder.doctorName} (${reminder.timeSlot}) sudah dimulai. Silakan masuk ke ruang konsultasi.',
         date: reminder.scheduledTime,
         type: NotificationType.consultation,
+        recipientId: currentUid.isNotEmpty ? currentUid : null,
       );
       addNotification(newItem);
     }
@@ -619,6 +644,8 @@ class NotificationService {
       LocalPushService().cancel(notifIntId);
     }
     _pendingBookingReminders.clear();
+    // Hapus juga daftar ID yang sudah dipicu agar tidak ada sisa dari sesi akun sebelumnya
+    _triggeredReminderIds.clear();
     _reminderCheckTimer?.cancel();
     _reminderCheckTimer = null;
   }

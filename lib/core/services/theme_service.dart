@@ -90,6 +90,16 @@ class ThemeService {
           onSurface: const Color(0xFF0B1014),
         ),
         dividerColor: const Color(0xFFE9EDEF),
+        // Transisi halaman solid — tidak ada fade tembus ke halaman lama
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.iOS: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.windows: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.linux: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.macOS: _SolidSlidePageTransitionsBuilder(),
+          },
+        ),
       );
 
   // ---------------------------------------------------------------------------
@@ -147,6 +157,16 @@ class ThemeService {
         navigationBarTheme: const NavigationBarThemeData(
           backgroundColor: Color(0xFF11171B),
           indicatorColor: Color(0xFF2C363D),
+        ),
+        // Transisi halaman solid — tidak ada fade tembus ke halaman lama
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.iOS: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.windows: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.linux: _SolidSlidePageTransitionsBuilder(),
+            TargetPlatform.macOS: _SolidSlidePageTransitionsBuilder(),
+          },
         ),
       );
 
@@ -209,5 +229,40 @@ class ThemeService {
       default:
         return AppThemeMode.system;
     }
+  }
+}
+// ---------------------------------------------------------------------------
+// TRANSISI HALAMAN SOLID (tanpa fade tembus)
+// ---------------------------------------------------------------------------
+//
+// Dipakai oleh [pageTransitionsTheme] di [ThemeService.lightTheme] dan
+// [ThemeService.darkTheme] agar semua [MaterialPageRoute] menggunakan slide
+// horizontal solid — halaman baru langsung menutupi halaman lama tanpa
+// efek cross-fade yang membuat dua halaman terlihat menumpuk.
+class _SolidSlidePageTransitionsBuilder extends PageTransitionsBuilder {
+  const _SolidSlidePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // Slide dari kanan → kiri saat masuk (push), kembali saat pop.
+    // Tidak ada opacity — halaman baru selalu solid/opaque.
+    final curvedAnim = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(curvedAnim),
+      child: child,
+    );
   }
 }

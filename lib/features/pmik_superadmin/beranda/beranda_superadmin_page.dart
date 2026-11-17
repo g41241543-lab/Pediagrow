@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -151,7 +151,9 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                 // 2. Konten Putih (Menu, Card Slogan, Artikel)
                 _buildWhiteContentSection(context),
 
-                const SizedBox(height: 20),
+                const SizedBox(
+                  height: 92,
+                ), // Ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
 
                 // 3. Ilustrasi Footer
                 _buildFooterIllustration(),
@@ -733,7 +735,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     Color? iconColor,
     Widget? customIcon,
     double cardInset = 6,
-    double imageSize = 40,
+    double imageSize = 48,
     double logoOffsetX = 0,
     bool isLocked = false,
   }) {
@@ -1313,7 +1315,10 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
   // ILUSTRASI FOOTER (Full-Bleed, identik dengan beranda pengguna)
   // =========================================================================
   Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
+    return const IllustrationForestFooter(
+      fit: BoxFit.fitWidth,
+      withClouds: false,
+    );
   }
 
   // =========================================================================

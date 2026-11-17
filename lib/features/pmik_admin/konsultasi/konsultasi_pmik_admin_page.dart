@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -18,6 +18,8 @@ import '../profil_pmik_page.dart';
 const Color _colorPrimaryBlue = Color(0xFF4A90D9);
 const Color _colorTextBlack = Color(0xFF1A2228);
 const Color _colorLabelGrey = Color(0xFF667781);
+// ignore: unused_element
+const Color _colorCardBg = Color(0xFFFFFFFF);
 
 /// Model data konsultasi untuk PMIK.
 class _KonsultasiItem {

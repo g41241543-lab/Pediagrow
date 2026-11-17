@@ -220,6 +220,21 @@ class ChildService {
     }
   }
 
+  /// Menyinkronkan Nomor KK ke semua anak milik akun aktif yang belum memiliki Nomor KK.
+  /// Membantu orang tua agar tidak perlu mengetik ulang 16 digit Nomor KK untuk setiap anak.
+  Future<void> syncFamilyNoKk(String noKk) async {
+    final cleanKk = noKk.trim();
+    if (cleanKk.isEmpty) return;
+
+    final currentList = List<ChildModel>.from(childrenNotifier.value);
+    for (final child in currentList) {
+      if (child.noKk == null || child.noKk!.trim().isEmpty) {
+        final updated = child.copyWith(noKk: cleanKk);
+        await updateChild(updated);
+      }
+    }
+  }
+
   /// Menghapus profil anak berdasarkan [id] (lokal + Firestore).
   Future<void> deleteChild(String id) async {
     final updatedList = List<ChildModel>.from(childrenNotifier.value)

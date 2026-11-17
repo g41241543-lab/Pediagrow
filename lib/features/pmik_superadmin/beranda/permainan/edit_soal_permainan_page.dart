@@ -4,54 +4,55 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/soal_service.dart';
 import '../../../../models/soal_model.dart';
-import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
-import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 
-/// Halaman Edit Soal untuk Superadmin.
+/// Halaman Form Tambah & Edit Soal untuk Admin / Superadmin.
 ///
-/// Dibuka dari ikon edit pada [PermainanAdminPage].
-/// Background identik dengan Beranda Superadmin:
-/// - Scaffold background putih
-/// - Full-page animasi awan dan burung melayang ([FullPageSkyBackground])
-/// - Area biru langit seamless di bagian header ([HeaderSkyIllustration])
-/// - Ilustrasi pemandangan bukit hijau di bagian footer
+/// Jika [soal] bernilai `null`, halaman berfungsi sebagai **Tambah Soal Baru**.
+/// Jika [soal] ada, halaman berfungsi sebagai **Edit Soal**.
 ///
-/// Mengembalikan [SoalModel] yang sudah diperbarui via [Navigator.pop]
-/// jika simpan berhasil, atau `null` jika dibatalkan.
+/// Ilustrasi header dan footer dinamis mengikuti tema aplikasi (dark/light mode).
 class EditSoalPermainanPage extends StatefulWidget {
-  /// Data soal yang akan diedit (sudah terisi dari database).
-  final SoalModel soal;
+  /// Data soal jika mengedit, atau `null` jika menambah soal baru.
+  final SoalModel? soal;
 
-  const EditSoalPermainanPage({super.key, required this.soal});
+  const EditSoalPermainanPage({super.key, this.soal});
+
+  bool get isEdit => soal != null;
 
   @override
   State<EditSoalPermainanPage> createState() => _EditSoalPermainanPageState();
 }
 
 class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
-  // ──────────────────────────────────────────────────────────────────
-  // CONTROLLERS & FOCUS NODES
-  // ──────────────────────────────────────────────────────────────────
   late final TextEditingController _pertanyaanCtrl;
   late final TextEditingController _penjelasanCtrl;
+  late final TextEditingController _kategoriCtrl;
   final FocusNode _pertanyaanFocus = FocusNode();
   final FocusNode _penjelasanFocus = FocusNode();
+  final FocusNode _kategoriFocus = FocusNode();
 
-  // ScrollController agar bisa scroll ke error/kolom aktif
   final ScrollController _scrollCtrl = ScrollController();
-
-  // Keys untuk scroll ke field error
+  final GlobalKey _kategoriKey = GlobalKey();
   final GlobalKey _pertanyaanKey = GlobalKey();
   final GlobalKey _penjelasanKey = GlobalKey();
 
-  // ──────────────────────────────────────────────────────────────────
-  // STATE
-  // ──────────────────────────────────────────────────────────────────
   late bool _jawabanBenar;
+  String _selectedKategori = 'Stunting & Gizi';
+  bool _isCustomKategori = false;
   bool _isSaving = false;
+
+  String? _errorKategori;
   String? _errorPertanyaan;
   String? _errorPenjelasan;
+
+  static const List<String> _kategoriOptions = [
+    'Stunting & Gizi',
+    'ASI & MPASI',
+    'Imunisasi & Kesehatan',
+    'Tumbuh Kembang',
+    'Lainnya (Kustom)',
+  ];
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
@@ -63,38 +64,58 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   @override
   void initState() {
     super.initState();
-    _pertanyaanCtrl = TextEditingController(text: widget.soal.pertanyaan);
-    _penjelasanCtrl = TextEditingController(text: widget.soal.penjelasan);
-    _jawabanBenar = widget.soal.jawabanBenar;
+    final s = widget.soal;
+    _pertanyaanCtrl = TextEditingController(text: s?.pertanyaan ?? '');
+    _penjelasanCtrl = TextEditingController(text: s?.penjelasan ?? '');
+    _jawabanBenar = s?.jawabanBenar ?? true;
+
+    if (s != null && s.kategori.isNotEmpty) {
+      if (_kategoriOptions.contains(s.kategori)) {
+        _selectedKategori = s.kategori;
+        _isCustomKategori = false;
+        _kategoriCtrl = TextEditingController(text: s.kategori);
+      } else {
+        _selectedKategori = 'Lainnya (Kustom)';
+        _isCustomKategori = true;
+        _kategoriCtrl = TextEditingController(text: s.kategori);
+      }
+    } else {
+      _kategoriCtrl = TextEditingController(text: _selectedKategori);
+    }
   }
 
   @override
   void dispose() {
     _pertanyaanCtrl.dispose();
     _penjelasanCtrl.dispose();
+    _kategoriCtrl.dispose();
     _pertanyaanFocus.dispose();
     _penjelasanFocus.dispose();
+    _kategoriFocus.dispose();
     _scrollCtrl.dispose();
     super.dispose();
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // SIMPAN PERUBAHAN
+  // SIMPAN DATA (TAMBAH / EDIT)
   // ──────────────────────────────────────────────────────────────────
-  Future<void> _simpanPerubahan() async {
-    // Tutup keyboard
+  Future<void> _simpan() async {
     FocusScope.of(context).unfocus();
 
-    // Validasi
+    final kategori = (_isCustomKategori ? _kategoriCtrl.text : _selectedKategori).trim();
     final pertanyaan = _pertanyaanCtrl.text.trim();
     final penjelasan = _penjelasanCtrl.text.trim();
 
     setState(() {
-      _errorPertanyaan = pertanyaan.isEmpty ? 'Soal wajib diisi' : null;
-      _errorPenjelasan = penjelasan.isEmpty ? 'Penjelasan wajib diisi' : null;
+      _errorKategori = kategori.isEmpty ? 'Kategori wajib dipilih atau diisi' : null;
+      _errorPertanyaan = pertanyaan.isEmpty ? 'Pertanyaan soal wajib diisi' : null;
+      _errorPenjelasan = penjelasan.isEmpty ? 'Penjelasan edukasi wajib diisi' : null;
     });
 
-    // Scroll ke error pertama jika ada
+    if (_errorKategori != null) {
+      _scrollToKey(_kategoriKey);
+      return;
+    }
     if (_errorPertanyaan != null) {
       _scrollToKey(_pertanyaanKey);
       return;
@@ -104,35 +125,52 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       return;
     }
 
-    // Loading state
     setState(() => _isSaving = true);
 
-    final berhasil = await SoalService.updateSoal(
-      id: widget.soal.id,
-      pertanyaan: pertanyaan,
-      jawabanBenar: _jawabanBenar,
-      penjelasan: penjelasan,
-    );
+    if (widget.isEdit) {
+      // MODE EDIT
+      final result = await SoalService.updateSoal(
+        id: widget.soal!.id,
+        kategori: kategori,
+        pertanyaan: pertanyaan,
+        jawabanBenar: _jawabanBenar,
+        penjelasan: penjelasan,
+        perluTinjauan: false, // Menandai telah ditinjau/diedit admin
+      );
 
-    if (!mounted) return;
-    setState(() => _isSaving = false);
+      if (!mounted) return;
+      setState(() => _isSaving = false);
 
-    if (berhasil) {
-      // Kembalikan soal yang sudah diperbarui ke halaman sebelumnya
-      final soalBaru = SoalModel(
-        id: widget.soal.id,
-        kategori: widget.soal.kategori,
+      if (result.success && result.soal != null) {
+        Navigator.of(context).pop(result.soal);
+      } else {
+        LocalPushService().show(
+          title: 'Gagal Memperbarui',
+          body: result.message ?? 'Gagal menyimpan pembaruan soal.',
+          targetRole: PushRole.superadmin,
+        );
+      }
+    } else {
+      // MODE TAMBAH
+      final result = await SoalService.tambahSoal(
+        kategori: kategori,
         pertanyaan: pertanyaan,
         jawabanBenar: _jawabanBenar,
         penjelasan: penjelasan,
       );
-      Navigator.of(context).pop(soalBaru);
-    } else {
-      LocalPushService().show(
-        title: 'Peringatan',
-        body: 'Gagal menyimpan soal, coba lagi',
-        targetRole: PushRole.superadmin,
-      );
+
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+
+      if (result.success && result.soal != null) {
+        Navigator.of(context).pop(result.soal);
+      } else {
+        LocalPushService().show(
+          title: 'Gagal Menambah Soal',
+          body: result.message ?? 'Gagal menambahkan soal baru.',
+          targetRole: PushRole.superadmin,
+        );
+      }
     }
   }
 
@@ -157,55 +195,63 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       child: Scaffold(
         backgroundColor: _scaffoldBg,
         resizeToAvoidBottomInset: true,
-        body: SingleChildScrollView(
-          controller: _scrollCtrl,
-          physics: const ClampingScrollPhysics(),
-          child: Stack(
-            clipBehavior: Clip.none,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
             children: [
-              // LAYER 0 — Background animasi awan & burung (full-page)
-              const Positioned.fill(child: FullPageSkyBackground()),
+              // 1. Header Standar Superadmin/PMIK (56dp)
+              _buildHeader(),
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Area Biru Seamless (Header + Ilustrasi Langit)
-                  _buildSeamlessBlueArea(context),
+              // 2. Konten Form Scrollable
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollCtrl,
+                  physics: const ClampingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 12),
 
-                  // 2. Konten Form
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
+                            // Kartu 0: Kategori
+                            _buildKartuKategori(),
 
-                        // Kartu 1: Soal + Kunci Jawaban
-                        _buildKartuSoal(),
+                            const SizedBox(height: 16),
 
-                        const SizedBox(height: 16),
+                            // Kartu 1: Soal & Kunci Jawaban
+                            _buildKartuSoal(),
 
-                        // Pill Label "Deskripsi Jawaban"
-                        _buildPillLabel(),
+                            const SizedBox(height: 16),
 
-                        const SizedBox(height: 16),
+                            // Pill Label Deskripsi
+                            _buildPillLabel(),
 
-                        // Kartu 2: Penjelasan
-                        _buildKartuPenjelasan(),
+                            const SizedBox(height: 16),
 
-                        const SizedBox(height: 28),
+                            // Kartu 2: Penjelasan Edukasi
+                            _buildKartuPenjelasan(),
 
-                        // Dua tombol: Batal & Simpan
-                        _buildTombolRow(),
-                      ],
-                    ),
+                            const SizedBox(height: 28),
+
+                            // Tombol Aksi
+                            _buildTombolRow(),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // 3. Ilustrasi Landscape Footer (Adaptif Dark/Light Mode dengan awan lembut di bawah)
+                      const IllustrationForestFooter(
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // 3. Ilustrasi Footer (persis Beranda)
-                  _buildFooterIllustration(),
-                ],
+                ),
               ),
             ],
           ),
@@ -215,97 +261,64 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // 1. AREA BIRU SEAMLESS (Header + HeaderSkyIllustration)
+  // 1. HEADER HALAMAN (STANDAR 56DP ROLE SUPERADMIN / PMIK)
   // ──────────────────────────────────────────────────────────────────
-  Widget _buildSeamlessBlueArea(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
-
+  Widget _buildHeader() {
     return Container(
+      height: 56.0,
       width: double.infinity,
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: HeaderSkyIllustration.getGradientColors(
-            isNight: isNight,
-            isDark: isDark,
-          ),
-          stops: HeaderSkyIllustration.getGradientStops(
-            isNight: isNight,
-            isDark: isDark,
-          ),
-        ),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
+      color: _scaffoldBg,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Background Ilustrasi Langit (matahari/bulan, awan cumulus, burung)
-          const Positioned.fill(
-            child: HeaderSkyIllustration(
-              mode: SkyTimeMode.auto,
-              renderBackgroundGradient: false,
-            ),
-          ),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header: Back Button + "Edit Soal" (tinggi 56dp)
-              SafeArea(
-                bottom: false,
-                child: SizedBox(
-                  height: 56,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 12.0, right: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          behavior: HitTestBehavior.opaque,
-                          child: const Padding(
-                            padding: EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Edit Soal',
-                              style: GoogleFonts.lato(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                            Text(
-                              'Soal #${widget.soal.id} • ${widget.soal.kategori}',
-                              style: GoogleFonts.lato(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.85),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+          Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => Navigator.of(context).pop(),
+                borderRadius: BorderRadius.circular(24.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24.0,
+                    color: _textBlack,
                   ),
                 ),
               ),
-
-              const SizedBox(height: 36),
-            ],
+            ),
+          ),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  widget.isEdit ? 'Edit Soal' : 'Tambah Soal Baru',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 19.0,
+                    fontWeight: FontWeight.bold,
+                    color: _textBlack,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                Text(
+                  widget.isEdit
+                      ? 'Soal #${widget.soal!.id} • ${widget.soal!.kategori}'
+                      : 'Tambahkan soal baru ke Bank Soal',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    color: _textGrey,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -313,7 +326,113 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // KARTU 1 — SOAL + JAWABAN BENAR
+  // KARTU 0: KATEGORI
+  // ──────────────────────────────────────────────────────────────────
+  Widget _buildKartuKategori() {
+    return Container(
+      key: _kategoriKey,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _borderColor, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: _isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(18.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Kategori Topik',
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _textBlack,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: _isDark ? const Color(0xFF141A1F) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _borderColor),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedKategori,
+                isExpanded: true,
+                dropdownColor: _cardBg,
+                icon: Icon(Icons.arrow_drop_down, color: _textGrey),
+                items: _kategoriOptions.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        color: _textBlack,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  if (newValue == null) return;
+                  setState(() {
+                    _selectedKategori = newValue;
+                    _isCustomKategori = (newValue == 'Lainnya (Kustom)');
+                    if (!_isCustomKategori) {
+                      _kategoriCtrl.text = newValue;
+                    }
+                    _errorKategori = null;
+                  });
+                },
+              ),
+            ),
+          ),
+          if (_isCustomKategori) ...[
+            const SizedBox(height: 12),
+            _buildDashedTextField(
+              controller: _kategoriCtrl,
+              focusNode: _kategoriFocus,
+              hintText: 'Tulis nama kategori topik kustom...',
+              textInputAction: TextInputAction.next,
+              minLines: 1,
+              onEditingComplete: () {
+                _kategoriFocus.unfocus();
+                FocusScope.of(context).requestFocus(_pertanyaanFocus);
+              },
+              onChanged: (_) {
+                if (_errorKategori != null) setState(() => _errorKategori = null);
+              },
+            ),
+          ],
+          if (_errorKategori != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _errorKategori!,
+              style: GoogleFonts.lato(
+                fontSize: 12,
+                color: const Color(0xFFEF4444),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // KARTU 1: SOAL + KUNCI JAWABAN
   // ──────────────────────────────────────────────────────────────────
   Widget _buildKartuSoal() {
     return Container(
@@ -333,76 +452,62 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Label field
+      padding: const EdgeInsets.all(18.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tuliskan Pernyataan Soal',
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _textBlack,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _buildDashedTextField(
+            controller: _pertanyaanCtrl,
+            focusNode: _pertanyaanFocus,
+            hintText: 'Masukkan teks pernyataan kuis...',
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              _pertanyaanFocus.unfocus();
+              FocusScope.of(context).requestFocus(_penjelasanFocus);
+            },
+            onChanged: (_) {
+              if (_errorPertanyaan != null) {
+                setState(() => _errorPertanyaan = null);
+              }
+            },
+          ),
+          if (_errorPertanyaan != null) ...[
+            const SizedBox(height: 6),
             Text(
-              'Tuliskan Soal',
+              _errorPertanyaan!,
               style: GoogleFonts.lato(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: _textBlack,
+                fontSize: 12,
+                color: const Color(0xFFEF4444),
               ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // Text field multi-baris
-            _buildDashedTextField(
-              controller: _pertanyaanCtrl,
-              focusNode: _pertanyaanFocus,
-              hintText: 'Masukkan teks soal...',
-              textInputAction: TextInputAction.next,
-              onEditingComplete: () {
-                _pertanyaanFocus.unfocus();
-                FocusScope.of(context).requestFocus(_penjelasanFocus);
-              },
-              onChanged: (_) {
-                if (_errorPertanyaan != null) {
-                  setState(() => _errorPertanyaan = null);
-                }
-              },
-            ),
-
-            // Pesan error
-            if (_errorPertanyaan != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                _errorPertanyaan!,
-                style: GoogleFonts.lato(
-                  fontSize: 12,
-                  color: const Color(0xFFEF4444),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            // Label kunci jawaban
-            Text(
-              'Tentukan Kunci Jawaban',
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: _textBlack,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Radio pills Benar / Salah
-            Row(
-              children: [
-                Expanded(child: _buildRadioPill(true, 'Benar')),
-                const SizedBox(width: 12),
-                Expanded(child: _buildRadioPill(false, 'Salah')),
-              ],
             ),
           ],
-        ),
+          const SizedBox(height: 20),
+          Text(
+            'Tentukan Kunci Jawaban',
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _textBlack,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildRadioPill(true, 'Benar')),
+              const SizedBox(width: 12),
+              Expanded(child: _buildRadioPill(false, 'Salah')),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -431,16 +536,13 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Radio circle
             Container(
               width: 18,
               height: 18,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF2B7AE8)
-                      : inactiveRadioBorder,
+                  color: isSelected ? const Color(0xFF2B7AE8) : inactiveRadioBorder,
                   width: 1.5,
                 ),
                 color: radioCircleBg,
@@ -473,9 +575,6 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
-  // PILL LABEL DESKRIPSI
-  // ──────────────────────────────────────────────────────────────────
   Widget _buildPillLabel() {
     return Center(
       child: Container(
@@ -486,7 +585,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
           border: Border.all(color: _borderColor),
         ),
         child: Text(
-          'Deskripsi Jawaban Benar / Salah',
+          'Deskripsi Pembahasan & Rujukan Resmi',
           style: GoogleFonts.lato(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -498,7 +597,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // KARTU 2 — PENJELASAN
+  // KARTU 2: PENJELASAN
   // ──────────────────────────────────────────────────────────────────
   Widget _buildKartuPenjelasan() {
     return Container(
@@ -518,66 +617,56 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Penjelasan Edukasi',
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: _textBlack,
-              ),
+      padding: const EdgeInsets.all(18.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Penjelasan Edukasi',
+            style: GoogleFonts.lato(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _textBlack,
             ),
-
-            const SizedBox(height: 10),
-
-            _buildDashedTextField(
-              controller: _penjelasanCtrl,
-              focusNode: _penjelasanFocus,
-              hintText: 'Masukkan penjelasan jawaban...',
-              textInputAction: TextInputAction.done,
-              onEditingComplete: () {
-                _penjelasanFocus.unfocus();
-              },
-              onChanged: (_) {
-                if (_errorPenjelasan != null) {
-                  setState(() => _errorPenjelasan = null);
-                }
-              },
-            ),
-
-            if (_errorPenjelasan != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                _errorPenjelasan!,
-                style: GoogleFonts.lato(
-                  fontSize: 12,
-                  color: const Color(0xFFEF4444),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 8),
-
+          ),
+          const SizedBox(height: 10),
+          _buildDashedTextField(
+            controller: _penjelasanCtrl,
+            focusNode: _penjelasanFocus,
+            hintText: 'Masukkan penjelasan jawaban dan referensi ilmiah...',
+            textInputAction: TextInputAction.done,
+            onEditingComplete: () {
+              _penjelasanFocus.unfocus();
+            },
+            onChanged: (_) {
+              if (_errorPenjelasan != null) {
+                setState(() => _errorPenjelasan = null);
+              }
+            },
+          ),
+          if (_errorPenjelasan != null) ...[
+            const SizedBox(height: 6),
             Text(
-              'Penjelasan ini akan ditampilkan kepada pengguna setelah menjawab soal',
+              _errorPenjelasan!,
               style: GoogleFonts.lato(
-                fontSize: 11,
-                color: _textGrey,
+                fontSize: 12,
+                color: const Color(0xFFEF4444),
               ),
             ),
           ],
-        ),
+          const SizedBox(height: 8),
+          Text(
+            'Penjelasan ini akan ditampilkan kepada pengguna setelah menjawab soal pada kuis',
+            style: GoogleFonts.lato(
+              fontSize: 11,
+              color: _textGrey,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
-  // TEXT FIELD PUTUS-PUTUS
-  // ──────────────────────────────────────────────────────────────────
   Widget _buildDashedTextField({
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -585,6 +674,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
     required TextInputAction textInputAction,
     required VoidCallback onEditingComplete,
     required ValueChanged<String> onChanged,
+    int? minLines = 3,
   }) {
     return CustomPaint(
       painter: _DashedBorderPainter(color: _borderColor),
@@ -593,7 +683,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
         child: TextField(
           controller: controller,
           focusNode: focusNode,
-          minLines: 3,
+          minLines: minLines,
           maxLines: null,
           textInputAction: textInputAction,
           onEditingComplete: onEditingComplete,
@@ -620,12 +710,11 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // TOMBOL ROW (Batal & Simpan Perubahan)
+  // TOMBOL ROW
   // ──────────────────────────────────────────────────────────────────
   Widget _buildTombolRow() {
     return Row(
       children: [
-        // Batal
         Expanded(
           child: SizedBox(
             height: 48,
@@ -650,15 +739,12 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
             ),
           ),
         ),
-
         const SizedBox(width: 12),
-
-        // Simpan Perubahan
         Expanded(
           child: SizedBox(
             height: 48,
             child: ElevatedButton(
-              onPressed: _isSaving ? null : _simpanPerubahan,
+              onPressed: _isSaving ? null : _simpan,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2B7AE8),
                 foregroundColor: Colors.white,
@@ -679,7 +765,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                       ),
                     )
                   : Text(
-                      'Simpan Perubahan',
+                      widget.isEdit ? 'Simpan Perubahan' : 'Tambah Soal',
                       style: GoogleFonts.lato(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -691,13 +777,6 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
         ),
       ],
     );
-  }
-
-  // ──────────────────────────────────────────────────────────────────
-  // 3. ILUSTRASI FOOTER (Format Terpusat: IllustrationForestFooter)
-  // ──────────────────────────────────────────────────────────────────
-  Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 }
 
