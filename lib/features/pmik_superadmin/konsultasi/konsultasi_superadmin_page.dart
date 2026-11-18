@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -7,6 +7,7 @@ import '../../../models/booking_consultation_model.dart';
 import '../../../models/konsultasi_session_model.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../shared/widgets/child_avatar.dart';
+import '../../../shared/widgets/child_live_avatar.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../shared/widgets/pedia_interactive_hover_card.dart';
@@ -260,6 +261,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 _buildChildAvatar(
                   photoUrl: item.childPhotoUrl,
+                  childId: item.id,
+                  childName: item.childName,
                   isFemale: isFemale,
                   size: 46,
                 ),
@@ -703,6 +706,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 _buildChildAvatar(
                   photoUrl: item.childPhotoUrl,
+                  childId: item.id,
+                  childName: item.childName,
                   isFemale: isFemale,
                   size: 44,
                 ),
@@ -897,6 +902,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 _buildChildAvatar(
                   photoUrl: booking.child.photoUrl,
+                  childId: booking.child.id,
+                  childName: booking.child.name,
                   isFemale: isFemale,
                   size: 46,
                 ),
@@ -1012,6 +1019,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 _buildChildAvatar(
                   photoUrl: booking.child.photoUrl,
+                  childId: booking.child.id,
+                  childName: booking.child.name,
                   isFemale: isFemale,
                   size: 44,
                 ),
@@ -1237,6 +1246,8 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
               children: [
                 _buildChildAvatar(
                   photoUrl: item.childPhotoUrl,
+                  childId: item.id,
+                  childName: item.childName,
                   isFemale: isFemale,
                   size: 44,
                 ),
@@ -1399,44 +1410,21 @@ class _KonsultasiSuperadminPageState extends State<KonsultasiSuperadminPage>
   }
 
   // ─── CHILD AVATAR ─────────────────────────────────────────────────────────
-  /// Menampilkan foto profil anak dari Firebase jika tersedia (field photo_url),
-  /// atau fallback ke avatar profil anak resmi PediaGrow (ChildAvatar).
   Widget _buildChildAvatar({
     required String? photoUrl,
+    String? childId,
+    String? childName,
     required bool isFemale,
     required double size,
   }) {
-    final fallback = ChildAvatar(
+    return ChildLiveAvatar(
+      childId: childId,
+      childName: childName,
+      photoUrl: photoUrl,
       isGirl: isFemale,
       size: size,
+      shape: BoxShape.circle,
     );
-
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: StorageService.buildImageWidget(
-          photoUrl,
-          fit: BoxFit.cover,
-          width: size,
-          height: size,
-          errorWidget: fallback,
-        ),
-      );
-    }
-
-    return fallback;
   }
 
   // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────

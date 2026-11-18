@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -244,6 +244,8 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
           ? b.child.ageDescription
           : '1 tahun',
       childGender: b.child.gender,
+      childId: b.child.id,
+      childPhotoUrl: b.child.photoUrl,
       consultationDate: b.scheduledDate,
       formattedDate: dateStr,
       status: b.status,
@@ -277,6 +279,10 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       childName: r.childName,
       childAge: r.childAgeAtConsultation,
       childGender: matchedChild.gender.isNotEmpty ? matchedChild.gender : 'Perempuan',
+      childId: matchedChild.id.isNotEmpty ? matchedChild.id : r.childId,
+      childPhotoUrl: (matchedChild.photoUrl != null && matchedChild.photoUrl!.isNotEmpty)
+          ? matchedChild.photoUrl
+          : null,
       consultationDate: r.createdAt ?? DateTime.now(),
       formattedDate: r.consultationDate,
       status: r.status,
