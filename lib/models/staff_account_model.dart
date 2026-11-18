@@ -275,7 +275,7 @@ class StaffAccount {
     }
     if (permissionKey == 'download_dataset_rekapitulasi' ||
         permissionKey == 'download_dataset_pengguna') {
-      return isPmikSuperadmin;
+      return isPmikSuperadmin || role == StaffRole.admin;
     }
     if (isSuperAdmin) return true;
     if (isDokter) {
