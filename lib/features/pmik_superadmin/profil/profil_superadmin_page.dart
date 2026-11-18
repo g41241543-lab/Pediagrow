@@ -111,14 +111,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
       if (mounted) {
         setState(() {
           _superadmin = current;
-<<<<<<< HEAD
-          if (current?.avatarPath != null && current!.avatarPath!.isNotEmpty) {
-            _superadminAvatarPath = current.avatarPath;
-=======
           final avatar = current?.avatarPath;
           if (avatar != null && avatar.isNotEmpty) {
             _superadminAvatarPath = avatar;
->>>>>>> dd0b9420780a190ab8db0cc01c9ab8b168192d8a
           }
         });
       }
@@ -689,7 +684,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               // Email
               Text(
-                _superadmin?.email ?? '',
+                (_superadmin?.email != null && _superadmin!.email.isNotEmpty)
+                    ? _superadmin!.email
+                    : 'g41241509@student.polije.ac.id',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.0,
