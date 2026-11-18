@@ -1051,17 +1051,17 @@ class _BerandaPageState extends State<BerandaPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 6 Card Menu (lebar penuh sejajar margin 12dp)
+          // 6 Card Menu (lebar sejajar margin 16dp, sama persis dengan role Dokter & Superadmin)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: _build6MenuGrid(context),
           ),
 
           const SizedBox(height: 24),
 
-          // Card PediaGrow (lebar penuh identik dengan Card MomDad & Menu, margin 12dp)
+          // Card PediaGrow (lebar sejajar margin 16dp, selaras dengan Card Menu)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: _buildPediaGrowCard(),
           ),
 
@@ -1369,7 +1369,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
             // Konten Baris: Ilustrasi & Teks
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
