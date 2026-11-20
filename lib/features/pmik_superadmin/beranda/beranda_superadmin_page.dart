@@ -351,130 +351,189 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
 
   // =========================================================================
   // CARD SUPERADMIN
-  // Dimensi: lebar penuh, height 120, warna #FFFFFF, corner radius 15
-  // Kiri: Teks PeGo + tagline; Kanan: Ilustrasi dokter
+  // Dimensi: lebar penuh, height 125, soft blue gradient, corner radius 16
+  // Kiri: Teks PeGo + slogan + sub-pill; Kanan: Ilustrasi dokter proporsional
   // =========================================================================
   Widget _buildSuperadminCard(BuildContext context) {
     final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
-      height: 120,
+      height: 125,
       decoration: BoxDecoration(
-        color: isDark ? ThemeService.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1D252C),
+                  const Color(0xFF171E24),
+                ]
+              : [
+                  const Color(0xFFEAF4FF),
+                  const Color(0xFFD4EBFE),
+                ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFCCE4FB),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Teks kiri: PeGo + tagline
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    RichText(
-                      text: TextSpan(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Aksen gelembung dekoratif halus di kanan belakang dokter
+            Positioned(
+              right: -25,
+              top: -25,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.025)
+                      : Colors.white.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+            // Micro Sparkle (✦) di Sudut Kanan Atas
+            Positioned(
+              top: 12,
+              right: 14,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 8.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.30)
+                    : Colors.white.withValues(alpha: 0.95),
+              ),
+            ),
+            // Konten Utama
+            Padding(
+              padding: const EdgeInsets.only(left: 14, right: 10, top: 10, bottom: 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Teks kiri: PeGo + slogan + sub-pill
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TextSpan(
-                            text: 'Pe',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4B83D6),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Pe',
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF4B83D6),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'Go',
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF3CC3A6),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          TextSpan(
-                            text: 'Go',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF3CC3A6),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF1E293B),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.white.withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : const Color(0xFFBAE6FD),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome,
+                                  size: 10,
+                                  color: isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : const Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Pusat Monitoring Tumbuh Kembang',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? const Color(0xFF93C5FD)
+                                        : const Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ValueListenableBuilder<StaffAccount?>(
-                      valueListenable: StaffAuthService().currentStaffNotifier,
-                      builder: (context, staff, _) {
-                        final roleText = staff?.isSuperAdmin == true
-                            ? 'PMIK Superadmin'
-                            : staff?.pmikRoleDisplay ??
-                                  (staff?.role.label ?? 'Staff');
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                                : const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
-                                  : const Color(0xFFBFDBFE),
-                            ),
-                          ),
-                          child: Text(
-                            roleText,
-                            style: GoogleFonts.lato(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? const Color(0xFF93C5FD)
-                                  : const Color(0xFF2563EB),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.normal,
-                    color: isDark
-                        ? ThemeService.darkTextSecondary
-                        : const Color(0xFF2C363D),
-                    height: 1.35,
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // Ilustrasi dokter (kanan)
-          SizedBox(
-            width: 90,
-            height: 100,
-            child: Image.asset(
-              'assets/images/dokter_superadmin_card.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.medical_services_rounded,
-                size: 60,
-                color: Color(0xFF3985E7),
+                  // Ilustrasi dokter (kanan)
+                  SizedBox(
+                    width: 86,
+                    height: 115,
+                    child: Image.asset(
+                      'assets/images/dokter_superadmin_card.png',
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomCenter,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.medical_services_rounded,
+                        size: 60,
+                        color: Color(0xFF3985E7),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -497,15 +556,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
 
           const SizedBox(height: 24),
 
-          // Card Slogan PeGo
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildPeGoSloganCard(context),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Artikel Terbaru (Horizontal Carousel)
+          // Artikel Terbaru (Horizontal Carousel) Langsung di Bawah Menu
           _buildLatestArticlesSection(context),
         ],
       ),
@@ -537,7 +588,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   child: _buildMenuItem(
                     context: context,
                     title: 'Rekapitulasi',
-                    customIcon: _buildRekapitulasiLogo(),
+                    imageAsset: 'assets/images/rekapitulasi_logo.png',
                     blobColor: const Color(0xFFD97706),
                     isLocked: !canRekap,
                     onTap: () => _handleMenuTap(
@@ -553,7 +604,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                   child: _buildMenuItem(
                     context: context,
                     title: 'Data\nAnak',
-                    imageAsset: 'assets/images/data_pasien_logo.png',
+                    imageAsset: 'assets/images/data_anak_logo.png',
                     blobColor: const Color(0xFF3CC3A6),
                     isLocked: !canPasien,
                     onTap: () => _handleMenuTap(
@@ -625,7 +676,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
                     title: 'Permainan\n',
                     imageAsset: 'assets/images/permainan_logo.png',
                     blobColor: const Color(0xFFF59E0B),
-                    logoOffsetX: 5,
+                    logoOffsetX: 0,
                     isLocked: !canPermainan,
                     onTap: () => _handleMenuTap(
                       permissionKey: 'permainan',
@@ -740,23 +791,25 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     bool isLocked = false,
   }) {
     final isDark = ThemeService.isDark(context);
-    final Widget baseContent = customIcon ??
-        (imageAsset != null
-            ? Image.asset(
-                imageAsset,
-                height: imageSize,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => Icon(
+    final Widget baseContent = (imageAsset != null
+        ? Image.asset(
+            imageAsset,
+            height: imageSize,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) =>
+                customIcon ??
+                Icon(
                   icon ?? Icons.widgets_rounded,
                   size: imageSize,
                   color: iconColor ?? const Color(0xFF3985E7),
                 ),
-              )
-            : Icon(
-                icon ?? Icons.widgets_rounded,
-                size: imageSize,
-                color: iconColor ?? const Color(0xFF3985E7),
-              ));
+          )
+        : customIcon ??
+            Icon(
+              icon ?? Icons.widgets_rounded,
+              size: imageSize,
+              color: iconColor ?? const Color(0xFF3985E7),
+            ));
 
     return GestureDetector(
       onTap: onTap,
@@ -943,7 +996,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 14,
-              fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
+              fontWeight: FontWeight.normal,
               color: isDark
                   ? (isLocked
                       ? ThemeService.darkTextMuted
@@ -955,136 +1008,6 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // =========================================================================
-  // CARD SLOGAN PeGo SUPERADMIN
-  // Identik dimensi dengan card PediaGrow pengguna (height 115, color #ECF6FF)
-  // =========================================================================
-  Widget _buildPeGoSloganCard(BuildContext context) {
-    final isDark = ThemeService.isDark(context);
-    return Container(
-      width: double.infinity,
-      height: 115,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF1D252C),
-                  const Color(0xFF171E24),
-                ]
-              : [
-                  const Color(0xFFEAF4FF),
-                  const Color(0xFFD4EBFE),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? const Color(0xFF2C363D)
-              : const Color(0xFFCCE4FB),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            // Micro Sparkle (✦) di Sudut Kanan Atas
-            Positioned(
-              top: 12,
-              right: 14,
-              child: Icon(
-                Icons.auto_awesome,
-                size: 8.5,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.30)
-                    : Colors.white.withValues(alpha: 0.95),
-              ),
-            ),
-
-            // Konten Baris: Ilustrasi Dokter & Teks
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Ilustrasi dokter duduk
-                  SizedBox(
-                    width: 84,
-                    height: 94,
-                    child: Image.asset(
-                      'assets/images/dokter_komputer_slogan.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.computer_rounded,
-                        size: 50,
-                        color: Color(0xFF3985E7),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  // Teks PeGo & deskripsi superadmin
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Pe',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF4B83D6),
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'Go',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF3CC3A6),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Pego merupakan pendukung aplikasi PediaGrow untuk dokter, PMIK dan admin yang mengelola',
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                            color: isDark
-                                ? ThemeService.darkTextSecondary
-                                : const Color(0xFF1E293B),
-                            height: 1.3,
-                          ),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
