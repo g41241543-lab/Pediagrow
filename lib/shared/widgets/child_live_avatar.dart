@@ -118,11 +118,28 @@ class _ChildLiveAvatarState extends State<ChildLiveAvatar> {
       if ((resolved == null || resolved.isEmpty) &&
           widget.childName != null &&
           widget.childName!.trim().isNotEmpty) {
-        final query = await db
+        final cleanName = widget.childName!.trim();
+        var query = await db
             .collection('children')
-            .where('name', isEqualTo: widget.childName!.trim())
+            .where('name', isEqualTo: cleanName)
             .limit(1)
             .get();
+        if (query.docs.isEmpty) {
+          query = await db
+              .collection('children')
+              .where('name', isEqualTo: cleanName.toLowerCase())
+              .limit(1)
+              .get();
+        }
+        if (query.docs.isEmpty && cleanName.isNotEmpty) {
+          final titleCase = cleanName[0].toUpperCase() +
+              (cleanName.length > 1 ? cleanName.substring(1).toLowerCase() : '');
+          query = await db
+              .collection('children')
+              .where('name', isEqualTo: titleCase)
+              .limit(1)
+              .get();
+        }
         if (query.docs.isNotEmpty) {
           resolved = _extractPhoto(query.docs.first.data());
         }
@@ -156,7 +173,9 @@ class _ChildLiveAvatarState extends State<ChildLiveAvatar> {
         data['avatar'] ??
         data['avatarPath'] ??
         data['foto'] ??
-        data['foto_url'];
+        data['foto_url'] ??
+        data['avatar_url'] ??
+        data['fotoUrl'];
     if (raw != null && raw.toString().trim().isNotEmpty) {
       return raw.toString().trim();
     }
@@ -165,6 +184,9 @@ class _ChildLiveAvatarState extends State<ChildLiveAvatar> {
 
   @override
   Widget build(BuildContext context) {
+    final cacheKey = _getCacheKey();
+    final cachedUrl = cacheKey != null ? ChildLiveAvatar._photoCache[cacheKey] : null;
+
     return ValueListenableBuilder<List<ChildModel>>(
       valueListenable: ChildService().childrenNotifier,
       builder: (context, children, _) {
@@ -184,15 +206,17 @@ class _ChildLiveAvatarState extends State<ChildLiveAvatar> {
               .firstOrNull;
         }
 
-        final livePhoto = (widget.photoUrl != null &&
-                widget.photoUrl!.trim().isNotEmpty)
-            ? widget.photoUrl!.trim()
+        final livePhoto = (matchedChild?.photoUrl != null &&
+                matchedChild!.photoUrl!.trim().isNotEmpty)
+            ? matchedChild.photoUrl!.trim()
             : (_fetchedPhotoUrl != null && _fetchedPhotoUrl!.trim().isNotEmpty)
                 ? _fetchedPhotoUrl!.trim()
-                : (matchedChild?.photoUrl != null &&
-                        matchedChild!.photoUrl!.trim().isNotEmpty)
-                    ? matchedChild.photoUrl!.trim()
-                    : null;
+                : (cachedUrl != null && cachedUrl.trim().isNotEmpty)
+                    ? cachedUrl.trim()
+                    : (widget.photoUrl != null &&
+                            widget.photoUrl!.trim().isNotEmpty)
+                        ? widget.photoUrl!.trim()
+                        : null;
 
         final effectiveGender =
             matchedChild?.gender ?? widget.gender ?? 'Laki-laki';

@@ -87,6 +87,12 @@ class RiwayatKonsultasiAdminService {
           final DateTime? birthDate = parseAnyDate(
             childData?['birth_date'] ?? childData?['tanggal_lahir'],
           );
+          final String? photoUrl = childData?['photo_url']?.toString() ??
+              childData?['photoUrl']?.toString() ??
+              childData?['avatar']?.toString() ??
+              childData?['avatarPath']?.toString() ??
+              childData?['foto']?.toString() ??
+              childData?['foto_url']?.toString();
 
           final itemKey =
               '${r.childName.toLowerCase().trim()}_${r.doctorName.toLowerCase().trim()}_$formattedDate';
@@ -112,6 +118,7 @@ class RiwayatKonsultasiAdminService {
                 resumeMedisId: r.id,
                 sessionId: r.sessionId,
                 createdAt: r.createdAt,
+                childPhotoUrl: photoUrl,
               ),
             );
           }
