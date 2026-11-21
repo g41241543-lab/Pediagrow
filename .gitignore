@@ -2,6 +2,7 @@
 build/
 .env
 .idea/
+node_modules/
 .flutter-plugins
 .flutter-plugins-dependencies
 

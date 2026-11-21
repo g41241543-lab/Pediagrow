@@ -307,159 +307,185 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
   // ─── PMIK CARD ────────────────────────────────────────────────────────────
   Widget _buildPmikCard(BuildContext context) {
     final isDark = ThemeService.isDark(context);
-    return ValueListenableBuilder<StaffAccount?>(
-      valueListenable: StaffAuthService().currentStaffNotifier,
-      builder: (context, staff, _) {
-        final name = staff?.name.trim() ?? 'PMIK Admin';
-        final roleLabel = staff?.pmikRoleDisplay ?? 'PMIK Admin';
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF1D252C),
-                      const Color(0xFF171E24),
-                    ]
-                  : [
-                      const Color(0xFFEAF4FF),
-                      const Color(0xFFD4EBFE),
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? const Color(0xFF2C363D)
-                  : const Color(0xFFCCE4FB),
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      height: 125,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1D252C),
+                  const Color(0xFF171E24),
+                ]
+              : [
+                  const Color(0xFFEAF4FF),
+                  const Color(0xFFD4EBFE),
+                ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFCCE4FB),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Stack(
-              children: [
-                // Micro Sparkle (✦) di Sudut Kanan Atas
-                Positioned(
-                  top: 12,
-                  right: 14,
-                  child: Icon(
-                    Icons.auto_awesome,
-                    size: 8.5,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.30)
-                        : Colors.white.withValues(alpha: 0.95),
-                  ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Aksen gelembung dekoratif halus di kanan belakang karakter
+            Positioned(
+              right: -25,
+              top: -25,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.025)
+                      : Colors.white.withValues(alpha: 0.35),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+              ),
+            ),
+            // Micro Sparkle (✦) di Sudut Kanan Atas
+            Positioned(
+              top: 12,
+              right: 14,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 8.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.30)
+                    : Colors.white.withValues(alpha: 0.95),
+              ),
+            ),
+            // Konten Utama
+            Padding(
+              padding: const EdgeInsets.only(left: 14, right: 10, top: 10, bottom: 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Teks kiri: PeGo + slogan + sub-pill
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
                               children: [
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'Pe',
-                                        style: GoogleFonts.baloo2(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF4B83D6),
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: 'Go',
-                                        style: GoogleFonts.baloo2(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF3CC3A6),
-                                        ),
-                                      ),
-                                    ],
+                                TextSpan(
+                                  text: 'Pe',
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF4B83D6),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? const Color(0xFF1E3A8A)
-                                            .withValues(alpha: 0.3)
-                                        : Colors.white.withValues(alpha: 0.75),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? const Color(0xFF3B82F6)
-                                              .withValues(alpha: 0.5)
-                                          : const Color(0xFFBFDBFE),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    roleLabel,
-                                    style: GoogleFonts.lato(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? const Color(0xFF93C5FD)
-                                          : const Color(0xFF2563EB),
-                                    ),
+                                TextSpan(
+                                  text: 'Go',
+                                  style: GoogleFonts.baloo2(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF3CC3A6),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              name,
-                              style: GoogleFonts.lato(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF1E293B),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.white.withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
                                 color: isDark
-                                    ? ThemeService.darkTextPrimary
-                                    : const Color(0xFF0B1014),
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : const Color(0xFFBAE6FD),
+                                width: 0.8,
                               ),
                             ),
-                            Text(
-                              'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
-                              style: GoogleFonts.lato(
-                                fontSize: 12,
-                                color: isDark
-                                    ? ThemeService.darkTextSecondary
-                                    : const Color(0xFF475569),
-                                height: 1.3,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome,
+                                  size: 10,
+                                  color: isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : const Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Pusat Monitoring Tumbuh Kembang',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? const Color(0xFF93C5FD)
+                                        : const Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const Icon(
-                        Icons.local_hospital_rounded,
-                        size: 60,
-                        color: Color(0xFF0891B2),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+
+                  // Ilustrasi PMIK (kanan)
+                  SizedBox(
+                    width: 86,
+                    height: 115,
+                    child: Image.asset(
+                      'assets/images/pmik_admin_card.png',
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomCenter,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.medical_services_rounded,
+                        size: 60,
+                        color: Color(0xFF3985E7),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
