@@ -257,7 +257,13 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
       onPopInvokedWithResult: (didPop, _) {
 
-        if (!didPop) {
+        if (didPop) return;
+
+        if (Navigator.of(context).canPop()) {
+
+          Navigator.of(context).pop();
+
+        } else {
 
           Navigator.of(context).pushReplacement(
 

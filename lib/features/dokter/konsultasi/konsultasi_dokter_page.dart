@@ -709,9 +709,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 final isDark = Theme.of(context).brightness == Brightness.dark;
 
                   return PopScope(
-                    canPop: false,
+                    canPop: widget.inShell,
                     onPopInvokedWithResult: (didPop, _) {
-                      if (didPop) return;
+                      if (didPop || widget.inShell) return;
                       Navigator.of(context).pushAndRemoveUntil(
                         PageRouteBuilder(
                           pageBuilder: (ctx, anim, anim2) => const BerandaDokterPage(),

@@ -1682,7 +1682,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           ),
           decoration: _inputDecoration(
             hint: '16 digit Nomor Kartu Keluarga',
-            suffixIcon: Icons.family_restroom_rounded,
             hasError: _noKkError != null,
           ).copyWith(counterText: ''),
           onChanged: (val) {
@@ -1724,7 +1723,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           ),
           decoration: _inputDecoration(
             hint: '16 digit NIK Anak',
-            suffixIcon: Icons.badge_outlined,
             hasError: _nikError != null,
           ).copyWith(counterText: ''),
           onChanged: (val) {
