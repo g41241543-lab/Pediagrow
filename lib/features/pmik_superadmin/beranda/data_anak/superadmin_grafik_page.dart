@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../models/child_model.dart';
@@ -185,7 +185,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   }
 
   // ===========================================================================
-  // HEADER â€” tanpa tombol riwayat di pojok kanan atas
+  // HEADER — tanpa tombol riwayat di pojok kanan atas
   // ===========================================================================
   Widget _buildHeader(BuildContext context, String ageFormatted) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -252,7 +252,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   }
 
   // ===========================================================================
-  // BAR STATUS GIZI â€” tanpa link "Konsultasikan dengan dokter"
+  // BAR STATUS GIZI — tanpa link "Konsultasikan dengan dokter"
   // ===========================================================================
   Widget _buildStatusGiziSection({
     required String statusGizi,
@@ -338,7 +338,7 @@ class _SuperadminGrafikPageState extends State<SuperadminGrafikPage> {
   }
 
   // ===========================================================================
-  // HELPER â€” Format usia singkat "X Tahun Y Bulan"
+  // HELPER — Format usia singkat "X Tahun Y Bulan"
   // ===========================================================================
   String _getShortAgeFormatted(ChildModel child) {
     if (child.birthDate == null) return child.ageDescription;

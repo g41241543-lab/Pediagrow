@@ -148,11 +148,14 @@ class SoalService {
     try {
       final root = await ApiService.getEffectiveBaseUrl();
       final response = await http
-          .get(Uri.parse('$root/permainan/get_soal.php'))
+          .get(
+            Uri.parse('$root/permainan/get_soal.php'),
+            headers: {'Accept': 'application/json; charset=utf-8'},
+          )
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
         if (decoded is List && decoded.isNotEmpty) {
           final apiList = decoded
               .map((e) => SoalModel.fromJson(e as Map<String, dynamic>))
@@ -301,7 +304,7 @@ class SoalService {
       await http
           .post(
             Uri.parse('$root/permainan/tambah_soal.php'),
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
             body: jsonEncode(newSoal.toJson()),
           )
           .timeout(_timeout);
@@ -390,7 +393,7 @@ class SoalService {
       await http
           .post(
             Uri.parse('$root/permainan/update_soal.php'),
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
             body: jsonEncode(updatedSoal.toJson()),
           )
           .timeout(_timeout);
@@ -444,7 +447,7 @@ class SoalService {
       await http
           .post(
             Uri.parse('$root/permainan/hapus_soal.php'),
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
             body: jsonEncode({'id': id}),
           )
           .timeout(_timeout);

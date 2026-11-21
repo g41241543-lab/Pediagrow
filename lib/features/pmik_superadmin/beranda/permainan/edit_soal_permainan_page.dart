@@ -5,6 +5,8 @@ import '../../../../core/services/local_push_service.dart';
 import '../../../../core/services/soal_service.dart';
 import '../../../../models/soal_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
+import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
 
 /// Halaman Form Tambah & Edit Soal untuk Admin / Superadmin.
 ///
@@ -195,63 +197,60 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       child: Scaffold(
         backgroundColor: _scaffoldBg,
         resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
+        body: SingleChildScrollView(
+          controller: _scrollCtrl,
+          physics: const ClampingScrollPhysics(),
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              // 1. Header Standar Superadmin/PMIK (56dp)
-              _buildHeader(),
+              // Background awan & burung
+              const Positioned.fill(child: FullPageSkyBackground()),
 
-              // 2. Konten Form Scrollable
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollCtrl,
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Area Biru Seamless Header (Sesuai mode gelap/terang)
+                  _buildSeamlessBlueArea(context),
 
-                            // Kartu 0: Kategori
-                            _buildKartuKategori(),
+                  // 2. Konten Form
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
 
-                            const SizedBox(height: 16),
+                        // Kartu 0: Kategori
+                        _buildKartuKategori(),
 
-                            // Kartu 1: Soal & Kunci Jawaban
-                            _buildKartuSoal(),
+                        const SizedBox(height: 16),
 
-                            const SizedBox(height: 16),
+                        // Kartu 1: Soal & Kunci Jawaban
+                        _buildKartuSoal(),
 
-                            // Pill Label Deskripsi
-                            _buildPillLabel(),
+                        const SizedBox(height: 16),
 
-                            const SizedBox(height: 16),
+                        // Pill Label Deskripsi
+                        _buildPillLabel(),
 
-                            // Kartu 2: Penjelasan Edukasi
-                            _buildKartuPenjelasan(),
+                        const SizedBox(height: 16),
 
-                            const SizedBox(height: 28),
+                        // Kartu 2: Penjelasan Edukasi
+                        _buildKartuPenjelasan(),
 
-                            // Tombol Aksi
-                            _buildTombolRow(),
-                          ],
-                        ),
-                      ),
+                        const SizedBox(height: 28),
 
-                      const SizedBox(height: 32),
-
-                      // 3. Ilustrasi Landscape Footer (Adaptif Dark/Light Mode dengan awan lembut di bawah)
-                      const IllustrationForestFooter(
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ],
+                        // Tombol Aksi
+                        _buildTombolRow(),
+                      ],
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 32),
+
+                  // 3. Ilustrasi Landscape Footer (Adaptif Dark/Light Mode)
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                ],
               ),
             ],
           ),
@@ -261,64 +260,96 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // 1. HEADER HALAMAN (STANDAR 56DP ROLE SUPERADMIN / PMIK)
+  // 1. AREA BIRU SEAMLESS HEADER
   // ──────────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget _buildSeamlessBlueArea(BuildContext context) {
+    final isDark = _isDark;
+    final skyMode = isDark ? SkyTimeMode.night : SkyTimeMode.day;
+    final isNight = isDark;
+
     return Container(
-      height: 56.0,
       width: double.infinity,
-      color: _scaffoldBg,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 12.0),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => Navigator.of(context).pop(),
-                borderRadius: BorderRadius.circular(24.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Icon(
-                    Icons.arrow_back,
-                    size: 24.0,
-                    color: _textBlack,
+          Positioned.fill(
+            child: HeaderSkyIllustration(
+              mode: skyMode,
+              renderBackgroundGradient: false,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: 56,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          behavior: HitTestBehavior.opaque,
+                          child: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              widget.isEdit ? 'Edit Soal' : 'Tambah Soal Baru',
+                              style: GoogleFonts.lato(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            Text(
+                              widget.isEdit
+                                  ? 'Soal #${widget.soal!.id} • ${widget.soal!.kategori}'
+                                  : 'Tambahkan soal baru ke Bank Soal',
+                              style: GoogleFonts.lato(
+                                fontSize: 12,
+                                color: Colors.white.withValues(alpha: 0.85),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  widget.isEdit ? 'Edit Soal' : 'Tambah Soal Baru',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(
-                    fontSize: 19.0,
-                    fontWeight: FontWeight.bold,
-                    color: _textBlack,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                Text(
-                  widget.isEdit
-                      ? 'Soal #${widget.soal!.id} • ${widget.soal!.kategori}'
-                      : 'Tambahkan soal baru ke Bank Soal',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.lato(
-                    fontSize: 12.0,
-                    color: _textGrey,
-                  ),
-                ),
-              ],
-            ),
+              const SizedBox(height: 36),
+            ],
           ),
         ],
       ),
@@ -778,6 +809,7 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
       ],
     );
   }
+
 }
 
 // ════════════════════════════════════════════════════════════════════

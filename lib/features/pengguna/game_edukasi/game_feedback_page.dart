@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -340,8 +340,9 @@ class GameFeedbackPage extends StatelessWidget {
     final Color bgColor = isBenar
         ? const Color(0xFF10B981) // hijau
         : const Color(0xFFEF4444); // merah
-
-    final String label = isBenar ? '✓  Jawaban Benar' : '✗  Jawaban Salah';
+    final IconData statusIcon =
+        isBenar ? Icons.check_circle_rounded : Icons.cancel_rounded;
+    final String statusLabel = isBenar ? 'Jawaban Benar' : 'Jawaban Salah';
 
     return Container(
       width: double.infinity,
@@ -358,13 +359,20 @@ class GameFeedbackPage extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: Text(
-        label,
-        style: GoogleFonts.lato(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(statusIcon, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            statusLabel,
+            style: GoogleFonts.lato(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
