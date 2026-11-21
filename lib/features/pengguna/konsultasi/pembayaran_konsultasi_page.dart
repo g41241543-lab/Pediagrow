@@ -9,6 +9,7 @@ import '../../../core/services/local_push_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../shared/widgets/doctor_live_avatar.dart';
 import 'daftar_dokter_page.dart';
 import 'status_booking_page.dart';
 
@@ -637,16 +638,12 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
         children: [
           Row(
             children: [
-              ClipOval(
-                child: (widget.doctor.avatarUrl != null && widget.doctor.avatarUrl!.isNotEmpty)
-                    ? Image.network(
-                        widget.doctor.avatarUrl!,
-                        width: 44,
-                        height: 44,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _buildDoctorAvatarFallback(isDark),
-                      )
-                    : _buildDoctorAvatarFallback(isDark),
+              DoctorLiveAvatar(
+                doctorId: widget.doctor.id,
+                doctorName: widget.doctor.name,
+                fallbackPhoto: widget.doctor.avatarUrl ?? widget.doctor.assetImagePath,
+                size: 46,
+                shape: BoxShape.circle,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -719,23 +716,6 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDoctorAvatarFallback(bool isDark) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
-      ),
-      child: const Icon(
-        Icons.medical_services_rounded,
-        color: _colorPrimaryBlue,
-        size: 22,
       ),
     );
   }
@@ -941,8 +921,8 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
     final asset = bank['assetLogo'];
     if (asset != null && asset.isNotEmpty) {
       return Container(
-        width: 68,
-        height: 28,
+        width: 44,
+        height: 18,
         alignment: Alignment.centerLeft,
         child: Image.asset(
           asset,
@@ -950,7 +930,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
           errorBuilder: (_, _, _) => Text(
             bank['code']!,
             style: GoogleFonts.lato(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
               color: _colorPrimaryBlue,
             ),
@@ -960,13 +940,12 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
     }
     // Bank Lainnya: Icon gedung bank klasik warna biru
     return Container(
-      width: 68,
-      height: 28,
+      width: 44,
+      height: 18,
       alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.only(left: 2),
       child: const Icon(
         Icons.account_balance_rounded,
-        size: 24,
+        size: 18,
         color: Color(0xFF00529B),
       ),
     );
@@ -1002,9 +981,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                 onTap: () => setState(() => _selectedBank = bank['code']!),
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  margin: const EdgeInsets.symmetric(vertical: 3.5),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     // Warna seragam untuk semua bank saat dipilih
                     color: isSelected
@@ -1023,9 +1002,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                   ),
                   child: Row(
                     children: [
-                      // Logo Bank HD
+                      // Logo Bank HD Compact
                       _buildBankLogoWidget(bank),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           bank['name']!,
