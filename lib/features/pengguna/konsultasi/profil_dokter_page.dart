@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/child_model.dart';
@@ -155,6 +155,22 @@ class ProfilDokterPage extends StatelessWidget {
                         const SizedBox(height: 14),
 
                         _buildPracticeLocationsCard(liveDoctor, isDark),
+
+                        const SizedBox(height: 28),
+
+                        // Section Biaya Konsultasi
+                        Text(
+                          'Biaya Konsultasi',
+                          style: GoogleFonts.lato(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        _buildConsultationFeeCard(liveDoctor, isDark),
 
                         const SizedBox(height: 32),
                       ],
@@ -618,6 +634,74 @@ class ProfilDokterPage extends StatelessWidget {
             ],
           );
         }),
+      ),
+    );
+  }
+
+  /// Kartu biaya konsultasi dokter dengan nominal dan keterangan durasi
+  Widget _buildConsultationFeeCard(DoctorModel liveDoctor, bool isDark) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFBFDBFE),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3985E7).withValues(alpha: isDark ? 0.03 : 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                  : const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.payments_outlined,
+              size: 20,
+              color: Color(0xFF10B981),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  liveDoctor.consultationFeeFormatted,
+                  style: GoogleFonts.lato(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Biaya per sesi konsultasi (30 menit)',
+                  style: GoogleFonts.lato(
+                    fontSize: 12.5,
+                    color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
