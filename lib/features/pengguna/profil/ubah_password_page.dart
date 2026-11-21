@@ -1,7 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/user_service.dart';
+import '../../../shared/widgets/pedia_banner.dart';
 import 'menu_profil_page.dart';
 
 /// Halaman Ubah Kata Sandi PediaGrow.
@@ -39,29 +41,72 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final staff = StaffAuthService().currentStaff;
-      if (staff != null) {
-        await StaffAuthService().updateStaffAccount(
-          staff.id,
-          password: _newPasswordController.text.trim(),
-        );
-      }
-      await Future.delayed(const Duration(milliseconds: 300));
+      final oldPassword = _oldPasswordController.text.trim();
+      final newPassword = _newPasswordController.text.trim();
 
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      try {
+        final staff = StaffAuthService().currentStaff;
+        if (staff != null && staff.id.isNotEmpty) {
+          // Validasi kata sandi lama staff
+          if (staff.passwordHash.isNotEmpty &&
+              !StaffAuthService().verifyPassword(oldPassword, staff.passwordHash)) {
+            if (!mounted) return;
+            setState(() => _isLoading = false);
+            PediaBanner.showError(
+              context,
+              message: 'Kata sandi saat ini tidak sesuai.',
+            );
+            return;
+          }
+          await StaffAuthService().changePassword(staff.id, newPassword);
+        } else if (UserService().isLoggedIn) {
+          // Akun pengguna / ibu
+          final result = await UserService().changePassword(
+            oldPassword: oldPassword,
+            newPassword: newPassword,
+          );
 
-      // Kembali dengan membawa pesan sukses
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop('Berhasil Ubah Kata Sandi');
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const MenuProfilPage(
-              showSuccessBanner: true,
-              successMessage: 'Berhasil Ubah Kata Sandi',
+          if (!result.isSuccess) {
+            if (!mounted) return;
+            setState(() => _isLoading = false);
+            PediaBanner.showError(
+              context,
+              message: result.errorMessage ?? 'Gagal mengubah kata sandi.',
+            );
+            return;
+          }
+        } else {
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+          PediaBanner.showError(
+            context,
+            message: 'Sesi akun tidak ditemukan. Silakan masuk kembali.',
+          );
+          return;
+        }
+
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+
+        // Kembali dengan membawa pesan sukses
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop('Berhasil Ubah Kata Sandi');
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const MenuProfilPage(
+                showSuccessBanner: true,
+                successMessage: 'Berhasil Ubah Kata Sandi',
+              ),
             ),
-          ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        PediaBanner.showError(
+          context,
+          message: 'Terjadi kesalahan saat mengubah kata sandi: $e',
         );
       }
     }
@@ -166,7 +211,7 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                       // Kata Sandi Baru
                       _buildPasswordField(
                         label: 'Kata Sandi Baru',
-                        hint: 'Minimal 6 karakter',
+                        hint: 'Min. 6 karakter (huruf besar, kecil, angka, simbol)',
                         controller: _newPasswordController,
                         obscureText: _obscureNew,
                         onToggleVisibility: () {
@@ -178,6 +223,26 @@ class _UbahPasswordPageState extends State<UbahPasswordPage> {
                           }
                           if (val.length < 6) {
                             return 'Kata sandi minimal 6 karakter';
+                          }
+                          final hasUpper = RegExp(r'[A-Z]').hasMatch(val);
+                          final hasLower = RegExp(r'[a-z]').hasMatch(val);
+                          final hasDigit = RegExp(r'[0-9]').hasMatch(val);
+                          const specialChars =
+                              r'''~!@#$%^&*_-+=`|(){}[]:;"'<>,.?/''';
+                          final hasSpecial =
+                              val.split('').any(specialChars.contains);
+
+                          if (!hasUpper) {
+                            return 'Kata sandi harus mengandung huruf kapital (A-Z)';
+                          }
+                          if (!hasLower) {
+                            return 'Kata sandi harus mengandung huruf kecil (a-z)';
+                          }
+                          if (!hasDigit) {
+                            return 'Kata sandi harus mengandung angka (0-9)';
+                          }
+                          if (!hasSpecial) {
+                            return 'Kata sandi harus mengandung karakter khusus / simbol';
                           }
                           return null;
                         },

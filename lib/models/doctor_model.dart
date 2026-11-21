@@ -108,6 +108,23 @@ class DoctorModel {
     return const [];
   }
 
+  /// Biaya konsultasi efektif (default fallback Rp 35.000 jika 0 atau belum diatur)
+  int get effectiveFee => consultationFee > 0 ? consultationFee : 35000;
+
+  /// Format biaya konsultasi dalam Rupiah: "Rp 35.000"
+  String get consultationFeeFormatted {
+    final fee = effectiveFee;
+    final str = fee.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(str[i]);
+    }
+    return 'Rp $buffer';
+  }
+
   /// Membuat DoctorModel dari data Map/Firestore.
   factory DoctorModel.fromMap(Map<String, dynamic> map) {
     List<String> places = [];

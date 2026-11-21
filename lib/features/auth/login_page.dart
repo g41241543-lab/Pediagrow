@@ -197,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+        builder: (_) => const BerandaPage(),
       ),
       (route) => false,
     );
@@ -280,7 +280,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+          builder: (_) => const BerandaPage(),
         ),
         (route) => false,
       );

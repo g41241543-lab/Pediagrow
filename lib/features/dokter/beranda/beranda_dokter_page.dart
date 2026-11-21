@@ -729,89 +729,6 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     );
   }
 
-  /// Logo Rekapitulasi: binder/catatan kuning berklip
-  Widget _buildRekapitulasiLogo() {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8CF47),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2B025), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD97706).withValues(alpha: 0.25),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Klip binder metalik di pojok kiri atas
-          Positioned(
-            top: 4,
-            left: 4,
-            child: Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(
-                color: const Color(0xFF667781),
-                borderRadius: BorderRadius.circular(2.5),
-              ),
-              alignment: Alignment.center,
-              child: Container(
-                width: 3.5,
-                height: 3.5,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ),
-          // Garis-garis catatan
-          Positioned(
-            top: 8,
-            left: 17,
-            right: 6,
-            child: Container(
-              height: 2.5,
-              decoration: BoxDecoration(
-                color: const Color(0xFFB48316).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(1.5),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 15,
-            left: 8,
-            right: 6,
-            child: Container(
-              height: 2.5,
-              decoration: BoxDecoration(
-                color: const Color(0xFFB48316).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(1.5),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 22,
-            left: 8,
-            right: 12,
-            child: Container(
-              height: 2.5,
-              decoration: BoxDecoration(
-                color: const Color(0xFFB48316).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(1.5),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Isi ikon/gambar untuk satu tile menu (tanpa efek terkunci).
   Widget _buildTileContent({
     required String? imageAsset,
@@ -1135,7 +1052,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               scrollDirection: Axis.horizontal,
               itemCount: _latestArticles.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
                 final artikel = _latestArticles[index];
                 return GestureDetector(

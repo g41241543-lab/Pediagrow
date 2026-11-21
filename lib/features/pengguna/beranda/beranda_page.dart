@@ -20,7 +20,6 @@ import '../mpasi/daftar_resep_page.dart';
 import '../artikel/artikel_kesehatan_page.dart';
 import '../fasyankes/lokasi_fasyankes_page.dart';
 import '../game_edukasi/game_mulai_page.dart';
-import '../profil/profil_ibu_page.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../../core/services/artikel_service.dart';
 import '../../../core/services/soal_service.dart';
@@ -61,19 +60,9 @@ class _BerandaPageState extends State<BerandaPage> {
   List<YoutubeVideoModel> _educationalVideos = [];
   bool _isLoadingVideos = true;
 
-  // Banner Notifikasi Lengkapi Profil Ibu
-  bool _isLengkapiProfilBannerVisible = false;
-  Timer? _lengkapiProfilTimer;
-
   @override
   void initState() {
     super.initState();
-
-    if (widget.showLengkapiProfilBanner) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _triggerLengkapiProfilBanner();
-      });
-    }
 
     if (widget.showAddSuccessSnackbar) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,33 +87,8 @@ class _BerandaPageState extends State<BerandaPage> {
 
   @override
   void dispose() {
-    _lengkapiProfilTimer?.cancel();
     ArtikelService().articlesNotifier.removeListener(_onArticlesUpdated);
     super.dispose();
-  }
-
-  void _triggerLengkapiProfilBanner() {
-    _lengkapiProfilTimer?.cancel();
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (!mounted) return;
-      setState(() {
-        _isLengkapiProfilBannerVisible = true;
-      });
-
-      // Otomatis disembunyikan setelah 1 menit jika tidak diinteraksi
-      _lengkapiProfilTimer = Timer(const Duration(minutes: 1), () {
-        _hideLengkapiProfilBanner();
-      });
-    });
-  }
-
-  void _hideLengkapiProfilBanner() {
-    _lengkapiProfilTimer?.cancel();
-    if (mounted && _isLengkapiProfilBannerVisible) {
-      setState(() {
-        _isLengkapiProfilBannerVisible = false;
-      });
-    }
   }
 
   void _onArticlesUpdated() {
@@ -244,93 +208,10 @@ class _BerandaPageState extends State<BerandaPage> {
               ],
             ),
           ),
-
-          // -----------------------------------------------------------------
-          // 4. FLOATING NOTIFIKASI POP-UP LENGKAPI PROFIL IBU
-          // -----------------------------------------------------------------
-          _buildLengkapiProfilBanner(),
         ],
       ),
       // Navigation Bar tetap di posisi Scaffold
       bottomNavigationBar: _buildFixedNavBar(),
-    );
-  }
-
-  // -------------------------------------------------------------------------
-  // NOTIFIKASI POP-UP "Silahkan lengkapi profil ibu"
-  // Bentuk dan penempatan persis seperti notif berhasil ubah kata sandi,
-  // dengan tombol '>' di sebelah kanan yang mengarah ke Profil Ibu saat dipencet.
-  // -------------------------------------------------------------------------
-  Widget _buildLengkapiProfilBanner() {
-    final topPadding = MediaQuery.of(context).padding.top;
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-      top: _isLengkapiProfilBannerVisible ? (topPadding + 62.0) : -80.0,
-      left: 16.0,
-      right: 16.0,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 200),
-        opacity: _isLengkapiProfilBannerVisible ? 1.0 : 0.0,
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: const Color(0xFF3985E7),
-            borderRadius: BorderRadius.circular(17),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3985E7).withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                _hideLengkapiProfilBanner();
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfilIbuPage()),
-                );
-              },
-              borderRadius: BorderRadius.circular(17),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Silahkan lengkapi profil ibu',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.lato(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFFFFFF),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 28,
-                      height: 28,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.chevron_right_rounded,
-                        size: 26,
-                        color: Color(0xFFFFFFFF),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 

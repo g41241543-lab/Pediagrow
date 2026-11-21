@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/booking_service.dart';
@@ -783,8 +783,37 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
             ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Nominal Biaya Konsultasi
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Biaya Konsultasi',
+                    style: GoogleFonts.lato(
+                      fontSize: 11,
+                      color: isDark
+                          ? const Color(0xFF8696A0)
+                          : _colorLabelGrey,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    doctor.consultationFeeFormatted,
+                    style: GoogleFonts.lato(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? const Color(0xFF34D399)
+                          : const Color(0xFF059669),
+                    ),
+                  ),
+                ],
+              ),
+              // Tombol Detail Dokter
               GestureDetector(
                 onTap: () => _navigateToDetail(doctor),
                 child: Container(

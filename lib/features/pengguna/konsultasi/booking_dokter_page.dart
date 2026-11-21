@@ -4,14 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/child_service.dart';
 import '../../../core/services/doctor_service.dart';
-import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/jadwal_dokter_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../core/services/storage_service.dart';
-import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
-import 'daftar_dokter_page.dart';
+import 'pembayaran_konsultasi_page.dart';
 import 'pilih_anak_page.dart';
 import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
@@ -168,11 +166,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  bool _isSubmitting = false;
-
-  Future<void> _confirmBooking() async {
-    if (_isSubmitting) return;
-
+  void _confirmBooking() {
     if (_selectedTimeSlot == null) {
       LocalPushService().show(
         title: 'Peringatan',
@@ -181,10 +175,6 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
       );
       return;
     }
-
-    setState(() {
-      _isSubmitting = true;
-    });
 
     final selectedSlotObj = _availableSlots
         .where((s) => s.timeLabel == _selectedTimeSlot)
@@ -200,203 +190,16 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
     final endDt = selectedSlotObj?.endDateTime ??
         startDt.add(const Duration(minutes: 30));
 
-    final calUrl = BookingService().generateGoogleCalendarUrl(
-      doctor: _doctor,
-      child: _child,
-      startTime: startDt,
-      endTime: endDt,
-    );
-
-    final newBooking = BookingConsultationModel(
-      id: 'booking-${DateTime.now().millisecondsSinceEpoch}',
-      userId: _child.ownerId.isNotEmpty ? _child.ownerId : null,
-      doctor: _doctor,
-      child: _child,
-      scheduledDate: _selectedDate,
-      scheduledTimeSlot: _selectedTimeSlot!,
-      scheduledStartDateTime: startDt,
-      scheduledEndDateTime: endDt,
-      googleCalendarUrl: calUrl,
-      status: 'Terjadwal',
-      createdAt: DateTime.now(),
-    );
-
-    // Simpan ke BookingService (tersimpan ke Cloud Firestore koleksi consultation_booking)
-    try {
-      await BookingService().addBooking(newBooking);
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        LocalPushService().show(
-          title: 'Peringatan',
-          body: 'Gagal menyimpan booking: $e',
-          targetRole: PushRole.pengguna,
-        );
-      }
-      return;
-    }
-
-    // Pengingat HP + Google Kalender sudah dijadwalkan otomatis oleh BookingService.addBooking()
-    // (tidak perlu dipanggil ulang di sini agar tidak ada duplikasi pengingat)
-
-    if (!mounted) return;
-    setState(() {
-      _isSubmitting = false;
-    });
-
-    // Tampilkan dialog sukses
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => _buildSuccessDialog(ctx, newBooking),
-    );
-  }
-
-  Widget _buildSuccessDialog(
-    BuildContext ctx,
-    BookingConsultationModel booking,
-  ) {
-    final isDark = Theme.of(ctx).brightness == Brightness.dark;
-
-    return Dialog(
-      backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                size: 38,
-                color: Color(0xFF10B981),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'Booking Berhasil Dijadwalkan!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Jadwal konsultasi untuk ${_child.name} bersama ${_doctor.name} telah berhasil dicatat pada:\n\n${booking.formattedDate}\n${booking.scheduledTimeSlot}',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                fontSize: 13,
-                color: isDark ? const Color(0xFF8696A0) : _colorLabelGrey,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Card info Google Kalender
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFBFDBFE)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_month_rounded,
-                    color: _colorPrimaryBlue,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Tersambung ke Google Kalender dengan alarm pengingat kegiatan.',
-                      style: GoogleFonts.lato(
-                        fontSize: 11.5,
-                        color: const Color(0xFF1E40AF),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Tombol Buka di Google Kalender
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: _colorPrimaryBlue, width: 1.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                icon: const Icon(
-                  Icons.event_note_rounded,
-                  color: _colorPrimaryBlue,
-                  size: 20,
-                ),
-                label: Text(
-                  'Buka di Google Kalender',
-                  style: GoogleFonts.lato(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: _colorPrimaryBlue,
-                  ),
-                ),
-                onPressed: () {
-                  final url = booking.googleCalendarUrl ??
-                      GoogleCalendarService().generateCalendarUrl(booking);
-                  BookingService().launchGoogleCalendar(url);
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  // Arahkan ke DaftarDokterPage dengan Tab Jadwal Konsultasi (index 1)
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const DaftarDokterPage(initialTabIndex: 1),
-                    ),
-                    (route) => route.isFirst,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _colorPrimaryBlue,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                ),
-                child: Text(
-                  'Lihat Jadwal Saya',
-                  style: GoogleFonts.lato(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
+    // Lanjut ke halaman pembayaran sesuai alur baru
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PembayaranKonsultasiPage(
+          doctor: _doctor,
+          child: _child,
+          selectedDate: _selectedDate,
+          selectedTimeSlot: _selectedTimeSlot!,
+          startDateTime: startDt,
+          endDateTime: endDt,
         ),
       ),
     );
@@ -1196,7 +999,7 @@ class _BookingDokterPageState extends State<BookingDokterPage> {
           ),
         ),
         child: Text(
-          'Konfirmasi Booking',
+          'Lanjut ke Pembayaran',
           style: GoogleFonts.lato(
             fontSize: 15,
             fontWeight: FontWeight.bold,
