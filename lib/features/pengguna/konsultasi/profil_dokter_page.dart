@@ -666,15 +666,15 @@ class ProfilDokterPage extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF064E3B).withValues(alpha: 0.3)
-                  : const Color(0xFFECFDF5),
+                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                  : const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
             child: const Icon(
               Icons.payments_outlined,
               size: 20,
-              color: Color(0xFF10B981),
+              color: Color(0xFF3985E7),
             ),
           ),
           const SizedBox(width: 14),
@@ -687,7 +687,7 @@ class ProfilDokterPage extends StatelessWidget {
                   style: GoogleFonts.lato(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                    color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF3985E7),
                   ),
                 ),
                 const SizedBox(height: 2),
