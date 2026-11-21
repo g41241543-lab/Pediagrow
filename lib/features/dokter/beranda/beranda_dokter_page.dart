@@ -135,23 +135,25 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           clipBehavior: Clip.none,
           children: [
             // LAYER 0 — Background animasi awan & burung (full-page)
-            const Positioned.fill(child: FullPageSkyBackground()),
+            const Positioned.fill(
+              child: RepaintBoundary(child: FullPageSkyBackground()),
+            ),
 
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Area Biru Seamless (Header + Card Dokter PeGo)
-                _buildSeamlessBlueArea(context),
+                RepaintBoundary(child: _buildSeamlessBlueArea(context)),
 
                 // 2. Konten Putih (6 Menu Grid + Card Slogan PeGo)
-                _buildWhiteContentSection(context),
+                RepaintBoundary(child: _buildWhiteContentSection(context)),
 
                 const SizedBox(
                   height: 92,
                 ), // Ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
 
                 // 3. Ilustrasi Footer (Daun)
-                _buildFooterIllustration(),
+                RepaintBoundary(child: _buildFooterIllustration()),
               ],
             ),
           ],

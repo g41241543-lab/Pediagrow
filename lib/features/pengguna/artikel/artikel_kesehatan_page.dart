@@ -365,13 +365,11 @@ class _ArtikelKesehatanPageState extends State<ArtikelKesehatanPage>
 
       onPopInvokedWithResult: (didPop, _) {
 
-        if (!didPop && isDokter) {
+        if (didPop) return;
 
-          Navigator.of(context).pushReplacement(
+        if (isDokter) {
 
-            MaterialPageRoute(builder: (_) => const DokterShell(initialIndex: 0)),
-
-          );
+          _onBackPressed();
 
         }
 
