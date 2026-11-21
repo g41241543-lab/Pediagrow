@@ -70,7 +70,7 @@ class SatuSehatService {
 
   /// Ubah ke `true` jika Anda menguji di HP Android fisik via Wi-Fi.
   /// Biarkan `false` jika Anda menguji di Emulator Android Studio.
-  static bool usePhysicalDevice = false;
+  static bool usePhysicalDevice = true;
 
   /// Mendapatkan Base URL backend sesuai platform running
   static String get baseUrl {
