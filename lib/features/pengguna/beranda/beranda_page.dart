@@ -1134,6 +1134,7 @@ class _BerandaPageState extends State<BerandaPage> {
               child: _buildMenuItem(
                 title: 'Lokasi\nFasyankes',
                 imageAsset: 'assets/images/lokasi_fasyankes_logo.png',
+                imageSize: 52,
                 onTap: () => _navigateTo(const LokasiFasyankesPage()),
               ),
             ),
@@ -1280,6 +1281,7 @@ class _BerandaPageState extends State<BerandaPage> {
                           offset: Offset(logoOffsetX, 0),
                           child: Image.asset(
                             imageAsset,
+                            width: imageSize,
                             height: imageSize,
                             fit: BoxFit.contain,
                           ),
@@ -2025,28 +2027,16 @@ class _BerandaPageState extends State<BerandaPage> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle_rounded,
-                            size: 11,
-                            color: Color(0xFF3985E7),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              video.channelTitle,
-                              style: GoogleFonts.lato(
-                                fontSize: 11,
-                                color: isDark
-                                    ? const Color(0xFF8696A0)
-                                    : const Color(0xFF667781),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        video.channelTitle,
+                        style: GoogleFonts.lato(
+                          fontSize: 11,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF667781),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

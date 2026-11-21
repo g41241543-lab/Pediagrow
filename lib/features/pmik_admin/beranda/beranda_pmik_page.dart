@@ -680,6 +680,7 @@ class _BerandaPmikPageState extends State<BerandaPmikPage> {
     if (imageAsset != null) {
       return Image.asset(
         imageAsset,
+        width: imageSize,
         height: imageSize,
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) =>
