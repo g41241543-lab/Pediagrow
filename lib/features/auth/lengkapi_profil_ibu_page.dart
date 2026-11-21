@@ -384,7 +384,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _nameController,
                           label: 'Nama Pengguna',
                           hint: 'Masukkan nama pengguna',
-                          prefixIcon: Icons.person_outline_rounded,
                           readOnly: true,
                           isRequired: false,
                         ),
@@ -395,7 +394,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _emailController,
                           label: 'Email',
                           hint: 'contoh@gmail.com',
-                          prefixIcon: Icons.mail_outline_rounded,
                           keyboardType: TextInputType.emailAddress,
                           readOnly: true,
                           isRequired: false,
@@ -407,7 +405,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _noKkController,
                           label: 'Nomor Kartu Keluarga (KK)',
                           hint: '16 digit Nomor Kartu Keluarga',
-                          prefixIcon: Icons.family_restroom_rounded,
                           keyboardType: TextInputType.number,
                           maxLength: 16,
                           inputFormatters: [
@@ -432,7 +429,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _nikController,
                           label: 'NIK (Nomor Induk Kependudukan)',
                           hint: '16 digit NIK Orang Tua',
-                          prefixIcon: Icons.badge_outlined,
                           keyboardType: TextInputType.number,
                           maxLength: 16,
                           inputFormatters: [
@@ -459,7 +455,7 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                         // 7. Tanggal Lahir*
                         _buildDateField(
                           controller: _birthDateController,
-                          label: 'Tanggal Lahir Anda',
+                          label: 'Tanggal Lahir',
                           hint: 'DD/MM/YYYY',
                           isRequired: true,
                           validator: (val) {
@@ -476,7 +472,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _provinceController,
                           label: 'Provinsi',
                           hint: 'Masukkan provinsi',
-                          prefixIcon: Icons.map_outlined,
                           isRequired: true,
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) {
@@ -492,7 +487,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _cityController,
                           label: 'Kota/ Kabupaten',
                           hint: 'Masukkan kota/ kabupaten',
-                          prefixIcon: Icons.location_city_outlined,
                           isRequired: true,
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) {
@@ -508,7 +502,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _districtController,
                           label: 'Kecamatan',
                           hint: 'Masukkan kecamatan',
-                          prefixIcon: Icons.place_outlined,
                           isRequired: false,
                         ),
                         const SizedBox(height: 14),
@@ -518,7 +511,6 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
                           controller: _subDistrictController,
                           label: 'Kelurahan/ Desa',
                           hint: 'Masukkan kelurahan/ desa',
-                          prefixIcon: Icons.holiday_village_outlined,
                           isRequired: false,
                         ),
                         const SizedBox(height: 28),
@@ -748,8 +740,7 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
               ),
               decoration: _inputDecoration(
                 hint: hint,
-                prefixIcon: Icons.calendar_month_outlined,
-                suffixIcon: Icons.arrow_drop_down,
+                suffixIcon: Icons.calendar_month_outlined,
               ),
               validator: validator,
             ),
@@ -764,7 +755,7 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
     required TextEditingController controller,
     required String label,
     required String hint,
-    required IconData prefixIcon,
+    IconData? prefixIcon,
     bool isRequired = false,
     bool readOnly = false,
     TextInputType keyboardType = TextInputType.text,
@@ -827,7 +818,7 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
   // ─── Input Decoration ──────────────────────────────────────────────────────
   InputDecoration _inputDecoration({
     required String hint,
-    required IconData prefixIcon,
+    IconData? prefixIcon,
     IconData? suffixIcon,
     bool readOnly = false,
   }) {
@@ -838,7 +829,7 @@ class _LengkapiProfilIbuPageState extends State<LengkapiProfilIbuPage> {
       hintText: hint,
       hintStyle: GoogleFonts.lato(fontSize: 14, color: _hintColor),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      prefixIcon: Icon(prefixIcon, size: 20, color: _iconColor),
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: _iconColor) : null,
       suffixIcon: readOnly
           ? Icon(Icons.lock_outline_rounded, size: 18, color: _iconColor)
           : (suffixIcon != null

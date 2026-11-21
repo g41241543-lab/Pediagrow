@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -227,7 +227,7 @@ List<InlineSpan> _buildInlineSpans(
 /// Widget Rich Text Editor lengkap dengan toolbar aktif:
 /// - Dropdown Paragraph / Heading (Heading 1, 2, 3)
 /// - Bold (B), Italic (I), Underline (U) aktif
-/// - List Bullet (â€¢) & Numbered (1.)
+/// - List Bullet (•) & Numbered (1.)
 /// - Undo & Redo
 /// - TextField live-rendered
 class ArticleRichTextEditor extends StatefulWidget {
@@ -620,7 +620,7 @@ class _ArticleRichTextEditorState extends State<ArticleRichTextEditor> {
                   // Tombol Bullet List (:=)
                   _ToolbarButton(
                     tooltip: 'Daftar Poin (Bullet List)',
-                    onTap: () => _toggleLinePrefix('â€¢ '),
+                    onTap: () => _toggleLinePrefix('• '),
                     child: Icon(
                       Icons.format_list_bulleted_rounded,
                       size: 19.0,

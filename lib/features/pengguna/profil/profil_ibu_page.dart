@@ -375,7 +375,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _nameController,
                             label: 'Nama Pengguna',
                             hint: 'Masukkan nama pengguna',
-                            prefixIcon: Icons.person_outline_rounded,
                             readOnly: true,
                             isRequired: false,
                           ),
@@ -387,7 +386,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _emailController,
                             label: 'Email',
                             hint: 'contoh@gmail.com',
-                            prefixIcon: Icons.mail_outline_rounded,
                             keyboardType: TextInputType.emailAddress,
                             readOnly: true,
                             isRequired: false,
@@ -400,7 +398,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _noKkController,
                             label: 'Nomor Kartu Keluarga (KK)',
                             hint: '16 digit Nomor Kartu Keluarga',
-                            prefixIcon: Icons.family_restroom_rounded,
                             keyboardType: TextInputType.number,
                             maxLength: 16,
                             inputFormatters: [
@@ -424,7 +421,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _nikController,
                             label: 'NIK (Nomor Induk Kependudukan)',
                             hint: '16 digit NIK Orang Tua',
-                            prefixIcon: Icons.badge_outlined,
                             keyboardType: TextInputType.number,
                             maxLength: 16,
                             inputFormatters: [
@@ -448,11 +444,11 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                           _buildGenderRadioSection(isDark),
                           const SizedBox(height: 14),
 
-                          // 5. Tanggal Lahir Anda*
+                          // 5. Tanggal Lahir*
                           _buildDateField(
                             isDark: isDark,
                             controller: _birthDateController,
-                            label: 'Tanggal Lahir Anda',
+                            label: 'Tanggal Lahir',
                             hint: 'DD/MM/YYYY',
                             isRequired: true,
                             validator: (val) {
@@ -470,7 +466,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _provinceController,
                             label: 'Provinsi',
                             hint: 'Masukkan provinsi',
-                            prefixIcon: Icons.map_outlined,
                             isRequired: true,
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
@@ -487,7 +482,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _cityController,
                             label: 'Kota/ Kabupaten',
                             hint: 'Masukkan kota/ kabupaten',
-                            prefixIcon: Icons.location_city_outlined,
                             isRequired: true,
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
@@ -504,7 +498,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _districtController,
                             label: 'Kecamatan',
                             hint: 'Masukkan kecamatan',
-                            prefixIcon: Icons.place_outlined,
                             isRequired: false,
                           ),
                           const SizedBox(height: 14),
@@ -515,7 +508,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             controller: _subDistrictController,
                             label: 'Kelurahan/ Desa',
                             hint: 'Masukkan kelurahan/ desa',
-                            prefixIcon: Icons.holiday_village_outlined,
                             isRequired: false,
                           ),
                           const SizedBox(height: 28),
@@ -781,8 +773,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
               decoration: _inputDecoration(
                 isDark: isDark,
                 hint: hint,
-                prefixIcon: Icons.calendar_month_outlined,
-                suffixIcon: Icons.arrow_drop_down,
+                suffixIcon: Icons.calendar_month_outlined,
               ),
               validator: validator,
             ),
@@ -800,7 +791,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     required TextEditingController controller,
     required String label,
     required String hint,
-    required IconData prefixIcon,
     bool isRequired = false,
     bool readOnly = false,
     TextInputType keyboardType = TextInputType.text,
@@ -829,7 +819,6 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
           decoration: _inputDecoration(
             isDark: isDark,
             hint: hint,
-            prefixIcon: prefixIcon,
             readOnly: readOnly,
           ).copyWith(counterText: maxLength != null ? '' : null),
           validator: validator,
@@ -871,7 +860,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
   InputDecoration _inputDecoration({
     required bool isDark,
     required String hint,
-    required IconData prefixIcon,
+    IconData? prefixIcon,
     IconData? suffixIcon,
     bool readOnly = false,
   }) {
@@ -885,7 +874,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       hintText: hint,
       hintStyle: GoogleFonts.lato(fontSize: 14, color: hintColor),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      prefixIcon: Icon(prefixIcon, size: 20, color: iconColor),
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: iconColor) : null,
       suffixIcon: readOnly
           ? Icon(Icons.lock_outline_rounded, size: 18, color: iconColor)
           : (suffixIcon != null

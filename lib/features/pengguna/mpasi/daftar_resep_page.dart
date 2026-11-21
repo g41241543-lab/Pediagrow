@@ -1,792 +1,1582 @@
-﻿import 'package:flutter/material.dart';
+import '../../dokter/dokter_shell.dart';
+
+import 'package:flutter/material.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
+
+
 import '../../../core/services/resep_mpasi_service.dart';
+
 import '../../../core/services/staff_auth_service.dart';
+
 import '../../../core/services/storage_service.dart';
+
 import '../../../models/resep_mpasi_model.dart';
+
 import '../../../models/staff_account_model.dart';
+
 import '../../../shared/widgets/illustration_forest_footer.dart';
+
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
-import '../../dokter/beranda/beranda_dokter_page.dart';
+
+
 import 'detail_resep_page.dart';
 
+
+
 /// Halaman "Daftar Resep MPASI" PediaGrow.
+
 ///
+
 /// Data bersumber dari [ResepMpasiService] (SQLite lokal) yang dikelola
+
 /// oleh PMIK/Superadmin.
+
 ///
+
 /// Desain & Spesifikasi Layout:
+
 /// 1. Scaffold background putih murni.
+
 /// 2. Header tetap (56dp): tombol back 12dp dari kiri, judul "Daftar Resep MPASI"
+
 ///    (font Lato 20sp bold hitam).
+
 /// 3. Search Bar dinamis: rounded corner 20, background abu-abu muda #F1F2F6,
+
 ///    ikon pencarian, hint "Cari Resep MPASI", tombol reset pencarian real-time.
+
 /// 4. Filter Kategori Usia: chips horizontal di bawah search bar ('Semua', '6-8 bulan',
+
 ///    '9-11 bulan', '12-23 bulan', '24+ bulan').
+
 /// 5. Konten Utama: ListView scrollable bergaya kartu list horizontal seperti
+
 ///    pada halaman Daftar Artikel (kiri: judul bold 16sp, ikon jam + metadata 12sp,
+
 ///    tanggal 12sp; kanan: thumbnail rounded 18dp 124x84dp).
+
 /// 6. Divider pemisah 1dp #E5E5E5 antar item resep.
+
 /// 7. Ilustrasi Footer: [IllustrationForestFooter] ikut ter-scroll bersama
+
 ///    daftar resep dan selalu berada di paling bawah setelah resep terakhir.
+
 ///    Saat resep bertambah, ilustrasi otomatis turun ke posisi paling bawah.
+
 /// 8. Bottom Navigation Bar tetap di `Scaffold.bottomNavigationBar`
+
 ///    menggunakan [PediaBottomNavBar] (selectedIndex: -1).
+
 class DaftarResepPage extends StatefulWidget {
+
   const DaftarResepPage({super.key});
 
+
+
   @override
+
   State<DaftarResepPage> createState() => _DaftarResepPageState();
+
 }
 
+
+
 class _DaftarResepPageState extends State<DaftarResepPage> {
+
   // -------------------------------------------------------------------------
+
   // Design Tokens
+
   // -------------------------------------------------------------------------
+
   static const Color _colorPrimaryBlue = Color(0xFF2A85FF);
+
   static const Color _colorSoftBlue = Color(0xFFEBF5FF);
+
   static const Color _colorWhite = Color(0xFFFFFFFF);
+
   static const Color _colorDark = Color(0xFF000000);
+
   static const Color _colorTextMuted = Color(0xFFA0A0A0);
+
   static const Color _colorSearchBg = Color(0xFFF1F2F6);
+
   static const Color _colorDivider = Color(0xFFE5E5E5);
 
+
+
   // -------------------------------------------------------------------------
+
   // State
+
   // -------------------------------------------------------------------------
+
   final TextEditingController _searchController = TextEditingController();
+
   final FocusNode _searchFocusNode = FocusNode();
+
   String _searchQuery = '';
+
   String _selectedCategory = 'Semua';
 
+
+
   // Async state
+
   List<ResepMpasiModel> _recipes = [];
+
   bool _isLoading = true;
+
   String? _errorMessage;
 
+
+
   static const List<String> _categories = [
+
     'Semua',
+
     '6-8 bulan',
+
     '9-11 bulan',
+
     '12-23 bulan',
+
     '24+ bulan',
+
   ];
+
+
 
   final ResepMpasiService _service = ResepMpasiService();
 
+
+
   // -------------------------------------------------------------------------
+
   // Lifecycle
+
   // -------------------------------------------------------------------------
 
+
+
   @override
+
   void initState() {
+
     super.initState();
+
     _searchController.addListener(_onSearchChanged);
+
     _loadRecipes();
+
   }
+
+
 
   @override
+
   void dispose() {
+
     _searchController.removeListener(_onSearchChanged);
+
     _searchController.dispose();
+
     _searchFocusNode.dispose();
+
     super.dispose();
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // Data loading & filtering
+
   // -------------------------------------------------------------------------
+
+
 
   void _onSearchChanged() {
+
     final q = _searchController.text.trim();
+
     if (q == _searchQuery) return;
+
     setState(() => _searchQuery = q);
+
     _loadRecipes();
+
   }
+
+
 
   Future<void> _loadRecipes() async {
+
     if (!mounted) return;
+
     setState(() {
+
       _isLoading = true;
+
       _errorMessage = null;
+
     });
 
+
+
     try {
+
       final data = await _service.getAllResep(
+
         kategoriUsia: _selectedCategory,
+
         searchQuery: _searchQuery,
+
       );
+
       if (!mounted) return;
+
       setState(() {
+
         _recipes = data;
+
         _isLoading = false;
+
       });
+
     } catch (e) {
+
       if (!mounted) return;
+
       setState(() {
+
         _errorMessage = 'Resep belum dapat dimuat. Silakan coba lagi.';
+
         _isLoading = false;
+
       });
+
     }
+
   }
+
+
 
   void _onCategoryChanged(String category) {
+
     if (category == _selectedCategory) return;
+
     setState(() => _selectedCategory = category);
+
     _loadRecipes();
+
   }
+
+
 
   void _clearSearch() {
+
     _searchController.clear();
+
     _searchFocusNode.unfocus();
+
   }
+
+
 
   void _onBackPressed() {
+
     if (StaffAuthService().currentStaff?.role == StaffRole.dokter) {
+
       if (Navigator.of(context).canPop()) {
+
         Navigator.of(context).pop();
+
       } else {
+
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
+
+          MaterialPageRoute(builder: (_) => const DokterShell(initialIndex: 0)),
+
         );
+
       }
+
       return;
+
     }
+
     Navigator.of(context).maybePop();
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // BUILD
+
   // -------------------------------------------------------------------------
+
+
 
   @override
+
   Widget build(BuildContext context) {
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final isDokter = StaffAuthService().currentStaff?.role == StaffRole.dokter;
 
+
+
     return PopScope(
+
       canPop: true,
+
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && isDokter) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const BerandaDokterPage()),
-          );
+
+        if (didPop) return;
+
+        if (isDokter) {
+
+          _onBackPressed();
+
         }
+
       },
+
       child: Scaffold(
+
         backgroundColor: isDark ? const Color(0xFF0B1014) : _colorWhite,
+
       // Bottom navigation bar FIXED — PediaBottomNavBar terpusat
+
       bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
+
       body: SafeArea(
+
         bottom: false,
+
         child: Column(
+
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
+
             // 1. Header: Back button + Judul "Daftar Resep MPASI" (FIXED 56dp)
+
             _buildHeader(context, isDark),
 
+
+
             // 2. Search Bar dinamis (FIXED)
+
             _buildSearchBar(isDark),
 
+
+
             // 3. Filter Kategori Usia (FIXED)
+
             _buildAgeFilter(isDark),
+
+
 
             const SizedBox(height: 8),
 
+
+
             // 4. Konten utama: daftar resep SCROLLABLE dengan ilustrasi
+
             //    yang ikut ter-scroll di paling bawah setelah resep terakhir
+
             Expanded(
+
               child: _buildScrollableContent(isDark),
+
             ),
+
           ],
+
         ),
+
       ),
+
     ),
+
   );
+
 }
 
+
+
   // -------------------------------------------------------------------------
+
   // 1. HEADER (Back button + Judul "Daftar Resep MPASI") — FIXED 56dp
+
   // -------------------------------------------------------------------------
+
+
 
   Widget _buildHeader(BuildContext context, bool isDark) {
+
     return Container(
+
       height: 56,
+
       width: double.infinity,
+
       color: isDark ? const Color(0xFF0B1014) : _colorWhite,
+
       padding: const EdgeInsets.symmetric(horizontal: 12),
+
       child: Row(
+
         crossAxisAlignment: CrossAxisAlignment.center,
+
         children: [
+
           // Tombol Kembali
+
           Material(
+
             color: Colors.transparent,
+
             child: InkWell(
+
               onTap: _onBackPressed,
+
               borderRadius: BorderRadius.circular(24),
+
               child: Padding(
+
                 padding: const EdgeInsets.all(8.0),
+
                 child: Icon(
+
                   Icons.arrow_back,
+
                   size: 24,
+
                   color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
+
                 ),
+
               ),
+
             ),
+
           ),
+
           const SizedBox(width: 12),
 
+
+
           // Judul Halaman
+
           Expanded(
+
             child: Text(
+
               'Daftar Resep MPASI',
+
               maxLines: 1,
+
               overflow: TextOverflow.ellipsis,
+
               style: GoogleFonts.lato(
+
                 fontSize: 20,
+
                 fontWeight: FontWeight.bold,
+
                 color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
+
               ),
+
             ),
+
           ),
+
         ],
+
       ),
+
     );
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // 2. SEARCH BAR DINAMIS — Sesuai Halaman Artikel Kesehatan
+
   // -------------------------------------------------------------------------
+
+
 
   Widget _buildSearchBar(bool isDark) {
+
     return Padding(
+
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+
       child: Container(
+
         height: 48,
+
         decoration: BoxDecoration(
+
           color: isDark ? const Color(0xFF1A2228) : _colorSearchBg,
+
           borderRadius: BorderRadius.circular(20),
+
           border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+
         ),
+
         padding: const EdgeInsets.symmetric(horizontal: 16),
+
         child: Row(
+
           crossAxisAlignment: CrossAxisAlignment.center,
+
           children: [
+
             Icon(
+
               Icons.search_rounded,
+
               size: 22,
+
               color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+
             ),
+
             const SizedBox(width: 10),
+
             Expanded(
+
               child: TextField(
+
                 controller: _searchController,
+
                 focusNode: _searchFocusNode,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 15,
+
                   color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
+
                 ),
+
                 decoration: InputDecoration(
+
                   hintText: 'Cari Resep MPASI',
+
                   hintStyle: GoogleFonts.lato(
+
                     fontSize: 15,
+
                     color: isDark ? const Color(0xFF667781) : _colorTextMuted,
+
                     fontWeight: FontWeight.w400,
+
                   ),
+
                   border: InputBorder.none,
+
                   isDense: true,
+
                   contentPadding: EdgeInsets.zero,
+
                 ),
+
                 textInputAction: TextInputAction.search,
+
               ),
+
             ),
+
             if (_searchQuery.isNotEmpty)
+
               GestureDetector(
+
                 onTap: _clearSearch,
+
                 child: Padding(
+
                   padding: const EdgeInsets.all(4.0),
+
                   child: Icon(
+
                     Icons.close_rounded,
+
                     size: 18,
+
                     color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+
                   ),
+
                 ),
+
               ),
+
           ],
+
         ),
+
       ),
+
     );
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // 3. FILTER KATEGORI USIA (0-6 bulan dihapus)
+
   // -------------------------------------------------------------------------
+
+
 
   Widget _buildAgeFilter(bool isDark) {
+
     return Container(
+
       width: double.infinity,
+
       color: isDark ? const Color(0xFF0B1014) : _colorWhite,
+
       padding: const EdgeInsets.only(top: 4, bottom: 6),
+
       child: SingleChildScrollView(
+
         scrollDirection: Axis.horizontal,
+
         padding: const EdgeInsets.symmetric(horizontal: 20),
+
         physics: const ClampingScrollPhysics(),
+
         child: Row(
+
           children: _categories.map((cat) {
+
             final isActive = _selectedCategory == cat;
+
             return Padding(
+
               padding: const EdgeInsets.only(right: 8),
+
               child: GestureDetector(
+
                 onTap: () => _onCategoryChanged(cat),
+
                 child: Container(
+
                   padding: const EdgeInsets.symmetric(
+
                     horizontal: 16,
+
                     vertical: 7,
+
                   ),
+
                   decoration: BoxDecoration(
+
                     color: isActive
+
                         ? (isDark
+
                             ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+
                             : _colorSoftBlue)
+
                         : (isDark ? const Color(0xFF1A2228) : _colorWhite),
+
                     borderRadius: BorderRadius.circular(20),
+
                     border: Border.all(
+
                       color: isActive
+
                           ? _colorPrimaryBlue
+
                           : (isDark
+
                               ? const Color(0xFF2C363D)
+
                               : const Color(0xFFE9EDEF)),
+
                       width: 1.2,
+
                     ),
+
                   ),
+
                   child: Text(
+
                     cat,
+
                     style: GoogleFonts.lato(
+
                       fontSize: 13,
+
                       fontWeight:
+
                           isActive ? FontWeight.w600 : FontWeight.normal,
+
                       color: isActive
+
                           ? _colorPrimaryBlue
+
                           : (isDark
+
                               ? const Color(0xFF8696A0)
+
                               : const Color(0xFF7F7F7F)),
+
                     ),
+
                   ),
+
                 ),
+
               ),
+
             );
+
           }).toList(),
+
         ),
+
       ),
+
     );
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // 4. SCROLLABLE CONTENT (Daftar Resep / Loading / Empty / Error)
+
   // Menggunakan CustomScrollView agar ilustrasi footer ikut ter-scroll
+
   // dan selalu berada tepat di bawah resep terakhir (bukan di lapisan belakang).
+
   // -------------------------------------------------------------------------
+
+
 
   /// Skeleton loading: beberapa kartu abu-abu placeholder agar halaman
+
   /// tidak terasa kosong saat data belum selesai dimuat dari Firestore.
+
   Widget _buildSkeletonList(bool isDark) {
+
     final baseColor = isDark ? const Color(0xFF1A2228) : const Color(0xFFF1F2F6);
+
     final shimmerColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFE0E0E0);
+
     return ListView.separated(
+
       physics: const NeverScrollableScrollPhysics(),
+
       itemCount: 6,
+
       separatorBuilder: (_, _) => Divider(
+
         height: 1,
+
         thickness: 1,
+
         color: isDark ? const Color(0xFF2C363D) : _colorDivider,
+
         indent: 20,
+
         endIndent: 20,
+
       ),
+
       itemBuilder: (_, _) => Padding(
+
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+
         child: Row(
+
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
+
             Expanded(
+
               child: Column(
+
                 crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
+
                   Container(
+
                     height: 16,
+
                     width: double.infinity,
+
                     decoration: BoxDecoration(
+
                       color: shimmerColor,
+
                       borderRadius: BorderRadius.circular(8),
+
                     ),
+
                   ),
+
                   const SizedBox(height: 8),
+
                   Container(
+
                     height: 13,
+
                     width: 140,
+
                     decoration: BoxDecoration(
+
                       color: baseColor,
+
                       borderRadius: BorderRadius.circular(6),
+
                     ),
+
                   ),
+
                   const SizedBox(height: 6),
+
                   Container(
+
                     height: 13,
+
                     width: 90,
+
                     decoration: BoxDecoration(
+
                       color: baseColor,
+
                       borderRadius: BorderRadius.circular(6),
+
                     ),
+
                   ),
+
                 ],
+
               ),
+
             ),
+
             const SizedBox(width: 14),
+
             Container(
+
               width: 124,
+
               height: 84,
+
               decoration: BoxDecoration(
+
                 color: shimmerColor,
+
                 borderRadius: BorderRadius.circular(18),
+
               ),
+
             ),
+
           ],
+
         ),
+
       ),
+
     );
+
   }
+
+
 
   Widget _buildScrollableContent(bool isDark) {
+
     if (_isLoading) {
+
       return _buildSkeletonList(isDark);
+
     }
+
+
 
     if (_errorMessage != null) {
+
       return _buildErrorState(isDark);
+
     }
+
+
 
     if (_recipes.isEmpty) {
+
       return _buildEmptyState(isDark);
+
     }
 
+
+
     return CustomScrollView(
+
       physics: const ClampingScrollPhysics(),
+
       slivers: [
+
         // Daftar resep dengan separator divider
+
         SliverPadding(
+
           padding: const EdgeInsets.only(top: 8),
+
           sliver: SliverList(
+
             delegate: SliverChildBuilderDelegate(
+
               (context, index) {
+
                 if (index.isOdd) {
+
                   // Divider pemisah antar resep
+
                   return Padding(
+
                     padding: const EdgeInsets.symmetric(horizontal: 20),
+
                     child: Divider(
+
                       height: 32,
+
                       thickness: 1,
+
                       color: isDark ? const Color(0xFF2C363D) : _colorDivider,
+
                     ),
+
                   );
+
                 }
+
                 final recipe = _recipes[index ~/ 2];
+
                 return _buildRecipeItem(recipe, isDark);
+
               },
+
               childCount: _recipes.length * 2 - 1,
+
             ),
+
           ),
+
         ),
+
+
 
         // Ilustrasi footer selalu di paling bawah konten, ikut ter-scroll
+
         const SliverFillRemaining(
+
           hasScrollBody: false,
+
           child: Column(
+
             mainAxisAlignment: MainAxisAlignment.end,
+
             children: [
+
               SizedBox(height: 16),
+
               IllustrationForestFooter(fit: BoxFit.fitWidth),
+
             ],
+
           ),
+
         ),
+
       ],
+
     );
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // 5. RECIPE ITEM — Persis tata letak, ukuran font, gambar, dan jarak
+
   //    seperti halaman Daftar Artikel Kesehatan
+
   // -------------------------------------------------------------------------
+
+
 
   Widget _buildRecipeItem(ResepMpasiModel recipe, bool isDark) {
+
     return InkWell(
+
       onTap: () {
+
         Navigator.push(
+
           context,
+
           MaterialPageRoute(
+
             builder: (_) => DetailResepPage(
+
               resepModel: recipe,
+
               resep: _toDetailModel(recipe),
+
             ),
+
           ),
+
         );
+
       },
+
       splashColor: isDark ? const Color(0x20FFFFFF) : const Color(0x10000000),
+
       highlightColor: isDark ? const Color(0x10FFFFFF) : const Color(0x08000000),
+
       child: Padding(
+
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+
         child: Row(
+
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
+
             // Bagian Kiri: Judul, Metadata (Jam + Resep MPASI + Kategori), dan Tanggal
+
             Expanded(
+
               child: Column(
+
                 crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
+
                   // Judul Resep (Lato 16sp bold, max 3 baris dengan ellipsis)
+
                   Text(
+
                     recipe.judul,
+
                     maxLines: 3,
+
                     overflow: TextOverflow.ellipsis,
+
                     style: GoogleFonts.lato(
+
                       fontSize: 16,
+
                       fontWeight: FontWeight.bold,
+
                       color: isDark ? const Color(0xFFE9EDEF) : _colorDark,
+
                       height: 1.25,
+
                     ),
+
                   ),
+
                   const SizedBox(height: 8),
 
+
+
                   // Metadata: Ikon Jam + "Resep MPASI" + Kategori Usia
+
                   Row(
+
                     children: [
+
                       Icon(
+
                         Icons.access_time_rounded,
+
                         size: 14,
+
                         color: isDark ? const Color(0xFF8696A0) : _colorTextMuted,
+
                       ),
+
                       const SizedBox(width: 5),
+
                       Flexible(
+
                         child: Text(
+
                           'Resep MPASI   •   ${recipe.kategoriUsia}',
+
                           maxLines: 1,
+
                           overflow: TextOverflow.ellipsis,
+
                           style: GoogleFonts.lato(
+
                             fontSize: 12,
+
                             fontWeight: FontWeight.w400,
+
                             color: isDark ? const Color(0xFF8696A0) : _colorTextMuted,
+
                           ),
+
                         ),
+
                       ),
+
                     ],
+
                   ),
+
                   const SizedBox(height: 12),
 
+
+
                   // Tanggal publikasi resep
+
                   Text(
+
                     recipe.tanggal,
+
                     style: GoogleFonts.lato(
+
                       fontSize: 12,
+
                       fontWeight: FontWeight.w400,
+
                       color: isDark ? const Color(0xFF8696A0) : _colorTextMuted,
+
                     ),
+
                   ),
+
                 ],
+
               ),
+
             ),
+
+
 
             const SizedBox(width: 16),
 
+
+
             // Bagian Kanan: Thumbnail gambar resep (rounded 18dp, 124x84dp, BoxFit.cover)
+
             _buildThumbnail(recipe, isDark),
+
           ],
+
         ),
+
       ),
+
     );
+
   }
 
+
+
   /// Thumbnail resep dengan sudut membulat modern dan placeholder fallback
+
   Widget _buildThumbnail(ResepMpasiModel recipe, bool isDark) {
+
     const double thumbWidth = 124;
+
     const double thumbHeight = 84;
+
     const double borderRadius = 18;
+
+
 
     final displayImage = recipe.displayImage;
 
+
+
     return Container(
+
       width: thumbWidth,
+
       height: thumbHeight,
+
       decoration: BoxDecoration(
+
         color: isDark ? const Color(0xFF1A2228) : _colorSearchBg,
+
         borderRadius: BorderRadius.circular(borderRadius),
+
         boxShadow: const [
+
           BoxShadow(
+
             color: Color(0x0D000000),
+
             blurRadius: 6,
+
             offset: Offset(0, 2),
+
           ),
+
         ],
+
       ),
+
       child: ClipRRect(
+
         borderRadius: BorderRadius.circular(borderRadius),
+
         child: StorageService.buildImageWidget(
+
           displayImage,
+
           width: thumbWidth,
+
           height: thumbHeight,
+
           fit: BoxFit.cover,
+
           placeholder: _buildThumbnailPlaceholder(isDark),
+
           errorWidget: _buildThumbnailPlaceholder(isDark),
+
         ),
+
       ),
+
     );
+
   }
+
+
 
   /// Placeholder jika gambar resep belum tersedia / gagal dimuat
+
   Widget _buildThumbnailPlaceholder(bool isDark) {
+
     return Container(
+
       width: double.infinity,
+
       height: double.infinity,
+
       color: isDark ? const Color(0xFF1A2228) : const Color(0xFFEEEEEE),
+
       child: Center(
+
         child: Icon(
+
           Icons.restaurant_menu_rounded,
+
           size: 32,
+
           color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
+
         ),
+
       ),
+
     );
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // 6. EMPTY STATE & ERROR STATE
+
   // -------------------------------------------------------------------------
+
+
 
   Widget _buildEmptyState(bool isDark) {
+
     return LayoutBuilder(
+
       builder: (context, constraints) {
+
         return SingleChildScrollView(
+
           physics: const ClampingScrollPhysics(),
+
           child: ConstrainedBox(
+
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
+
             child: IntrinsicHeight(
+
               child: Column(
+
                 children: [
+
                   Expanded(
+
                     child: Center(
+
                       child: Padding(
+
                         padding: const EdgeInsets.symmetric(horizontal: 32),
+
                         child: Column(
+
                           mainAxisAlignment: MainAxisAlignment.center,
+
                           children: [
+
                             Icon(
+
                               _searchQuery.isNotEmpty
+
                                   ? Icons.search_off_rounded
+
                                   : Icons.restaurant_menu_outlined,
+
                               size: 56,
+
                               color: isDark ? const Color(0xFF667781) : const Color(0xFFBDBDBD),
+
                             ),
+
                             const SizedBox(height: 16),
+
                             Text(
+
                               _searchQuery.isNotEmpty
+
                                   ? 'Resep tidak ditemukan'
+
                                   : 'Belum ada resep MPASI',
+
                               textAlign: TextAlign.center,
+
                               style: GoogleFonts.lato(
+
                                 fontSize: 16,
+
                                 fontWeight: FontWeight.bold,
+
                                 color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF4A4A4A),
+
                               ),
+
                             ),
+
                             const SizedBox(height: 6),
+
                             Text(
+
                               _searchQuery.isNotEmpty
+
                                   ? 'Tidak ada resep yang cocok dengan kata kunci "$_searchQuery". Silakan coba kata kunci lain.'
+
                                   : 'Resep MPASI akan ditampilkan di sini setelah administrator PMIK menambahkan data resep.',
+
                               textAlign: TextAlign.center,
+
                               style: GoogleFonts.lato(
+
                                 fontSize: 13,
+
                                 color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+
                                 height: 1.4,
+
                               ),
+
                             ),
+
                             const SizedBox(height: 20),
+
                           ],
+
                         ),
+
                       ),
+
                     ),
+
                   ),
+
                   const IllustrationForestFooter(fit: BoxFit.fitWidth),
+
                 ],
+
               ),
+
             ),
+
           ),
+
         );
+
       },
+
     );
+
   }
+
+
 
   Widget _buildErrorState(bool isDark) {
+
     return LayoutBuilder(
+
       builder: (context, constraints) {
+
         return SingleChildScrollView(
+
           physics: const ClampingScrollPhysics(),
+
           child: ConstrainedBox(
+
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
+
             child: IntrinsicHeight(
+
               child: Column(
+
                 children: [
+
                   Expanded(
+
                     child: Center(
+
                       child: Padding(
+
                         padding: const EdgeInsets.symmetric(horizontal: 32),
+
                         child: Column(
+
                           mainAxisAlignment: MainAxisAlignment.center,
+
                           children: [
+
                             Icon(
+
                               Icons.cloud_off_rounded,
+
                               size: 48,
+
                               color: isDark ? const Color(0xFF667781) : const Color(0xFF9E9E9E),
+
                             ),
+
                             const SizedBox(height: 12),
+
                             Text(
+
                               _errorMessage ?? 'Terjadi kesalahan.',
+
                               style: GoogleFonts.lato(
+
                                 fontSize: 14,
+
                                 color: isDark ? const Color(0xFF8696A0) : const Color(0xFF9E9E9E),
+
                               ),
+
                               textAlign: TextAlign.center,
+
                             ),
+
                             const SizedBox(height: 16),
+
                             TextButton(
+
                               onPressed: _loadRecipes,
+
                               child: Text(
+
                                 'Coba Lagi',
+
                                 style: GoogleFonts.lato(
+
                                   fontSize: 14,
+
                                   fontWeight: FontWeight.bold,
+
                                   color: _colorPrimaryBlue,
+
                                 ),
+
                               ),
+
                             ),
+
                           ],
+
                         ),
+
                       ),
+
                     ),
+
                   ),
+
                   const IllustrationForestFooter(fit: BoxFit.fitWidth),
+
                 ],
+
               ),
+
             ),
+
           ),
+
         );
+
       },
+
     );
+
   }
 
+
+
   // -------------------------------------------------------------------------
+
   // HELPER: konversi ResepMpasiModel → ResepMpasi (untuk DetailResepPage)
+
   // -------------------------------------------------------------------------
+
+
 
   ResepMpasi _toDetailModel(ResepMpasiModel m) {
+
     return ResepMpasi.fromModel(m);
+
   }
+
 }

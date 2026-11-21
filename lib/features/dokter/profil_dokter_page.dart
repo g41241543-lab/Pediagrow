@@ -1,1258 +1,2732 @@
-﻿import 'package:flutter/material.dart';
+import 'dokter_shell.dart';
+
+import 'package:flutter/material.dart';
+
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:image_picker/image_picker.dart';
+
+
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 import '../../core/services/doctor_service.dart';
+
 import '../../core/services/local_push_service.dart';
+
 import '../../core/services/staff_auth_service.dart';
+
 import '../../core/services/storage_service.dart';
+
 import '../../models/doctor_model.dart';
+
 import '../../models/staff_account_model.dart';
+
 import '../auth/auth_choice_page.dart';
+
 import '../pengaturan/pengaturan_staff_page.dart';
-import 'beranda/beranda_dokter_page.dart';
+
+
 import 'konsultasi/konsultasi_dokter_page.dart';
+
 import '../pmik_superadmin/riwayat_konsultasi/daftar_riwayat_konsultasi_admin_page.dart';
+
 import '../../shared/widgets/illustration_forest_footer.dart';
+
 import '../../shared/widgets/pedia_bottom_nav_bar.dart';
 
+
+
 /// Halaman Profil Dokter PediaGrow.
+
 ///
+
 /// - Hanya foto profil yang dapat diubah oleh dokter sendiri.
+
 /// - Semua informasi lain hanya dapat diedit oleh Superadmin.
+
 class ProfilDokterPage extends StatefulWidget {
-  const ProfilDokterPage({super.key});
+
+  final bool inShell;
+
+  const ProfilDokterPage({super.key, this.inShell = false});
+
+
 
   @override
+
   State<ProfilDokterPage> createState() => _ProfilDokterPageState();
+
 }
 
+
+
 class _ProfilDokterPageState extends State<ProfilDokterPage> {
+
   final int _selectedIndex = 3; // Profil aktif
+
   final ImagePicker _picker = ImagePicker();
 
+
+
   String? _avatarPath;
+
   StaffAccount? _dokter;
+
   DoctorModel? _doctorModel;
+
   /// Guard: mencegah rebuild saat proses logout sedang berlangsung.
+
   bool _isLoggingOut = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _dokter = StaffAuthService().currentStaff;
-    _avatarPath = _dokter?.avatarPath;
-    _loadSavedData();
-    StaffAuthService().currentStaffNotifier.addListener(_onStaffUpdated);
-    DoctorService().doctorsNotifier.addListener(_onDoctorsUpdated);
-  }
+
+
+  bool _isLoadingDoctor = true;
+
+
 
   @override
-  void dispose() {
-    DoctorService().doctorsNotifier.removeListener(_onDoctorsUpdated);
-    StaffAuthService().currentStaffNotifier.removeListener(_onStaffUpdated);
-    super.dispose();
+
+  void initState() {
+
+    super.initState();
+
+    _dokter = StaffAuthService().currentStaff;
+
+    _avatarPath = _dokter?.avatarPath;
+
+    // Cek cache DoctorService sinkron saat inisialisasi agar frame 1 langsung terisi
+
+    final cachedDoc = _findMatchingDoctor(DoctorService().currentDoctors);
+
+    if (cachedDoc != null) {
+
+      _doctorModel = cachedDoc;
+
+      _isLoadingDoctor = false;
+
+      if ((_avatarPath == null || _avatarPath!.isEmpty) &&
+
+          cachedDoc.avatarUrl != null &&
+
+          cachedDoc.avatarUrl!.isNotEmpty) {
+
+        _avatarPath = cachedDoc.avatarUrl;
+
+      }
+
+    }
+
+    _loadSavedData();
+
+    StaffAuthService().currentStaffNotifier.addListener(_onStaffUpdated);
+
+    DoctorService().doctorsNotifier.addListener(_onDoctorsUpdated);
+
   }
+
+
+
+  @override
+
+  void dispose() {
+
+    DoctorService().doctorsNotifier.removeListener(_onDoctorsUpdated);
+
+    StaffAuthService().currentStaffNotifier.removeListener(_onStaffUpdated);
+
+    super.dispose();
+
+  }
+
+
 
   DoctorModel? _findMatchingDoctor(List<DoctorModel> list) {
+
     if (_dokter == null && _doctorModel == null) return null;
+
     final staffId = _dokter?.id ?? _doctorModel?.staffAccountId ?? '';
+
     final email =
+
         (_dokter?.email ?? _doctorModel?.email ?? '').trim().toLowerCase();
+
     final name =
+
         (_dokter?.name ?? _doctorModel?.name ?? '').trim().toLowerCase();
 
+
+
     if (staffId.isNotEmpty) {
+
       final byStaffId = list
+
           .where((d) => d.staffAccountId.isNotEmpty && d.staffAccountId == staffId)
+
           .firstOrNull;
+
       if (byStaffId != null) return byStaffId;
+
     }
+
     if (email.isNotEmpty) {
+
       final byEmail = list
+
           .where((d) =>
+
               d.email != null && d.email!.trim().toLowerCase() == email)
+
           .firstOrNull;
+
       if (byEmail != null) return byEmail;
+
     }
+
     if (name.isNotEmpty) {
+
       final byName = list
+
           .where((d) => d.name.trim().toLowerCase() == name)
+
           .firstOrNull;
+
       if (byName != null) return byName;
+
     }
+
     return null;
+
   }
+
+
 
   void _onDoctorsUpdated() {
+
     // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+
     if (!mounted || _isLoggingOut) return;
+
     final doc = _findMatchingDoctor(DoctorService().currentDoctors);
+
     if (doc != null) {
+
       setState(() {
+
         _doctorModel = doc;
+
         if ((_avatarPath == null || _avatarPath!.isEmpty) &&
+
             doc.avatarUrl != null &&
+
             doc.avatarUrl!.isNotEmpty) {
+
           _avatarPath = doc.avatarUrl;
+
         }
+
       });
+
     }
+
   }
+
+
 
   void _onStaffUpdated() {
+
     // Jangan rebuild jika sedang dalam proses logout — halaman akan segera ditutup.
+
     if (!mounted || _isLoggingOut) return;
+
     setState(() {
+
       _dokter = StaffAuthService().currentStaff;
+
       if (_dokter?.avatarPath != null && _dokter!.avatarPath!.isNotEmpty) {
+
         _avatarPath = _dokter!.avatarPath;
+
       }
+
     });
+
     _syncDoctorFromFirestore();
+
   }
+
+
 
   Future<void> _loadSavedData() async {
+
     final staff = StaffAuthService().currentStaff;
+
     if (staff != null) {
+
       setState(() => _dokter = staff);
+
       if (staff.avatarPath != null && staff.avatarPath!.isNotEmpty) {
+
         setState(() => _avatarPath = staff.avatarPath);
+
       }
+
     }
+
     final prefs = await SharedPreferences.getInstance();
+
     final savedPath = prefs.getString('dokter_avatar_${_dokter?.id}');
+
     if (mounted) {
+
       setState(() {
+
         if (savedPath != null && (_avatarPath == null || _avatarPath!.isEmpty)) {
+
           _avatarPath = savedPath;
+
         }
+
       });
+
     }
+
+
 
     await _syncDoctorFromFirestore();
+
   }
+
+
 
   Future<void> _syncDoctorFromFirestore() async {
+
     try {
+
       DoctorModel? doc;
+
       final staffId = _dokter?.id ?? '';
+
       final email = _dokter?.email ?? '';
 
+
+
       // Cek dulu dari cache doctors yang sudah aktif
+
       doc = _findMatchingDoctor(DoctorService().currentDoctors);
 
+
+
       if (doc == null && staffId.isNotEmpty) {
+
         doc = await DoctorService().findDoctorByStaffAccountId(staffId);
-      }
-      if (doc == null && email.isNotEmpty) {
-        doc = await DoctorService().findDoctorByEmail(email);
+
       }
 
-      if (doc != null && mounted) {
-        final foundDoc = doc;
-        setState(() {
-          _doctorModel = foundDoc;
-          if ((_avatarPath == null || _avatarPath!.isEmpty) &&
-              foundDoc.avatarUrl != null &&
-              foundDoc.avatarUrl!.isNotEmpty) {
-            _avatarPath = foundDoc.avatarUrl;
-          }
-        });
+      if (doc == null && email.isNotEmpty) {
+
+        doc = await DoctorService().findDoctorByEmail(email);
+
       }
+
+
+
+      if (doc != null && mounted) {
+
+        final foundDoc = doc;
+
+        setState(() {
+
+          _doctorModel = foundDoc;
+
+          _isLoadingDoctor = false;
+
+          if ((_avatarPath == null || _avatarPath!.isEmpty) &&
+
+              foundDoc.avatarUrl != null &&
+
+              foundDoc.avatarUrl!.isNotEmpty) {
+
+            _avatarPath = foundDoc.avatarUrl;
+
+          }
+
+        });
+
+      } else if (mounted) {
+
+        setState(() {
+
+          _isLoadingDoctor = false;
+
+        });
+
+      }
+
     } catch (e) {
+
+      if (mounted) setState(() => _isLoadingDoctor = false);
+
       debugPrint('[ProfilDokterPage] _syncDoctorFromFirestore error: $e');
+
     }
+
   }
+
+
+
 
 
   void _showImagePickerOptions() {
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
+
       context: context,
+
       backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
+
       shape: const RoundedRectangleBorder(
+
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+
       ),
+
       builder: (ctx) {
+
         return SafeArea(
+
           child: Padding(
+
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+
             child: Column(
+
               mainAxisSize: MainAxisSize.min,
+
               children: [
+
                 Container(
+
                   width: 40,
+
                   height: 4,
+
                   decoration: BoxDecoration(
+
                     color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+
                     borderRadius: BorderRadius.circular(2),
+
                   ),
+
                 ),
+
                 const SizedBox(height: 16),
+
                 Text(
+
                   'Ubah Foto Profil',
+
                   style: GoogleFonts.lato(
+
                     fontSize: 18,
+
                     fontWeight: FontWeight.bold,
+
                     color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                   ),
+
                 ),
+
                 const SizedBox(height: 16),
+
                 ListTile(
+
                   leading: Container(
+
                     padding: const EdgeInsets.all(8),
+
                     decoration: BoxDecoration(
+
                       color: isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF),
+
                       borderRadius: BorderRadius.circular(8),
+
                     ),
+
                     child: const Icon(
+
                       Icons.camera_alt_outlined,
+
                       color: Color(0xFF3985E7),
+
                       size: 24,
+
                     ),
+
                   ),
+
                   title: Text(
+
                     'Ambil Foto dari Kamera',
+
                     style: GoogleFonts.lato(
+
                       fontSize: 15,
+
                       fontWeight: FontWeight.w600,
+
                       color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                     ),
+
                   ),
+
                   onTap: () {
+
                     Navigator.of(ctx).pop();
+
                     _pickImage(ImageSource.camera);
+
                   },
+
                 ),
+
                 Divider(
+
                   height: 1,
+
                   color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
                 ),
+
                 ListTile(
+
                   leading: Container(
+
                     padding: const EdgeInsets.all(8),
+
                     decoration: BoxDecoration(
+
                       color: isDark ? const Color(0xFF2C363D) : const Color(0xFFECF6FF),
+
                       borderRadius: BorderRadius.circular(8),
+
                     ),
+
                     child: const Icon(
+
                       Icons.photo_library_outlined,
+
                       color: Color(0xFF3985E7),
+
                       size: 24,
+
                     ),
+
                   ),
+
                   title: Text(
+
                     'Pilih Foto dari Galeri',
+
                     style: GoogleFonts.lato(
+
                       fontSize: 15,
+
                       fontWeight: FontWeight.w600,
+
                       color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                     ),
+
                   ),
+
                   onTap: () {
+
                     Navigator.of(ctx).pop();
+
                     _pickImage(ImageSource.gallery);
+
                   },
+
                 ),
+
               ],
+
             ),
+
           ),
+
         );
+
       },
+
     );
+
   }
+
+
 
   Future<void> _pickImage(ImageSource source) async {
+
     try {
+
       final XFile? picked = await _picker.pickImage(
+
         source: source,
+
         maxWidth: 600,
+
         maxHeight: 600,
+
         imageQuality: 85,
+
       );
+
       if (picked != null) {
+
         setState(() => _avatarPath = picked.path);
+
         final persistable =
+
             await StorageService.uploadIfLocal(picked.path);
+
         final prefs = await SharedPreferences.getInstance();
+
         if (_dokter?.id != null) {
+
           await prefs.setString('dokter_avatar_${_dokter!.id}', persistable);
+
           await StaffAuthService().updateStaffAccount(
+
             _dokter!.id,
+
             avatarPath: persistable,
+
           );
+
         }
+
+
 
         try {
+
           DoctorModel? doc = _doctorModel;
+
           if (doc == null) {
+
             if (_dokter?.id != null && _dokter!.id.isNotEmpty) {
+
               doc = await DoctorService().findDoctorByStaffAccountId(_dokter!.id);
+
             }
+
             if (doc == null && _dokter?.email != null) {
+
               doc = await DoctorService().findDoctorByEmail(_dokter!.email);
+
             }
+
           }
+
           if (doc != null) {
+
             final updated = doc.copyWith(avatarUrl: persistable);
+
             _doctorModel = updated;
+
             await DoctorService().updateDoctor(updated);
+
           }
+
         } catch (_) {}
 
+
+
         if (mounted) {
+
           LocalPushService().show(
+
             title: 'PediaGrow',
+
             body: 'Berhasil memperbarui foto profil',
+
             targetRole: PushRole.dokter,
+
           );
+
         }
+
       }
+
     } catch (e) {
+
       debugPrint('[ProfilDokterPage] _pickImage error: $e');
+
     }
+
   }
+
+
 
   // ───────── LOGOUT ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
   void _showLogoutConfirmationDialog() {
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
+
       context: context,
+
       builder: (dialogCtx) => Dialog(
+
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+
         backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
+
         elevation: 8,
+
         child: Padding(
+
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+
           child: Column(
+
             mainAxisSize: MainAxisSize.min,
+
             children: [
+
               const SizedBox(height: 8),
+
               Text(
+
                 'Keluar dari Akun',
+
                 textAlign: TextAlign.center,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 18,
+
                   fontWeight: FontWeight.bold,
+
                   color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                 ),
+
               ),
+
               const SizedBox(height: 8),
+
               Text(
+
                 'Apakah Anda yakin ingin keluar dari akun Dokter?',
+
                 textAlign: TextAlign.center,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 14,
+
                   color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+
                   height: 1.4,
+
                 ),
+
               ),
+
               const SizedBox(height: 24),
+
               Row(
+
                 children: [
+
                   Expanded(
+
                     child: SizedBox(
+
                       height: 44,
+
                       child: OutlinedButton(
+
                         onPressed: () => Navigator.of(dialogCtx).pop(),
+
                         style: OutlinedButton.styleFrom(
+
                           side: BorderSide(
+
                             color: isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB),
+
                           ),
+
                           shape: RoundedRectangleBorder(
+
                             borderRadius: BorderRadius.circular(10),
+
                           ),
+
                         ),
+
                         child: Text(
+
                           'Batal',
+
                           style: GoogleFonts.lato(
+
                             fontSize: 15,
+
                             fontWeight: FontWeight.w600,
+
                             color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF2C363D),
+
                           ),
+
                         ),
+
                       ),
+
                     ),
+
                   ),
+
                   const SizedBox(width: 12),
+
                   Expanded(
+
                     child: SizedBox(
+
                       height: 44,
+
                       child: ElevatedButton(
+
                         onPressed: () {
+
                           // Set guard sebelum menutup dialog agar _onStaffUpdated
+
                           // tidak memicu rebuild halaman Profil selama transisi.
+
                           _isLoggingOut = true;
+
                           Navigator.of(dialogCtx).pop();
+
                           // Navigasi ke halaman awal terlebih dahulu (hapus seluruh stack),
+
                           // baru reset sesi setelah frame selesai dirender.
+
                           Navigator.of(context).pushAndRemoveUntil(
+
                             MaterialPageRoute(
+
                               builder: (_) => const AuthChoicePage(),
+
                             ),
+
                             (route) => false,
+
                           );
+
                           WidgetsBinding.instance.addPostFrameCallback((_) {
+
                             StaffAuthService().logout();
+
                           });
+
                         },
+
                         style: ElevatedButton.styleFrom(
+
                           backgroundColor: const Color(0xFFDC2626),
+
                           elevation: 0,
+
                           shape: RoundedRectangleBorder(
+
                             borderRadius: BorderRadius.circular(10),
+
                           ),
+
                         ),
+
                         child: Text(
+
                           'Keluar',
+
                           style: GoogleFonts.lato(
+
                             fontSize: 15,
+
                             fontWeight: FontWeight.bold,
+
                             color: Colors.white,
+
                           ),
+
                         ),
+
                       ),
+
                     ),
+
                   ),
+
                 ],
+
               ),
+
             ],
+
           ),
+
         ),
+
       ),
+
     );
+
   }
+
+
 
   // ───────── BOTTOM NAV ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
   void _onBottomNavTap(int index) {
+
     if (index == _selectedIndex) return;
 
+
+
     Widget targetPage;
+
     switch (index) {
+
       case 0:
+
         Navigator.of(context).pushAndRemoveUntil(
+
           PageRouteBuilder(
+
             transitionDuration: Duration.zero,
+
             reverseTransitionDuration: Duration.zero,
-            pageBuilder: (_, _, _) => const BerandaDokterPage(),
+
+            pageBuilder: (_, _, _) => const DokterShell(initialIndex: 0),
+
             transitionsBuilder: (_, anim, _, child) => child,
+
           ),
+
           (r) => false,
+
         );
+
         return;
+
       case 1:
+
         targetPage = const KonsultasiDokterPage();
+
         break;
+
       case 2:
+
         targetPage = const DaftarRiwayatKonsultasiAdminPage();
+
         break;
+
       default:
+
         return;
+
     }
+
+
 
     // ignore: unused_local_variable
-    final isLeft = index < _selectedIndex;
+
+
     final route = PageRouteBuilder(
+
       transitionDuration: Duration.zero,
+
       reverseTransitionDuration: Duration.zero,
+
       pageBuilder: (_, _, _) => targetPage,
+
       transitionsBuilder: (_, anim, _, child) => child,
+
     );
+
     Navigator.of(context).pushReplacement(route);
+
   }
+
+
 
   // ───────── BUILD ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
   @override
+
   Widget build(BuildContext context) {
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        _onBottomNavTap(0);
-      },
-      child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+
+    final scaffoldContent = Scaffold(
+
+      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+
         appBar: PreferredSize(
+
           preferredSize: const Size.fromHeight(56.0),
+
           child: _buildCustomHeader(isDark),
+
         ),
+
         body: SafeArea(
+
           top: false,
+
           bottom: false,
+
           child: ScrollConfiguration(
+
             behavior: const ScrollBehavior().copyWith(overscroll: false),
+
             child: LayoutBuilder(
+
               builder: (context, constraints) {
+
                 return SingleChildScrollView(
+
                   physics: const ClampingScrollPhysics(),
+
                   child: ConstrainedBox(
+
                     constraints: BoxConstraints(
+
                       minHeight: constraints.maxHeight,
+
                     ),
+
                     child: IntrinsicHeight(
+
                       child: Column(
+
                         crossAxisAlignment: CrossAxisAlignment.stretch,
+
                         children: [
+
                   Padding(
+
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
+
                     child: Column(
+
                       crossAxisAlignment: CrossAxisAlignment.stretch,
+
                       children: [
+
                         const SizedBox(height: 16.0),
+
+
 
                         // 1. KARTU PROFIL
+
                         _buildProfileCard(isDark),
 
+
+
                         const SizedBox(height: 24.0),
+
+
 
                         // 2. PENDIDIKAN
+
                         Row(
+
                           children: [
+
                             Container(
+
                               width: 28,
+
                               height: 28,
+
                               decoration: BoxDecoration(
+
                                 color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
                                 borderRadius: BorderRadius.circular(8),
+
                               ),
+
                               alignment: Alignment.center,
+
                               child: const Icon(
+
                                 Icons.school_rounded,
+
                                 color: Color(0xFF3985E7),
+
                                 size: 16,
+
                               ),
+
                             ),
+
                             const SizedBox(width: 8),
+
                             Text(
+
                               'Pendidikan',
+
                               style: GoogleFonts.lato(
+
                                 fontSize: 18.0,
+
                                 fontWeight: FontWeight.bold,
+
                                 color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                               ),
+
                             ),
+
                           ],
+
                         ),
+
                         const SizedBox(height: 12.0),
+
                         _buildEducationCard(isDark),
 
+
+
                         const SizedBox(height: 24.0),
+
+
 
                         // 3. TEMPAT PRAKTIK
+
                         Row(
+
                           children: [
+
                             Container(
+
                               width: 28,
+
                               height: 28,
+
                               decoration: BoxDecoration(
+
                                 color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
                                 borderRadius: BorderRadius.circular(8),
+
                               ),
+
                               alignment: Alignment.center,
+
                               child: const Icon(
+
                                 Icons.local_hospital_rounded,
+
                                 color: Color(0xFF3985E7),
+
                                 size: 16,
+
                               ),
+
                             ),
+
                             const SizedBox(width: 8),
+
                             Text(
+
                               'Tempat Praktik',
+
                               style: GoogleFonts.lato(
+
                                 fontSize: 18.0,
+
                                 fontWeight: FontWeight.bold,
+
                                 color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                               ),
+
                             ),
+
                           ],
+
                         ),
+
                         const SizedBox(height: 12.0),
+
                         _buildPracticeLocationsCard(isDark),
+
+
 
                         const SizedBox(height: 24.0),
 
+
+
                         // 5. TOMBOL LOGOUT (Warna Biru PediaGrow #3985E7)
+
                         SizedBox(
+
                           height: 50.0,
+
                           child: ElevatedButton(
+
                             onPressed: _showLogoutConfirmationDialog,
+
                             style: ElevatedButton.styleFrom(
+
                               backgroundColor: const Color(0xFF3985E7),
+
                               elevation: 0,
+
                               shape: RoundedRectangleBorder(
+
                                 borderRadius: BorderRadius.circular(12.0),
+
                               ),
+
                             ),
+
                             child: Text(
+
                               'LOGOUT',
+
                               style: GoogleFonts.lato(
+
                                 fontSize: 16.0,
+
                                 fontWeight: FontWeight.bold,
+
                                 letterSpacing: 0.8,
+
                                 color: Colors.white,
+
                               ),
+
                             ),
+
                           ),
+
                         ),
+
+
 
                         const SizedBox(height: 16.0),
+
                       ],
+
                     ),
+
                   ),
+
                   const Spacer(),
+
                   const SizedBox(height: 16),
+
                   const IllustrationForestFooter(fit: BoxFit.fitWidth),
+
                 ],
+
               ),
+
             ),
+
           ),
+
                 );
+
               },
+
             ),
+
           ),
+
         ),
-        bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 3),
-      ),
+
+        bottomNavigationBar: widget.inShell ? null : const PediaBottomNavBar(selectedIndex: 3),
+
     );
+
+
+
+    if (widget.inShell) {
+
+      return scaffoldContent;
+
+    }
+
+
+
+    return PopScope(
+
+      canPop: false,
+
+      onPopInvokedWithResult: (didPop, _) {
+
+        if (didPop) return;
+
+        _onBottomNavTap(0);
+
+      },
+
+      child: scaffoldContent,
+
+    );
+
   }
+
+
 
   // ───────── HEADER ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
   Widget _buildCustomHeader(bool isDark) {
+
     final headerTextColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
     final settingCircleBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+
     final settingIconColor = isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228);
 
+
+
     return Container(
+
       width: double.infinity,
+
       color: isDark ? const Color(0xFF0B1014) : Colors.white,
+
       child: SafeArea(
+
         bottom: false,
+
         child: SizedBox(
+
           height: 56.0,
+
           child: Padding(
+
             padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+
             child: Row(
+
               crossAxisAlignment: CrossAxisAlignment.center,
+
               children: [
+
                 Text(
+
                   'Profil',
+
                   style: GoogleFonts.lato(
+
                     fontSize: 20.0,
+
                     fontWeight: FontWeight.bold,
+
                     color: headerTextColor,
+
                     letterSpacing: -0.2,
+
                   ),
+
                 ),
+
                 const Spacer(),
+
                 GestureDetector(
+
                   onTap: () {
+
                     Navigator.of(context).push(
+
                       MaterialPageRoute(
+
                         builder: (_) => const PengaturanStaffPage(
+
                           staffRole: StaffRole.dokter,
+
                         ),
+
                       ),
+
                     );
+
                   },
+
                   child: Container(
+
                     width: 38,
+
                     height: 38,
+
                     decoration: BoxDecoration(
+
                       color: settingCircleBg,
+
                       shape: BoxShape.circle,
+
                       border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+
                       boxShadow: const [
+
                         BoxShadow(
+
                           color: Color(0x1F000000),
+
                           blurRadius: 4,
+
                           offset: Offset(0, 2),
+
                         ),
+
                       ],
+
                     ),
+
                     alignment: Alignment.center,
+
                     child: Icon(
+
                       Icons.settings_outlined,
+
                       color: settingIconColor,
+
                       size: 22,
+
                     ),
+
                   ),
+
                 ),
+
               ],
+
             ),
+
           ),
+
         ),
+
       ),
+
     );
+
   }
+
+
 
   // ───────── PROFILE CARD (Default gaya pmik_superadmin) ──────────────────────────────────────────────────────────────────────────────
+
   Widget _buildProfileCard(bool isDark) {
+
     const double avatarRadius = 46.0;
+
     final name = _doctorModel?.name.isNotEmpty == true
+
         ? _doctorModel!.name
+
         : (_dokter?.name.isNotEmpty == true
+
             ? _dokter!.name
+
             : 'dr. Nama Dokter, Sp.A');
+
     final spesialisasi = _doctorModel?.specialization.isNotEmpty == true
+
         ? _doctorModel!.specialization
+
         : (_dokter?.additionalInfo?['spesialisasi']?.toString() ??
+
             'Dokter Spesialis Anak');
+
     final email = _doctorModel?.email?.isNotEmpty == true
+
         ? _doctorModel!.email!
+
         : (_dokter?.email ?? '');
+
     final imagePath = _avatarPath ??
+
         _doctorModel?.avatarUrl ??
+
         _doctorModel?.assetImagePath ??
+
         _dokter?.avatarPath;
 
+
+
     final experience = _doctorModel != null && _doctorModel!.experienceYears > 0
+
         ? '${_doctorModel!.experienceYears} tahun'
+
         : (_dokter?.experience != null && _dokter!.experience!.isNotEmpty
+
             ? _dokter!.experience!
+
             : '5 tahun');
 
+
+
     final strNumber = _doctorModel?.strNumber?.isNotEmpty == true
+
         ? _doctorModel!.strNumber!
+
         : (_dokter?.strNumber?.isNotEmpty == true
+
             ? _dokter!.strNumber!
+
             : '3511201402012222');
 
+
+
     return Stack(
+
       clipBehavior: Clip.none,
+
       alignment: Alignment.topCenter,
+
       children: [
+
         // Kartu
+
         Container(
+
           margin: const EdgeInsets.only(top: avatarRadius),
+
           padding: const EdgeInsets.only(
+
             top: avatarRadius + 10.0,
+
             left: 16.0,
+
             right: 16.0,
+
             bottom: 20.0,
+
           ),
+
           decoration: BoxDecoration(
+
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
             borderRadius: BorderRadius.circular(20.0),
+
             border: Border.all(
+
               color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
               width: 1.0,
+
             ),
+
             boxShadow: [
+
               BoxShadow(
+
                 color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+
                 blurRadius: 16.0,
+
                 offset: const Offset(0, 4),
+
               ),
+
             ],
+
           ),
+
           child: Column(
+
             mainAxisSize: MainAxisSize.min,
+
             children: [
+
               Text(
+
                 name,
+
                 textAlign: TextAlign.center,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 18.0,
+
                   fontWeight: FontWeight.bold,
+
                   color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                 ),
+
               ),
+
               const SizedBox(height: 4.0),
+
               Text(
+
                 spesialisasi,
+
                 textAlign: TextAlign.center,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 15.0,
+
                   fontWeight: FontWeight.w600,
+
                   color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+
                 ),
+
               ),
+
               if (email.isNotEmpty) ...[
+
                 const SizedBox(height: 4.0),
+
                 Text(
+
                   email,
+
                   textAlign: TextAlign.center,
+
                   style: GoogleFonts.lato(
+
                     fontSize: 13.0,
+
                     color: const Color(0xFF8696A0),
+
                   ),
+
                 ),
+
               ],
+
               const SizedBox(height: 18.0),
+
               // Baris Info: Pengalaman & No. STR (Ikon berwarna sama dengan role lain)
+
               Row(
+
                 children: [
+
                   Expanded(
+
                     child: _buildStatChip(
+
                       isDark: isDark,
+
                       icon: Icons.work_rounded,
+
                       iconColor: const Color(0xFF2563EB),
+
                       bgColor: const Color(0xFFEFF6FF),
+
                       label: 'Pengalaman',
+
                       value: experience,
+
                     ),
+
                   ),
+
                   const SizedBox(width: 12),
+
                   Expanded(
+
                     child: _buildStatChip(
+
                       isDark: isDark,
+
                       icon: Icons.badge_outlined,
+
                       iconColor: const Color(0xFF0891B2),
+
                       bgColor: const Color(0xFFECFEFF),
+
                       label: 'No. STR',
+
                       value: strNumber,
+
                     ),
+
                   ),
+
                 ],
+
               ),
+
             ],
+
           ),
+
         ),
+
+
 
         // Avatar Bulat melayang di posisi atas
+
         Positioned(
+
           top: 0,
+
           child: GestureDetector(
+
             onTap: _showImagePickerOptions,
+
             child: Stack(
+
               clipBehavior: Clip.none,
+
               children: [
+
                 Container(
+
                   width: avatarRadius * 2,
+
                   height: avatarRadius * 2,
+
                   decoration: BoxDecoration(
+
                     shape: BoxShape.circle,
+
                     border: Border.all(
+
                       color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
                       width: 3.5,
+
                     ),
+
                     boxShadow: const [
+
                       BoxShadow(
+
                         color: Color(0x1A000000),
+
                         blurRadius: 10.0,
+
                         offset: Offset(0, 4),
+
                       ),
+
                     ],
+
                   ),
+
                   child: ClipOval(
+
                     child: StorageService.buildImageWidget(
+
                       imagePath,
+
                       fit: BoxFit.cover,
+
                       width: double.infinity,
+
                       height: double.infinity,
+
                       errorWidget: Container(
+
                         color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0),
+
                         alignment: Alignment.center,
+
                         child: const Icon(
+
                           Icons.person_rounded,
+
                           size: 52.0,
+
                           color: Color(0xFF72A9F4),
+
                         ),
+
                       ),
+
                     ),
+
                   ),
+
                 ),
+
                 Positioned(
+
                   right: 0,
+
                   bottom: 0,
+
                   child: Container(
+
                     width: 28,
+
                     height: 28,
+
                     decoration: BoxDecoration(
+
                       color: const Color(0xFF3985E7),
+
                       shape: BoxShape.circle,
+
                       border: Border.all(
+
                         color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
                         width: 2,
+
                       ),
+
                       boxShadow: const [
+
                         BoxShadow(
+
                           color: Color(0x33000000),
+
                           blurRadius: 4,
+
                           offset: Offset(0, 2),
+
                         ),
+
                       ],
+
                     ),
+
                     child: const Icon(
+
                       Icons.camera_alt,
+
                       size: 15,
+
                       color: Colors.white,
+
                     ),
+
                   ),
+
                 ),
+
               ],
+
             ),
+
           ),
+
         ),
+
       ],
+
     );
+
   }
+
+
 
   Widget _buildStatChip({
+
     required bool isDark,
+
     required IconData icon,
+
     required Color iconColor,
+
     required Color bgColor,
+
     required String label,
+
     required String value,
+
   }) {
+
     return Row(
+
       children: [
+
         Container(
+
           width: 36,
+
           height: 36,
+
           decoration: BoxDecoration(
+
             color: isDark ? const Color(0xFF2C363D) : bgColor,
+
             borderRadius: BorderRadius.circular(10),
+
           ),
+
           alignment: Alignment.center,
+
           child: Icon(icon, size: 20, color: iconColor),
+
         ),
+
         const SizedBox(width: 8),
+
         Expanded(
+
           child: Column(
+
             crossAxisAlignment: CrossAxisAlignment.start,
+
             children: [
+
               Text(
+
                 label,
+
                 maxLines: 1,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 11,
+
                   color: const Color(0xFF8696A0),
+
                 ),
+
               ),
+
               Text(
+
                 value,
+
                 maxLines: 1,
+
                 overflow: TextOverflow.ellipsis,
+
                 style: GoogleFonts.lato(
+
                   fontSize: 13,
+
                   fontWeight: FontWeight.bold,
+
                   color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+
                 ),
+
               ),
+
             ],
+
           ),
+
         ),
+
       ],
+
     );
+
   }
+
+
 
   // ───────── PENDIDIKAN ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
   List<String> get _resolvedPendidikan {
+
     if (_doctorModel != null && _doctorModel!.daftarPendidikan.isNotEmpty) {
+
       return _doctorModel!.daftarPendidikan;
+
     }
+
     if (_dokter?.education != null && _dokter!.education!.trim().isNotEmpty) {
+
       return [_dokter!.education!.trim()];
+
     }
+
     final addInfo = _dokter?.additionalInfo;
+
     if (addInfo != null) {
+
       if (addInfo['educations'] is List) {
+
         final list = (addInfo['educations'] as List)
+
             .map((e) => e.toString().trim())
+
             .where((e) => e.isNotEmpty)
+
             .toList();
+
         if (list.isNotEmpty) return list;
+
       }
+
       if (addInfo['pendidikan'] is List) {
+
         final list = (addInfo['pendidikan'] as List)
+
             .map((e) => e.toString().trim())
+
             .where((e) => e.isNotEmpty)
+
             .toList();
+
         if (list.isNotEmpty) return list;
+
       }
+
       if (addInfo['education'] != null &&
+
           addInfo['education'].toString().trim().isNotEmpty) {
+
         return [addInfo['education'].toString().trim()];
+
       }
+
     }
+
     return const [];
+
   }
+
+
+
+  Widget _buildLoadingCard(bool isDark, {required IconData icon, required String label}) {
+
+    return Container(
+
+      width: double.infinity,
+
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+
+      decoration: BoxDecoration(
+
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
+        borderRadius: BorderRadius.circular(16.0),
+
+        border: Border.all(
+
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
+          width: 1.0,
+
+        ),
+
+        boxShadow: [
+
+          BoxShadow(
+
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+
+            blurRadius: 12.0,
+
+            offset: const Offset(0, 2),
+
+          ),
+
+        ],
+
+      ),
+
+      child: Row(
+
+        children: [
+
+          Container(
+
+            width: 38,
+
+            height: 38,
+
+            decoration: BoxDecoration(
+
+              color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
+              borderRadius: BorderRadius.circular(10),
+
+            ),
+
+            alignment: Alignment.center,
+
+            child: Icon(
+
+              icon,
+
+              size: 20,
+
+              color: const Color(0xFF3985E7).withValues(alpha: 0.5),
+
+            ),
+
+          ),
+
+          const SizedBox(width: 14),
+
+          Expanded(
+
+            child: Column(
+
+              crossAxisAlignment: CrossAxisAlignment.start,
+
+              mainAxisSize: MainAxisSize.min,
+
+              children: [
+
+                Container(
+
+                  width: 140,
+
+                  height: 14,
+
+                  decoration: BoxDecoration(
+
+                    color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0),
+
+                    borderRadius: BorderRadius.circular(4),
+
+                  ),
+
+                ),
+
+                const SizedBox(height: 6),
+
+                Container(
+
+                  width: 200,
+
+                  height: 12,
+
+                  decoration: BoxDecoration(
+
+                    color: isDark ? const Color(0xFF232D34) : const Color(0xFFF1F5F9),
+
+                    borderRadius: BorderRadius.circular(4),
+
+                  ),
+
+                ),
+
+              ],
+
+            ),
+
+          ),
+
+        ],
+
+      ),
+
+    );
+
+  }
+
+
 
   Widget _buildEducationCard(bool isDark) {
+
     final edus = _resolvedPendidikan;
 
-    if (edus.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2228) : Colors.white,
-          borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(
-            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-            width: 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 12.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.school_outlined,
-                size: 20,
-                color: Color(0xFF3985E7),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Belum ada riwayat pendidikan yang ditambahkan oleh Superadmin.',
-                style: GoogleFonts.lato(
-                  fontSize: 13.5,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-                ),
-              ),
-            ),
-          ],
-        ),
+
+
+    if (_isLoadingDoctor && edus.isEmpty) {
+
+      return _buildLoadingCard(
+
+        isDark,
+
+        icon: Icons.school_outlined,
+
+        label: 'Memuat riwayat pendidikan...',
+
       );
+
     }
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 12.0,
-            offset: const Offset(0, 2),
+
+
+    if (edus.isEmpty) {
+
+      return Container(
+
+        width: double.infinity,
+
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+
+        decoration: BoxDecoration(
+
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
+          borderRadius: BorderRadius.circular(16.0),
+
+          border: Border.all(
+
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
+            width: 1.0,
+
           ),
+
+          boxShadow: [
+
+            BoxShadow(
+
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+
+              blurRadius: 12.0,
+
+              offset: const Offset(0, 2),
+
+            ),
+
+          ],
+
+        ),
+
+        child: Row(
+
+          children: [
+
+            Container(
+
+              width: 38,
+
+              height: 38,
+
+              decoration: BoxDecoration(
+
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
+                borderRadius: BorderRadius.circular(10),
+
+              ),
+
+              alignment: Alignment.center,
+
+              child: const Icon(
+
+                Icons.school_outlined,
+
+                size: 20,
+
+                color: Color(0xFF3985E7),
+
+              ),
+
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+
+              child: Text(
+
+                'Belum ada riwayat pendidikan yang ditambahkan oleh Superadmin.',
+
+                style: GoogleFonts.lato(
+
+                  fontSize: 13.5,
+
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+
+                ),
+
+              ),
+
+            ),
+
+          ],
+
+        ),
+
+      );
+
+    }
+
+
+
+    return Container(
+
+      width: double.infinity,
+
+      decoration: BoxDecoration(
+
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
+        borderRadius: BorderRadius.circular(16.0),
+
+        border: Border.all(
+
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
+          width: 1.0,
+
+        ),
+
+        boxShadow: [
+
+          BoxShadow(
+
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+
+            blurRadius: 12.0,
+
+            offset: const Offset(0, 2),
+
+          ),
+
         ],
+
       ),
+
       child: Column(
+
         children: List.generate(edus.length, (i) {
+
           final edu = edus[i];
+
           final isLast = i == edus.length - 1;
 
+
+
           return Column(
+
             children: [
+
               Padding(
+
                 padding: const EdgeInsets.symmetric(
+
                   horizontal: 16.0,
+
                   vertical: 14.0,
+
                 ),
+
                 child: Row(
+
                   children: [
+
                     Container(
+
                       width: 38,
+
                       height: 38,
+
                       decoration: BoxDecoration(
+
                         color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
                         borderRadius: BorderRadius.circular(10),
+
                       ),
+
                       alignment: Alignment.center,
+
                       child: const Icon(
+
                         Icons.school_outlined,
+
                         size: 20,
+
                         color: Color(0xFF3985E7),
+
                       ),
+
                     ),
+
                     const SizedBox(width: 14),
+
                     Expanded(
+
                       child: Text(
+
                         edu,
+
                         style: GoogleFonts.lato(
+
                           fontSize: 14.5,
+
                           fontWeight: FontWeight.w600,
+
                           color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+
                         ),
+
                       ),
+
                     ),
+
                   ],
+
                 ),
+
               ),
+
               if (!isLast)
+
                 Divider(
+
                   height: 1,
+
                   thickness: 1,
+
                   indent: 68,
+
                   color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
                 ),
+
             ],
+
           );
+
         }),
+
       ),
+
     );
+
   }
+
+
 
   // ───────── TEMPAT PRAKTIK ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
   List<String> get _resolvedPlacesOfPractice {
+
     if (_doctorModel != null && _doctorModel!.daftarTempatPraktik.isNotEmpty) {
+
       return _doctorModel!.daftarTempatPraktik;
+
     }
+
     final addInfo = _dokter?.additionalInfo;
+
     if (addInfo != null) {
+
       if (addInfo['places_of_practice'] is List) {
+
         final list = (addInfo['places_of_practice'] as List)
+
             .map((e) => e.toString().trim())
+
             .where((e) => e.isNotEmpty)
+
             .toList();
+
         if (list.isNotEmpty) return list;
+
       }
+
       if (addInfo['tempat_praktik'] is List) {
+
         final list = (addInfo['tempat_praktik'] as List)
+
             .map((e) => e.toString().trim())
+
             .where((e) => e.isNotEmpty)
+
             .toList();
+
         if (list.isNotEmpty) return list;
+
       }
+
       if (addInfo['hospital'] != null &&
+
           addInfo['hospital'].toString().trim().isNotEmpty) {
+
         return [addInfo['hospital'].toString().trim()];
+
       }
+
     }
+
     return const [];
+
   }
+
+
 
   Widget _buildPracticeLocationsCard(bool isDark) {
+
     final places = _resolvedPlacesOfPractice;
 
-    if (places.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2228) : Colors.white,
-          borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(
-            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-            width: 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 12.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.apartment_rounded,
-                size: 20,
-                color: Color(0xFF3985E7),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Belum ada tempat praktik yang ditambahkan oleh Superadmin.',
-                style: GoogleFonts.lato(
-                  fontSize: 13.5,
-                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
-                ),
-              ),
-            ),
-          ],
-        ),
+
+
+    if (_isLoadingDoctor && places.isEmpty) {
+
+      return _buildLoadingCard(
+
+        isDark,
+
+        icon: Icons.apartment_rounded,
+
+        label: 'Memuat tempat praktik...',
+
       );
+
     }
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2228) : Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 12.0,
-            offset: const Offset(0, 2),
+
+
+    if (places.isEmpty) {
+
+      return Container(
+
+        width: double.infinity,
+
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+
+        decoration: BoxDecoration(
+
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
+          borderRadius: BorderRadius.circular(16.0),
+
+          border: Border.all(
+
+            color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
+            width: 1.0,
+
           ),
+
+          boxShadow: [
+
+            BoxShadow(
+
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+
+              blurRadius: 12.0,
+
+              offset: const Offset(0, 2),
+
+            ),
+
+          ],
+
+        ),
+
+        child: Row(
+
+          children: [
+
+            Container(
+
+              width: 38,
+
+              height: 38,
+
+              decoration: BoxDecoration(
+
+                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
+                borderRadius: BorderRadius.circular(10),
+
+              ),
+
+              alignment: Alignment.center,
+
+              child: const Icon(
+
+                Icons.apartment_rounded,
+
+                size: 20,
+
+                color: Color(0xFF3985E7),
+
+              ),
+
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+
+              child: Text(
+
+                'Belum ada tempat praktik yang ditambahkan oleh Superadmin.',
+
+                style: GoogleFonts.lato(
+
+                  fontSize: 13.5,
+
+                  color: isDark ? const Color(0xFF8696A0) : const Color(0xFF667781),
+
+                ),
+
+              ),
+
+            ),
+
+          ],
+
+        ),
+
+      );
+
+    }
+
+
+
+    return Container(
+
+      width: double.infinity,
+
+      decoration: BoxDecoration(
+
+        color: isDark ? const Color(0xFF1A2228) : Colors.white,
+
+        borderRadius: BorderRadius.circular(16.0),
+
+        border: Border.all(
+
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
+          width: 1.0,
+
+        ),
+
+        boxShadow: [
+
+          BoxShadow(
+
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+
+            blurRadius: 12.0,
+
+            offset: const Offset(0, 2),
+
+          ),
+
         ],
+
       ),
+
       child: Column(
+
         children: List.generate(places.length, (i) {
+
           final place = places[i];
+
           final isLast = i == places.length - 1;
 
+
+
           return Column(
+
             children: [
+
               Padding(
+
                 padding: const EdgeInsets.symmetric(
+
                   horizontal: 16.0,
+
                   vertical: 14.0,
+
                 ),
+
                 child: Row(
+
                   children: [
+
                     Container(
+
                       width: 38,
+
                       height: 38,
+
                       decoration: BoxDecoration(
+
                         color: isDark ? const Color(0xFF2C363D) : const Color(0xFFEFF6FF),
+
                         borderRadius: BorderRadius.circular(10),
+
                       ),
+
                       alignment: Alignment.center,
+
                       child: const Icon(
+
                         Icons.local_hospital_outlined,
+
                         size: 20,
+
                         color: Color(0xFF3985E7),
+
                       ),
+
                     ),
+
                     const SizedBox(width: 14),
+
                     Expanded(
+
                       child: Text(
+
                         place,
+
                         style: GoogleFonts.lato(
+
                           fontSize: 14.5,
+
                           fontWeight: FontWeight.w600,
+
                           color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+
                         ),
+
                       ),
+
                     ),
+
                   ],
+
                 ),
+
               ),
+
               if (!isLast)
+
                 Divider(
+
                   height: 1,
+
                   thickness: 1,
+
                   indent: 68,
+
                   color: isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
                 ),
+
             ],
+
           );
+
         }),
+
       ),
+
     );
+
   }
 
+
+
 }
+

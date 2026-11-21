@@ -594,9 +594,13 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
       }
     }
 
-    // Validasi NIK Anak (opsional — jika diisi, validasi format + cross-check tanggal lahir & gender)
+    // Validasi NIK Anak (wajib — validasi format + cross-check tanggal lahir & gender)
     final nik = _nikController.text.trim();
-    if (nik.isNotEmpty) {
+    if (nik.isEmpty) {
+      _nikError = 'NIK anak wajib diisi';
+      hasError = true;
+      firstErrorKey ??= _nikKey;
+    } else {
       final nikValidationError = KkNikValidator.validateNik(
         nik,
         birthDate: _selectedBirthDate,
@@ -1678,7 +1682,6 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
           ),
           decoration: _inputDecoration(
             hint: '16 digit Nomor Kartu Keluarga',
-            suffixIcon: Icons.family_restroom_rounded,
             hasError: _noKkError != null,
           ).copyWith(counterText: ''),
           onChanged: (val) {
@@ -1694,14 +1697,14 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // FIELD: NIK ANAK [EDITABLE, OPSIONAL]
+  // FIELD: NIK ANAK [EDITABLE, WAJIB]
   // ---------------------------------------------------------------------------
   Widget _buildNikField() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel('NIK Anak (Opsional)'),
+        _buildLabel('NIK Anak', isRequired: true),
         const SizedBox(height: 6),
         TextFormField(
           controller: _nikController,
@@ -1719,8 +1722,7 @@ class _UbahAnakPageState extends State<UbahAnakPage> {
             color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
-            hint: '16 digit NIK Anak (jika tersedia)',
-            suffixIcon: Icons.badge_outlined,
+            hint: '16 digit NIK Anak',
             hasError: _nikError != null,
           ).copyWith(counterText: ''),
           onChanged: (val) {

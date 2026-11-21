@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -7,6 +7,8 @@ import '../../../../models/soal_model.dart';
 import '../../../../models/staff_account_model.dart';
 import '../../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../../pengguna/beranda/widgets/full_page_sky_background.dart';
+import '../../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../beranda_superadmin_page.dart';
 import 'edit_soal_permainan_page.dart';
@@ -365,96 +367,143 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
         backgroundColor: _scaffoldBg,
         resizeToAvoidBottomInset: false,
         bottomNavigationBar: const PediaBottomNavBar(selectedIndex: -1),
-        body: SafeArea(
-          bottom: false,
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  // 1. Header Standar Superadmin/PMIK (56dp)
-                  _buildHeader(),
+                  const Positioned.fill(child: FullPageSkyBackground()),
 
-                  // 2. Konten Scrollable
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. Area Biru Seamless (Adaptif Tema)
+                      _buildSeamlessBlueArea(context),
 
-                          // Konten Utama
-                          if (_isLoading)
-                            _buildSkeletonLoading()
-                          else if (_errorMsg != null && _soalList.isEmpty)
-                            _buildError()
-                          else
-                            _buildContentSection(),
+                      // 2. Konten Utama
+                      if (_isLoading)
+                        _buildSkeletonLoading()
+                      else if (_errorMsg != null && _soalList.isEmpty)
+                        _buildError()
+                      else
+                        _buildContentSection(),
 
-                          const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                          // 3. Ilustrasi Landscape Footer (Adaptif Tema dengan awan lembut di bawah)
-                          const IllustrationForestFooter(
-                            fit: BoxFit.fitWidth,
-                          ),
-                        ],
-                      ),
-                    ),
+                      // 3. Ilustrasi Landscape Footer (Adaptif Tema)
+                      const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                    ],
                   ),
                 ],
               ),
+            ),
 
-              if (_showNotifBar) _buildNotifBar(),
-            ],
-          ),
+            // ── Perisai status bar ──────────────────────────────────────
+            // Blok solid di atas konten yang di-scroll agar badge/teks
+            // kartu tidak tampil menimpa jam & ikon di area status bar.
+            // Tingginya = tinggi status bar dari MediaQuery (safe area atas).
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: MediaQuery.of(context).padding.top,
+                color: HeaderSkyIllustration.getGradientColors(
+                  isNight: _isDark,
+                  isDark: _isDark,
+                ).first,
+              ),
+            ),
+
+            if (_showNotifBar) _buildNotifBar(),
+          ],
         ),
       ),
     );
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // 1. HEADER HALAMAN (STANDAR 56DP ROLE SUPERADMIN / PMIK)
+  // 1. AREA BIRU SEAMLESS HEADER (ADAPTIF DARK/LIGHT MODE)
   // ──────────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget _buildSeamlessBlueArea(BuildContext context) {
+    final isDark = _isDark;
+    final skyMode = isDark ? SkyTimeMode.night : SkyTimeMode.day;
+    final isNight = isDark;
+
     return Container(
-      height: 56.0,
       width: double.infinity,
-      color: _scaffoldBg,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: HeaderSkyIllustration.getGradientColors(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+          stops: HeaderSkyIllustration.getGradientStops(
+            isNight: isNight,
+            isDark: isDark,
+          ),
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 12.0),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _navigateBack,
-                borderRadius: BorderRadius.circular(24.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Icon(
-                    Icons.arrow_back,
-                    size: 24.0,
-                    color: _textBlack,
+          Positioned.fill(
+            child: HeaderSkyIllustration(
+              mode: skyMode,
+              renderBackgroundGradient: false,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: 56,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12.0, right: 16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: _navigateBack,
+                          behavior: HitTestBehavior.opaque,
+                          child: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Permainan',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            child: Text(
-              'Permainan',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.lato(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: _textBlack,
-                letterSpacing: -0.2,
-              ),
-            ),
+              const SizedBox(height: 48),
+            ],
           ),
         ],
       ),

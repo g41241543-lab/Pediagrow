@@ -82,7 +82,8 @@ final List<_KonsultasiItem> _mockJadwal = [];
 ///    yang ditangani oleh dokter yang sedang login.
 /// 2. Tombol "Masuk Ruang Chat" aktif dan langsung membuka chat konsultasi tanpa terkunci.
 class KonsultasiDokterPage extends StatefulWidget {
-  const KonsultasiDokterPage({super.key});
+  final bool inShell;
+  const KonsultasiDokterPage({super.key, this.inShell = false});
 
   @override
   State<KonsultasiDokterPage> createState() => _KonsultasiDokterPageState();
@@ -708,9 +709,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                 final isDark = Theme.of(context).brightness == Brightness.dark;
 
                   return PopScope(
-                    canPop: false,
+                    canPop: widget.inShell,
                     onPopInvokedWithResult: (didPop, _) {
-                      if (didPop) return;
+                      if (didPop || widget.inShell) return;
                       Navigator.of(context).pushAndRemoveUntil(
                         PageRouteBuilder(
                           pageBuilder: (ctx, anim, anim2) => const BerandaDokterPage(),
@@ -754,7 +755,9 @@ class _KonsultasiDokterPageState extends State<KonsultasiDokterPage>
                           ],
                         ),
                       ),
-                      bottomNavigationBar: const PediaBottomNavBar(selectedIndex: 1),
+                      bottomNavigationBar: widget.inShell
+                          ? null
+                          : const PediaBottomNavBar(selectedIndex: 1),
                     ),
                   );
                 },

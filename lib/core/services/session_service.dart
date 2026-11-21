@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/auth/auth_choice_page.dart';
 import '../../features/auth/login_page.dart';
+import '../../features/dokter/dokter_shell.dart';
 import '../../features/dokter/beranda/beranda_dokter_page.dart';
 import '../../features/pengguna/beranda/beranda_page.dart';
 import '../../features/pmik_admin/beranda/beranda_pmik_page.dart';
@@ -523,7 +524,7 @@ class SessionService {
         } else if (role == 'pmik' || restoredStaff.role == StaffRole.admin) {
           destination = const BerandaPmikPage();
         } else {
-          destination = const BerandaDokterPage();
+          destination = const DokterShell();
         }
 
         return SessionDestination(page: destination);

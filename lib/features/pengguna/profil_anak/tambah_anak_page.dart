@@ -892,9 +892,12 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
       }
     }
 
-    // 0b. NIK Anak (Opsional — jika diisi, validasi format + cross-check tanggal lahir & gender)
+    // 0b. NIK Anak (Wajib — validasi format + cross-check tanggal lahir & gender)
     final nikInput = _nikController.text.trim();
-    if (nikInput.isNotEmpty) {
+    if (nikInput.isEmpty) {
+      nikErr = 'NIK anak wajib diisi';
+      firstErrorKey ??= _nikKey;
+    } else {
       final nikValidationError = KkNikValidator.validateNik(
         nikInput,
         birthDate: _selectedBirthDate,
@@ -1560,14 +1563,14 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
   }
 
   // ---------------------------------------------------------------------------
-  // FIELD: NIK ANAK (OPSIONAL)
+  // FIELD: NIK ANAK (WAJIB)
   // ---------------------------------------------------------------------------
   Widget _buildNikField() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel('NIK Anak (KIA / Dokumen KK)', isRequired: false),
+        _buildLabel('NIK Anak', isRequired: true),
         const SizedBox(height: 6),
         TextFormField(
           controller: _nikController,
@@ -1586,7 +1589,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
             color: isDark ? Colors.white : const Color(0xFF0B1014),
           ),
           decoration: _inputDecoration(
-            hint: '16 digit NIK Anak (opsional)',
+            hint: '16 digit NIK Anak',
             errorText: _nikError,
           ).copyWith(
             counterText: '',

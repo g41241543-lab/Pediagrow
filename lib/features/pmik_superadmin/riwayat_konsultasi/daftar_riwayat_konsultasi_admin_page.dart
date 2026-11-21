@@ -6,6 +6,7 @@ import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/child_live_avatar.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
+import '../../dokter/dokter_shell.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
@@ -130,7 +131,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => isDokter
-              ? const BerandaDokterPage()
+              ? const DokterShell(initialIndex: 0)
               : isPmik
                   ? const BerandaPmikPage()
                   : staff == null
@@ -155,7 +156,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
     switch (index) {
       case 0:
         targetPage = isDokter
-            ? const BerandaDokterPage()
+            ? const DokterShell(initialIndex: 0)
             : isPmik
                 ? const BerandaPmikPage()
                 : staff == null
@@ -287,9 +288,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: widget.inShell,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
+        if (didPop || widget.inShell) return;
         _handleBack();
       },
       child: Scaffold(

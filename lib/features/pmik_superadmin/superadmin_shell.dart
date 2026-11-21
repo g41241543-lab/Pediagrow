@@ -75,20 +75,29 @@ class _SuperadminShellState extends State<SuperadminShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // IndexedStack mempertahankan state tiap tab — tidak ada rebuild
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          BerandaSuperadminPage(inShell: true),
-          KonsultasiSuperadminPage(inShell: true),
-          DaftarRiwayatKonsultasiAdminPage(inShell: true),
-          ProfilSuperadminPage(inShell: true),
-        ],
-      ),
-      bottomNavigationBar: PediaBottomNavBar(
-        selectedIndex: _currentIndex,
-        onNavTap: _onNavTap,
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
+        // IndexedStack mempertahankan state tiap tab — tidak ada rebuild
+        body: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            BerandaSuperadminPage(inShell: true),
+            KonsultasiSuperadminPage(inShell: true),
+            DaftarRiwayatKonsultasiAdminPage(inShell: true),
+            ProfilSuperadminPage(inShell: true),
+          ],
+        ),
+        bottomNavigationBar: PediaBottomNavBar(
+          selectedIndex: _currentIndex,
+          onNavTap: _onNavTap,
+        ),
       ),
     );
   }
