@@ -167,7 +167,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (!result.isSuccess) {
-      await ChildService().loadChildrenForCurrentUser();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -182,6 +181,7 @@ class _LoginPageState extends State<LoginPage> {
     await SessionService().savePenggunaSession(
       userId: UserService().currentUser.id,
     );
+    await ChildService().loadChildrenForCurrentUser();
 
     if (!mounted) return;
 

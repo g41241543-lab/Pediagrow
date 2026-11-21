@@ -188,6 +188,7 @@ class SessionService {
       LocalPushService().setActiveUser(userId: null, role: null);
       await LocalPushService().cancelAll();
       NotificationService().cancelAllPendingReminders();
+      ChildService().clear();
 
       debugPrint('[SessionService] Seluruh data sesi dibersihkan.');
     } catch (e) {

@@ -480,6 +480,7 @@ class UserService {
     _userSubscription?.cancel();
     _userSubscription = null;
     _clearSession();
+    ChildService().clear();
     currentUserNotifier.value = const UserModel(
       id: '',
       name: 'Tamu',
