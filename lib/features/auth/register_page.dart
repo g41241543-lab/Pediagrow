@@ -9,10 +9,10 @@ import '../../core/services/google_auth_service.dart';
 import '../../core/services/user_service.dart';
 
 import 'auth_choice_page.dart';
+import 'lengkapi_profil_ibu_page.dart';
 import 'login_page.dart';
 import 'terms_page.dart';
 import 'widgets/google_auth_dialog.dart';
-import '../pengguna/beranda/beranda_page.dart';
 
 /// Halaman Pendaftaran Akun Baru (Register Page) PediaGrow.
 ///
@@ -128,17 +128,17 @@ class _RegisterPageState extends State<RegisterPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Pendaftaran berhasil! Mengalihkan ke halaman pilihan akun...',
+          'Pendaftaran berhasil! Silakan lengkapi profil Bunda...',
         ),
         backgroundColor: Color(0xFF3985E7),
         duration: Duration(seconds: 2),
       ),
     );
 
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const AuthChoicePage()),
+      MaterialPageRoute(builder: (_) => const LengkapiProfilIbuPage()),
       (route) => false,
     );
   }
@@ -201,7 +201,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => const BerandaPage(showLengkapiProfilBanner: true),
+          builder: (_) => const LengkapiProfilIbuPage(),
         ),
         (route) => false,
       );
@@ -381,7 +381,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             color: inputTextColor,
                           ),
                           decoration: _buildInputDecoration(
-                            hintText: 'Kata Sandi min. 6 karakter',
+                            hintText: 'Min. 6 karakter (huruf besar, kecil, angka, simbol)',
                             isDark: isDark,
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -405,15 +405,25 @@ class _RegisterPageState extends State<RegisterPage> {
                             if (value.length < 6) {
                               return 'Kata sandi minimal 6 karakter';
                             }
-                            final hasLetter = RegExp(r'[a-zA-Z]')
-                                .hasMatch(value);
-                            final hasNumber = RegExp(r'[0-9]').hasMatch(value);
-                            final hasSymbol = RegExp(
-                              r'[!@#\$%^&*(),.?":{}|<>\-_=+/\\~`\[\]]',
-                            ).hasMatch(value);
+                            final hasUpper = RegExp(r'[A-Z]').hasMatch(value);
+                            final hasLower = RegExp(r'[a-z]').hasMatch(value);
+                            final hasDigit = RegExp(r'[0-9]').hasMatch(value);
+                            const specialChars =
+                                r'''~!@#$%^&*_-+=`|(){}[]:;"'<>,.?/''';
+                            final hasSpecial =
+                                value.split('').any(specialChars.contains);
 
-                            if (!hasLetter || !hasNumber || !hasSymbol) {
-                              return 'Kata sandi harus kombinasi huruf, angka, dan simbol';
+                            if (!hasUpper) {
+                              return 'Kata sandi harus mengandung huruf kapital (A-Z)';
+                            }
+                            if (!hasLower) {
+                              return 'Kata sandi harus mengandung huruf kecil (a-z)';
+                            }
+                            if (!hasDigit) {
+                              return 'Kata sandi harus mengandung angka (0-9)';
+                            }
+                            if (!hasSpecial) {
+                              return 'Kata sandi harus mengandung karakter khusus / simbol';
                             }
                             return null;
                           },
