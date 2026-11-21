@@ -113,6 +113,12 @@ class DoctorService {
     _doctorsNotifier.value = doctors;
   }
 
+  /// Mengembalikan data dokter ke daftar default untuk keperluan testing
+  @visibleForTesting
+  void resetToDefault() {
+    _doctorsNotifier.value = List<DoctorModel>.from(defaultDoctors);
+  }
+
   // ============================================================
   // GETTERS
   // ============================================================

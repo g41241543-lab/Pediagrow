@@ -23,6 +23,7 @@ class RiwayatKonsultasiAdminItem {
   final String? resumeMedisId;
   final String? sessionId;
   final DateTime? createdAt;
+  final String? childPhotoUrl;
 
   const RiwayatKonsultasiAdminItem({
     required this.id,
@@ -41,6 +42,7 @@ class RiwayatKonsultasiAdminItem {
     this.resumeMedisId,
     this.sessionId,
     this.createdAt,
+    this.childPhotoUrl,
   });
 
   /// Apakah anak berjenis kelamin perempuan
@@ -82,6 +84,7 @@ class RiwayatKonsultasiAdminItem {
     String? resumeMedisId,
     String? sessionId,
     DateTime? createdAt,
+    String? childPhotoUrl,
   }) {
     return RiwayatKonsultasiAdminItem(
       id: id ?? this.id,
@@ -100,6 +103,7 @@ class RiwayatKonsultasiAdminItem {
       resumeMedisId: resumeMedisId ?? this.resumeMedisId,
       sessionId: sessionId ?? this.sessionId,
       createdAt: createdAt ?? this.createdAt,
+      childPhotoUrl: childPhotoUrl ?? this.childPhotoUrl,
     );
   }
 

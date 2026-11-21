@@ -1,11 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/staff_auth_service.dart';
 import '../../../models/staff_account_model.dart';
-import '../../../shared/widgets/child_avatar.dart';
-import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../../../shared/widgets/child_live_avatar.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
@@ -350,10 +349,7 @@ class _DaftarRiwayatKonsultasiAdminPageState
                                     ],
                                   ),
                                 ),
-
-                                const Spacer(),
-
-                                _buildFooterIllustration(),
+                                const SizedBox(height: 16.0),
                               ],
                             ),
                           ),
@@ -600,11 +596,6 @@ class _DaftarRiwayatKonsultasiAdminPageState
     );
   }
 
-  // ─── FOOTER ILLUSTRATION ──────────────────────────────────────────────────
-  Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
-  }
-
   // ─── BOTTOM NAVIGATION BAR (IDENTIK DENGAN BERANDA) ─────────────────────────
   Widget _buildBottomNavigationBar() {
     return PediaBottomNavBar(
@@ -752,11 +743,15 @@ class _AdminRiwayatConsultationCardState
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Avatar Anak Profil Resmi
-                        ChildAvatar(
+                        // Avatar Anak Profil Resmi (Terhubung Real-Time ke Firebase)
+                        ChildLiveAvatar(
+                          childId: item.childId,
+                          childName: item.childName,
+                          photoUrl: item.childPhotoUrl,
                           gender: item.childGender,
                           isGirl: item.isGirl,
                           size: 46.0,
+                          shape: BoxShape.circle,
                         ),
                         const SizedBox(width: 12.0),
                         Expanded(

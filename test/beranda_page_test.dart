@@ -66,9 +66,9 @@ void main() {
       matching: find.byType(Container),
     ).first;
     final Rect pediaGrowRect = tester.getRect(pediaGrowFinder);
-    expect(pediaGrowRect.left, equals(12.0));
-    expect(pediaGrowRect.right, equals(390.0 - 12.0));
-    expect(pediaGrowRect.width, equals(366.0));
+    expect(pediaGrowRect.left, equals(16.0));
+    expect(pediaGrowRect.right, equals(390.0 - 16.0));
+    expect(pediaGrowRect.width, equals(358.0));
 
     // Menu Card 1 (Cek Stunting) and Card 3 (Resep MPASI)
     final cekStuntingCard = find.ancestor(
@@ -82,8 +82,8 @@ void main() {
 
     final Rect cekStuntingRect = tester.getRect(cekStuntingCard);
     final Rect resepMpasiRect = tester.getRect(resepMpasiCard);
-    expect(cekStuntingRect.left, closeTo(12.0, 0.001));
-    expect(resepMpasiRect.right, closeTo(390.0 - 12.0, 0.001));
+    expect(cekStuntingRect.left, closeTo(16.0, 0.001));
+    expect(resepMpasiRect.right, closeTo(390.0 - 16.0, 0.001));
 
     // Footer Illustration
     final footerFinder = find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && ((w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer_fiks.png' || (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg'));

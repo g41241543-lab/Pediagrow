@@ -705,7 +705,9 @@ class _ProfilSuperadminPageState extends State<ProfilSuperadminPage> {
 
               // Email
               Text(
-                _superadmin?.email ?? '',
+                (_superadmin?.email != null && _superadmin!.email.isNotEmpty)
+                    ? _superadmin!.email
+                    : 'g41241509@student.polije.ac.id',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.lato(
                   fontSize: 13.0,

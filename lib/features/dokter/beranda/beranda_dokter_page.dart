@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/artikel_service.dart';
 import '../../../core/services/doctor_service.dart';
 import '../../../core/services/local_push_service.dart';
 import '../../../core/services/staff_auth_service.dart';
+import '../../../core/services/storage_service.dart';
 import '../../../core/services/superadmin_notification_service.dart';
 import '../../../core/services/theme_service.dart';
+import '../../../models/artikel_model.dart';
 import '../../../models/staff_account_model.dart';
 import '../../../models/superadmin_notification_model.dart';
 import '../../pengguna/artikel/artikel_kesehatan_page.dart';
+import '../../pengguna/artikel/detail_artikel_page.dart';
 import '../../pengguna/beranda/widgets/full_page_sky_background.dart';
 import '../../pengguna/beranda/widgets/header_sky_illustration.dart';
 import '../../pengguna/mpasi/daftar_resep_page.dart';
@@ -39,6 +43,53 @@ class BerandaDokterPage extends StatefulWidget {
 }
 
 class _BerandaDokterPageState extends State<BerandaDokterPage> {
+  List<ArtikelModel> _latestArticles = [];
+  bool _isLoadingArticles = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLatestArticles();
+    ArtikelService().articlesNotifier.addListener(_onArticlesUpdated);
+  }
+
+  @override
+  void dispose() {
+    ArtikelService().articlesNotifier.removeListener(_onArticlesUpdated);
+    super.dispose();
+  }
+
+  void _onArticlesUpdated() {
+    if (!mounted) return;
+    final all = ArtikelService().currentArticles;
+    final sorted = List<ArtikelModel>.from(all);
+    sorted.sort((a, b) => (b.id ?? '').compareTo(a.id ?? ''));
+    setState(() {
+      _latestArticles = sorted.take(6).toList();
+      _isLoadingArticles = false;
+    });
+  }
+
+  Future<void> _loadLatestArticles() async {
+    setState(() => _isLoadingArticles = true);
+    try {
+      final all = await ArtikelService().getAllArticles();
+      final sorted = List<ArtikelModel>.from(all);
+      sorted.sort((a, b) => (b.id ?? '').compareTo(a.id ?? ''));
+      if (!mounted) return;
+      setState(() {
+        _latestArticles = sorted.take(6).toList();
+        _isLoadingArticles = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _latestArticles = [];
+        _isLoadingArticles = false;
+      });
+    }
+  }
+
   void _navigateTo(Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
@@ -292,130 +343,233 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
   // =========================================================================
   // CARD DOKTER
-  // Dimensi: lebar penuh, height 120, warna #FFFFFF, corner radius 15
-  // Kiri: Teks PeGo + tagline; Kanan: Ilustrasi dokter
+  // Dimensi: lebar penuh, height 125, soft blue gradient, corner radius 16
+  // Kiri: Teks PeGo + slogan + sub-pill; Kanan: Ilustrasi dokter proporsional
   // =========================================================================
   Widget _buildDokterCard(BuildContext context) {
     final isDark = ThemeService.isDark(context);
     return Container(
       width: double.infinity,
-      height: 120,
+      height: 125,
       decoration: BoxDecoration(
-        color: isDark ? ThemeService.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: isDark ? Border.all(color: ThemeService.darkBorder) : null,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1D252C),
+                  const Color(0xFF171E24),
+                ]
+              : [
+                  const Color(0xFFEAF4FF),
+                  const Color(0xFFD4EBFE),
+                ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFCCE4FB),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Teks kiri: PeGo + tagline
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    RichText(
-                      text: TextSpan(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Aksen gelembung dekoratif halus di kanan belakang dokter
+            Positioned(
+              right: -25,
+              top: -25,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.025)
+                      : Colors.white.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+            // Micro Sparkle (✦) di Sudut Kanan Atas
+            Positioned(
+              top: 12,
+              right: 14,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 8.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.30)
+                    : Colors.white.withValues(alpha: 0.95),
+              ),
+            ),
+            // Konten Utama
+            Padding(
+              padding: const EdgeInsets.only(left: 14, right: 10, top: 10, bottom: 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Teks kiri: PeGo + slogan + sub-pill
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TextSpan(
-                            text: 'Pe',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4B83D6),
+                          Row(
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Pe',
+                                      style: GoogleFonts.baloo2(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF4B83D6),
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: 'Go',
+                                      style: GoogleFonts.baloo2(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF3CC3A6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ValueListenableBuilder<StaffAccount?>(
+                                valueListenable:
+                                    StaffAuthService().currentStaffNotifier,
+                                builder: (context, staff, _) {
+                                  final roleText = (staff?.isDokter == true ||
+                                          staff?.role == StaffRole.dokter)
+                                      ? 'Dokter'
+                                      : (staff?.role.label ?? 'Dokter');
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF1E3A8A)
+                                              .withValues(alpha: 0.3)
+                                          : Colors.white.withValues(alpha: 0.75),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? const Color(0xFF3B82F6)
+                                                .withValues(alpha: 0.5)
+                                            : const Color(0xFFBFDBFE),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      roleText,
+                                      style: GoogleFonts.lato(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? const Color(0xFF93C5FD)
+                                            : const Color(0xFF2563EB),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
+                            style: GoogleFonts.lato(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF1E293B),
+                              height: 1.3,
                             ),
                           ),
-                          TextSpan(
-                            text: 'Go',
-                            style: GoogleFonts.baloo2(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF3CC3A6),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.white.withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.15)
+                                    : const Color(0xFFBAE6FD),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome,
+                                  size: 10,
+                                  color: isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : const Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Pusat Monitoring Tumbuh Kembang',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? const Color(0xFF93C5FD)
+                                        : const Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ValueListenableBuilder<StaffAccount?>(
-                      valueListenable: StaffAuthService().currentStaffNotifier,
-                      builder: (context, staff, _) {
-                        final roleText = (staff?.isDokter == true ||
-                                staff?.role == StaffRole.dokter)
-                            ? 'Dokter'
-                            : (staff?.role.label ?? 'Dokter');
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
-                                : const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.5)
-                                  : const Color(0xFFBFDBFE),
-                            ),
-                          ),
-                          child: Text(
-                            roleText,
-                            style: GoogleFonts.lato(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? const Color(0xFF93C5FD)
-                                  : const Color(0xFF2563EB),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Melayani Sepenuh Hati,\nMencegah Stunting Sedini Mungkin',
-                  style: GoogleFonts.lato(
-                    fontSize: 13,
-                    fontWeight: FontWeight.normal,
-                    color: isDark
-                        ? ThemeService.darkTextSecondary
-                        : const Color(0xFF2C363D),
-                    height: 1.35,
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // Ilustrasi dokter (kanan)
-          SizedBox(
-            width: 90,
-            height: 100,
-            child: Image.asset(
-              'assets/images/dokter_superadmin_card.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.medical_services_rounded,
-                size: 60,
-                color: Color(0xFF3985E7),
+                  // Ilustrasi dokter (kanan)
+                  SizedBox(
+                    width: 86,
+                    height: 115,
+                    child: Image.asset(
+                      'assets/images/dokter_superadmin_card.png',
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomCenter,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.medical_services_rounded,
+                        size: 60,
+                        color: Color(0xFF3985E7),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -438,11 +592,8 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
           const SizedBox(height: 24),
 
-          // Card Slogan PeGo
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildPeGoSloganCard(context),
-          ),
+          // Artikel Terbaru
+          _buildLatestArticlesSection(context),
         ],
       ),
     );
@@ -468,7 +619,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               child: _buildMenuItem(
                 context: context,
                 title: 'Rekapitulasi',
-                customIcon: _buildRekapitulasiLogo(),
+                imageAsset: 'assets/images/rekapitulasi_logo.png',
                 blobColor: const Color(0xFFD97706),
                 isLocked: false,
                 onTap: () =>
@@ -480,7 +631,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               child: _buildMenuItem(
                 context: context,
                 title: 'Data\nAnak',
-                imageAsset: 'assets/images/data_pasien_logo.png',
+                imageAsset: 'assets/images/data_anak_logo.png',
                 blobColor: const Color(0xFF3CC3A6),
                 isLocked: false,
                 onTap: () => _navigateTo(const DataPasienPage()),
@@ -491,6 +642,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
               child: _buildMenuItem(
                 context: context,
                 title: 'Jadwal\nPraktik',
+                imageAsset: 'assets/images/jadwal_praktik_logo.png',
                 customIcon: _buildJadwalPraktikLogo(),
                 blobColor: const Color(0xFF0284C7),
                 isLocked: false,
@@ -534,7 +686,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
                 title: 'Permainan\n',
                 imageAsset: 'assets/images/permainan_logo.png',
                 blobColor: const Color(0xFFF59E0B),
-                logoOffsetX: 5,
+                logoOffsetX: 0,
                 isLocked: true,
                 onTap: () => _showLockedMenuNotice('Permainan'),
               ),
@@ -669,20 +821,22 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     required double imageSize,
     required Color fallbackColor,
   }) {
-    if (customIcon != null) return customIcon;
-
     if (imageAsset != null) {
       return Image.asset(
         imageAsset,
         height: imageSize,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => Icon(
-          icon ?? Icons.widgets_rounded,
-          size: imageSize,
-          color: iconColor ?? fallbackColor,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            customIcon ??
+            Icon(
+              icon ?? Icons.widgets_rounded,
+              size: imageSize,
+              color: iconColor ?? fallbackColor,
+            ),
       );
     }
+
+    if (customIcon != null) return customIcon;
 
     return Icon(
       icon ?? Icons.widgets_rounded,
@@ -902,7 +1056,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
             textAlign: TextAlign.center,
             style: GoogleFonts.lato(
               fontSize: 14,
-              fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
+              fontWeight: FontWeight.normal,
               color: isDark
                   ? (isLocked
                       ? ThemeService.darkTextMuted
@@ -921,132 +1075,137 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
 
 
   // =========================================================================
-  // CARD SLOGAN PeGo DOKTER
-  // Dimensi: height 115, color #ECF6FF, corner radius 10
+  // ARTIKEL TERBARU
   // =========================================================================
-  Widget _buildPeGoSloganCard(BuildContext context) {
+  Widget _buildLatestArticlesSection(BuildContext context) {
     final isDark = ThemeService.isDark(context);
-    return Container(
-      width: double.infinity,
-      height: 115,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF1D252C),
-                  const Color(0xFF171E24),
-                ]
-              : [
-                  const Color(0xFFEAF4FF),
-                  const Color(0xFFD4EBFE),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? const Color(0xFF2C363D)
-              : const Color(0xFFCCE4FB),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Artikel Terbaru',
+                style: GoogleFonts.lato(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? ThemeService.darkTextPrimary
+                      : const Color(0xFF0F172A),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _navigateTo(const ArtikelKesehatanPage()),
+                child: Text(
+                  'Selengkapnya',
+                  style: GoogleFonts.lato(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3985E7),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            // Micro Sparkle (✦) di Sudut Kanan Atas
-            Positioned(
-              top: 12,
-              right: 14,
-              child: Icon(
-                Icons.auto_awesome,
-                size: 8.5,
+        ),
+        const SizedBox(height: 12),
+        if (_isLoadingArticles)
+          const Center(child: CircularProgressIndicator())
+        else if (_latestArticles.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Belum ada artikel terbaru.',
+              style: GoogleFonts.lato(
+                fontSize: 12,
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.30)
-                    : Colors.white.withValues(alpha: 0.95),
+                    ? ThemeService.darkTextSecondary
+                    : const Color(0xFF64748B),
               ),
             ),
-
-            // Konten Baris: Ilustrasi Dokter & Teks
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Ilustrasi dokter duduk di depan komputer
-                  SizedBox(
-                    width: 84,
-                    height: 94,
-                    child: Image.asset(
-                      'assets/images/dokter_komputer_slogan.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.computer_rounded,
-                        size: 50,
-                        color: Color(0xFF3985E7),
+          )
+        else
+          SizedBox(
+            height: 160,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              scrollDirection: Axis.horizontal,
+              itemCount: _latestArticles.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final artikel = _latestArticles[index];
+                return GestureDetector(
+                  onTap: () => _navigateTo(DetailArtikelPage(artikel: artikel)),
+                  child: Container(
+                    width: 160,
+                    decoration: BoxDecoration(
+                      color: isDark ? ThemeService.darkCard : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? ThemeService.darkBorder
+                            : const Color(0xFFE2E8F0),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.2 : 0.04,
+                          ),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  // Teks PeGo & deskripsi dokter
-                  Expanded(
+                    clipBehavior: Clip.antiAlias,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Pe',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF4B83D6),
-                                ),
+                        Expanded(
+                          child: StorageService.buildImageWidget(
+                            artikel.displayImage ?? artikel.imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorWidget: Container(
+                              color: isDark
+                                  ? const Color(0xFF2C363D)
+                                  : const Color(0xFFF1F5F9),
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.article_rounded,
+                                size: 36,
+                                color: isDark
+                                    ? ThemeService.darkTextSecondary
+                                    : const Color(0xFF94A3B8),
                               ),
-                              TextSpan(
-                                text: 'Go',
-                                style: GoogleFonts.baloo2(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF3CC3A6),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Pego merupakan pendukung aplikasi PediaGrow untuk dokter, PMIK dan admin yang mengelola',
-                          style: GoogleFonts.lato(
-                            fontSize: 12,
-                            fontWeight: FontWeight.normal,
-                            color: isDark
-                                ? ThemeService.darkTextSecondary
-                                : const Color(0xFF1E293B),
-                            height: 1.3,
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Text(
+                            artikel.judul,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.lato(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? ThemeService.darkTextPrimary
+                                  : const Color(0xFF0F172A),
+                            ),
                           ),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -369,24 +369,19 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                           _buildAvatarSection(isDark),
                           const SizedBox(height: 18),
 
-                          // 2. Nama Pengguna*
+                          // 2. Nama Pengguna (Terkunci dari Pendaftaran)
                           _buildTextField(
                             isDark: isDark,
                             controller: _nameController,
                             label: 'Nama Pengguna',
                             hint: 'Masukkan nama pengguna',
                             prefixIcon: Icons.person_outline_rounded,
-                            isRequired: true,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty) {
-                                return 'Nama pengguna tidak boleh kosong';
-                              }
-                              return null;
-                            },
+                            readOnly: true,
+                            isRequired: false,
                           ),
                           const SizedBox(height: 14),
 
-                          // 3. Email*
+                          // 3. Email (Terkunci dari Pendaftaran)
                           _buildTextField(
                             isDark: isDark,
                             controller: _emailController,
@@ -394,19 +389,8 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                             hint: 'contoh@gmail.com',
                             prefixIcon: Icons.mail_outline_rounded,
                             keyboardType: TextInputType.emailAddress,
-                            isRequired: true,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty) {
-                                return 'Email tidak boleh kosong';
-                              }
-                              final emailRegex = RegExp(
-                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                              );
-                              if (!emailRegex.hasMatch(val.trim())) {
-                                return 'Format email tidak valid';
-                              }
-                              return null;
-                            },
+                            readOnly: true,
+                            isRequired: false,
                           ),
                           const SizedBox(height: 14),
 
@@ -423,11 +407,12 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(16),
                             ],
-                            isRequired: false,
+                            isRequired: true,
                             validator: (val) {
-                              if (val != null &&
-                                  val.trim().isNotEmpty &&
-                                  val.trim().length != 16) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'Nomor KK tidak boleh kosong';
+                              }
+                              if (val.trim().length != 16) {
                                 return 'Nomor KK harus 16 digit angka';
                               }
                               return null;
@@ -446,11 +431,12 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(16),
                             ],
-                            isRequired: false,
+                            isRequired: true,
                             validator: (val) {
-                              if (val != null &&
-                                  val.trim().isNotEmpty &&
-                                  val.trim().length != 16) {
+                              if (val == null || val.trim().isEmpty) {
+                                return 'NIK tidak boleh kosong';
+                              }
+                              if (val.trim().length != 16) {
                                 return 'NIK harus 16 digit angka';
                               }
                               return null;
@@ -816,6 +802,7 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     required String hint,
     required IconData prefixIcon,
     bool isRequired = false,
+    bool readOnly = false,
     TextInputType keyboardType = TextInputType.text,
     int? maxLength,
     List<TextInputFormatter>? inputFormatters,
@@ -828,15 +815,23 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
+          readOnly: readOnly,
           keyboardType: keyboardType,
           maxLength: maxLength,
           inputFormatters: inputFormatters,
           style: GoogleFonts.lato(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014),
+            color: readOnly
+                ? (isDark ? const Color(0xFF8696A0) : const Color(0xFF64748B))
+                : (isDark ? const Color(0xFFE9EDEF) : const Color(0xFF0B1014)),
           ),
-          decoration: _inputDecoration(isDark: isDark, hint: hint, prefixIcon: prefixIcon).copyWith(counterText: maxLength != null ? '' : null),
+          decoration: _inputDecoration(
+            isDark: isDark,
+            hint: hint,
+            prefixIcon: prefixIcon,
+            readOnly: readOnly,
+          ).copyWith(counterText: maxLength != null ? '' : null),
           validator: validator,
         ),
       ],
@@ -878,8 +873,11 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
     required String hint,
     required IconData prefixIcon,
     IconData? suffixIcon,
+    bool readOnly = false,
   }) {
-    final fieldBg = isDark ? const Color(0xFF1A2228) : Colors.white;
+    final fieldBg = readOnly
+        ? (isDark ? const Color(0xFF141C22) : const Color(0xFFF1F5F9))
+        : (isDark ? const Color(0xFF1A2228) : Colors.white);
     final borderColor = isDark ? const Color(0xFF2C363D) : const Color(0xFFD1D7DB);
     final iconColor = isDark ? const Color(0xFF8696A0) : const Color(0xFF667781);
     final hintColor = isDark ? const Color(0xFF667781) : const Color(0xFF8696A0);
@@ -888,9 +886,11 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       hintStyle: GoogleFonts.lato(fontSize: 14, color: hintColor),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       prefixIcon: Icon(prefixIcon, size: 20, color: iconColor),
-      suffixIcon: suffixIcon != null
-          ? Icon(suffixIcon, size: 20, color: iconColor)
-          : null,
+      suffixIcon: readOnly
+          ? Icon(Icons.lock_outline_rounded, size: 18, color: iconColor)
+          : (suffixIcon != null
+              ? Icon(suffixIcon, size: 20, color: iconColor)
+              : null),
       filled: true,
       fillColor: fieldBg,
       border: OutlineInputBorder(
@@ -903,7 +903,10 @@ class _ProfilIbuPageState extends State<ProfilIbuPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF3985E7), width: 1.5),
+        borderSide: BorderSide(
+          color: readOnly ? borderColor : const Color(0xFF3985E7),
+          width: readOnly ? 1.0 : 1.5,
+        ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

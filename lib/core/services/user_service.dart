@@ -208,13 +208,17 @@ class UserService {
         passwordHash: _hashPassword(password),
       );
 
-      await db.collection(_collection).add({
+      final docRef = await db.collection(_collection).add({
         ...newUser.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // Akun baru berhasil dibuat di Firestore.
-      // Sesi resmi akan diaktifkan setelah pengguna masuk lewat halaman Masuk.
+      // Akun baru langsung login agar pengguna dapat langsung melengkapi profil ibu
+      final createdUser = newUser.copyWith(id: docRef.id);
+      currentUserNotifier.value = createdUser;
+      await _saveSession(docRef.id);
+      _startListeningToUser(docRef.id);
+
       return UserAuthResult.success();
     } catch (e) {
       debugPrint('[UserService] registerWithEmail error: $e');
@@ -429,6 +433,7 @@ class UserService {
     String? name,
     String? username,
     String? email,
+    String? phone,
     String? gender,
     String? birthDate,
     String? province,
@@ -442,6 +447,7 @@ class UserService {
       name: name,
       username: username,
       email: email,
+      phone: phone,
       gender: gender,
       birthDate: birthDate,
       province: province,
@@ -462,6 +468,56 @@ class UserService {
     await _syncCurrentUserToFirestore();
   }
 
+  // ---------------------------------------------------------------------
+  // UBAH KATA SANDI
+  // ---------------------------------------------------------------------
+
+  /// Mengubah kata sandi pengguna biasa (ibu/pengguna).
+  /// Memvalidasi kesesuaian oldPassword dengan kata sandi saat ini di Firestore.
+  Future<UserAuthResult> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final user = currentUserNotifier.value;
+      if (user.id.isEmpty) {
+        return UserAuthResult.failure('Sesi pengguna tidak valid.');
+      }
+      final db = _db;
+      if (db == null) {
+        return UserAuthResult.failure('Koneksi database tidak tersedia.');
+      }
+
+      final docSnap = await db.collection(_collection).doc(user.id).get();
+      if (!docSnap.exists) {
+        return UserAuthResult.failure('Akun pengguna tidak ditemukan.');
+      }
+
+      final data = docSnap.data() ?? {};
+      final currentHash =
+          data['passwordHash'] ?? data['password'] ?? user.passwordHash;
+
+      // Jika akun sudah memiliki kata sandi, verifikasi kata sandi lama
+      if (currentHash != null && currentHash.toString().isNotEmpty) {
+        final oldHash = _hashPassword(oldPassword.trim());
+        if (oldHash != currentHash.toString()) {
+          return UserAuthResult.failure('Kata sandi saat ini tidak sesuai.');
+        }
+      }
+
+      final newHash = _hashPassword(newPassword.trim());
+      await db.collection(_collection).doc(user.id).update({
+        'passwordHash': newHash,
+      });
+
+      currentUserNotifier.value = user.copyWith(passwordHash: newHash);
+      return UserAuthResult.success();
+    } catch (e) {
+      debugPrint('[UserService] changePassword error: $e');
+      return UserAuthResult.failure('Gagal mengubah kata sandi: $e');
+    }
+  }
+
   /// Menyimpan perubahan data pengguna yang sedang login ke Firestore.
   Future<void> _syncCurrentUserToFirestore() async {
     final user = currentUserNotifier.value;
@@ -480,6 +536,7 @@ class UserService {
     _userSubscription?.cancel();
     _userSubscription = null;
     _clearSession();
+    ChildService().clear();
     currentUserNotifier.value = const UserModel(
       id: '',
       name: 'Tamu',

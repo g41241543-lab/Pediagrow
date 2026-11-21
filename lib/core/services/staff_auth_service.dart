@@ -956,6 +956,12 @@ class StaffAuthService {
   // GANTI PASSWORD
   // ============================================================
 
+  /// Memverifikasi apakah password cocok dengan passwordHash yang tersimpan.
+  bool verifyPassword(String rawPassword, String? storedHash) {
+    if (storedHash == null || storedHash.isEmpty) return true;
+    return _hashPassword(rawPassword.trim()) == storedHash;
+  }
+
   /// Mengubah password akun staff.
   Future<void> changePassword(String accountId, String newPassword) async {
     try {
