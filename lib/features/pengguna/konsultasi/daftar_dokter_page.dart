@@ -807,8 +807,8 @@ class _DaftarDokterPageState extends State<DaftarDokterPage>
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: isDark
-                          ? const Color(0xFF34D399)
-                          : const Color(0xFF059669),
+                          ? const Color(0xFF93C5FD)
+                          : _colorPrimaryBlue,
                     ),
                   ),
                 ],

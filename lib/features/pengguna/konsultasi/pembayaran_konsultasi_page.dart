@@ -55,46 +55,46 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
   // Bank Virtual Account options
   final List<Map<String, String>> _bankList = [
     {
-      'code': 'BCA',
-      'name': 'BCA Virtual Account',
-      'vaNumber': '8808 0812 3456 7891',
-      'color': '#003087',
-    },
-    {
-      'code': 'Mandiri',
-      'name': 'Mandiri Virtual Account',
-      'vaNumber': '8902 2026 8812 3456',
-      'color': '#003087',
+      'code': 'BNI',
+      'name': 'BANK BNI',
+      'vaNumber': '9880 0812 3456 7893',
+      'assetLogo': 'assets/images/banks/bni.png',
     },
     {
       'code': 'BRI',
-      'name': 'BRI Virtual Account (BRIVA)',
+      'name': 'BANK BRI',
       'vaNumber': '1280 0812 3456 7892',
-      'color': '#00529B',
-    },
-    {
-      'code': 'BNI',
-      'name': 'BNI Virtual Account',
-      'vaNumber': '9880 0812 3456 7893',
-      'color': '#F37021',
+      'assetLogo': 'assets/images/banks/bri.png',
     },
     {
       'code': 'BTN',
-      'name': 'BTN Virtual Account',
+      'name': 'BANK BTN',
       'vaNumber': '0027 0812 3456 7894',
-      'color': '#1D4ED8',
-    },
-    {
-      'code': 'Maybank',
-      'name': 'Maybank Virtual Account',
-      'vaNumber': '9888 0812 3456 7895',
-      'color': '#F5A623',
+      'assetLogo': 'assets/images/banks/btn.png',
     },
     {
       'code': 'Lainnya',
-      'name': 'Bank Lainnya',
+      'name': 'BANK LAINNYA',
       'vaNumber': '8008 0812 3456 7896',
-      'color': '#64748B',
+      'assetLogo': '',
+    },
+    {
+      'code': 'Mandiri',
+      'name': 'BANK MANDIRI',
+      'vaNumber': '8902 2026 8812 3456',
+      'assetLogo': 'assets/images/banks/mandiri.png',
+    },
+    {
+      'code': 'BCA',
+      'name': 'VA BCA',
+      'vaNumber': '8808 0812 3456 7891',
+      'assetLogo': 'assets/images/banks/bca.png',
+    },
+    {
+      'code': 'Maybank',
+      'name': 'VA MAYBANK',
+      'vaNumber': '9888 0812 3456 7895',
+      'assetLogo': 'assets/images/banks/maybank.png',
     },
   ];
 
@@ -193,19 +193,23 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
       createdAt: DateTime.now(),
     );
 
+    // 1. Tampilkan notifikasi pembayaran berhasil (notifikasi pertama yang muncul)
+    LocalPushService().show(
+      title: 'Pembayaran Berhasil',
+      body:
+          'Pembayaran terverifikasi. Jadwal konsultasi anak ${widget.child.name} bersama ${widget.doctor.name} telah berhasil dijadwalkan.',
+      targetRole: PushRole.pengguna,
+    );
+
+    // Jeda singkat agar notifikasi pembayaran terproses terlebih dahulu
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // 2. Simpan booking ke BookingService (kemudian diikuti dengan notifikasi booking berhasil)
     try {
       await BookingService().addBooking(newBooking);
     } catch (e) {
       debugPrint('[Pembayaran] Catatan simpan booking: $e');
     }
-
-    // Tampilkan notifikasi push HP
-    LocalPushService().show(
-      title: 'Booking Konsultasi Berhasil!',
-      body:
-          'Pembayaran terverifikasi. Jadwal konsultasi anak ${widget.child.name} bersama ${widget.doctor.name} telah berhasil dijadwalkan.',
-      targetRole: PushRole.pengguna,
-    );
 
     if (!mounted) return;
 
@@ -933,25 +937,40 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
   }
 
   // ─── 5A. BAGIAN VIRTUAL ACCOUNT ───────────────────────────────────────────
-  Color _bankColor(String code) {
-    switch (code) {
-      case 'BCA':
-        return const Color(0xFF003087);
-      case 'Mandiri':
-        return const Color(0xFF003087);
-      case 'BRI':
-        return const Color(0xFF00529B);
-      case 'BNI':
-        return const Color(0xFFF37021);
-      case 'BTN':
-        return const Color(0xFF1D4ED8);
-      case 'Maybank':
-        return const Color(0xFFF5A623);
-      default:
-        return const Color(0xFF64748B);
+  Widget _buildBankLogoWidget(Map<String, String> bank) {
+    final asset = bank['assetLogo'];
+    if (asset != null && asset.isNotEmpty) {
+      return Container(
+        width: 68,
+        height: 28,
+        alignment: Alignment.centerLeft,
+        child: Image.asset(
+          asset,
+          fit: BoxFit.contain,
+          errorBuilder: (_, _, _) => Text(
+            bank['code']!,
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: _colorPrimaryBlue,
+            ),
+          ),
+        ),
+      );
     }
+    // Bank Lainnya: Icon gedung bank klasik warna biru
+    return Container(
+      width: 68,
+      height: 28,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.only(left: 2),
+      child: const Icon(
+        Icons.account_balance_rounded,
+        size: 24,
+        color: Color(0xFF00529B),
+      ),
+    );
   }
-
 
   Widget _buildVirtualAccountSection(bool isDark) {
     return Container(
@@ -975,7 +994,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
             ),
           ),
           const SizedBox(height: 10),
-          // Pilihan Bank
+          // Pilihan Bank dengan warna seleksi seragam
           Column(
             children: _bankList.map((bank) {
               final isSelected = _selectedBank == bank['code'];
@@ -985,71 +1004,35 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                 child: Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
+                    // Warna seragam untuk semua bank saat dipilih
                     color: isSelected
                         ? (isDark
-                            ? _bankColor(bank['code']!).withValues(alpha: 0.22)
-                            : _bankColor(bank['code']!).withValues(alpha: 0.08))
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.22)
+                            : const Color(0xFFEFF6FF))
                         : (isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
+                      // Border seragam untuk semua bank saat dipilih
                       color: isSelected
-                          ? _bankColor(bank['code']!)
+                          ? _colorPrimaryBlue
                           : (isDark ? const Color(0xFF2C363D) : _colorBorder),
-                      width: isSelected ? 1.4 : 1,
+                      width: isSelected ? 1.5 : 1,
                     ),
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 56,
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? _bankColor(bank['code']!)
-                                : (isDark ? const Color(0xFF242E35) : Colors.white),
-                            borderRadius: BorderRadius.circular(6),
-                            border: isSelected
-                                ? null
-                                : Border.all(
-                                    color: bank['code'] == 'Lainnya'
-                                        ? const Color(0xFFCBD5E1)
-                                        : _bankColor(bank['code']!).withValues(alpha: 0.4),
-                                    width: 0.8,
-                                  ),
-                          ),
-                          child: bank['code'] == 'Lainnya'
-                              ? Icon(
-                                  Icons.account_balance_rounded,
-                                  size: 16,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : const Color(0xFF64748B),
-                                )
-                              : Text(
-                                  bank['code']!,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w900,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : _bankColor(bank['code']!),
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                      // Logo Bank HD
+                      _buildBankLogoWidget(bank),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           bank['name']!,
                           style: GoogleFonts.lato(
-                            fontSize: 13,
+                            fontSize: 13.5,
                             fontWeight:
-                                isSelected ? FontWeight.bold : FontWeight.w500,
+                                isSelected ? FontWeight.bold : FontWeight.w600,
                             color: isDark
                                 ? const Color(0xFFE9EDEF)
                                 : _colorTextBlack,
@@ -1057,10 +1040,18 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                         ),
                       ),
                       if (isSelected)
-                        Icon(
+                        const Icon(
                           Icons.check_circle_rounded,
-                          size: 18,
-                          color: _bankColor(bank['code']!),
+                          size: 20,
+                          color: _colorPrimaryBlue,
+                        )
+                      else
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20,
+                          color: isDark
+                              ? const Color(0xFF8696A0)
+                              : const Color(0xFF94A3B8),
                         ),
                     ],
                   ),
@@ -1450,24 +1441,15 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                       color: Colors.white,
                     ),
                   )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.verified_rounded,
-                        size: 18,
+                : Center(
+                    child: Text(
+                      'Bayar Sekarang',
+                      style: GoogleFonts.lato(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Bayar Sekarang',
-                        style: GoogleFonts.lato(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
           ),
         ),
