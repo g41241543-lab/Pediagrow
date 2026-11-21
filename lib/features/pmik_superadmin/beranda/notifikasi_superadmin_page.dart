@@ -1,620 +1,1241 @@
+import '../../dokter/dokter_shell.dart';
+
 import 'package:flutter/material.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
+
+
 import '../../../core/services/local_push_service.dart';
+
 import '../../../core/services/superadmin_notification_service.dart';
+
 import '../../../models/superadmin_notification_model.dart';
-import '../../dokter/beranda/beranda_dokter_page.dart';
+
+
 import '../../dokter/beranda/data_pasien/data_pasien_page.dart' as dokter_data;
+
 import '../../dokter/jadwal/atur_jadwal_dokter_page.dart';
+
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
+
 import '../../dokter/profil_dokter_page.dart';
+
 import '../../pmik_admin/beranda/beranda_pmik_page.dart';
+
 import '../../pmik_admin/beranda/data_anak/data_pasien_page.dart' as pmik_data;
+
 import '../../pmik_admin/konsultasi/konsultasi_pmik_admin_page.dart';
+
 import '../../pmik_admin/profil_pmik_page.dart';
+
 import '../konsultasi/konsultasi_superadmin_page.dart';
+
 import '../profil/hak_akses/daftar_dokter_akses_page.dart';
+
 import '../profil/hak_akses/daftar_pmik_akses_page.dart';
+
 import '../profil/profil_superadmin_page.dart';
+
 import 'beranda_superadmin_page.dart';
+
 import 'kelola_artikel/daftar_artikel_admin_page.dart';
+
 import 'kelola_resep_mpasi/daftar_resep_mpasi_admin_page.dart';
+
 import 'rekapitulasi/rekapitulasi_stunting_page.dart';
+
 import '../../../shared/widgets/konfirmasi_hapus_notifikasi_dialog.dart';
+
 import '../../../shared/widgets/swipeable_notification_tile.dart';
 
+
+
 /// Halaman Notifikasi Staff (Superadmin, PMIK, Dokter) PediaGrow.
+
 /// Menampilkan notifikasi sesuai role masing-masing, dengan item yang dapat diklik
+
 /// langsung menuju halaman target perubahan yang bersangkutan.
+
 class NotifikasiSuperadminPage extends StatefulWidget {
+
   final PushRole? role;
+
   const NotifikasiSuperadminPage({super.key, this.role});
 
+
+
   @override
+
   State<NotifikasiSuperadminPage> createState() =>
+
       _NotifikasiSuperadminPageState();
+
 }
+
+
 
 class _NotifikasiSuperadminPageState extends State<NotifikasiSuperadminPage> {
+
   final SuperadminNotificationService _notifService =
+
       SuperadminNotificationService();
 
+
+
   PushRole get _effectiveRole =>
+
       widget.role ?? LocalPushService().activeRole ?? PushRole.superadmin;
 
+
+
   @override
+
   void initState() {
+
     super.initState();
+
     _notifService.init();
+
     // Tandai notifikasi role ini sebagai sudah dibaca ketika halaman dibuka
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
       _notifService.markRoleAsRead(_effectiveRole);
+
     });
+
   }
+
+
 
   void _onNotificationTap(SuperadminNotificationItem item) {
+
     final role = _effectiveRole;
+
     switch (item.type) {
+
       case SuperadminNotificationType.artikel:
+
         Navigator.of(context).push(
+
           MaterialPageRoute(builder: (_) => const DaftarArtikelAdminPage()),
+
         );
+
         break;
+
       case SuperadminNotificationType.resepMpasi:
+
         Navigator.of(context).push(
+
           MaterialPageRoute(builder: (_) => const DaftarResepMpasiAdminPage()),
+
         );
+
         break;
+
       case SuperadminNotificationType.dokter:
+
         if (role == PushRole.dokter) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+
           );
+
         } else {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+
           );
+
         }
+
         break;
+
       case SuperadminNotificationType.pmik:
+
         if (role == PushRole.pmik) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+
           );
+
         } else {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const DaftarPmikAksesPage()),
+
           );
+
         }
+
         break;
+
       case SuperadminNotificationType.profil:
+
         if (role == PushRole.dokter) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+
           );
+
         } else if (role == PushRole.pmik) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+
           );
+
         } else {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const ProfilSuperadminPage()),
+
           );
+
         }
+
         break;
+
       case SuperadminNotificationType.jadwal:
+
         if (role == PushRole.dokter) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const AturJadwalDokterPage()),
+
           );
+
         } else {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+
           );
+
         }
+
         break;
+
       case SuperadminNotificationType.konsultasi:
+
         if (role == PushRole.dokter) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const KonsultasiDokterPage()),
+
           );
+
         } else if (role == PushRole.pmik) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const KonsultasiPmikAdminPage()),
+
           );
+
         } else {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const KonsultasiSuperadminPage()),
+
           );
+
         }
+
         break;
+
       case SuperadminNotificationType.pasien:
+
         if (role == PushRole.dokter) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(
+
                 builder: (_) => const dokter_data.DataPasienPage()),
+
           );
+
         } else if (role == PushRole.pmik) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const pmik_data.DataPasienPage()),
+
           );
+
         } else {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const RekapitulasiStuntingPage()),
+
           );
+
         }
+
         break;
+
       case SuperadminNotificationType.pengingatDataset:
+
       case SuperadminNotificationType.unduhDataset:
+
         Navigator.of(context).push(
+
           MaterialPageRoute(builder: (_) => const RekapitulasiStuntingPage()),
+
         );
+
         break;
+
       case SuperadminNotificationType.umum:
+
         final lower = '${item.title} ${item.message}'.toLowerCase();
+
         if (lower.contains('profil')) {
+
           if (role == PushRole.dokter) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+
             );
+
           } else if (role == PushRole.pmik) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+
             );
+
           } else {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const ProfilSuperadminPage()),
+
             );
+
           }
+
         } else if (lower.contains('dokter')) {
+
           if (role == PushRole.dokter) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const ProfilDokterPage()),
+
             );
+
           } else {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+
             );
+
           }
+
         } else if (lower.contains('pmik')) {
+
           if (role == PushRole.pmik) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const ProfilPmikPage()),
+
             );
+
           } else {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const DaftarPmikAksesPage()),
+
             );
+
           }
+
         } else if (lower.contains('artikel')) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const DaftarArtikelAdminPage()),
+
           );
+
         } else if (lower.contains('resep') || lower.contains('mpasi')) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(
+
                 builder: (_) => const DaftarResepMpasiAdminPage()),
+
           );
+
         } else if (lower.contains('jadwal')) {
+
           if (role == PushRole.dokter) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const AturJadwalDokterPage()),
+
             );
+
           } else {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const DaftarDokterAksesPage()),
+
             );
+
           }
+
         } else if (lower.contains('konsultasi') ||
+
             lower.contains('resume') ||
+
             lower.contains('chat')) {
+
           if (role == PushRole.dokter) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(builder: (_) => const KonsultasiDokterPage()),
+
             );
+
           } else if (role == PushRole.pmik) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(
+
                   builder: (_) => const KonsultasiPmikAdminPage()),
+
             );
+
           } else {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(
+
                   builder: (_) => const KonsultasiSuperadminPage()),
+
             );
+
           }
+
         } else if (lower.contains('dataset') ||
+
             lower.contains('unduh') ||
+
             lower.contains('rekapitulasi')) {
+
           Navigator.of(context).push(
+
             MaterialPageRoute(builder: (_) => const RekapitulasiStuntingPage()),
+
           );
+
         } else if (lower.contains('pasien') || lower.contains('anak')) {
+
           if (role == PushRole.dokter) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(
+
                   builder: (_) => const dokter_data.DataPasienPage()),
+
             );
+
           } else if (role == PushRole.pmik) {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(
+
                   builder: (_) => const pmik_data.DataPasienPage()),
+
             );
+
           } else {
+
             Navigator.of(context).push(
+
               MaterialPageRoute(
+
                   builder: (_) => const RekapitulasiStuntingPage()),
+
             );
+
           }
+
         }
+
         break;
+
     }
+
   }
+
+
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
   Color get _scaffoldBg => _isDark ? const Color(0xFF0B1014) : Colors.white;
+
   Color get _borderColor =>
+
       _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF);
+
   Color get _textPrimary =>
+
       _isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000);
+
   Color get _textSecondary =>
+
       _isDark ? const Color(0xFF8696A0) : const Color(0xFF374151);
 
+
+
   @override
+
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       backgroundColor: _scaffoldBg,
+
       body: SafeArea(
+
         child: Column(
+
           children: [
+
             // -----------------------------------------------------------------
+
             // HEADER (Tinggi 56dp dari atas, tanpa garis border di bawah)
+
             // -----------------------------------------------------------------
+
             _buildHeader(context),
 
+
+
             // -----------------------------------------------------------------
+
             // KONTEN NOTIFIKASI
+
             // -----------------------------------------------------------------
+
             Expanded(
+
               child: ValueListenableBuilder<List<SuperadminNotificationItem>>(
+
                 valueListenable: _notifService.notificationsNotifier,
+
                 builder: (context, _, _) {
+
                   final notifications =
+
                       _notifService.getNotificationsForRole(_effectiveRole);
+
                   if (notifications.isEmpty) {
+
                     // Tampilan kosong identik dengan notifikasi pengguna
+
                     return _buildEmptyState();
+
                   }
 
+
+
                   // Tampilan daftar notifikasi
+
                   return _buildNotificationList(notifications);
+
                 },
+
               ),
+
             ),
+
           ],
+
         ),
+
       ),
+
     );
+
   }
+
+
 
   /// Header 56dp tanpa border/divider di bawahnya.
+
   Widget _buildHeader(BuildContext context) {
+
     return Container(
+
       height: 56.0,
+
       color: _scaffoldBg,
+
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
+
       child: Row(
+
         crossAxisAlignment: CrossAxisAlignment.center,
+
         children: [
+
           // Tombol back 12dp dari pinggir kiri
+
           GestureDetector(
+
             behavior: HitTestBehavior.opaque,
+
             onTap: () {
+
               if (Navigator.of(context).canPop()) {
+
                 Navigator.of(context).pop();
+
               } else {
+
                 final role = _effectiveRole;
+
                 if (role == PushRole.dokter) {
+
                   Navigator.of(context).pushReplacement(
+
                     MaterialPageRoute(
-                        builder: (_) => const BerandaDokterPage()),
+
+                        builder: (_) => const DokterShell(initialIndex: 0)),
+
                   );
+
                 } else if (role == PushRole.pmik) {
+
                   Navigator.of(context).pushReplacement(
+
                     MaterialPageRoute(builder: (_) => const BerandaPmikPage()),
+
                   );
+
                 } else {
+
                   Navigator.of(context).pushReplacement(
+
                     MaterialPageRoute(
+
                         builder: (_) => const BerandaSuperadminPage()),
+
                   );
+
                 }
+
               }
+
             },
+
             child: Padding(
+
               padding: const EdgeInsets.symmetric(vertical: 8.0),
+
               child: Icon(Icons.arrow_back, color: _textPrimary, size: 24),
+
             ),
+
           ),
+
           // Nama halaman berjarak 12dp setelah tombol back
+
           const SizedBox(width: 12.0),
+
           Expanded(
+
             child: Text(
+
               'Notifikasi',
+
               style: GoogleFonts.lato(
+
                 fontSize: 20,
+
                 fontWeight: FontWeight.bold,
+
                 color: _textPrimary,
+
               ),
+
             ),
+
           ),
+
           // Tombol sampah hapus seluruh notifikasi untuk role ini
+
           ValueListenableBuilder<List<SuperadminNotificationItem>>(
+
             valueListenable: _notifService.notificationsNotifier,
+
             builder: (context, _, _) {
+
               final notifications =
+
                   _notifService.getNotificationsForRole(_effectiveRole);
+
               if (notifications.isEmpty) return const SizedBox.shrink();
+
               return IconButton(
+
                 icon: const Icon(
+
                   Icons.delete_outline_rounded,
+
                   color: Color(0xFFE53E3E),
+
                   size: 24,
+
                 ),
+
                 tooltip: 'Hapus Semua Notifikasi',
+
                 onPressed: () {
+
                   KonfirmasiHapusNotifikasiDialog.showAll(
+
                     context,
+
                     onConfirm: () async {
+
                       await _notifService
+
                           .clearNotificationsForRole(_effectiveRole);
+
                     },
+
                   );
+
                 },
+
               );
+
             },
+
           ),
+
         ],
+
       ),
+
     );
+
   }
+
+
 
   /// Tampilan Empty State:
+
   /// Identik dengan notifikasi pengguna: lonceng kuning & teks "Belum ada notifikasi" abu-abu.
+
   Widget _buildEmptyState() {
+
     return Align(
+
       alignment: Alignment.topCenter,
+
       child: Padding(
+
         padding: const EdgeInsets.only(top: 140),
+
         child: Column(
+
           mainAxisSize: MainAxisSize.min,
+
           crossAxisAlignment: CrossAxisAlignment.center,
+
           children: [
+
             SizedBox(
+
               width: 140,
+
               height: 225,
+
               child: Image.asset(
+
                 'assets/images/lonceng_notif.png',
+
                 fit: BoxFit.contain,
+
                 errorBuilder: (context, error, stackTrace) =>
+
                     const CustomPaint(painter: _NotificationBellEmptyPainter()),
+
               ),
+
             ),
+
             const SizedBox(height: 24),
+
             Text(
+
               'Belum ada notifikasi',
+
               style: GoogleFonts.lato(
+
                 fontSize: 16,
+
                 fontWeight: FontWeight.normal,
+
                 color: _isDark ? const Color(0xFF8696A0) : const Color(0xFFC4C4C4),
+
               ),
+
             ),
+
           ],
+
         ),
+
       ),
+
     );
+
   }
+
+
 
   /// Tampilan Daftar Notifikasi (Scrollable, sesuai gambar referensi pengguna)
+
   Widget _buildNotificationList(List<SuperadminNotificationItem> items) {
+
     return Column(
+
       children: [
+
         // Garis pemisah atas (tepat di bawah header)
+
         Divider(color: _borderColor, height: 1, thickness: 1),
+
         Expanded(
+
           child: ListView.separated(
+
             physics: const ClampingScrollPhysics(),
+
             padding: EdgeInsets.zero,
+
             itemCount: items.length,
+
             separatorBuilder: (_, _) =>
+
                 Divider(color: _borderColor, height: 1, thickness: 1),
+
             itemBuilder: (context, index) {
+
               final item = items[index];
+
               return SwipeableNotificationTile(
+
                 key: ValueKey(item.id),
+
                 backgroundColor: _scaffoldBg,
+
                 onTap: () => _onNotificationTap(item),
+
                 onDelete: () {
+
                   KonfirmasiHapusNotifikasiDialog.showSingle(
+
                     context,
+
                     onConfirm: () async {
+
                       await _notifService.deleteNotification(item.id);
+
                     },
+
                   );
+
                 },
+
                 child: _buildNotificationItem(context, item),
+
               );
+
             },
+
           ),
+
         ),
+
       ],
+
     );
+
   }
+
+
 
   /// Item notifikasi dengan leading amplop hitam dalam lingkaran abu-abu
+
   Widget _buildNotificationItem(
+
       BuildContext context, SuperadminNotificationItem item) {
+
     return Padding(
+
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+
       child: Row(
+
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
+
           // Lingkaran abu-abu dengan ikon amplop / surat hitam bergaris
+
           Container(
+
             width: 42,
+
             height: 42,
+
             decoration: BoxDecoration(
+
               color: _isDark ? const Color(0xFF2C363D) : const Color(0xFFE9EDEF),
+
               shape: BoxShape.circle,
+
             ),
+
             alignment: Alignment.center,
+
             child: Icon(
+
               Icons.mail_outline_rounded,
+
               color: _textPrimary,
+
               size: 22,
+
             ),
+
           ),
+
           const SizedBox(width: 14),
 
+
+
           // Teks Notifikasi (Judul, Isi Pesan, Tanggal)
+
           Expanded(
+
             child: Column(
+
               crossAxisAlignment: CrossAxisAlignment.start,
+
               children: [
+
                 // Judul Notifikasi (Bold)
+
                 Text(
+
                   item.title,
+
                   style: GoogleFonts.lato(
+
                     fontSize: 15.5,
+
                     fontWeight: FontWeight.bold,
+
                     color: _textPrimary,
+
                   ),
+
                 ),
+
                 const SizedBox(height: 3),
 
+
+
                 // Isi Pesan Notifikasi
+
                 Text(
+
                   item.message,
+
                   style: GoogleFonts.lato(
+
                     fontSize: 13.5,
+
                     fontWeight: FontWeight.normal,
+
                     color: _textSecondary,
+
                     height: 1.35,
+
                   ),
+
                 ),
+
                 const SizedBox(height: 6),
 
+
+
                 // Tanggal Notifikasi (misal: "1 September 2026")
+
                 Text(
+
                   item.formattedDate,
+
                   style: GoogleFonts.lato(
+
                     fontSize: 12,
+
                     fontWeight: FontWeight.normal,
+
                     color: const Color(0xFF8696A0),
+
                   ),
+
                 ),
+
               ],
+
             ),
+
           ),
+
         ],
+
       ),
+
     );
+
   }
+
 }
 
+
+
 /// Fallback CustomPainter untuk ilustrasi Lonceng Notifikasi Empty State
+
 /// jika aset gambar `assets/images/lonceng_notif.png` belum dimuat.
+
 class _NotificationBellEmptyPainter extends CustomPainter {
+
   const _NotificationBellEmptyPainter();
 
+
+
   @override
+
   void paint(Canvas canvas, Size size) {
+
     final cx = size.width / 2;
+
     final cy = size.height / 2;
 
+
+
     // 1. Bayangan oval abu-abu di bagian bawah
+
     final shadowPaint = Paint()
+
       ..color = const Color(0xFFE5E7EB)
+
       ..style = PaintingStyle.fill;
+
     canvas.drawOval(
+
       Rect.fromCenter(center: Offset(cx, cy + 46), width: 104, height: 10),
+
       shadowPaint,
+
     );
+
+
 
     // 2. Tiga garis getar di atas lonceng (abu-abu gelap #3F4D5A)
+
     final ringPaint = Paint()
+
       ..color = const Color(0xFF3F4D5A)
+
       ..style = PaintingStyle.stroke
+
       ..strokeWidth = 3.5
+
       ..strokeCap = StrokeCap.round;
 
+
+
     // Garis tengah (vertikal)
+
     canvas.drawLine(Offset(cx, cy - 64), Offset(cx, cy - 48), ringPaint);
 
+
+
     // Garis kiri (miring -35 derajat)
+
     canvas.drawLine(
+
       Offset(cx - 15, cy - 56),
+
       Offset(cx - 28, cy - 42),
+
       ringPaint,
+
     );
+
+
 
     // Garis kanan (miring +35 derajat)
+
     canvas.drawLine(
+
       Offset(cx + 15, cy - 56),
+
       Offset(cx + 28, cy - 42),
+
       ringPaint,
+
     );
+
+
 
     // 3. Pendulum / clapper lonceng di bagian bawah
+
     final clapperPaint = Paint()
+
       ..color = const Color(0xFF3F4D5A)
+
       ..style = PaintingStyle.fill;
+
     canvas.drawRRect(
+
       RRect.fromRectAndRadius(
+
         Rect.fromCenter(center: Offset(cx, cy + 30), width: 18, height: 18),
+
         const Radius.circular(9),
+
       ),
+
       clapperPaint,
+
     );
+
+
 
     // 4. Handle atas lonceng
+
     final bellColor = const Color(0xFFF6C138);
+
     final handlePaint = Paint()
+
       ..color = bellColor
+
       ..style = PaintingStyle.fill;
+
     canvas.drawRRect(
+
       RRect.fromRectAndRadius(
+
         Rect.fromCenter(center: Offset(cx, cy - 30), width: 18, height: 18),
+
         const Radius.circular(8),
+
       ),
+
       handlePaint,
+
     );
 
+
+
     // 5. Badan lonceng kuning (#F6C138)
+
     final bellPaint = Paint()
+
       ..color = bellColor
+
       ..style = PaintingStyle.fill;
 
+
+
     final bellPath = Path();
+
     bellPath.moveTo(cx - 10, cy - 24);
+
     bellPath.lineTo(cx + 10, cy - 24);
+
     bellPath.cubicTo(cx + 14, cy - 4, cx + 16, cy + 8, cx + 44, cy + 24);
+
     bellPath.quadraticBezierTo(cx + 47, cy + 29, cx + 40, cy + 30);
+
     bellPath.quadraticBezierTo(cx, cy + 31, cx - 40, cy + 30);
+
     bellPath.quadraticBezierTo(cx - 47, cy + 29, cx - 44, cy + 24);
+
     bellPath.cubicTo(cx - 16, cy + 8, cx - 14, cy - 4, cx - 10, cy - 24);
+
     bellPath.close();
+
+
 
     canvas.drawPath(bellPath, bellPaint);
 
+
+
     // 6. Bulatan toska di sisi kanan lonceng (#38B8A6)
+
     final tealPaint = Paint()
+
       ..color = const Color(0xFF38B8A6)
+
       ..style = PaintingStyle.fill;
+
     canvas.drawCircle(Offset(cx + 31, cy + 8), 9.0, tealPaint);
+
   }
 
+
+
   @override
+
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+
 }
+

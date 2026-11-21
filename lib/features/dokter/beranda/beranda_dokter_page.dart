@@ -36,7 +36,8 @@ import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 /// Navigation Bar 4 tab (#F2EDED, tinggi 68dp):
 /// Beranda, Konsultasi, Riwayat Konsultasi, Profil.
 class BerandaDokterPage extends StatefulWidget {
-  const BerandaDokterPage({super.key});
+  final bool inShell;
+  const BerandaDokterPage({super.key, this.inShell = false});
 
   @override
   State<BerandaDokterPage> createState() => _BerandaDokterPageState();
@@ -156,7 +157,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildFixedNavBar(),
+      bottomNavigationBar: widget.inShell ? null : _buildFixedNavBar(),
     );
   }
 

@@ -10,6 +10,7 @@ import '../../core/services/google_auth_service.dart';
 import '../../core/services/staff_auth_service.dart';
 import '../../core/services/session_service.dart';
 import '../pmik_superadmin/superadmin_shell.dart';
+import '../dokter/dokter_shell.dart';
 import '../dokter/beranda/beranda_dokter_page.dart';
 import '../pmik_admin/beranda/beranda_pmik_page.dart';
 import '../../models/staff_account_model.dart';
@@ -140,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
       Widget destination;
       switch (staff.role) {
         case StaffRole.dokter:
-          destination = const BerandaDokterPage();
+          destination = const DokterShell();
           break;
         case StaffRole.admin: // PMIK
           destination = const BerandaPmikPage();

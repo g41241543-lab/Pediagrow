@@ -1359,7 +1359,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
   }
 
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // TAB SELECTOR â€” GAYA KONSULTASI (UNDERLINE INDICATOR)
+  // TAB SELECTOR — GAYA KONSULTASI (UNDERLINE INDICATOR)
   // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   Widget _buildTabSelector() {
     return Container(
@@ -3187,7 +3187,7 @@ class _GrafikPenggunaPageState extends State<GrafikPenggunaPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Plot Area â€” Tinggi terkoordinasi bebas overflow
+          // Plot Area — Tinggi terkoordinasi bebas overflow
           SizedBox(
             height: chartPlotHeight + 42.0,
             child: Row(

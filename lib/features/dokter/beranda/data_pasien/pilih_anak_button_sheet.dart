@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -109,7 +109,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
   });
 
   // ---------------------------------------------------------------------------
-  // ENTRY POINT UTAMA â€” Callback kustom [onChildSelected]
+  // ENTRY POINT UTAMA — Callback kustom [onChildSelected]
   // ---------------------------------------------------------------------------
   static Future<void> show(
     BuildContext context, {
@@ -137,7 +137,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // ENTRY POINT SHORTCUT â€” Navigasi ke DetailPenggunaPage
+  // ENTRY POINT SHORTCUT — Navigasi ke DetailPenggunaPage
   // Digunakan dari DaftarPenggunaPage saat memilih anak dari card pengguna.
   // ---------------------------------------------------------------------------
   static Future<void> showForDetail(
@@ -168,7 +168,7 @@ class PilihAnakBottomSheet extends StatefulWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // ENTRY POINT SHORTCUT â€” Navigasi ke PertumbuhanGrafikPage (Grafik Tumbuh)
+  // ENTRY POINT SHORTCUT — Navigasi ke PertumbuhanGrafikPage (Grafik Tumbuh)
   // Digunakan dari Beranda Superadmin menu "Grafik Pengguna" / "Grafik Pertumbuhan".
   // Jika [children] null, akan mengambil seluruh data anak dari Firestore.
   // ---------------------------------------------------------------------------
@@ -294,7 +294,7 @@ class _PilihAnakBottomSheetState extends State<PilihAnakBottomSheet>
 }
 
 // =============================================================================
-// _SheetContent â€” UI murni, stateless sesuai referensi desain
+// _SheetContent — UI murni, stateless sesuai referensi desain
 // =============================================================================
 class _SheetContent extends StatelessWidget {
   final UserModel? user;
@@ -449,7 +449,7 @@ class _SheetContent extends StatelessWidget {
     } else if (child.ageDescription.isNotEmpty) {
       ageText = child.ageDescription;
     } else {
-      ageText = 'â€”';
+      ageText = '—';
     }
 
     return Material(
@@ -474,7 +474,7 @@ class _SheetContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Nama Anak â€” Lato SemiBold 18 #000000
+                    // Nama Anak — Lato SemiBold 18 #000000
                     Text(
                       child.name.isNotEmpty ? child.name : 'Anak',
                       maxLines: 1,
@@ -487,7 +487,7 @@ class _SheetContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    // Usia â€” Lato Regular 14 #000000 (sesuai desain referensi)
+                    // Usia — Lato Regular 14 #000000 (sesuai desain referensi)
                     Text(
                       ageText,
                       maxLines: 1,
@@ -591,7 +591,7 @@ class _SheetContent extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Judul â€” Lato Bold 18 #000000
+          // Judul — Lato Bold 18 #000000
           Text(
             'Belum Ada Data Anak',
             style: GoogleFonts.lato(
@@ -603,7 +603,7 @@ class _SheetContent extends StatelessWidget {
 
           const SizedBox(height: 6),
 
-          // Deskripsi â€” Lato Regular 14 #000000
+          // Deskripsi — Lato Regular 14 #000000
           Text(
             user != null && user!.name.isNotEmpty
                 ? 'Pengguna ${user!.name} belum memiliki\ndata profil anak yang terdaftar.'
