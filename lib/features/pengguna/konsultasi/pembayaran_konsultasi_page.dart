@@ -193,19 +193,23 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
       createdAt: DateTime.now(),
     );
 
+    // 1. Tampilkan notifikasi pembayaran berhasil (notifikasi pertama yang muncul)
+    LocalPushService().show(
+      title: 'Pembayaran Berhasil',
+      body:
+          'Pembayaran terverifikasi. Jadwal konsultasi anak ${widget.child.name} bersama ${widget.doctor.name} telah berhasil dijadwalkan.',
+      targetRole: PushRole.pengguna,
+    );
+
+    // Jeda singkat agar notifikasi pembayaran terproses terlebih dahulu
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // 2. Simpan booking ke BookingService (kemudian diikuti dengan notifikasi booking berhasil)
     try {
       await BookingService().addBooking(newBooking);
     } catch (e) {
       debugPrint('[Pembayaran] Catatan simpan booking: $e');
     }
-
-    // Tampilkan notifikasi push HP
-    LocalPushService().show(
-      title: 'Booking Konsultasi Berhasil!',
-      body:
-          'Pembayaran terverifikasi. Jadwal konsultasi anak ${widget.child.name} bersama ${widget.doctor.name} telah berhasil dijadwalkan.',
-      targetRole: PushRole.pengguna,
-    );
 
     if (!mounted) return;
 
