@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/booking_consultation_model.dart';
 import '../../models/notification_model.dart';
 import 'local_push_service.dart';
 import 'user_service.dart';
@@ -490,8 +491,22 @@ class NotificationService {
     final message =
         'Waktu konsultasi telah tiba! Jadwal konsultasi anak $childName bersama $doctorName ($timeSlot) sudah dimulai. Silakan masuk ke ruang konsultasi.';
 
-    // Jika waktu konsultasi dijadwalkan di masa depan (belum tiba)
-    if (scheduledTime != null && scheduledTime.isAfter(now)) {
+    // 1. Tentukan waktu mulai konsultasi secara presisi
+    DateTime? effectiveTime = scheduledTime;
+    if (effectiveTime == null) {
+      final parsedDate =
+          BookingConsultationModel.parseIndonesianDate(dateFormatted);
+      if (parsedDate != null) {
+        effectiveTime = BookingConsultationModel.resolveStartDateTime(
+          null,
+          parsedDate,
+          timeSlot,
+        );
+      }
+    }
+
+    // 2. JIKA waktu jadwal konsultasi masih di masa depan (belum tiba)
+    if (effectiveTime != null && effectiveTime.isAfter(now)) {
       final alreadyRegistered =
           _pendingBookingReminders.any((r) => r.id == id) ||
               _triggeredReminderIds.contains(id);
@@ -503,7 +518,7 @@ class NotificationService {
             childName: childName,
             dateFormatted: dateFormatted,
             timeSlot: timeSlot,
-            scheduledTime: scheduledTime,
+            scheduledTime: effectiveTime,
           ),
         );
         _startReminderCheckTimer();
@@ -514,27 +529,45 @@ class NotificationService {
           id: notifIntId,
           title: title,
           body: message,
-          scheduledDate: scheduledTime,
+          scheduledDate: effectiveTime,
           targetRole: PushRole.pengguna,
           targetUserId: UserService().currentUser.id,
+          recordInApp: false,
         );
       }
+      // PENTING: Jika jadwal masih di masa depan, jangan pernah buat notifikasi sekarang!
       return;
     }
 
-    // Jika waktu konsultasi memang sudah tiba saat ini
-    if (!_triggeredReminderIds.contains(id)) {
-      _triggeredReminderIds.add(id);
-      final currentUid = UserService().currentUser.id;
-      final newItem = NotificationItem(
-        id: id,
-        title: title,
-        message: message,
-        date: scheduledTime ?? now,
-        type: NotificationType.consultation,
-        recipientId: currentUid.isNotEmpty ? currentUid : null,
+    // 3. JIKA waktu konsultasi tidak dapat ditentukan dengan pasti, jangan buat notifikasi prematur
+    if (effectiveTime == null) {
+      debugPrint(
+        '[NotificationService] Waktu jadwal konsultasi tidak dapat ditentukan untuk $id, pengingat ditunda.',
       );
-      addNotification(newItem);
+      return;
+    }
+
+    // 4. JIKA waktu konsultasi memang SUDAH TIBA saat ini:
+    // Pastikan bahwa waktu saat ini benar-benar telah mencapai waktu mulai (now >= effectiveTime)
+    // DAN sesi tersebut belum kadaluarsa lebih dari 2 jam (agar sesi lampau tidak memicu notifikasi baru secara anomali)
+    final hasArrived =
+        now.isAfter(effectiveTime) || now.isAtSameMomentAs(effectiveTime);
+    final isNotTooOld = now.difference(effectiveTime).inHours < 2;
+
+    if (hasArrived && isNotTooOld) {
+      if (!_triggeredReminderIds.contains(id)) {
+        _triggeredReminderIds.add(id);
+        final currentUid = UserService().currentUser.id;
+        final newItem = NotificationItem(
+          id: id,
+          title: title,
+          message: message,
+          date: effectiveTime,
+          type: NotificationType.consultation,
+          recipientId: currentUid.isNotEmpty ? currentUid : null,
+        );
+        addNotification(newItem);
+      }
     }
   }
 

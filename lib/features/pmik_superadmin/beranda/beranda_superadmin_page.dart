@@ -711,6 +711,7 @@ class _BerandaSuperadminPageState extends State<BerandaSuperadminPage> {
     final Widget baseContent = (imageAsset != null
         ? Image.asset(
             imageAsset,
+            width: imageSize,
             height: imageSize,
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) =>

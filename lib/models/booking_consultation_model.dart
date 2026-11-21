@@ -84,6 +84,81 @@ class BookingConsultationModel {
           scheduledTimeSlot ?? timeSlot ?? '09:00 - 09:30 WIB',
         );
 
+  static DateTime resolveStartDateTime(
+    DateTime? explicit,
+    DateTime baseDate,
+    String slotStr,
+  ) {
+    return _resolveStartDateTime(explicit, baseDate, slotStr);
+  }
+
+  /// Mengurai string atau objek tanggal (termasuk format Indonesia seperti "Senin, 23 November 2026",
+  /// "23 November 2026", "23/11/2026", atau ISO 8601) menjadi DateTime.
+  static DateTime? parseIndonesianDate(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is Timestamp) return raw.toDate();
+    if (raw is DateTime) return raw;
+    if (raw is String) {
+      final iso = DateTime.tryParse(raw);
+      if (iso != null) return iso;
+
+      try {
+        final slashMatch =
+            RegExp(r'(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})').firstMatch(raw);
+        if (slashMatch != null) {
+          final d = int.parse(slashMatch.group(1)!);
+          final m = int.parse(slashMatch.group(2)!);
+          final y = int.parse(slashMatch.group(3)!);
+          return DateTime(y, m, d);
+        }
+
+        const months = {
+          'januari': 1,
+          'jan': 1,
+          'februari': 2,
+          'feb': 2,
+          'maret': 3,
+          'mar': 3,
+          'april': 4,
+          'apr': 4,
+          'mei': 5,
+          'may': 5,
+          'juni': 6,
+          'jun': 6,
+          'juli': 7,
+          'jul': 7,
+          'agustus': 8,
+          'agu': 8,
+          'ags': 8,
+          'aug': 8,
+          'september': 9,
+          'sep': 9,
+          'oktober': 10,
+          'okt': 10,
+          'oct': 10,
+          'november': 11,
+          'nov': 11,
+          'desember': 12,
+          'des': 12,
+          'dec': 12,
+        };
+
+        final indoMatch =
+            RegExp(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})').firstMatch(raw);
+        if (indoMatch != null) {
+          final day = int.parse(indoMatch.group(1)!);
+          final monthStr = indoMatch.group(2)!.toLowerCase();
+          final year = int.parse(indoMatch.group(3)!);
+          final month = months[monthStr];
+          if (month != null) {
+            return DateTime(year, month, day);
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
   static DateTime _resolveStartDateTime(
     DateTime? explicit,
     DateTime baseDate,
@@ -147,32 +222,20 @@ class BookingConsultationModel {
     String? id,
   }) {
     final rawDate = map['scheduledDate'] ?? map['bookingDate'];
-    final DateTime scheduledDate = rawDate is Timestamp
-        ? rawDate.toDate()
-        : rawDate is String
-        ? DateTime.tryParse(rawDate) ?? DateTime.now()
-        : DateTime.now();
+    final DateTime scheduledDate =
+        parseIndonesianDate(rawDate) ?? DateTime.now();
 
     final rawCreated = map['createdAt'];
-    final DateTime createdAt = rawCreated is Timestamp
-        ? rawCreated.toDate()
-        : rawCreated is String
-        ? DateTime.tryParse(rawCreated) ?? DateTime.now()
-        : DateTime.now();
+    final DateTime createdAt =
+        parseIndonesianDate(rawCreated) ?? DateTime.now();
 
     final rawStart = map['scheduledStartDateTime'];
-    final DateTime? scheduledStartDateTime = rawStart is Timestamp
-        ? rawStart.toDate()
-        : rawStart is String
-        ? DateTime.tryParse(rawStart)
-        : null;
+    final DateTime? scheduledStartDateTime =
+        rawStart != null ? parseIndonesianDate(rawStart) : null;
 
     final rawEnd = map['scheduledEndDateTime'];
-    final DateTime? scheduledEndDateTime = rawEnd is Timestamp
-        ? rawEnd.toDate()
-        : rawEnd is String
-        ? DateTime.tryParse(rawEnd)
-        : null;
+    final DateTime? scheduledEndDateTime =
+        rawEnd != null ? parseIndonesianDate(rawEnd) : null;
 
     final rawWeight = map['weightKg'];
     final double? weightKg = rawWeight != null

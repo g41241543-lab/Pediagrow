@@ -83,6 +83,22 @@ class YoutubeVideoModel {
   /// yang sudah diverifikasi aktif dan tersedia secara penuh di YouTube.
   static const List<YoutubeVideoModel> curatedFallbackVideos = [
     YoutubeVideoModel(
+      id: 'XqZsoesa55w',
+      title: 'Baby Shark Dance | Lagu & Tarian Hewan Lucu Balita',
+      thumbnailUrl: 'https://i.ytimg.com/vi/XqZsoesa55w/hqdefault.jpg',
+      duration: '02:16',
+      channelTitle: 'Pinkfong Baby Shark',
+      publishedAt: '2025',
+    ),
+    YoutubeVideoModel(
+      id: '0bsev7RMYbc',
+      title: 'Main Rumah Sakit | Siapa Sakit? | Kartun Balita Edukatif',
+      thumbnailUrl: 'https://i.ytimg.com/vi/0bsev7RMYbc/hqdefault.jpg',
+      duration: '03:30',
+      channelTitle: 'Bebefinn Bahasa Indonesia',
+      publishedAt: '2025',
+    ),
+    YoutubeVideoModel(
       id: 'KPP4Cfupzhs',
       title: 'Hey Bear Sensory - Smoothie Mix! Dance & Visual Bayi',
       thumbnailUrl: 'https://i.ytimg.com/vi/KPP4Cfupzhs/hqdefault.jpg',
@@ -99,27 +115,11 @@ class YoutubeVideoModel {
       publishedAt: '2025',
     ),
     YoutubeVideoModel(
-      id: 'XqZsoesa55w',
-      title: 'Baby Shark Dance | Lagu & Tarian Hewan Lucu Balita',
-      thumbnailUrl: 'https://i.ytimg.com/vi/XqZsoesa55w/hqdefault.jpg',
-      duration: '02:16',
-      channelTitle: 'Pinkfong Baby Shark',
-      publishedAt: '2025',
-    ),
-    YoutubeVideoModel(
       id: 'Hxh9wcwvfxs',
       title: 'Baby Sensory Video | High Contrast Visuals & Musik Bayi',
       thumbnailUrl: 'https://i.ytimg.com/vi/Hxh9wcwvfxs/hqdefault.jpg',
       duration: '20:15',
       channelTitle: 'Baby Sensory Evergreen',
-      publishedAt: '2025',
-    ),
-    YoutubeVideoModel(
-      id: '0bsev7RMYbc',
-      title: 'Main Rumah Sakit | Siapa Sakit? | Kartun Balita Edukatif',
-      thumbnailUrl: 'https://i.ytimg.com/vi/0bsev7RMYbc/hqdefault.jpg',
-      duration: '03:30',
-      channelTitle: 'Bebefinn Bahasa Indonesia',
       publishedAt: '2025',
     ),
     YoutubeVideoModel(

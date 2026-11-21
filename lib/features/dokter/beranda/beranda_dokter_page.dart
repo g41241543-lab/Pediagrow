@@ -741,6 +741,7 @@ class _BerandaDokterPageState extends State<BerandaDokterPage> {
     if (imageAsset != null) {
       return Image.asset(
         imageAsset,
+        width: imageSize,
         height: imageSize,
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) =>

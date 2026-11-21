@@ -534,7 +534,7 @@ class LocalPushService {
   /// [scheduledDate] — Waktu kemunculan notifikasi di masa depan.
   /// [targetRole]    — Role yang berhak menerima notifikasi ini.
   /// [targetUserId]  — User ID pemilik notifikasi.
-  /// [recordInApp]   — Catat ke menu notifikasi aplikasi.
+  /// [recordInApp]   — Jika waktu sudah tiba saat ini, catat ke menu notifikasi aplikasi.
   Future<void> schedule({
     required int id,
     required String title,
@@ -542,7 +542,7 @@ class LocalPushService {
     required DateTime scheduledDate,
     PushRole? targetRole,
     String? targetUserId,
-    bool recordInApp = true,
+    bool recordInApp = false,
   }) async {
     // Pastikan notifikasi hanya dijadwalkan jika sesuai akun pengguna yang aktif
     if (targetUserId != null) {
@@ -629,13 +629,6 @@ class LocalPushService {
       debugPrint(
         '[LocalPushService] Notifikasi berhasil dijadwalkan pada $scheduledDate (id=$id): "$title"',
       );
-      if (recordInApp) {
-        _recordNotificationInApp(
-          title: title,
-          body: body,
-          targetRole: targetRole,
-        );
-      }
     } catch (e) {
       debugPrint('[LocalPushService] schedule() error: $e');
       // Fallback: Jika waktu sudah lewat atau gagal, panggil show() jika dalam hitungan menit
