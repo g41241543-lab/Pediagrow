@@ -5,6 +5,9 @@ import '../../../../../../core/services/resume_medis_service.dart';
 import '../../../../../../models/child_model.dart';
 import '../../../../../../models/resume_medis_model.dart';
 import '../../../../../../models/user_model.dart';
+import '../../../../../../shared/widgets/child_avatar.dart';
+import '../../../../../../shared/widgets/child_live_avatar.dart';
+import '../../../../../../shared/widgets/doctor_live_avatar.dart';
 import '../../../../../../shared/widgets/pedia_banner.dart';
 
 /// Halaman Detail Resume Medis versi Dokter.
@@ -403,13 +406,8 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
               ),
               const SizedBox(height: 14),
 
-              // Dokter Pemeriksa (Read-only)
-              _buildModernDisplayField(
-                label: 'Dokter Pemeriksa',
-                value: _resume.doctorName,
-                icon: Icons.person_outline_rounded,
-                isLocked: true,
-              ),
+              // Dokter Pemeriksa (Read-only dengan vibes serasi Detail Ringkasan Konsultasi)
+              _buildDoctorInfoCard(),
               const SizedBox(height: 12),
 
               // Tanggal & Waktu Konsultasi (Read-only)
@@ -535,6 +533,14 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
   // ─────────────────────────────────────────────────────────────────────────
 
   Widget _buildPatientSummaryCard(String childName, String parentName) {
+    final effectiveChildId = _resume.childId.isNotEmpty
+        ? _resume.childId
+        : (widget.child?.id ?? '');
+    final isGirl = ChildAvatar.isFemaleGender(
+      gender: widget.child?.gender,
+      child: widget.child,
+    );
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -545,29 +551,27 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
             color: _isDark ? const Color(0xFF334155) : const Color(0xFFD6E4FF)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _isDark ? const Color(0xFF2C363D) : Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.medical_information_rounded,
-              color: _colorPrimaryBlue,
-              size: 26,
-            ),
+          ChildLiveAvatar(
+            childId: effectiveChildId,
+            childName: childName,
+            photoUrl: widget.child?.photoUrl,
+            gender: widget.child?.gender ?? '',
+            isGirl: isGirl,
+            size: 52.0,
+            shape: BoxShape.circle,
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   childName,
                   style: GoogleFonts.lato(
-                    fontSize: 16,
+                    fontSize: 16.5,
                     fontWeight: FontWeight.bold,
                     color: _colorTextBlack,
                   ),
@@ -578,6 +582,81 @@ class _DetailResumeMedisPageState extends State<DetailResumeMedisPage> {
                   style: GoogleFonts.lato(
                     fontSize: 13,
                     color: _colorLabelGrey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Card Dokter Pemeriksa yang serasi dengan tampilan Detail Ringkasan Konsultasi
+  Widget _buildDoctorInfoCard() {
+    final spec = _resume.doctorSpecialization.isNotEmpty
+        ? _resume.doctorSpecialization
+        : 'Dokter Spesialis Anak';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _colorReadOnlyBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _colorReadOnlyBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          DoctorLiveAvatar(
+            doctorId: _resume.doctorId,
+            doctorName: _resume.doctorName,
+            fallbackPhoto: _resume.doctorPhoto,
+            size: 44.0,
+            shape: BoxShape.circle,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Dokter Pemeriksa',
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        color: _colorLabelGrey,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.lock_outline_rounded,
+                      size: 12.0,
+                      color: _colorLabelGrey,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _resume.doctorName.isNotEmpty ? _resume.doctorName : 'Dokter',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lato(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: _colorTextBlack,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  spec,
+                  style: GoogleFonts.lato(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w500,
+                    color: _colorPrimaryBlue,
                   ),
                 ),
               ],

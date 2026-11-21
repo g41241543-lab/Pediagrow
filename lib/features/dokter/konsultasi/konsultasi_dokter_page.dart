@@ -12,7 +12,6 @@ import '../../../models/staff_account_model.dart';
 import '../../../models/user_model.dart';
 import '../beranda/data_pasien/detail_anak_page.dart';
 import '../beranda/beranda_dokter_page.dart';
-import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/child_live_avatar.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';

@@ -12,7 +12,6 @@ import '../../../models/child_model.dart';
 import '../../../models/resume_medis_model.dart';
 import '../../../models/riwayat_konsultasi_model.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
-import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../beranda/beranda_page.dart';
 import 'detail_konsultasi_page.dart';
 import 'widgets/riwayat_consultation_card.dart';
@@ -592,7 +591,6 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                       ),
                     ),
                   ),
-                  _buildFooterIllustration(),
                 ],
               ),
             ),
@@ -616,7 +614,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                 children: [
                   _buildSearchBar(isDark),
                   const Expanded(child: Center(child: RiwayatEmptyState())),
-                  _buildFooterIllustration(),
+                  const SizedBox(height: 16.0),
                 ],
               ),
             ),
@@ -686,9 +684,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                       );
                     }),
 
-                  const Spacer(),
                   const SizedBox(height: 16.0),
-                  _buildFooterIllustration(),
                 ],
               ),
             ),
@@ -779,10 +775,5 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
       ),
       ),
     );
-  }
-
-  /// Ilustrasi Footer Landscape Full-Bleed
-  Widget _buildFooterIllustration() {
-    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 }

@@ -5,8 +5,6 @@ import '../../../core/services/booking_service.dart';
 import '../../../core/services/konsultasi_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/konsultasi_session_model.dart';
-import '../../../core/services/storage_service.dart';
-import '../../../shared/widgets/child_avatar.dart';
 import '../../../shared/widgets/child_live_avatar.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
