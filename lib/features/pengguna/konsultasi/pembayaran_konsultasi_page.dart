@@ -58,21 +58,43 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
       'code': 'BCA',
       'name': 'BCA Virtual Account',
       'vaNumber': '8808 0812 3456 7891',
+      'color': '#003087',
     },
     {
       'code': 'Mandiri',
       'name': 'Mandiri Virtual Account',
       'vaNumber': '8902 2026 8812 3456',
+      'color': '#003087',
     },
     {
       'code': 'BRI',
       'name': 'BRI Virtual Account (BRIVA)',
       'vaNumber': '1280 0812 3456 7892',
+      'color': '#00529B',
     },
     {
       'code': 'BNI',
       'name': 'BNI Virtual Account',
       'vaNumber': '9880 0812 3456 7893',
+      'color': '#F37021',
+    },
+    {
+      'code': 'BTN',
+      'name': 'BTN Virtual Account',
+      'vaNumber': '0027 0812 3456 7894',
+      'color': '#1D4ED8',
+    },
+    {
+      'code': 'Maybank',
+      'name': 'Maybank Virtual Account',
+      'vaNumber': '9888 0812 3456 7895',
+      'color': '#F5A623',
+    },
+    {
+      'code': 'Lainnya',
+      'name': 'Bank Lainnya',
+      'vaNumber': '8008 0812 3456 7896',
+      'color': '#64748B',
     },
   ];
 
@@ -239,9 +261,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
             ),
             const SizedBox(height: 18),
 
-            // Judul: "Booking Berhasil Terjadwal!"
+            // Judul: "Pembayaran Selesai"
             Text(
-              'Booking Berhasil Terjadwal!',
+              'Pembayaran Selesai',
               textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 fontSize: 19,
@@ -546,16 +568,22 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
+        color: isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.18)
+            : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFED7AA)),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+              : const Color(0xFFBFDBFE),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.timer_outlined,
             size: 20,
-            color: Color(0xFFEA580C),
+            color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -563,7 +591,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               'Selesaikan pembayaran dalam waktu',
               style: GoogleFonts.lato(
                 fontSize: 12.5,
-                color: const Color(0xFF9A3412),
+                color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -571,7 +599,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFEA580C),
+              color: isDark ? const Color(0xFF2563EB) : _colorPrimaryBlue,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -605,22 +633,16 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFBFDBFE),
-                    width: 1,
-                  ),
-                ),
-                child: const Icon(
-                  Icons.medical_services_rounded,
-                  color: _colorPrimaryBlue,
-                  size: 22,
-                ),
+              ClipOval(
+                child: (widget.doctor.avatarUrl != null && widget.doctor.avatarUrl!.isNotEmpty)
+                    ? Image.network(
+                        widget.doctor.avatarUrl!,
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _buildDoctorAvatarFallback(isDark),
+                      )
+                    : _buildDoctorAvatarFallback(isDark),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -693,6 +715,23 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDoctorAvatarFallback(bool isDark) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0B1014) : const Color(0xFFEFF6FF),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
+      ),
+      child: const Icon(
+        Icons.medical_services_rounded,
+        color: _colorPrimaryBlue,
+        size: 22,
       ),
     );
   }
@@ -779,7 +818,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF059669),
+                      color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -894,6 +933,26 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
   }
 
   // ─── 5A. BAGIAN VIRTUAL ACCOUNT ───────────────────────────────────────────
+  Color _bankColor(String code) {
+    switch (code) {
+      case 'BCA':
+        return const Color(0xFF003087);
+      case 'Mandiri':
+        return const Color(0xFF003087);
+      case 'BRI':
+        return const Color(0xFF00529B);
+      case 'BNI':
+        return const Color(0xFFF37021);
+      case 'BTN':
+        return const Color(0xFF1D4ED8);
+      case 'Maybank':
+        return const Color(0xFFF5A623);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
+
+
   Widget _buildVirtualAccountSection(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -930,13 +989,13 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (isDark
-                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
-                            : const Color(0xFFEFF6FF))
+                            ? _bankColor(bank['code']!).withValues(alpha: 0.22)
+                            : _bankColor(bank['code']!).withValues(alpha: 0.08))
                         : (isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: isSelected
-                          ? _colorPrimaryBlue
+                          ? _bankColor(bank['code']!)
                           : (isDark ? const Color(0xFF2C363D) : _colorBorder),
                       width: isSelected ? 1.4 : 1,
                     ),
@@ -944,21 +1003,43 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? _colorPrimaryBlue
-                              : (isDark ? const Color(0xFF242E35) : const Color(0xFFE2E8F0)),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          bank['code']!,
-                          style: GoogleFonts.lato(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : _colorLabelGrey,
+                        width: 56,
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _bankColor(bank['code']!)
+                                : (isDark ? const Color(0xFF242E35) : Colors.white),
+                            borderRadius: BorderRadius.circular(6),
+                            border: isSelected
+                                ? null
+                                : Border.all(
+                                    color: bank['code'] == 'Lainnya'
+                                        ? const Color(0xFFCBD5E1)
+                                        : _bankColor(bank['code']!).withValues(alpha: 0.4),
+                                    width: 0.8,
+                                  ),
                           ),
+                          child: bank['code'] == 'Lainnya'
+                              ? Icon(
+                                  Icons.account_balance_rounded,
+                                  size: 16,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF64748B),
+                                )
+                              : Text(
+                                  bank['code']!,
+                                  style: GoogleFonts.lato(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : _bankColor(bank['code']!),
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -976,10 +1057,10 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                         ),
                       ),
                       if (isSelected)
-                        const Icon(
+                        Icon(
                           Icons.check_circle_rounded,
                           size: 18,
-                          color: _colorPrimaryBlue,
+                          color: _bankColor(bank['code']!),
                         ),
                     ],
                   ),
@@ -1149,7 +1230,42 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+
+          // Tombol Unduh QR
+          OutlinedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'QR Code berhasil diunduh',
+                    style: GoogleFonts.lato(fontSize: 13),
+                  ),
+                  backgroundColor: const Color(0xFF1E293B),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: const Icon(Icons.download_rounded, size: 16),
+            label: Text(
+              'Unduh QR Code',
+              style: GoogleFonts.lato(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _colorPrimaryBlue,
+              side: const BorderSide(color: _colorPrimaryBlue, width: 1.2),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
           Text(
             'Scan QR menggunakan aplikasi e-Wallet atau m-Banking Anda',
             textAlign: TextAlign.center,
@@ -1158,39 +1274,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               color: _colorLabelGrey,
             ),
           ),
-          const SizedBox(height: 6),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            children: [
-              _buildBadgeApp('GoPay'),
-              _buildBadgeApp('OVO'),
-              _buildBadgeApp('Dana'),
-              _buildBadgeApp('ShopeePay'),
-              _buildBadgeApp('BCA Mobile'),
-            ],
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBadgeApp(String label) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color(0xFFBFDBFE), width: 0.7),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.lato(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w600,
-          color: _colorPrimaryBlue,
-        ),
       ),
     );
   }
@@ -1345,75 +1429,47 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Tagihan',
-                  style: GoogleFonts.lato(
-                    fontSize: 11.5,
-                    color: _colorLabelGrey,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  widget.doctor.consultationFeeFormatted,
-                  style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF059669),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _isProcessing ? null : _handlePayment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _colorPrimaryBlue,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isProcessing
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.verified_rounded,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Bayar Sekarang',
-                              style: GoogleFonts.lato(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: _isProcessing ? null : _handlePayment,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _colorPrimaryBlue,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-          ],
+            child: _isProcessing
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.verified_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Bayar Sekarang',
+                        style: GoogleFonts.lato(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
