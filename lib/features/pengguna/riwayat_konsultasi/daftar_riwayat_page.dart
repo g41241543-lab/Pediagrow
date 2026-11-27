@@ -110,7 +110,7 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
 
     final userId = UserService().currentUser.id;
 
-    if (targetChild == null && registeredChildren.isEmpty && userId.isEmpty) {
+    if (registeredChildren.isEmpty) {
       setState(() {
         _riwayatList = [];
         _isLoading = false;
@@ -138,19 +138,29 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
           final isCompleted = r.status.toLowerCase().trim() == 'selesai';
           if (!isCompleted) return false;
 
+          // HANYA tampilkan riwayat konsultasi untuk anak yang saat ini masih aktif
+          // dan belum dihapus profilnya dari akun pengguna ini
+          if (registeredChildren.isEmpty) return false;
+
+          final matchesChildId = r.childId.isNotEmpty && userChildIds.contains(r.childId);
+          final matchesChildName = userChildNames.contains(r.childName.trim().toLowerCase());
+          final isChildOfCurrentUser = matchesChildId || matchesChildName;
+
+          // Jika anak sudah dihapus oleh pengguna, jangan tampilkan di riwayat konsultasi POV pengguna
+          if (!isChildOfCurrentUser) return false;
+
           if (targetChild != null) {
-            final matchesId = r.childId.isNotEmpty && r.childId == targetChild.id;
-            final matchesName =
+            final matchesTargetId = r.childId.isNotEmpty && r.childId == targetChild.id;
+            final matchesTargetName =
                 r.childName.trim().toLowerCase() == targetChild.name.trim().toLowerCase();
-            return matchesId || matchesName;
+            if (!matchesTargetId && !matchesTargetName) return false;
           }
 
-          // targetChild == null ("Semua Anak"): HANYA anak yang didaftarkan pengguna ini
-          if (registeredChildren.isEmpty) return false;
-          final matchesId = r.childId.isNotEmpty && userChildIds.contains(r.childId);
-          final matchesName = userChildNames.contains(r.childName.trim().toLowerCase());
-          final matchesUser = userId.isNotEmpty && r.userId.isNotEmpty && r.userId == userId;
-          return matchesId || matchesName || matchesUser;
+          if (userId.isNotEmpty && r.userId.isNotEmpty && r.userId != userId) {
+            return false;
+          }
+
+          return true;
         }).toList();
 
         // 2. Ambil data dari BookingService untuk anak yang bersangkutan (hanya yang statusnya selesai dan milik anak pengguna ini)
@@ -159,20 +169,29 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
           final isCompleted = b.status.toLowerCase().trim() == 'selesai';
           if (!isCompleted) return false;
 
+          // HANYA tampilkan riwayat konsultasi untuk anak yang saat ini masih aktif
+          // dan belum dihapus profilnya dari akun pengguna ini
+          if (registeredChildren.isEmpty) return false;
+
+          final matchesChildId = b.child.id.isNotEmpty && userChildIds.contains(b.child.id);
+          final matchesChildName = userChildNames.contains(b.child.name.trim().toLowerCase());
+          final isChildOfCurrentUser = matchesChildId || matchesChildName;
+
+          // Jika anak sudah dihapus oleh pengguna, jangan tampilkan di riwayat konsultasi POV pengguna
+          if (!isChildOfCurrentUser) return false;
+
           if (targetChild != null) {
-            final matchesId =
-                b.child.id.isNotEmpty && b.child.id == targetChild.id;
-            final matchesName = b.child.name.trim().toLowerCase() ==
-                targetChild.name.trim().toLowerCase();
-            return matchesId || matchesName;
+            final matchesTargetId = b.child.id.isNotEmpty && b.child.id == targetChild.id;
+            final matchesTargetName =
+                b.child.name.trim().toLowerCase() == targetChild.name.trim().toLowerCase();
+            if (!matchesTargetId && !matchesTargetName) return false;
           }
 
-          // targetChild == null ("Semua Anak"): HANYA anak yang didaftarkan pengguna ini
-          if (registeredChildren.isEmpty) return false;
-          final matchesId = b.child.id.isNotEmpty && userChildIds.contains(b.child.id);
-          final matchesName = userChildNames.contains(b.child.name.trim().toLowerCase());
-          final matchesUser = userId.isNotEmpty && b.userId != null && b.userId == userId;
-          return matchesId || matchesName || matchesUser;
+          if (userId.isNotEmpty && b.userId != null && b.userId!.isNotEmpty && b.userId != userId) {
+            return false;
+          }
+
+          return true;
         }).toList();
 
         // 3. Konversi dan gabungkan, prioritaskan resume jika ada
@@ -523,9 +542,23 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
   }
 
   List<RiwayatKonsultasiModel> get _displayedRiwayatList {
-    if (_searchQuery.trim().isEmpty) return _riwayatList;
+    final currentChildren = ChildService().children;
+    final userChildIds = currentChildren.map((c) => c.id).where((id) => id.isNotEmpty).toSet();
+    final userChildNames = currentChildren.map((c) => c.name.trim().toLowerCase()).where((name) => name.isNotEmpty).toSet();
+
+    // Pastikan data anak yang sudah dihapus oleh pengguna tidak pernah muncul di riwayat konsultasi POV Pengguna
+    final activeRiwayat = (widget.initialRiwayatList != null && currentChildren.isEmpty)
+        ? _riwayatList
+        : _riwayatList.where((item) {
+            if (currentChildren.isEmpty) return false;
+            final matchesId = item.childId.isNotEmpty && userChildIds.contains(item.childId);
+            final matchesName = userChildNames.contains(item.childName.trim().toLowerCase());
+            return matchesId || matchesName;
+          }).toList();
+
+    if (_searchQuery.trim().isEmpty) return activeRiwayat;
     final q = _searchQuery.trim().toLowerCase();
-    return _riwayatList.where((item) {
+    return activeRiwayat.where((item) {
       final childMatch = item.childName.toLowerCase().contains(q);
       final docMatch = item.doctorName.toLowerCase().contains(q);
       final compMatch = item.complaint.toLowerCase().contains(q);

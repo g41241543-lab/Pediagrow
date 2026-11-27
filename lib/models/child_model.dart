@@ -20,6 +20,8 @@ class ChildModel {
   final int? gestationalAgeWeeks;
   final bool? hasAllergies;
   final String? allergies;
+  final bool isDeletedByUser;
+  final List<String> deletedByUserIds;
 
   const ChildModel({
     required this.id,
@@ -42,6 +44,8 @@ class ChildModel {
     this.gestationalAgeWeeks,
     this.hasAllergies,
     this.allergies,
+    this.isDeletedByUser = false,
+    this.deletedByUserIds = const [],
   });
 
   /// Factory dari Map/JSON (Mendukung skema MySQL, Firestore, dan model lokal)
@@ -141,6 +145,10 @@ class ChildModel {
                 map['has_allergies'] == true ||
                 map['has_allergies'] == '1'),
       allergies: map['allergies']?.toString(),
+      isDeletedByUser: map['is_deleted_by_user'] == true,
+      deletedByUserIds: (map['deleted_by_user_ids'] is List)
+          ? (map['deleted_by_user_ids'] as List).map((e) => e.toString()).toList()
+          : const [],
     );
   }
 
@@ -165,6 +173,8 @@ class ChildModel {
     int? gestationalAgeWeeks,
     bool? hasAllergies,
     String? allergies,
+    bool? isDeletedByUser,
+    List<String>? deletedByUserIds,
   }) {
     return ChildModel(
       id: id ?? this.id,
@@ -187,6 +197,8 @@ class ChildModel {
       gestationalAgeWeeks: gestationalAgeWeeks ?? this.gestationalAgeWeeks,
       hasAllergies: hasAllergies ?? this.hasAllergies,
       allergies: allergies ?? this.allergies,
+      isDeletedByUser: isDeletedByUser ?? this.isDeletedByUser,
+      deletedByUserIds: deletedByUserIds ?? this.deletedByUserIds,
     );
   }
 
@@ -216,6 +228,8 @@ class ChildModel {
           ? 1
           : (hasAllergies == false ? 0 : null),
       'allergies': allergies,
+      'is_deleted_by_user': isDeletedByUser,
+      'deleted_by_user_ids': deletedByUserIds,
     };
   }
 
