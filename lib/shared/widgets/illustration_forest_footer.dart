@@ -25,11 +25,17 @@ class IllustrationForestFooter extends StatefulWidget {
   /// Set `false` jika halaman sudah menggunakan [FullPageSkyBackground].
   final bool withClouds;
 
+  /// Warna latar belakang atas tempat gradasi langit footer berbaur secara halus.
+  /// Jika null, otomatis mengikuti latar standar (`Colors.white` / `#0B1014`).
+  /// Berguna untuk halaman berlatar warna khusus seperti biru kuis Permainan.
+  final Color? backgroundBlendColor;
+
   const IllustrationForestFooter({
     super.key,
     this.height,
     this.fit = BoxFit.fitWidth,
     this.withClouds = true,
+    this.backgroundBlendColor,
   });
 
   @override
@@ -56,12 +62,12 @@ class _IllustrationForestFooterState extends State<IllustrationForestFooter>
   void _initAnim() {
     _driftCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 32),
+      duration: const Duration(seconds: 42),
     );
 
     _floatCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 4200),
+      duration: const Duration(milliseconds: 5200),
     );
 
     final isTest = !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
@@ -70,13 +76,13 @@ class _IllustrationForestFooterState extends State<IllustrationForestFooter>
       _floatCtrl?.repeat(reverse: true);
     }
 
-    _driftSlow = Tween<double>(begin: -14.0, end: 14.0).animate(
+    _driftSlow = Tween<double>(begin: -9.0, end: 9.0).animate(
       CurvedAnimation(parent: _driftCtrl!, curve: Curves.easeInOutSine),
     );
-    _driftMed = Tween<double>(begin: 12.0, end: -12.0).animate(
+    _driftMed = Tween<double>(begin: 7.0, end: -7.0).animate(
       CurvedAnimation(parent: _driftCtrl!, curve: Curves.easeInOutSine),
     );
-    _floatY = Tween<double>(begin: -3.5, end: 3.5).animate(
+    _floatY = Tween<double>(begin: -2.2, end: 2.2).animate(
       CurvedAnimation(parent: _floatCtrl!, curve: Curves.easeInOutSine),
     );
   }
@@ -101,6 +107,75 @@ class _IllustrationForestFooterState extends State<IllustrationForestFooter>
     super.dispose();
   }
 
+  LinearGradient _buildSkyGradient({
+    required bool isDark,
+    required double joinStop,
+    required double deepStop,
+  }) {
+    final baseTop = widget.backgroundBlendColor ??
+        (isDark ? const Color(0xFF0B1014) : Colors.white);
+    final stops = [
+      0.0,
+      joinStop * 0.42,
+      joinStop * 0.85,
+      joinStop,
+      deepStop,
+      1.0,
+    ];
+
+    if (isDark) {
+      final mid1 = widget.backgroundBlendColor != null
+          ? Color.lerp(baseTop, const Color(0xFF091221), 0.60)!
+              .withValues(alpha: 0.72)
+          : const Color(0xC4091221);
+      final mid2 = widget.backgroundBlendColor != null
+          ? Color.lerp(baseTop, const Color(0xFF06122B), 0.86)!
+              .withValues(alpha: 0.92)
+          : const Color(0xF006122B);
+
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          baseTop.withValues(alpha: 0.0),
+          mid1,
+          mid2,
+          const Color(0xFF04112C),
+          const Color(0xFF051636),
+          const Color(0xFF05193A),
+        ],
+        stops: stops,
+      );
+    }
+
+    final isCustomTint = widget.backgroundBlendColor != null &&
+        widget.backgroundBlendColor != Colors.white &&
+        widget.backgroundBlendColor != const Color(0xFFF8FAFC);
+
+    final mid1 = isCustomTint
+        ? Color.lerp(baseTop, const Color(0xFF9CD4F4), 0.48)!
+            .withValues(alpha: 0.66)
+        : const Color(0xA8EEF9FD);
+    final mid2 = isCustomTint
+        ? Color.lerp(baseTop, const Color(0xFFDCF6FA), 0.78)!
+            .withValues(alpha: 0.92)
+        : const Color(0xEBDCF6FA);
+
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        baseTop.withValues(alpha: 0.0),
+        mid1,
+        mid2,
+        const Color(0xFFCBF2F4),
+        const Color(0xFFC2F1EC),
+        const Color(0xFFC9F3E9),
+      ],
+      stops: stops,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -116,8 +191,13 @@ class _IllustrationForestFooterState extends State<IllustrationForestFooter>
     final w = MediaQuery.sizeOf(context).width;
     const footerAspect = 768.0 / 1376.0;
     final imageH = widget.height ?? (w * footerAspect);
-    const skyLead = 64.0;
+    const skyLead = 96.0;
     final totalH = imageH + skyLead;
+    final joinStop = (skyLead / totalH).clamp(0.12, 0.72);
+    final deepStop = ((skyLead + imageH * 0.24) / totalH).clamp(
+      joinStop + 0.08,
+      0.96,
+    );
 
     return IgnorePointer(
       child: SizedBox(
@@ -126,44 +206,20 @@ class _IllustrationForestFooterState extends State<IllustrationForestFooter>
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // 1. Gradasi atmosfer langit menyatu ke pucuk pohon
+            // 1. Gradasi atmosfer langit menyatu mulus ke tepi atas ilustrasi forest
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: isDark
-                        ? const [
-                            Color(0x000B1014),
-                            Color(0xD0091221),
-                            Color(0xFF06122B),
-                            Color(0xFF04112C),
-                            Color(0xFF051636),
-                            Color(0xFF05193A),
-                          ]
-                        : const [
-                            Color(0x00FFFFFF),
-                            Color(0xC8F2FBFE),
-                            Color(0xFFDCF6FA),
-                            Color(0xFFCBF2F4),
-                            Color(0xFFC2F1EC),
-                            Color(0xFFC9F3E9),
-                          ],
-                    stops: const [
-                      0.0,
-                      0.22,
-                      0.45,
-                      0.62,
-                      0.82,
-                      1.0,
-                    ],
+                  gradient: _buildSkyGradient(
+                    isDark: isDark,
+                    joinStop: joinStop,
+                    deepStop: deepStop,
                   ),
                 ),
               ),
             ),
 
-            // 2. Awan-awan horizon melayang
+            // 2. Awan-awan horizon melayang lembut (lebih tenang dari Beranda agar Beranda tetap istimewa)
             if (_driftCtrl != null && _floatCtrl != null)
               AnimatedBuilder(
                 animation: Listenable.merge([_driftCtrl!, _floatCtrl!]),
@@ -177,45 +233,48 @@ class _IllustrationForestFooterState extends State<IllustrationForestFooter>
                     children: [
                       // Horizon 1 — Kiri atas cakrawala
                       Positioned(
-                        left: 12 + (driftSlow * 0.55),
-                        top: 8 + (floatY * 0.50),
+                        left: 14 + (driftSlow * 0.50),
+                        top: 22 + (floatY * 0.45),
                         child: ForestCloudWidget(
-                          width: 96,
-                          height: 33,
+                          width: 98,
+                          height: 34,
                           isNight: isDark,
-                          opacity: isDark ? 0.42 : 0.58,
+                          opacity: isDark ? 0.44 : 0.68,
                           flipHorizontal: false,
                           isHeader: true,
+                          isHorizon: true,
                           variant: ForestCloudVariant.asymmetric,
                         ),
                       ),
 
                       // Horizon 2 — Kanan penyeimbang cakrawala
                       Positioned(
-                        right: 14 + (-driftMed * 0.60),
-                        top: 18 - (floatY * 0.40),
+                        right: 16 + (-driftMed * 0.55),
+                        top: 34 - (floatY * 0.38),
                         child: ForestCloudWidget(
                           width: 104,
-                          height: 35,
+                          height: 36,
                           isNight: isDark,
-                          opacity: isDark ? 0.44 : 0.60,
+                          opacity: isDark ? 0.46 : 0.70,
                           flipHorizontal: true,
                           isHeader: true,
+                          isHorizon: true,
                           variant: ForestCloudVariant.asymmetric,
                         ),
                       ),
 
-                      // Horizon 3 — Awan lembah tengah menyatu ke pucuk pohon
+                      // Horizon 3 — Kabut awan lembut di lembah tengah menyatu ke pucuk pohon
                       Positioned(
-                        left: (w * 0.20) + (driftMed * 0.45),
-                        top: skyLead - 18 + (floatY * 0.30),
+                        left: (w * 0.18) + (driftMed * 0.40),
+                        top: skyLead - 24 + (floatY * 0.25),
                         child: ForestCloudWidget(
-                          width: 116,
+                          width: 112,
                           height: 33,
                           isNight: isDark,
-                          opacity: isDark ? 0.34 : 0.48,
+                          opacity: isDark ? 0.36 : 0.56,
                           flipHorizontal: false,
                           isHeader: true,
+                          isHorizon: true,
                           variant: ForestCloudVariant.elongated,
                         ),
                       ),

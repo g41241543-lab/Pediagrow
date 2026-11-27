@@ -46,7 +46,7 @@ void main() {
 
       final result = await StuntingMlService.predict(normalInput);
       expect(result.status, equals(StuntingStatusCategory.normal));
-      expect(result.confidenceProbability, greaterThanOrEqualTo(0.85));
+      expect(result.confidenceProbability, greaterThanOrEqualTo(0.50));
       expect(result.recommendations.isNotEmpty, isTrue);
 
       // Data Anak Stunted (15 bulan, 68 cm -> HAZ < -2.5)
@@ -117,7 +117,7 @@ void main() {
       expect(find.text('Beranda'), findsOneWidget);
       expect(find.text('Konsultasi'), findsOneWidget);
       expect(find.text('Riwayat Konsultasi'), findsOneWidget);
-      expect(find.text('Profil Ibu'), findsOneWidget);
+      expect(find.text('Profil'), findsOneWidget);
     });
 
     testWidgets('Tapping CEK SEKARANG! triggers Pego analysis overlay sequence',

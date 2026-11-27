@@ -11,6 +11,7 @@ async function main() {
   const testNik = '9271060312000001'; // NIK contoh sandbox
 
   try {
+
     const searchRes = await ss.searchPatientByNik(testNik);
     const patientResource = searchRes.entry?.[0]?.resource;
 

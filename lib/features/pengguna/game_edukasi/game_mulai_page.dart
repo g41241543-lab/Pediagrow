@@ -97,12 +97,17 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
           ),
 
           // ── Ilustrasi siluet hutan: FIXED di bagian bawah ─────────
-          const Positioned(
+          Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: IgnorePointer(
-              child: IllustrationForestFooter(fit: BoxFit.fitWidth),
+              child: IllustrationForestFooter(
+                fit: BoxFit.fitWidth,
+                backgroundBlendColor: isDark
+                    ? const Color(0xFF1A2228)
+                    : const Color(0xFF6FA8E8),
+              ),
             ),
           ),
 
@@ -118,7 +123,7 @@ class _GameMulaiPageState extends State<GameMulaiPage> {
                     physics: const ClampingScrollPhysics(),
                     child: Padding(
                       // Padding bottom agar konten tidak tertutup ilustrasi
-                      padding: const EdgeInsets.only(bottom: 220),
+                      padding: const EdgeInsets.only(bottom: 240),
                       child: Column(
                         children: [
                           const SizedBox(height: 24),

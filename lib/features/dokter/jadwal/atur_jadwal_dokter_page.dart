@@ -547,7 +547,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
         const SizedBox(height: 16),
 
-        const IllustrationForestFooter(fit: BoxFit.fitWidth),
+        IllustrationForestFooter(
+          fit: BoxFit.fitWidth,
+          backgroundBlendColor:
+              _isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+        ),
 
       ],
 
@@ -1815,7 +1819,12 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
                       const SizedBox(height: 16),
 
-                      const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                      IllustrationForestFooter(
+                        fit: BoxFit.fitWidth,
+                        backgroundBlendColor: _isDark
+                            ? const Color(0xFF0B1014)
+                            : const Color(0xFFF8FAFC),
+                      ),
 
                     ],
 
