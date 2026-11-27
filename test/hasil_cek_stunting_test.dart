@@ -82,7 +82,7 @@ void main() {
       expect(find.text('Beranda'), findsOneWidget);
       expect(find.text('Konsultasi'), findsOneWidget);
       expect(find.text('Riwayat Konsultasi'), findsOneWidget);
-      expect(find.text('Profil Ibu'), findsOneWidget);
+      expect(find.text('Profil'), findsOneWidget);
     });
 
     testWidgets('Displays STUNTING and red background when status is stunted',

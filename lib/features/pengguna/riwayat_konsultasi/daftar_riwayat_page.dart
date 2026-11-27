@@ -11,8 +11,10 @@ import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/resume_medis_model.dart';
 import '../../../models/riwayat_konsultasi_model.dart';
+import '../../../shared/widgets/illustration_forest_footer.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../beranda/beranda_page.dart';
+import '../konsultasi/daftar_dokter_page.dart';
 import 'detail_konsultasi_page.dart';
 import 'widgets/riwayat_consultation_card.dart';
 import 'widgets/riwayat_empty_state.dart';
@@ -624,6 +626,8 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16.0),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
                 ],
               ),
             ),
@@ -646,8 +650,21 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSearchBar(isDark),
-                  const Expanded(child: Center(child: RiwayatEmptyState())),
+                  Expanded(
+                    child: Center(
+                      child: RiwayatEmptyState(
+                        onAction: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const DaftarDokterPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16.0),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
                 ],
               ),
             ),
@@ -717,7 +734,9 @@ class _DaftarRiwayatPageState extends State<DaftarRiwayatPage> {
                       );
                     }),
 
+                  const Spacer(),
                   const SizedBox(height: 16.0),
+                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
                 ],
               ),
             ),

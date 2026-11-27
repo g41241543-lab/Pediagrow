@@ -20,8 +20,7 @@ class ChildModel {
   final int? gestationalAgeWeeks;
   final bool? hasAllergies;
   final String? allergies;
-  final bool isDeletedByUser;
-  final List<String> deletedByUserIds;
+  final String? ihsNumber; // Nomor Rekam Medis Nasional SATUSEHAT (IHS Number)
 
   const ChildModel({
     required this.id,
@@ -44,8 +43,7 @@ class ChildModel {
     this.gestationalAgeWeeks,
     this.hasAllergies,
     this.allergies,
-    this.isDeletedByUser = false,
-    this.deletedByUserIds = const [],
+    this.ihsNumber,
   });
 
   /// Factory dari Map/JSON (Mendukung skema MySQL, Firestore, dan model lokal)
@@ -145,10 +143,7 @@ class ChildModel {
                 map['has_allergies'] == true ||
                 map['has_allergies'] == '1'),
       allergies: map['allergies']?.toString(),
-      isDeletedByUser: map['is_deleted_by_user'] == true,
-      deletedByUserIds: (map['deleted_by_user_ids'] is List)
-          ? (map['deleted_by_user_ids'] as List).map((e) => e.toString()).toList()
-          : const [],
+      ihsNumber: (map['ihs_number'] ?? map['ihsNumber'])?.toString(),
     );
   }
 
@@ -173,8 +168,7 @@ class ChildModel {
     int? gestationalAgeWeeks,
     bool? hasAllergies,
     String? allergies,
-    bool? isDeletedByUser,
-    List<String>? deletedByUserIds,
+    String? ihsNumber,
   }) {
     return ChildModel(
       id: id ?? this.id,
@@ -197,8 +191,7 @@ class ChildModel {
       gestationalAgeWeeks: gestationalAgeWeeks ?? this.gestationalAgeWeeks,
       hasAllergies: hasAllergies ?? this.hasAllergies,
       allergies: allergies ?? this.allergies,
-      isDeletedByUser: isDeletedByUser ?? this.isDeletedByUser,
-      deletedByUserIds: deletedByUserIds ?? this.deletedByUserIds,
+      ihsNumber: ihsNumber ?? this.ihsNumber,
     );
   }
 
@@ -208,6 +201,7 @@ class ChildModel {
       'owner_id': ownerId,
       if (noKk != null) 'no_kk': noKk,
       if (nik != null) 'nik': nik,
+      if (ihsNumber != null) 'ihs_number': ihsNumber,
       'parent_ids': parentIds.isNotEmpty ? parentIds : (ownerId.isNotEmpty ? [ownerId] : []),
       'name': name,
       'gender': gender,
@@ -228,8 +222,6 @@ class ChildModel {
           ? 1
           : (hasAllergies == false ? 0 : null),
       'allergies': allergies,
-      'is_deleted_by_user': isDeletedByUser,
-      'deleted_by_user_ids': deletedByUserIds,
     };
   }
 

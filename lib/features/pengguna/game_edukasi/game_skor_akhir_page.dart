@@ -89,12 +89,17 @@ class GameSkorAkhirPage extends StatelessWidget {
 
             // ── [REVISI 4+5] Ilustrasi siluet: FIXED di bottom ───
             // Ditempatkan SEBELUM konten scrollable agar konten tampil di atas
-            const Positioned(
+            Positioned(
               bottom: 0,
               left: 0,
               right: 0,
               child: IgnorePointer(
-                child: IllustrationForestFooter(fit: BoxFit.fitWidth),
+                child: IllustrationForestFooter(
+                  fit: BoxFit.fitWidth,
+                  backgroundBlendColor: isDark
+                      ? const Color(0xFF1A2228)
+                      : const Color(0xFF6FA8E8),
+                ),
               ),
             ),
 
@@ -174,8 +179,8 @@ class GameSkorAkhirPage extends StatelessWidget {
                         ),
 
                         // ── Padding bottom agar tombol tidak tertutup ilustrasi
-                        // 160px (tinggi ilustrasi) + 20px extra
-                        const SizedBox(height: 220),
+                        // 160px (tinggi ilustrasi) + skyLead ekstra
+                        const SizedBox(height: 240),
                       ],
                     ),
                   ),

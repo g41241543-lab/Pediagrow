@@ -257,7 +257,13 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
       onPopInvokedWithResult: (didPop, _) {
 
-        if (!didPop) {
+        if (didPop) return;
+
+        if (Navigator.of(context).canPop()) {
+
+          Navigator.of(context).pop();
+
+        } else {
 
           Navigator.of(context).pushReplacement(
 
@@ -541,7 +547,11 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
         const SizedBox(height: 16),
 
-        const IllustrationForestFooter(fit: BoxFit.fitWidth),
+        IllustrationForestFooter(
+          fit: BoxFit.fitWidth,
+          backgroundBlendColor:
+              _isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+        ),
 
       ],
 
@@ -1809,7 +1819,12 @@ class _AturJadwalDokterPageState extends State<AturJadwalDokterPage>
 
                       const SizedBox(height: 16),
 
-                      const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                      IllustrationForestFooter(
+                        fit: BoxFit.fitWidth,
+                        backgroundBlendColor: _isDark
+                            ? const Color(0xFF0B1014)
+                            : const Color(0xFFF8FAFC),
+                      ),
 
                     ],
 

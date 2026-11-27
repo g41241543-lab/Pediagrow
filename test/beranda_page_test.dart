@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pediagrow/core/services/booking_service.dart';
 import 'package:pediagrow/core/services/notification_service.dart';
 import 'package:pediagrow/features/pengguna/beranda/beranda_page.dart';
+import 'package:pediagrow/features/pengguna/cek_stunting/widgets/pego_robot_widget.dart';
 import 'package:pediagrow/features/pengguna/profil/profil_ibu_page.dart';
 
 void main() {
@@ -46,7 +47,7 @@ void main() {
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/artikel_kesehatan_logo.png'), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/lokasi_fasyankes_logo.png'), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/permainan_logo.png'), findsOneWidget);
-    expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/bayi_pediagrow_logo.png'), findsOneWidget);
+    expect(find.byType(PegoRobotWidget), findsOneWidget);
     expect(find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && ((w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer_fiks.png' || (w.image as AssetImage).assetName == 'assets/images/beranda_landscape_footer.jpg')), findsOneWidget);
 
     // 3. Verify horizontal alignment and margins

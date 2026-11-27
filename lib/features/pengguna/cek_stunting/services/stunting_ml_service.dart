@@ -78,12 +78,16 @@ class StuntingInputData {
         gender.toLowerCase().contains('female');
     return {
       'nama_anak': namaAnak,
+      'gender': isGirl ? 1 : 0,
       'gender_label': isGirl ? 'female' : 'male',
       'age': ageInMonths,
       'birth_weight': birthWeightKg,
       'birth_length': birthHeightCm,
       'body_weight': currentWeightKg,
       'body_length': currentHeightCm,
+      'current_weight_kg': currentWeightKg,
+      'current_height_cm': currentHeightCm,
+      'asi_eksklusif': isExclusiveBreastfeeding ? 1 : 0,
       'breastfeeding_label': isExclusiveBreastfeeding ? 'Yes' : 'No',
       'tanggal_periksa': checkDate.toIso8601String(),
     };

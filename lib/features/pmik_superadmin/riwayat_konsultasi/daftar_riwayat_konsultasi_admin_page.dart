@@ -287,9 +287,9 @@ class _DaftarRiwayatKonsultasiAdminPageState
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: widget.inShell,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
+        if (didPop || widget.inShell) return;
         _handleBack();
       },
       child: Scaffold(

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/services/soal_service.dart';
@@ -390,10 +390,13 @@ class _PermainanAdminPageState extends State<PermainanAdminPage>
                       else
                         _buildContentSection(),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 92),
 
                       // 3. Ilustrasi Landscape Footer (Adaptif Tema)
-                      const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                      const IllustrationForestFooter(
+                        fit: BoxFit.fitWidth,
+                        withClouds: false,
+                      ),
                     ],
                   ),
                 ],

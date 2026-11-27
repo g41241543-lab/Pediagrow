@@ -28,11 +28,36 @@ class DokterShell extends StatefulWidget {
 
 class _DokterShellState extends State<DokterShell> {
   late int _currentIndex;
+  bool _assetsPrecached = false;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_assetsPrecached) {
+      _assetsPrecached = true;
+      _precacheBerandaAssets();
+    }
+  }
+
+  void _precacheBerandaAssets() {
+    const assets = [
+      'assets/images/data_anak_logo.png',
+      'assets/images/jadwal_praktik_logo.png',
+      'assets/images/resep_mpasi_logo.png',
+      'assets/images/artikel_kesehatan_logo.png',
+      'assets/images/permainan_logo.png',
+      'assets/images/rekapitulasi_logo.png',
+      'assets/images/dokter_superadmin_card.png',
+    ];
+    for (final asset in assets) {
+      precacheImage(AssetImage(asset), context);
+    }
   }
 
   void _onNavTap(int index) {
@@ -44,21 +69,31 @@ class _DokterShellState extends State<DokterShell> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
-      // IndexedStack mempertahankan state tiap tab — tidak ada rebuild, instan 0 ms
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          BerandaDokterPage(inShell: true),
-          KonsultasiDokterPage(inShell: true),
-          DaftarRiwayatKonsultasiAdminPage(inShell: true),
-          ProfilDokterPage(inShell: true),
-        ],
-      ),
-      bottomNavigationBar: PediaBottomNavBar(
-        selectedIndex: _currentIndex,
-        onNavTap: _onNavTap,
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          // Beralih ke Beranda (tab 0) seketika dalam 1 frame tanpa route baru
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0B1014) : Colors.white,
+        // IndexedStack mempertahankan state tiap tab — tidak ada rebuild, instan 0 ms
+        body: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            BerandaDokterPage(inShell: true),
+            KonsultasiDokterPage(inShell: true),
+            DaftarRiwayatKonsultasiAdminPage(inShell: true),
+            ProfilDokterPage(inShell: true),
+          ],
+        ),
+        bottomNavigationBar: PediaBottomNavBar(
+          selectedIndex: _currentIndex,
+          onNavTap: _onNavTap,
+        ),
       ),
     );
   }

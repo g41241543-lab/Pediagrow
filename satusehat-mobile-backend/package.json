@@ -1,0 +1,16 @@
+{
+  "name": "satusehat-mobile-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node src/server.js",
+    "check-token": "node src/checkToken.js",
+    "test": "node test/auth.test.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

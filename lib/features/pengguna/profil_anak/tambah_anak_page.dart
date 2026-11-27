@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/services/child_service.dart';
+import '../../../core/services/satusehat_service.dart';
 import '../../../core/utils/kk_nik_validator.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/services/user_service.dart';
@@ -1051,6 +1052,26 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         return;
       }
 
+      // 1. Integrasi SATUSEHAT Sandbox: Daftarkan ke SATUSEHAT jika NIK 16 digit terisi
+      String? satusehatIhs;
+      if (cleanNik != null && cleanNik.length == 16) {
+        try {
+          final bDateStr = _selectedBirthDate != null
+              ? '${_selectedBirthDate!.year.toString().padLeft(4, '0')}-${_selectedBirthDate!.month.toString().padLeft(2, '0')}-${_selectedBirthDate!.day.toString().padLeft(2, '0')}'
+              : '2024-01-01';
+
+          satusehatIhs = await SatuSehatService.daftarPasienBaru(
+            nik: cleanNik,
+            name: _namaController.text.trim(),
+            gender: _selectedGender!,
+            birthDate: bDateStr,
+          );
+          debugPrint('[SATUSEHAT] Sukses sinkronisasi ke Kemenkes Sandbox, IHS: $satusehatIhs');
+        } catch (e) {
+          debugPrint('[SATUSEHAT] Backend lokal offline / gagal sinkron: $e');
+        }
+      }
+
       final newChild = ChildModel(
         ownerId: UserService().currentUser.id,
         noKk: cleanNoKk,
@@ -1070,6 +1091,7 @@ class _TambahAnakPageState extends State<TambahAnakPage> {
         gestationalAgeWeeks: gestWeeks,
         hasAllergies: _hasAllergies,
         allergies: _hasAllergies == true ? _alergiController.text.trim() : null,
+        ihsNumber: satusehatIhs,
       );
 
       // Simpan ke ChildService reaktif
