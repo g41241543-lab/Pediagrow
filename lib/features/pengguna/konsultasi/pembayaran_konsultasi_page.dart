@@ -1,14 +1,20 @@
 import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/booking_service.dart';
 import '../../../core/services/google_calendar_service.dart';
 import '../../../core/services/local_push_service.dart';
+import '../../../core/services/user_service.dart';
 import '../../../models/booking_consultation_model.dart';
 import '../../../models/child_model.dart';
 import '../../../models/doctor_model.dart';
+import '../../../pages/pembayaran_page.dart';
+import '../../../services/midtrans_service.dart';
 import '../../../shared/widgets/doctor_live_avatar.dart';
 import 'daftar_dokter_page.dart';
 import 'status_booking_page.dart';
@@ -106,6 +112,14 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
   bool _isProcessing = false;
   bool _isPaid = false;
 
+  // Integrasi Midtrans
+  String? _activeOrderId;
+  String? _lastRedirectUrl;
+  String _paymentStatus = '';
+  bool _isCheckingStatus = false;
+  Timer? _pollingTimer;
+  int _pollCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -129,6 +143,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _pollingTimer?.cancel();
     super.dispose();
   }
 
@@ -161,17 +176,251 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
     );
   }
 
+  /// Memulai proses pembayaran via Midtrans Snap
   Future<void> _handlePayment() async {
     if (_isProcessing || _isPaid) return;
+
+    // Jika transaksi sudah pernah dibuat dan belum dibayar, buka kembali WebView Snap
+    if (_activeOrderId != null && _lastRedirectUrl != null) {
+      await _openMidtransWebPage(_lastRedirectUrl!, _activeOrderId!);
+      return;
+    }
 
     setState(() {
       _isProcessing = true;
     });
 
-    // Simulasi verifikasi mBanking / QRIS
-    await Future.delayed(const Duration(milliseconds: 1400));
+    final orderId = 'ORDER-${DateTime.now().millisecondsSinceEpoch}';
+    final amount = widget.doctor.effectiveFee > 0
+        ? widget.doctor.effectiveFee
+        : 35000;
 
-    // Generate link Google Kalender
+    final user = UserService().currentUser;
+    final customerName = user.name.trim().isNotEmpty && user.name != 'Tamu'
+        ? user.name.trim()
+        : 'Orang Tua ${widget.child.name}';
+    final customerEmail = user.email.trim().isNotEmpty
+        ? user.email.trim()
+        : 'pengguna@pediagrow.id';
+    final userId = user.id.isNotEmpty
+        ? user.id
+        : (widget.child.ownerId.isNotEmpty
+              ? widget.child.ownerId
+              : 'unknown-user');
+
+    // Simpan order awal ke Firestore dengan status pending
+    try {
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
+        'orderId': orderId,
+        'userId': userId,
+        'amount': amount,
+        'status': 'pending',
+        'transactionStatus': 'pending',
+        'serviceName': 'Konsultasi Dokter Spesialis Anak',
+        'doctorName': widget.doctor.name,
+        'doctorId': widget.doctor.id,
+        'childName': widget.child.name,
+        'childId': widget.child.id,
+        'scheduledDate': widget.selectedDate.toIso8601String(),
+        'scheduledTimeSlot': widget.selectedTimeSlot,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('[Firestore Orders] Gagal mencatat order pending: $e');
+    }
+
+    // Panggil backend Midtrans untuk membuat transaksi
+    try {
+      final redirectUrl = await MidtransService().buatTransaksi(
+        orderId: orderId,
+        amount: amount,
+        customerName: customerName,
+        customerEmail: customerEmail,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isProcessing = false;
+        _activeOrderId = orderId;
+        _lastRedirectUrl = redirectUrl;
+        _paymentStatus = 'pending';
+      });
+
+      // Buka antarmuka pembayaran Snap di WebView
+      await _openMidtransWebPage(redirectUrl, orderId);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isProcessing = false;
+      });
+
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg, style: GoogleFonts.lato(fontSize: 13)),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'TUTUP',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Membuka halaman WebView Midtrans Snap dan memulai pemeriksaan status saat kembali
+  Future<void> _openMidtransWebPage(String redirectUrl, String orderId) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            PembayaranPage(redirectUrl: redirectUrl, orderId: orderId),
+      ),
+    );
+
+    if (!mounted) return;
+
+    // 1. Cek status pembayaran segera setelah pengguna kembali dari WebView
+    await _checkPaymentStatus(orderId, isManual: false);
+
+    // 2. Mulai polling otomatis tiap 4 detik (maks 5 menit)
+    _startPollingPaymentStatus(orderId);
+  }
+
+  /// Polling otomatis ke backend tiap 4 detik sampai settlement/capture atau expire/cancel/deny
+  void _startPollingPaymentStatus(String orderId) {
+    _pollingTimer?.cancel();
+    _pollCount = 0;
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (timer) async {
+      _pollCount++;
+      // Maks 75 kali x 4 detik = 300 detik (5 menit)
+      if (_pollCount > 75 || _isPaid || !mounted) {
+        timer.cancel();
+        return;
+      }
+
+      await _checkPaymentStatus(orderId, isManual: false);
+    });
+  }
+
+  /// Mengecek status transaksi ke backend Midtrans
+  Future<void> _checkPaymentStatus(
+    String orderId, {
+    bool isManual = false,
+  }) async {
+    if (_isCheckingStatus || _isPaid) return;
+
+    if (mounted) {
+      setState(() {
+        _isCheckingStatus = true;
+      });
+    }
+
+    try {
+      final status = await MidtransService().cekStatus(orderId);
+      debugPrint('[Midtrans Status] Order $orderId -> $status');
+
+      if (!mounted) return;
+
+      setState(() {
+        _paymentStatus = status;
+      });
+
+      if (MidtransService.isPaid(status)) {
+        // Pembayaran terkonfirmasi berhasil
+        _pollingTimer?.cancel();
+        await _onPaymentSuccess(orderId, status);
+      } else if (MidtransService.isFailed(status)) {
+        // Pembayaran gagal atau kadaluarsa
+        _pollingTimer?.cancel();
+        await _onPaymentFailed(orderId, status);
+      } else {
+        // Status masih pending
+        if (isManual && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Status pembayaran: Menunggu pembayaran (pending).',
+                style: GoogleFonts.lato(fontSize: 13),
+              ),
+              backgroundColor: const Color(0xFF1E293B),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[Midtrans Status Check Error]: $e');
+      if (isManual && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal mengecek status: ${e.toString().replaceFirst("Exception: ", "")}',
+              style: GoogleFonts.lato(fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingStatus = false;
+        });
+      }
+    }
+  }
+
+  /// Menangani keberhasilan pembayaran (settlement / capture)
+  Future<void> _onPaymentSuccess(String orderId, String transStatus) async {
+    if (_isPaid) return;
+
+    setState(() {
+      _isPaid = true;
+    });
+
+    final amount = widget.doctor.effectiveFee > 0
+        ? widget.doctor.effectiveFee
+        : 35000;
+    final user = UserService().currentUser;
+    final userId = user.id.isNotEmpty
+        ? user.id
+        : (widget.child.ownerId.isNotEmpty
+              ? widget.child.ownerId
+              : 'unknown-user');
+
+    // 1. Simpan update ke Firestore orders dengan status 'paid' dan paidAt serverTimestamp
+    try {
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
+        'orderId': orderId,
+        'userId': userId,
+        'amount': amount,
+        'status': 'paid',
+        'transactionStatus': transStatus,
+        'serviceName': 'Konsultasi Dokter Spesialis Anak',
+        'doctorName': widget.doctor.name,
+        'doctorId': widget.doctor.id,
+        'childName': widget.child.name,
+        'childId': widget.child.id,
+        'scheduledDate': widget.selectedDate.toIso8601String(),
+        'scheduledTimeSlot': widget.selectedTimeSlot,
+        'paidAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[Firestore Orders] Gagal simpan order paid: $e');
+    }
+
+    // 2. Generate link Google Kalender & buat booking resmi
     final calUrl = BookingService().generateGoogleCalendarUrl(
       doctor: widget.doctor,
       child: widget.child,
@@ -179,10 +428,11 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
       endTime: widget.endDateTime,
     );
 
-    // Buat data booking resmi
     final newBooking = BookingConsultationModel(
       id: 'booking-${DateTime.now().millisecondsSinceEpoch}',
-      userId: widget.child.ownerId.isNotEmpty ? widget.child.ownerId : null,
+      userId: widget.child.ownerId.isNotEmpty
+          ? widget.child.ownerId
+          : (user.id.isNotEmpty ? user.id : null),
       doctor: widget.doctor,
       child: widget.child,
       scheduledDate: widget.selectedDate,
@@ -194,7 +444,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
       createdAt: DateTime.now(),
     );
 
-    // 1. Tampilkan notifikasi pembayaran berhasil (notifikasi pertama yang muncul)
+    // 3. Tampilkan notifikasi pembayaran berhasil (notifikasi pertama yang muncul)
     LocalPushService().show(
       title: 'Pembayaran Berhasil',
       body:
@@ -205,7 +455,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
     // Jeda singkat agar notifikasi pembayaran terproses terlebih dahulu
     await Future.delayed(const Duration(milliseconds: 300));
 
-    // 2. Simpan booking ke BookingService (kemudian diikuti dengan notifikasi booking berhasil)
+    // 4. Simpan booking ke BookingService (kemudian diikuti dengan notifikasi booking berhasil)
     try {
       await BookingService().addBooking(newBooking);
     } catch (e) {
@@ -214,17 +464,39 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
 
     if (!mounted) return;
 
-    setState(() {
-      _isProcessing = false;
-      _isPaid = true;
-    });
-
-    // Tampilkan Alert Dialog Sukses persis seperti pada lampiran pengguna
+    // 5. Tampilkan Alert Dialog Sukses
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _buildSuccessDialog(ctx, newBooking),
     );
+  }
+
+  /// Menangani kegagalan pembayaran (expire / cancel / deny)
+  Future<void> _onPaymentFailed(String orderId, String transStatus) async {
+    try {
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
+        'status': 'failed',
+        'transactionStatus': transStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[Firestore Orders] Gagal update order failed: $e');
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Transaksi $transStatus. Silakan lakukan pembayaran ulang.',
+            style: GoogleFonts.lato(fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   // ─── DIALOG PEMBAYARAN & BOOKING BERHASIL (SESUAI LAMPIRAN) ────────────────
@@ -385,7 +657,8 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                   ),
                 ),
                 onPressed: () {
-                  final url = booking.googleCalendarUrl ??
+                  final url =
+                      booking.googleCalendarUrl ??
                       GoogleCalendarService().generateCalendarUrl(booking);
                   BookingService().launchGoogleCalendar(url);
                 },
@@ -410,9 +683,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                   // Navigasi ke StatusBookingPage / Jadwal Konsultasi
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (_) => StatusBookingPage(
-                        booking: booking,
-                      ),
+                      builder: (_) => StatusBookingPage(booking: booking),
                     ),
                   );
                 },
@@ -443,7 +714,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
         _confirmCancelPayment(context);
       },
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC),
+        backgroundColor: isDark
+            ? const Color(0xFF0B1014)
+            : const Color(0xFFF8FAFC),
         appBar: AppBar(
           backgroundColor: isDark ? const Color(0xFF1A2228) : Colors.white,
           elevation: 0,
@@ -478,6 +751,12 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               // 1. Banner Countdown Waktu Pembayaran
               _buildTimerBanner(isDark),
               const SizedBox(height: 14),
+
+              // Banner Status Transaksi Midtrans
+              if (_activeOrderId != null && !_isPaid) ...[
+                _buildMidtransOrderBanner(isDark),
+                const SizedBox(height: 14),
+              ],
 
               // 2. Card Ringkasan Konsultasi
               _buildConsultationSummaryCard(isDark),
@@ -596,7 +875,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               'Selesaikan pembayaran dalam waktu',
               style: GoogleFonts.lato(
                 fontSize: 12.5,
-                color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
+                color: isDark
+                    ? const Color(0xFF93C5FD)
+                    : const Color(0xFF1E40AF),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -641,7 +922,8 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               DoctorLiveAvatar(
                 doctorId: widget.doctor.id,
                 doctorName: widget.doctor.name,
-                fallbackPhoto: widget.doctor.avatarUrl ?? widget.doctor.assetImagePath,
+                fallbackPhoto:
+                    widget.doctor.avatarUrl ?? widget.doctor.assetImagePath,
                 size: 46,
                 shape: BoxShape.circle,
               ),
@@ -655,7 +937,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                       style: GoogleFonts.lato(
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFFE9EDEF) : _colorTextBlack,
+                        color: isDark
+                            ? const Color(0xFFE9EDEF)
+                            : _colorTextBlack,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -802,7 +1086,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                     style: GoogleFonts.lato(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? const Color(0xFF93C5FD) : _colorPrimaryBlue,
+                      color: isDark
+                          ? const Color(0xFF93C5FD)
+                          : _colorPrimaryBlue,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -845,7 +1131,8 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               title: 'Virtual Account (VA)',
               icon: Icons.account_balance_rounded,
               isSelected: _selectedMethod == MetodePembayaran.va,
-              onTap: () => setState(() => _selectedMethod = MetodePembayaran.va),
+              onTap: () =>
+                  setState(() => _selectedMethod = MetodePembayaran.va),
               isDark: isDark,
             ),
           ),
@@ -982,15 +1269,19 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   margin: const EdgeInsets.symmetric(vertical: 3.5),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     // Warna seragam untuk semua bank saat dipilih
                     color: isSelected
                         ? (isDark
-                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.22)
-                            : const Color(0xFFEFF6FF))
-                        : (isDark ? const Color(0xFF0B1014) : const Color(0xFFF8FAFC)),
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.22)
+                              : const Color(0xFFEFF6FF))
+                        : (isDark
+                              ? const Color(0xFF0B1014)
+                              : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       // Border seragam untuk semua bank saat dipilih
@@ -1010,8 +1301,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                           bank['name']!,
                           style: GoogleFonts.lato(
                             fontSize: 13.5,
-                            fontWeight:
-                                isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w600,
                             color: isDark
                                 ? const Color(0xFFE9EDEF)
                                 : _colorTextBlack,
@@ -1047,7 +1339,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
               color: isDark ? const Color(0xFF0B1014) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isDark ? const Color(0xFF2C363D) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF2C363D)
+                    : const Color(0xFFCBD5E1),
               ),
             ),
             child: Column(
@@ -1090,7 +1384,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                         backgroundColor: _colorPrimaryBlue,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         minimumSize: Size.zero,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -1127,7 +1423,10 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEF4444),
                   borderRadius: BorderRadius.circular(6),
@@ -1154,6 +1453,37 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
             ],
           ),
           const SizedBox(height: 14),
+
+          // Pemberitahuan jika order Midtrans aktif
+          if (_activeOrderId != null && !_isPaid) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFBFDBFE),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 18, color: Color(0xFF2563EB)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'QRIS resmi dari Midtrans dapat diakses dengan menekan tombol "Buka Bayar" di bawah atau "Buka di Chrome".',
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // Simulasi Gambar QR Code QRIS
           Container(
@@ -1239,10 +1569,7 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
           Text(
             'Scan QR menggunakan aplikasi e-Wallet atau m-Banking Anda',
             textAlign: TextAlign.center,
-            style: GoogleFonts.lato(
-              fontSize: 12,
-              color: _colorLabelGrey,
-            ),
+            style: GoogleFonts.lato(fontSize: 12, color: _colorLabelGrey),
           ),
         ],
       ),
@@ -1288,7 +1615,9 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
                     labelColor: _colorPrimaryBlue,
                     unselectedLabelColor: _colorLabelGrey,
                     labelStyle: GoogleFonts.lato(
-                        fontSize: 12, fontWeight: FontWeight.bold),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                     tabs: const [
                       Tab(text: 'm-Banking'),
                       Tab(text: 'ATM'),
@@ -1377,8 +1706,314 @@ class _PembayaranKonsultasiPageState extends State<PembayaranKonsultasiPage> {
     );
   }
 
+  // ─── BANNER STATUS TRANSAKSI MIDTRANS ───────────────────────────────────────
+  Widget _buildMidtransOrderBanner(bool isDark) {
+    if (_activeOrderId == null || _isPaid) return const SizedBox.shrink();
+
+    final isPending =
+        _paymentStatus.isEmpty || _paymentStatus.toLowerCase() == 'pending';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFF86EFAC),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFDCFCE7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  size: 18,
+                  color: Color(0xFF16A34A),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Transaksi Midtrans Aktif',
+                      style: GoogleFonts.lato(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13.5,
+                        color: isDark ? Colors.white : const Color(0xFF166534),
+                      ),
+                    ),
+                    Text(
+                      _activeOrderId!,
+                      style: GoogleFonts.lato(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF4B5563),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPending
+                      ? const Color(0xFFFEF3C7)
+                      : const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _paymentStatus.isNotEmpty
+                      ? _paymentStatus.toUpperCase()
+                      : 'PENDING',
+                  style: GoogleFonts.lato(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: isPending
+                        ? const Color(0xFFB45309)
+                        : const Color(0xFF991B1B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.8,
+                  color: isDark ? const Color(0xFF38BDF8) : _colorPrimaryBlue,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Sistem mengecek status otomatis tiap 4 detik (Snap / QRIS).',
+                  style: GoogleFonts.lato(
+                    fontSize: 11.5,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF475569),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Tombol Salin Order ID, Salin Link, dan Buka di Browser
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _copyToClipboard(_activeOrderId!, 'Order ID'),
+                icon: const Icon(Icons.copy_rounded, size: 13),
+                label: Text(
+                  'Salin Order ID',
+                  style: GoogleFonts.lato(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: isDark ? Colors.white : const Color(0xFF166534),
+                  side: BorderSide(
+                    color: isDark ? const Color(0xFF475569) : const Color(0xFF86EFAC),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  minimumSize: Size.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              if (_lastRedirectUrl != null) ...[
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      _copyToClipboard(_lastRedirectUrl!, 'Link Pembayaran'),
+                  icon: const Icon(Icons.link_rounded, size: 14),
+                  label: Text(
+                    'Salin Link Bayar',
+                    style: GoogleFonts.lato(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _colorPrimaryBlue,
+                    side: const BorderSide(color: Color(0xFF93C5FD)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final uri = Uri.parse(_lastRedirectUrl!);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: const Icon(Icons.open_in_browser_rounded, size: 14),
+                  label: Text(
+                    'Buka di Chrome',
+                    style: GoogleFonts.lato(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _colorPrimaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── BOTTOM ACTION BAR ─────────────────────────────────────────────────────
   Widget _buildBottomBar(bool isDark) {
+    if (_activeOrderId != null && !_isPaid) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1A2228) : Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: isDark ? const Color(0xFF2C363D) : _colorBorder,
+              width: 1,
+            ),
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 8,
+              offset: Offset(0, -3),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              // Tombol Buka Halaman Bayar lagi jika perlu
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 46,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      if (_lastRedirectUrl != null && _activeOrderId != null) {
+                        _openMidtransWebPage(
+                          _lastRedirectUrl!,
+                          _activeOrderId!,
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 15),
+                    label: Text(
+                      'Buka Bayar',
+                      style: GoogleFonts.lato(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _colorPrimaryBlue,
+                      side: const BorderSide(
+                        color: _colorPrimaryBlue,
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Tombol Cek Status Manual
+              Expanded(
+                flex: 3,
+                child: SizedBox(
+                  height: 46,
+                  child: ElevatedButton.icon(
+                    onPressed: _isCheckingStatus
+                        ? null
+                        : () => _checkPaymentStatus(
+                            _activeOrderId!,
+                            isManual: true,
+                          ),
+                    icon: _isCheckingStatus
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.refresh,
+                            size: 17,
+                            color: Colors.white,
+                          ),
+                    label: Text(
+                      _isCheckingStatus ? 'Memeriksa...' : 'Cek Status Bayar',
+                      style: GoogleFonts.lato(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _colorPrimaryBlue,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       decoration: BoxDecoration(

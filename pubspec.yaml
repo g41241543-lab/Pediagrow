@@ -37,6 +37,7 @@ dependencies:
   sqflite: ^2.4.3
   path: ^1.9.1
   http: ^1.6.0
+  webview_flutter: ^4.10.0
   google_fonts: ^8.2.1
   image_picker: ^1.2.3
   url_launcher: ^6.3.2

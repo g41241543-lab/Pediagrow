@@ -196,9 +196,7 @@ class _BerandaPageState extends State<BerandaPage> {
                     // -------------------------------------------------------------
                     _buildWhiteContentSection(context),
 
-                    const SizedBox(
-                      height: 92,
-                    ), // ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
+                    const SizedBox(height: 92), // ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
                     // -------------------------------------------------------------
                     // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
                     // -------------------------------------------------------------
@@ -241,7 +239,8 @@ class _BerandaPageState extends State<BerandaPage> {
         // Target anak untuk dibuka saat di-tap:
         // Prioritaskan activeChild jika KK-nya belum lengkap, atau anak pertama yang belum lengkap
         final activeChild = ChildService().activeChildNotifier.value;
-        final targetChild = (activeChild != null &&
+        final targetChild =
+            (activeChild != null &&
                 missingChildren.any((c) => c.id == activeChild.id))
             ? activeChild
             : missingChildren.first;
@@ -409,7 +408,10 @@ class _BerandaPageState extends State<BerandaPage> {
   // ===================================================================
   Widget _buildSeamlessBlueArea(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
+    final isNight = HeaderSkyIllustration.checkIsNight(
+      SkyTimeMode.auto,
+      isDark,
+    );
 
     return Container(
       width: double.infinity,
@@ -492,9 +494,15 @@ class _BerandaPageState extends State<BerandaPage> {
                                     width: 38,
                                     height: 38,
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                                      color: isDark
+                                          ? const Color(0xFF1A2228)
+                                          : Colors.white,
                                       shape: BoxShape.circle,
-                                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
+                                      border: isDark
+                                          ? Border.all(
+                                              color: const Color(0xFF2C363D),
+                                            )
+                                          : null,
                                       boxShadow: const [
                                         BoxShadow(
                                           color: Color(0x1F000000),
@@ -506,7 +514,9 @@ class _BerandaPageState extends State<BerandaPage> {
                                     alignment: Alignment.center,
                                     child: Icon(
                                       Icons.notifications_none_rounded,
-                                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
+                                      color: isDark
+                                          ? const Color(0xFFE9EDEF)
+                                          : const Color(0xFF1A2228),
                                       size: 22,
                                     ),
                                   ),
@@ -652,7 +662,9 @@ class _BerandaPageState extends State<BerandaPage> {
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
-                    color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF7F7F7F),
+                    color: isDark
+                        ? const Color(0xFFD1D7DB)
+                        : const Color(0xFF7F7F7F),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -712,7 +724,8 @@ class _BerandaPageState extends State<BerandaPage> {
     return ValueListenableBuilder<ChildModel?>(
       valueListenable: ChildService().activeChildNotifier,
       builder: (context, activeChildValue, _) {
-        final currentActiveId = activeChildValue?.id ??
+        final currentActiveId =
+            activeChildValue?.id ??
             (children.isNotEmpty ? children.first.id : null);
 
         return SizedBox(
@@ -721,7 +734,10 @@ class _BerandaPageState extends State<BerandaPage> {
             clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 4.0,
+            ),
             itemCount: children.length + 1, // semua anak + 1 card tambah anak
             separatorBuilder: (_, _) => const SizedBox(width: 14.0),
             itemBuilder: (context, index) {
@@ -755,9 +771,9 @@ class _BerandaPageState extends State<BerandaPage> {
       heroTag: 'child_avatar_${child.id}',
       onTap: () {
         ChildService().setActiveChild(child);
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)));
       },
       onAvatarTap: () {
         _openFullScreenChildAvatar(
@@ -882,9 +898,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   /// Card untuk menambahkan profil anak baru di akhir list
   Widget _buildAddChildCard(BuildContext context) {
-    return _AddChildCard(
-      onTap: () => _navigateTo(const TambahAnakPage()),
-    );
+    return _AddChildCard(onTap: () => _navigateTo(const TambahAnakPage()));
   }
 
   /// Memformat deskripsi usia anak agar ringkas (misal: "1 tahun 3 bulan", "0 tahun 4 bulan")
@@ -1037,8 +1051,10 @@ class _BerandaPageState extends State<BerandaPage> {
     required String title,
     required String imageAsset,
     required VoidCallback onTap,
-    double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
-    double imageSize = 56, // ukuran logo proporsional, pas & gagah mengisi ruang
+    double cardInset =
+        0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
+    double imageSize =
+        56, // ukuran logo proporsional, pas & gagah mengisi ruang
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1060,14 +1076,8 @@ class _BerandaPageState extends State<BerandaPage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: isDark
-                        ? [
-                            const Color(0xFF1D252C),
-                            const Color(0xFF171E24),
-                          ]
-                        : [
-                            const Color(0xFFEAF4FF),
-                            const Color(0xFFD4EBFE),
-                          ],
+                        ? [const Color(0xFF1D252C), const Color(0xFF171E24)]
+                        : [const Color(0xFFEAF4FF), const Color(0xFFD4EBFE)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -1078,7 +1088,9 @@ class _BerandaPageState extends State<BerandaPage> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.18 : 0.03,
+                      ),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
@@ -1182,9 +1194,7 @@ class _BerandaPageState extends State<BerandaPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.normal,
-              color: isDark
-                  ? const Color(0xFFE9EDEF)
-                  : const Color(0xFF000000),
+              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
               height: 1.25,
             ),
           ),
@@ -1209,20 +1219,12 @@ class _BerandaPageState extends State<BerandaPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [
-                  const Color(0xFF1D252C),
-                  const Color(0xFF171E24),
-                ]
-              : [
-                  const Color(0xFFEAF4FF),
-                  const Color(0xFFD4EBFE),
-                ],
+              ? [const Color(0xFF1D252C), const Color(0xFF171E24)]
+              : [const Color(0xFFEAF4FF), const Color(0xFFD4EBFE)],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFF2C363D)
-              : const Color(0xFFCCE4FB),
+          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFCCE4FB),
           width: 1.0,
         ),
         boxShadow: [
@@ -1608,8 +1610,9 @@ class _BerandaPageState extends State<BerandaPage> {
                 color: isDark
                     ? const Color(0xFF2C363D)
                     : const Color(0xFFE9EDEF),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(13)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(13),
+                ),
               ),
             ),
             Padding(
@@ -1955,8 +1958,9 @@ class _BerandaPageState extends State<BerandaPage> {
                 color: isDark
                     ? const Color(0xFF2C363D)
                     : const Color(0xFFE9EDEF),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(13)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(13),
+                ),
               ),
             ),
             Padding(
@@ -2017,8 +2021,6 @@ class _BerandaPageState extends State<BerandaPage> {
       ),
     );
   }
-
-
 
   // ===================================================================
   // 3. ILUSTRASI FOOTER FULL-BLEED
@@ -2226,7 +2228,11 @@ class _ChildProfileCardState extends State<_ChildProfileCard> {
           curve: Curves.easeOutCubic,
           width: 200,
           height: 128,
-          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
+          transform: Matrix4.translationValues(
+            0,
+            _isActiveLift ? -3.0 : 0.0,
+            0,
+          ),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(18),
@@ -2292,7 +2298,9 @@ class _ChildProfileCardState extends State<_ChildProfileCard> {
                               shape: BoxShape.circle,
                               color: avatarBgColor,
                               border: Border.all(
-                                color: isDark ? const Color(0xFF1A2228) : Colors.white,
+                                color: isDark
+                                    ? const Color(0xFF1A2228)
+                                    : Colors.white,
                                 width: 2.5,
                               ),
                               boxShadow: [
@@ -2385,8 +2393,8 @@ class _ChildProfileCardState extends State<_ChildProfileCard> {
                                   color: _isActiveLift
                                       ? hoverColor
                                       : (isDark
-                                          ? const Color(0xFF2C363D)
-                                          : const Color(0xFFD1D7DB)),
+                                            ? const Color(0xFF2C363D)
+                                            : const Color(0xFFD1D7DB)),
                                 ),
                                 child: const Center(
                                   child: Icon(
@@ -2432,8 +2440,9 @@ class _AddChildCardState extends State<_AddChildCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color hoverColor =
-        isDark ? const Color(0xFF38BDF8) : const Color(0xFF60A5FA);
+    final Color hoverColor = isDark
+        ? const Color(0xFF38BDF8)
+        : const Color(0xFF60A5FA);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -2470,14 +2479,20 @@ class _AddChildCardState extends State<_AddChildCard> {
           curve: Curves.easeOutCubic,
           width: 160,
           height: 128,
-          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
+          transform: Matrix4.translationValues(
+            0,
+            _isActiveLift ? -3.0 : 0.0,
+            0,
+          ),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: _isActiveLift
                   ? hoverColor
-                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
+                  : (isDark
+                        ? const Color(0xFF2C363D)
+                        : const Color(0xFFE2E8F0)),
               width: _isActiveLift ? 2.0 : 1.0,
             ),
             boxShadow: [
@@ -2552,4 +2567,3 @@ class _AddChildCardState extends State<_AddChildCard> {
     );
   }
 }
-

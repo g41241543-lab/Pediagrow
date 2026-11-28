@@ -13,10 +13,14 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!-- CATATAN DEVELOPMENT: android:usesCleartextTraffic="true" digunakan agar aplikasi dapat
+         terhubung ke backend Midtrans lokal via HTTP (misalnya http://10.0.2.2:4000 di emulator
+         atau http://IP-LAPTOP:4000 di HP fisik). HAPUS / NONAKTIFKAN atribut ini saat rilis production! -->
     <application
         android:label="PediaGrow"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
