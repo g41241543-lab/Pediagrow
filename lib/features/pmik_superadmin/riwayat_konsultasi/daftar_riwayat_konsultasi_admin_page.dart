@@ -7,7 +7,6 @@ import '../../../models/staff_account_model.dart';
 import '../../../shared/widgets/child_live_avatar.dart';
 import '../../../shared/widgets/pedia_bottom_nav_bar.dart';
 import '../../dokter/dokter_shell.dart';
-import '../../dokter/beranda/beranda_dokter_page.dart';
 import '../../dokter/konsultasi/konsultasi_dokter_page.dart';
 import '../../dokter/profil_dokter_page.dart';
 import '../../pmik_admin/beranda/beranda_pmik_page.dart';

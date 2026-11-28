@@ -246,10 +246,13 @@ class _EditSoalPermainanPageState extends State<EditSoalPermainanPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 92),
 
                   // 3. Ilustrasi Landscape Footer (Adaptif Dark/Light Mode)
-                  const IllustrationForestFooter(fit: BoxFit.fitWidth),
+                  const IllustrationForestFooter(
+                    fit: BoxFit.fitWidth,
+                    withClouds: false,
+                  ),
                 ],
               ),
             ],

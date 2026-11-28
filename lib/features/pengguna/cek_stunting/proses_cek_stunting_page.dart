@@ -940,7 +940,7 @@ class _ProsesCekStuntingPageState extends State<ProsesCekStuntingPage>
   // ===========================================================================
 
   Widget _buildFooterLandscape() {
-    return const IllustrationForestFooter(height: 34, fit: BoxFit.cover);
+    return const IllustrationForestFooter(fit: BoxFit.fitWidth);
   }
 
 

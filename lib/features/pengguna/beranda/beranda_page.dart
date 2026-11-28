@@ -32,6 +32,7 @@ import 'widgets/full_page_sky_background.dart';
 import 'widgets/header_sky_illustration.dart';
 import '../../../shared/widgets/pedia_banner.dart';
 import '../../../shared/widgets/illustration_forest_footer.dart';
+import '../cek_stunting/widgets/pego_robot_widget.dart';
 
 /// Halaman Beranda Pengguna PediaGrow.
 ///
@@ -196,7 +197,9 @@ class _BerandaPageState extends State<BerandaPage> {
                     // -------------------------------------------------------------
                     _buildWhiteContentSection(context),
 
-                    const SizedBox(height: 92), // ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
+                    const SizedBox(
+                      height: 92,
+                    ), // ruang langit terbuka agar awan horizon bergradasi lembut ke ilustrasi hutan
                     // -------------------------------------------------------------
                     // 3. ILUSTRASI PENUTUP FOOTER (Full-Bleed, Menempel ke Nav Bar)
                     // -------------------------------------------------------------
@@ -239,8 +242,7 @@ class _BerandaPageState extends State<BerandaPage> {
         // Target anak untuk dibuka saat di-tap:
         // Prioritaskan activeChild jika KK-nya belum lengkap, atau anak pertama yang belum lengkap
         final activeChild = ChildService().activeChildNotifier.value;
-        final targetChild =
-            (activeChild != null &&
+        final targetChild = (activeChild != null &&
                 missingChildren.any((c) => c.id == activeChild.id))
             ? activeChild
             : missingChildren.first;
@@ -408,10 +410,7 @@ class _BerandaPageState extends State<BerandaPage> {
   // ===================================================================
   Widget _buildSeamlessBlueArea(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isNight = HeaderSkyIllustration.checkIsNight(
-      SkyTimeMode.auto,
-      isDark,
-    );
+    final isNight = HeaderSkyIllustration.checkIsNight(SkyTimeMode.auto, isDark);
 
     return Container(
       width: double.infinity,
@@ -494,15 +493,9 @@ class _BerandaPageState extends State<BerandaPage> {
                                     width: 38,
                                     height: 38,
                                     decoration: BoxDecoration(
-                                      color: isDark
-                                          ? const Color(0xFF1A2228)
-                                          : Colors.white,
+                                      color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                       shape: BoxShape.circle,
-                                      border: isDark
-                                          ? Border.all(
-                                              color: const Color(0xFF2C363D),
-                                            )
-                                          : null,
+                                      border: isDark ? Border.all(color: const Color(0xFF2C363D)) : null,
                                       boxShadow: const [
                                         BoxShadow(
                                           color: Color(0x1F000000),
@@ -514,9 +507,7 @@ class _BerandaPageState extends State<BerandaPage> {
                                     alignment: Alignment.center,
                                     child: Icon(
                                       Icons.notifications_none_rounded,
-                                      color: isDark
-                                          ? const Color(0xFFE9EDEF)
-                                          : const Color(0xFF1A2228),
+                                      color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF1A2228),
                                       size: 22,
                                     ),
                                   ),
@@ -662,9 +653,7 @@ class _BerandaPageState extends State<BerandaPage> {
                   style: GoogleFonts.lato(
                     fontSize: 15,
                     fontWeight: FontWeight.normal,
-                    color: isDark
-                        ? const Color(0xFFD1D7DB)
-                        : const Color(0xFF7F7F7F),
+                    color: isDark ? const Color(0xFFD1D7DB) : const Color(0xFF7F7F7F),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -724,8 +713,7 @@ class _BerandaPageState extends State<BerandaPage> {
     return ValueListenableBuilder<ChildModel?>(
       valueListenable: ChildService().activeChildNotifier,
       builder: (context, activeChildValue, _) {
-        final currentActiveId =
-            activeChildValue?.id ??
+        final currentActiveId = activeChildValue?.id ??
             (children.isNotEmpty ? children.first.id : null);
 
         return SizedBox(
@@ -734,10 +722,7 @@ class _BerandaPageState extends State<BerandaPage> {
             clipBehavior: Clip.none,
             scrollDirection: Axis.horizontal,
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 4.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             itemCount: children.length + 1, // semua anak + 1 card tambah anak
             separatorBuilder: (_, _) => const SizedBox(width: 14.0),
             itemBuilder: (context, index) {
@@ -771,9 +756,9 @@ class _BerandaPageState extends State<BerandaPage> {
       heroTag: 'child_avatar_${child.id}',
       onTap: () {
         ChildService().setActiveChild(child);
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)));
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => UbahAnakPage(child: child)),
+        );
       },
       onAvatarTap: () {
         _openFullScreenChildAvatar(
@@ -898,7 +883,9 @@ class _BerandaPageState extends State<BerandaPage> {
 
   /// Card untuk menambahkan profil anak baru di akhir list
   Widget _buildAddChildCard(BuildContext context) {
-    return _AddChildCard(onTap: () => _navigateTo(const TambahAnakPage()));
+    return _AddChildCard(
+      onTap: () => _navigateTo(const TambahAnakPage()),
+    );
   }
 
   /// Memformat deskripsi usia anak agar ringkas (misal: "1 tahun 3 bulan", "0 tahun 4 bulan")
@@ -1051,10 +1038,8 @@ class _BerandaPageState extends State<BerandaPage> {
     required String title,
     required String imageAsset,
     required VoidCallback onTap,
-    double cardInset =
-        0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
-    double imageSize =
-        56, // ukuran logo proporsional, pas & gagah mengisi ruang
+    double cardInset = 0, // seberapa "dikecilkan" card-nya (kiri-kanan dalam kolom)
+    double imageSize = 56, // ukuran logo proporsional, pas & gagah mengisi ruang
     double logoOffsetX = 0, // geser logo ke kanan/kiri kalau logo tidak center
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1076,8 +1061,14 @@ class _BerandaPageState extends State<BerandaPage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: isDark
-                        ? [const Color(0xFF1D252C), const Color(0xFF171E24)]
-                        : [const Color(0xFFEAF4FF), const Color(0xFFD4EBFE)],
+                        ? [
+                            const Color(0xFF1D252C),
+                            const Color(0xFF171E24),
+                          ]
+                        : [
+                            const Color(0xFFEAF4FF),
+                            const Color(0xFFD4EBFE),
+                          ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -1088,9 +1079,7 @@ class _BerandaPageState extends State<BerandaPage> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: isDark ? 0.18 : 0.03,
-                      ),
+                      color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
@@ -1194,7 +1183,9 @@ class _BerandaPageState extends State<BerandaPage> {
             style: GoogleFonts.lato(
               fontSize: 14,
               fontWeight: FontWeight.normal,
-              color: isDark ? const Color(0xFFE9EDEF) : const Color(0xFF000000),
+              color: isDark
+                  ? const Color(0xFFE9EDEF)
+                  : const Color(0xFF000000),
               height: 1.25,
             ),
           ),
@@ -1204,34 +1195,42 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   // ===================================================================
-  // CARD PEDIAGROW
-  // Warna #ECF6FF, dimensi lebar penuh (margin 12dp) x height 115, corner radius 10
-  // Sisi kiri: ilustrasi bayi pediagrow
-  // Sisi kanan: "PediaGrow" + Tagline
+  // CARD PEDIAGROW (Opsi B: Teks Kiri, Pego Ceria Kanan)
+  // Dimensi lebar penuh (margin 16dp) x height 112, corner radius 16
   // ===================================================================
   Widget _buildPediaGrowCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      height: 115,
+      height: 112,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          stops: isDark ? const [0.0, 1.0] : const [0.0, 0.65, 1.0],
           colors: isDark
-              ? [const Color(0xFF1D252C), const Color(0xFF171E24)]
-              : [const Color(0xFFEAF4FF), const Color(0xFFD4EBFE)],
+              ? [
+                  const Color(0xFF1D252C),
+                  const Color(0xFF172128),
+                ]
+              : [
+                  const Color(0xFFEAF4FF),
+                  const Color(0xFFD4EBFE),
+                  const Color(0xFFE2FAF4),
+                ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? const Color(0xFF2C363D) : const Color(0xFFCCE4FB),
+          color: isDark
+              ? const Color(0xFF2C363D)
+              : const Color(0xFFCCE4FB),
           width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -1239,63 +1238,80 @@ class _BerandaPageState extends State<BerandaPage> {
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            // Micro Sparkle (✦) di Sudut Kanan Atas
+            // Aksen gelombang lembut di dasar kartu (pengisi ruang tanpa lingkaran)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _PediaGrowWavePainter(isDark: isDark),
+              ),
+            ),
+
+            // Cluster Micro Sparkle (✦) di sisi kanan & sekitar Pego
             Positioned(
               top: 12,
               right: 14,
               child: Icon(
                 Icons.auto_awesome,
-                size: 8.5,
+                size: 9.0,
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.30)
                     : Colors.white.withValues(alpha: 0.95),
               ),
             ),
+            Positioned(
+              top: 20,
+              right: 90,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 6.5,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.22)
+                    : Colors.white.withValues(alpha: 0.85),
+              ),
+            ),
+            Positioned(
+              bottom: 12,
+              right: 16,
+              child: Icon(
+                Icons.auto_awesome,
+                size: 7.0,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.22)
+                    : Colors.white.withValues(alpha: 0.85),
+              ),
+            ),
 
-            // Konten Baris: Ilustrasi & Teks
+            // Konten Utama: Kiri (PediaGrow + Tagline), Kanan (Maskot Pego)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Ilustrasi Bayi PediaGrow
-                  SizedBox(
-                    width: 84,
-                    height: 94,
-                    child: Image.asset(
-                      'assets/images/bayi_pediagrow_logo.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.child_care_rounded,
-                        size: 50,
-                        color: Color(0xFF3985E7),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  // Teks PediaGrow & Tagline
+                  // Teks PediaGrow + Tagline di kiri
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // "Pedia" (#4B83D6) & "Grow" (#3CC3A6) Baloo 2 Bold 18
+                        // "Pedia" (#4B83D6) & "Grow" (#3CC3A6) Baloo 2 Bold 22
                         RichText(
                           text: TextSpan(
                             children: [
                               TextSpan(
                                 text: 'Pedia',
                                 style: GoogleFonts.baloo2(
-                                  fontSize: 18,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
+                                  height: 1.1,
                                   color: const Color(0xFF4B83D6),
                                 ),
                               ),
                               TextSpan(
                                 text: 'Grow',
                                 style: GoogleFonts.baloo2(
-                                  fontSize: 18,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
+                                  height: 1.1,
                                   color: const Color(0xFF3CC3A6),
                                 ),
                               ),
@@ -1303,16 +1319,54 @@ class _BerandaPageState extends State<BerandaPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Tagline
-                        Text(
-                          'Pantau Pertumbuhan,\nCegah Stunting untuk Masa Depan',
-                          style: GoogleFonts.lato(
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            color: isDark
-                                ? const Color(0xFFD1D7DB)
-                                : const Color(0xFF000000),
-                            height: 1.25,
+                        // Tagline proporsional 2 baris
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Pantau Pertumbuhan,\nCegah Stunting untuk Masa Depan',
+                            style: GoogleFonts.lato(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? const Color(0xFFD1D7DB)
+                                  : const Color(0xFF1E293B),
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  // Maskot Pego ceria di kanan (70x86) dengan bayangan elips tipis
+                  SizedBox(
+                    width: 74,
+                    height: 92,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          bottom: 1,
+                          child: CustomPaint(
+                            size: const Size(46, 9),
+                            painter: _PediaGrowGroundShadowPainter(
+                              isDark: isDark,
+                            ),
+                          ),
+                        ),
+                        const Positioned(
+                          bottom: 4,
+                          child: PegoAnimatingWidget(
+                            width: 70,
+                            height: 86,
+                            isWaving: true,
+                            pose: PegoPose.waving,
+                            showRipples: false,
+                            gentleMode: true,
                           ),
                         ),
                       ],
@@ -1610,9 +1664,8 @@ class _BerandaPageState extends State<BerandaPage> {
                 color: isDark
                     ? const Color(0xFF2C363D)
                     : const Color(0xFFE9EDEF),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(13),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(13)),
               ),
             ),
             Padding(
@@ -1958,9 +2011,8 @@ class _BerandaPageState extends State<BerandaPage> {
                 color: isDark
                     ? const Color(0xFF2C363D)
                     : const Color(0xFFE9EDEF),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(13),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(13)),
               ),
             ),
             Padding(
@@ -2021,6 +2073,8 @@ class _BerandaPageState extends State<BerandaPage> {
       ),
     );
   }
+
+
 
   // ===================================================================
   // 3. ILUSTRASI FOOTER FULL-BLEED
@@ -2228,11 +2282,7 @@ class _ChildProfileCardState extends State<_ChildProfileCard> {
           curve: Curves.easeOutCubic,
           width: 200,
           height: 128,
-          transform: Matrix4.translationValues(
-            0,
-            _isActiveLift ? -3.0 : 0.0,
-            0,
-          ),
+          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(18),
@@ -2298,9 +2348,7 @@ class _ChildProfileCardState extends State<_ChildProfileCard> {
                               shape: BoxShape.circle,
                               color: avatarBgColor,
                               border: Border.all(
-                                color: isDark
-                                    ? const Color(0xFF1A2228)
-                                    : Colors.white,
+                                color: isDark ? const Color(0xFF1A2228) : Colors.white,
                                 width: 2.5,
                               ),
                               boxShadow: [
@@ -2393,8 +2441,8 @@ class _ChildProfileCardState extends State<_ChildProfileCard> {
                                   color: _isActiveLift
                                       ? hoverColor
                                       : (isDark
-                                            ? const Color(0xFF2C363D)
-                                            : const Color(0xFFD1D7DB)),
+                                          ? const Color(0xFF2C363D)
+                                          : const Color(0xFFD1D7DB)),
                                 ),
                                 child: const Center(
                                   child: Icon(
@@ -2440,9 +2488,8 @@ class _AddChildCardState extends State<_AddChildCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color hoverColor = isDark
-        ? const Color(0xFF38BDF8)
-        : const Color(0xFF60A5FA);
+    final Color hoverColor =
+        isDark ? const Color(0xFF38BDF8) : const Color(0xFF60A5FA);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -2479,20 +2526,14 @@ class _AddChildCardState extends State<_AddChildCard> {
           curve: Curves.easeOutCubic,
           width: 160,
           height: 128,
-          transform: Matrix4.translationValues(
-            0,
-            _isActiveLift ? -3.0 : 0.0,
-            0,
-          ),
+          transform: Matrix4.translationValues(0, _isActiveLift ? -3.0 : 0.0, 0),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A2228) : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: _isActiveLift
                   ? hoverColor
-                  : (isDark
-                        ? const Color(0xFF2C363D)
-                        : const Color(0xFFE2E8F0)),
+                  : (isDark ? const Color(0xFF2C363D) : const Color(0xFFE2E8F0)),
               width: _isActiveLift ? 2.0 : 1.0,
             ),
             boxShadow: [
@@ -2567,3 +2608,67 @@ class _AddChildCardState extends State<_AddChildCard> {
     );
   }
 }
+
+/// Aksen gelombang lembut di dasar Card PediaGrow (tanpa lingkaran)
+class _PediaGrowWavePainter extends CustomPainter {
+  final bool isDark;
+
+  const _PediaGrowWavePainter({required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final wavePaint = Paint()
+      ..color = Colors.white.withValues(alpha: isDark ? 0.035 : 0.34)
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, size.height * 0.78)
+      ..quadraticBezierTo(
+        size.width * 0.28,
+        size.height * 0.56,
+        size.width * 0.58,
+        size.height * 0.72,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.82,
+        size.height * 0.84,
+        size.width,
+        size.height * 0.48,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, wavePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PediaGrowWavePainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
+}
+
+/// Bayangan elips halus di bawah kaki Pego agar menapak natural di kartu
+class _PediaGrowGroundShadowPainter extends CustomPainter {
+  final bool isDark;
+
+  const _PediaGrowGroundShadowPainter({required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.black.withValues(alpha: isDark ? 0.28 : 0.12),
+          Colors.black.withValues(alpha: 0.0),
+        ],
+      ).createShader(rect);
+
+    canvas.drawOval(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PediaGrowGroundShadowPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
+}
+

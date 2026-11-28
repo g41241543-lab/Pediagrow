@@ -75,7 +75,10 @@ class ChildService {
           .get();
 
       for (final doc in query.docs) {
-        childMap[doc.id] = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+        final data = doc.data();
+        final deletedBy = List<String>.from(data['deleted_by_user_ids'] ?? []);
+        if (ownerId.isNotEmpty && deletedBy.contains(ownerId)) continue;
+        childMap[doc.id] = ChildModel.fromMap({...data, 'id': doc.id});
       }
 
       // Query berdasarkan parent_ids (jika terhubung sebagai orang tua pendamping)
@@ -85,7 +88,10 @@ class ChildService {
             .where('parent_ids', arrayContains: ownerId)
             .get();
         for (final doc in queryParents.docs) {
-          childMap[doc.id] = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+          final data = doc.data();
+          final deletedBy = List<String>.from(data['deleted_by_user_ids'] ?? []);
+          if (ownerId.isNotEmpty && deletedBy.contains(ownerId)) continue;
+          childMap[doc.id] = ChildModel.fromMap({...data, 'id': doc.id});
         }
       } catch (e) {
         debugPrint('[ChildService] parent_ids query warning: $e');
@@ -100,7 +106,10 @@ class ChildService {
               .where('no_kk', isEqualTo: userNoKk.trim())
               .get();
           for (final doc in queryKk.docs) {
-            childMap[doc.id] = ChildModel.fromMap({...doc.data(), 'id': doc.id});
+            final data = doc.data();
+            final deletedBy = List<String>.from(data['deleted_by_user_ids'] ?? []);
+            if (ownerId.isNotEmpty && deletedBy.contains(ownerId)) continue;
+            childMap[doc.id] = ChildModel.fromMap({...data, 'id': doc.id});
           }
         } catch (e) {
           debugPrint('[ChildService] no_kk query warning: $e');
@@ -235,8 +244,11 @@ class ChildService {
     }
   }
 
-  /// Menghapus profil anak berdasarkan [id] (lokal + Firestore).
+  /// Menghapus profil anak dari akun pengguna (POV Pengguna).
+  /// Data anak dan rekam medisnya tetap dipertahankan di database Firestore
+  /// agar tetap dapat diakses oleh dokter dan PMIK (data anak & laporan).
   Future<void> deleteChild(String id) async {
+    final ownerId = UserService().currentUser.id;
     final updatedList = List<ChildModel>.from(childrenNotifier.value)
       ..removeWhere((c) => c.id == id);
     childrenNotifier.value = updatedList;
@@ -251,9 +263,18 @@ class ChildService {
     if (db == null) return;
 
     try {
-      await db.collection(_collection).doc(id).delete();
+      final docRef = db.collection(_collection).doc(id);
+      final updateData = <String, dynamic>{
+        'is_deleted_by_user': true,
+        'deleted_at': FieldValue.serverTimestamp(),
+      };
+      if (ownerId.isNotEmpty) {
+        updateData['deleted_by_user_ids'] = FieldValue.arrayUnion([ownerId]);
+        updateData['parent_ids'] = FieldValue.arrayRemove([ownerId]);
+      }
+      await docRef.update(updateData);
     } catch (e) {
-      debugPrint('[ChildService] deleteChild error: $e');
+      debugPrint('[ChildService] deleteChild soft-delete warning: $e');
     }
   }
 

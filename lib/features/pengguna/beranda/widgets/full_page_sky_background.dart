@@ -223,12 +223,13 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 _cloud(
                   left: 10 + (driftSlow * 0.55),
                   top: footerTop - 84 + (floatY * 0.50),
-                  w: 108,
-                  h: 37,
-                  opacity: isDark ? 0.42 : 0.58,
+                  w: 114,
+                  h: 40,
+                  opacity: isDark ? 0.50 : 0.76,
                   flipX: false,
                   isDark: isDark,
                   useSkyPalette: true,
+                  isHorizon: true,
                   variant: ForestCloudVariant.asymmetric,
                 ),
 
@@ -236,12 +237,13 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 _cloud(
                   right: 12 + (-driftMed * 0.60),
                   top: footerTop - 68 - (floatY * 0.40),
-                  w: 112,
-                  h: 38,
-                  opacity: isDark ? 0.44 : 0.60,
+                  w: 118,
+                  h: 41,
+                  opacity: isDark ? 0.52 : 0.78,
                   flipX: true,
                   isDark: isDark,
                   useSkyPalette: true,
+                  isHorizon: true,
                   variant: ForestCloudVariant.asymmetric,
                 ),
 
@@ -249,12 +251,13 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
                 _cloud(
                   left: (w * 0.16) + (driftMed * 0.45),
                   top: footerTop - 32 + (floatY * 0.30),
-                  w: 118,
-                  h: 34,
-                  opacity: isDark ? 0.34 : 0.48,
+                  w: 124,
+                  h: 37,
+                  opacity: isDark ? 0.42 : 0.68,
                   flipX: false,
                   isDark: isDark,
                   useSkyPalette: true,
+                  isHorizon: true,
                   variant: ForestCloudVariant.elongated,
                 ),
               ],
@@ -310,6 +313,7 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
     required bool flipX,
     required bool isDark,
     bool useSkyPalette = false,
+    bool isHorizon = false,
     ForestCloudVariant variant = ForestCloudVariant.asymmetric,
   }) {
     return Positioned(
@@ -324,6 +328,7 @@ class _FullPageSkyBackgroundState extends State<FullPageSkyBackground>
         opacity: opacity,
         flipHorizontal: flipX,
         isHeader: useSkyPalette,
+        isHorizon: isHorizon,
         variant: variant,
       ),
     );

@@ -66,11 +66,11 @@ class SatuSehatService {
   static const String appApiKey = 'Pediagrow MIK 5C';
 
   /// IP Wi-Fi laptop untuk pengujian di HP Android fisik
-  static const String defaultLaptopIp = '192.168.110.194';
+  static const String defaultLaptopIp = '10.125.105.9';
 
   /// Ubah ke `true` jika Anda menguji di HP Android fisik via Wi-Fi.
   /// Biarkan `false` jika Anda menguji di Emulator Android Studio.
-  static bool usePhysicalDevice = false;
+  static bool usePhysicalDevice = true;
 
   /// Mendapatkan Base URL backend sesuai platform running
   static String get baseUrl {

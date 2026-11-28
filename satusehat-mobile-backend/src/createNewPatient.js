@@ -15,9 +15,9 @@ async function main() {
 
     // Anda juga bisa menentukan NIK pilihan Anda sendiri pada data di bawah:
     const dataPasienBaru = {
-        nik: 3501123456780001,
-        name: 'Mirza Ayo Sholat',
-        gender: 'male', // 'male' (Laki-laki) atau 'female' (Perempuan)
+        nik: 3507103611003001,
+        name: 'ini ayunda',
+        gender: 'female', // 'male' (Laki-laki) atau 'female' (Perempuan)
         birthDate: '2024-02-15', // Format YYYY-MM-DD
         address: 'Jl. Medan Merdeka Barat No. 1',
         city: 'Jakarta Pusat',
